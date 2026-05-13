@@ -24,6 +24,9 @@ export const MINING_HEALTH_MODEL = "claude-sonnet-4-6" as const;
  * Local input type. Re-declared here for the same reason as
  * `ScenarioOutputLike` in scenario-narrative.ts — we don't depend on the
  * engine or the DB layer; live data is passed in by the caller.
+ *
+ * Exported so the data loader layer (`src/lib/agents/loaders/mining.ts`) can
+ * type its return value without re-declaring the contract.
  */
 export interface MiningHealthInput {
   /** Hashprice in USD per terahash per day, rolling 30d average. */
@@ -97,7 +100,7 @@ export async function runMiningHealth(
   input: MiningHealthInput,
   opts: RunMiningHealthOptions = {},
 ): Promise<MiningHealthOutput> {
-  const client = opts.client ?? new Anthropic();
+  const client = opts.client ?? new Anthropic({ apiKey: process.env["ANTHROPIC_API_KEY"] });
   const model = opts.model ?? MINING_HEALTH_MODEL;
 
   const response = await client.messages.create({
