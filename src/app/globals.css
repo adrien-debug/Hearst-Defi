@@ -243,3 +243,54 @@ code,
   font-family: var(--font-mono);
   font-feature-settings: "tnum", "zero", "ss01";
 }
+
+/* =============================================================================
+   RANGE SLIDER — no external lib, brand-consistent
+   Usage: apply class="slider-track" + CSS var --slider-pct for fill width.
+   ============================================================================= */
+
+.slider-track {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: var(--radius-full);
+  outline: none;
+  border: none;
+  background: linear-gradient(
+    to right,
+    var(--color-brand) 0%,
+    var(--color-brand) var(--slider-pct, 50%),
+    var(--color-bg-elevated) var(--slider-pct, 50%),
+    var(--color-bg-elevated) 100%
+  );
+}
+
+.slider-track::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  background: var(--color-brand);
+  border: 2px solid var(--color-brand-fg);
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.slider-track::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 4px var(--color-accent-glow);
+}
+
+.slider-track::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  background: var(--color-brand);
+  border: 2px solid var(--color-brand-fg);
+  cursor: pointer;
+}
+
+.slider-track:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px var(--color-accent-glow);
+}

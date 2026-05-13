@@ -1,0 +1,276 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`runBacktest snapshots > matches snapshot for key=bear_2022 1`] = `
+{
+  "assumptions": [
+    "bear_2022: BTC -65%, hashprice -60% over 12 months (Jun 2022 – Jun 2023)",
+    "Linear interpolation applied across monthly steps; all projections use apy_range.low (conservative)",
+    "Historical simulation — not a projection of future performance",
+    "methodology_version=v1.0",
+  ],
+  "endDate": "2023-06",
+  "endingValue": 2220125.37,
+  "hearstRulesMode": true,
+  "initialCapital": 1000000,
+  "key": "bear_2022",
+  "maxDrawdownPct": 0,
+  "monthlySeries": [
+    {
+      "distributionUsdc": 107200,
+      "month": "2022-06",
+      "valueUsdc": 1107200,
+    },
+    {
+      "distributionUsdc": 112085.55,
+      "month": "2022-07",
+      "valueUsdc": 1219285.55,
+    },
+    {
+      "distributionUsdc": 115659.4,
+      "month": "2022-08",
+      "valueUsdc": 1334944.95,
+    },
+    {
+      "distributionUsdc": 118654.36,
+      "month": "2022-09",
+      "valueUsdc": 1453599.31,
+    },
+    {
+      "distributionUsdc": 120527.61,
+      "month": "2022-10",
+      "valueUsdc": 1574126.92,
+    },
+    {
+      "distributionUsdc": 120499.42,
+      "month": "2022-11",
+      "valueUsdc": 1694626.34,
+    },
+    {
+      "distributionUsdc": 88403.01,
+      "month": "2022-12",
+      "valueUsdc": 1783029.35,
+    },
+    {
+      "distributionUsdc": 85407.11,
+      "month": "2023-01",
+      "valueUsdc": 1868436.46,
+    },
+    {
+      "distributionUsdc": 81541.68,
+      "month": "2023-02",
+      "valueUsdc": 1949978.14,
+    },
+    {
+      "distributionUsdc": 76780.39,
+      "month": "2023-03",
+      "valueUsdc": 2026758.53,
+    },
+    {
+      "distributionUsdc": 71156.11,
+      "month": "2023-04",
+      "valueUsdc": 2097914.64,
+    },
+    {
+      "distributionUsdc": 64720.67,
+      "month": "2023-05",
+      "valueUsdc": 2162635.31,
+    },
+    {
+      "distributionUsdc": 57490.06,
+      "month": "2023-06",
+      "valueUsdc": 2220125.37,
+    },
+  ],
+  "numRebalances": 1,
+  "startDate": "2022-06",
+  "totalReturnPct": 122.01,
+  "worstMonthPct": 0,
+}
+`;
+
+exports[`runBacktest snapshots > matches snapshot for key=etf_halving_2024 1`] = `
+{
+  "assumptions": [
+    "etf_halving_2024: BTC +150%, hashprice +40% over 18 months (Oct 2023 – Apr 2025)",
+    "Halving compression applied months 7-10: hashprice dip -20% additional",
+    "Linear interpolation applied across monthly steps; all projections use apy_range.low (conservative)",
+    "Historical simulation — not a projection of future performance",
+    "methodology_version=v1.0",
+  ],
+  "endDate": "2025-04",
+  "endingValue": 9549447.02,
+  "hearstRulesMode": true,
+  "initialCapital": 1000000,
+  "key": "etf_halving_2024",
+  "maxDrawdownPct": 0,
+  "monthlySeries": [
+    {
+      "distributionUsdc": 107200,
+      "month": "2023-10",
+      "valueUsdc": 1107200,
+    },
+    {
+      "distributionUsdc": 121598.24,
+      "month": "2023-11",
+      "valueUsdc": 1228798.24,
+    },
+    {
+      "distributionUsdc": 139038.52,
+      "month": "2023-12",
+      "valueUsdc": 1367836.76,
+    },
+    {
+      "distributionUsdc": 158372.7,
+      "month": "2024-01",
+      "valueUsdc": 1526209.46,
+    },
+    {
+      "distributionUsdc": 182089.51,
+      "month": "2024-02",
+      "valueUsdc": 1708298.97,
+    },
+    {
+      "distributionUsdc": 208312.82,
+      "month": "2024-03",
+      "valueUsdc": 1916611.79,
+    },
+    {
+      "distributionUsdc": 238745.94,
+      "month": "2024-04",
+      "valueUsdc": 2155357.73,
+    },
+    {
+      "distributionUsdc": 215248.39,
+      "month": "2024-05",
+      "valueUsdc": 2370606.12,
+    },
+    {
+      "distributionUsdc": 241722.8,
+      "month": "2024-06",
+      "valueUsdc": 2612328.92,
+    },
+    {
+      "distributionUsdc": 271856.36,
+      "month": "2024-07",
+      "valueUsdc": 2884185.28,
+    },
+    {
+      "distributionUsdc": 306204.34,
+      "month": "2024-08",
+      "valueUsdc": 3190389.62,
+    },
+    {
+      "distributionUsdc": 439316.65,
+      "month": "2024-09",
+      "valueUsdc": 3629706.27,
+    },
+    {
+      "distributionUsdc": 509338.53,
+      "month": "2024-10",
+      "valueUsdc": 4139044.8,
+    },
+    {
+      "distributionUsdc": 591676.45,
+      "month": "2024-11",
+      "valueUsdc": 4730721.25,
+    },
+    {
+      "distributionUsdc": 688714.17,
+      "month": "2024-12",
+      "valueUsdc": 5419435.42,
+    },
+    {
+      "distributionUsdc": 803205.49,
+      "month": "2025-01",
+      "valueUsdc": 6222640.91,
+    },
+    {
+      "distributionUsdc": 938581.67,
+      "month": "2025-02",
+      "valueUsdc": 7161222.58,
+    },
+    {
+      "distributionUsdc": 1098949.28,
+      "month": "2025-03",
+      "valueUsdc": 8260171.86,
+    },
+    {
+      "distributionUsdc": 1289275.16,
+      "month": "2025-04",
+      "valueUsdc": 9549447.02,
+    },
+  ],
+  "numRebalances": 0,
+  "startDate": "2023-10",
+  "totalReturnPct": 854.94,
+  "worstMonthPct": 0,
+}
+`;
+
+exports[`runBacktest snapshots > matches snapshot for key=mining_crunch_2024 1`] = `
+{
+  "assumptions": [
+    "mining_crunch_2024: hashprice -40%, difficulty +30% (proxied via energy cost), BTC flat over 9 months (Apr–Dec 2024)",
+    "Linear interpolation applied across monthly steps; all projections use apy_range.low (conservative)",
+    "Historical simulation — not a projection of future performance",
+    "methodology_version=v1.0",
+  ],
+  "endDate": "2024-12",
+  "endingValue": 2011552.97,
+  "hearstRulesMode": true,
+  "initialCapital": 1000000,
+  "key": "mining_crunch_2024",
+  "maxDrawdownPct": 0,
+  "monthlySeries": [
+    {
+      "distributionUsdc": 107200,
+      "month": "2024-04",
+      "valueUsdc": 1107200,
+    },
+    {
+      "distributionUsdc": 111882.56,
+      "month": "2024-05",
+      "valueUsdc": 1219082.56,
+    },
+    {
+      "distributionUsdc": 115690.93,
+      "month": "2024-06",
+      "valueUsdc": 1334773.49,
+    },
+    {
+      "distributionUsdc": 118461.15,
+      "month": "2024-07",
+      "valueUsdc": 1453234.64,
+    },
+    {
+      "distributionUsdc": 120037.18,
+      "month": "2024-08",
+      "valueUsdc": 1573271.82,
+    },
+    {
+      "distributionUsdc": 120276.63,
+      "month": "2024-09",
+      "valueUsdc": 1693548.45,
+    },
+    {
+      "distributionUsdc": 119042.34,
+      "month": "2024-10",
+      "valueUsdc": 1812590.79,
+    },
+    {
+      "distributionUsdc": 116262.59,
+      "month": "2024-11",
+      "valueUsdc": 1928853.38,
+    },
+    {
+      "distributionUsdc": 82699.59,
+      "month": "2024-12",
+      "valueUsdc": 2011552.97,
+    },
+  ],
+  "numRebalances": 1,
+  "startDate": "2024-04",
+  "totalReturnPct": 101.16,
+  "worstMonthPct": 0,
+}
+`;
