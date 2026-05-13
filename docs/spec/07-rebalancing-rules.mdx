@@ -1,0 +1,49 @@
+---
+title: Rebalancing Rules
+order: 7
+---
+
+# Rebalancing Rules
+
+## Philosophy
+
+- Explicit triggers, never ML black-box.
+- Simulation mandatory before execution.
+- Multisig approval at MVP (no auto-execution).
+- Plain-English log for every action.
+
+## The 3 vault regimes
+
+| Regime | Mining | BTC tactical | USDC base | Stable reserve | Trigger |
+|---|---|---|---|---|---|
+| Defensive | 20–30% | 0–10% | 50–60% | 15–25% | BTC −25% / mining margin <50 / DeFi stress |
+| Balanced (default) | 30–40% | 10–20% | 35–45% | 10–15% | Normal conditions |
+| Opportunistic | 30–40% | 20–30% | 25–35% | 5–10% | BTC accumulation zone OR mining margin >75 |
+
+Bounds are **hard**, enforced on-chain (Phase 3). No exit without timelock + multisig.
+
+## Global rules
+
+| ID | Trigger | Action |
+|---|---|---|
+| R1 | BTC drawdown > 25% on 30d | Switch → Defensive |
+| R2 | Mining Margin Score < 50 | ↓ mining 30%, ↑ stable reserve |
+| R3 | Mining Margin Score > 75 + BTC momentum + | Maintain or ↑ mining +10% |
+| R4 | Hashprice −20% on 30d | Trigger human review |
+| R5 | RWA yield > mining net yield (risk-adjusted) | Partial rotation mining → RWA |
+| R6 | Stablecoin depeg > 50bps sustained 24h | Pause new allocations to that stable |
+| R7 | DeFi protocol risk score > 70 | Exit progressive (3 tranches / 7d) |
+| R8 | Vault concentration > 30% on single protocol | Force diversification |
+
+BTC tactical rules (R-BTC-1 to R-BTC-6) live in `/docs/spec/06-btc-tactical.mdx`.
+
+## PTAI standard format (every action)
+
+```
+PROJECTION  <hypotheses summary, 1 line>
+TRIGGER     <rule ID + condition that fired, 1 line>
+ACTION      <allocation moves, numeric, max 3 lines>
+IMPACT      <APY range delta, distribution change, drawdown contained>
+```
+
+This pattern is enforced by the `<Ptai>` component in UI.

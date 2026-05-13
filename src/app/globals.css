@@ -1,0 +1,245 @@
+@import "tailwindcss";
+
+/* =============================================================================
+   Hearst Connect — design system (connect-scope, always-dark)
+   Mirrors ~/Dev/hearst-connect/src/styles/theme/tokens.css. Single source of
+   truth for accent is --brand-accent; everything else derives from it.
+   ============================================================================= */
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Variable.woff2") format("woff2-variations");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  /* ---- Brand ---- */
+  --color-brand: #a7fb90;
+  --color-brand-strong: #b8fca3;
+  --color-brand-fg: #000000;
+
+  /* ---- Surfaces (connect-scope) ---- */
+  --color-bg: #141416;
+  --color-bg-elevated: #0a0a0a;
+  --color-bg-card: #050505;
+  --color-bg-tertiary: #1f1f22;
+
+  /* ---- Borders ---- */
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-border-strong: rgba(255, 255, 255, 0.20);
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+
+  /* ---- Text ---- */
+  --color-text: rgba(255, 255, 255, 0.92);
+  --color-text-muted: rgba(255, 255, 255, 0.60);
+  --color-text-dim: rgba(255, 255, 255, 0.40);
+
+  /* ---- Status ---- */
+  --color-success: #a7fb90;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #74b9ff;
+
+  /* ---- Typography ---- */
+  --font-sans: "Satoshi", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-mono: "Satoshi", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+
+  /* Type scale — brand canonical (matches src/styles/theme/tokens.css) */
+  --text-micro: 11px;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-xxl: 40px;
+
+  /* Font weights */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-black: 800;
+
+  /* Letter spacing */
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-uppercase: 0.08em;
+  --tracking-loose: 0.05em;
+  --tracking-wide: 0.12em;
+  --tracking-display: 0.2em;
+
+  /* Line heights */
+  --leading-display: 1.1;
+  --leading-tight: 1.2;
+  --leading-base: 1.5;
+  --leading-relaxed: 1.6;
+  --leading-loose: 1.8;
+
+  /* ---- Spacing (4px base) ---- */
+  --space-0: 0px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 120px;
+
+  /* ---- Radius ---- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* Semantic radius — used by components, change primitives to re-skin */
+  --radius-card: var(--radius-lg);
+  --radius-button: var(--radius-md);
+  --radius-modal: var(--radius-lg);
+
+  /* ---- Transitions ---- */
+  --transition-fast: 120ms ease-out;
+  --transition-base: 150ms ease-out;
+  --transition-slow: 250ms ease-out;
+}
+
+:root {
+  /* RGB triplet for opacity composition: rgba(var(--brand-accent-rgb), 0.x) */
+  --brand-accent-rgb: 167, 251, 144;
+
+  /* Accent surfaces derived from the brand triplet */
+  --color-accent-dim: rgba(var(--brand-accent-rgb), 0.10);
+  --color-accent-subtle: rgba(var(--brand-accent-rgb), 0.15);
+  --color-accent-glow: rgba(var(--brand-accent-rgb), 0.25);
+
+  color-scheme: dark;
+}
+
+/* =============================================================================
+   BASE
+   ============================================================================= */
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "cv11";
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+::selection {
+  background: var(--color-brand);
+  color: var(--color-brand-fg);
+}
+
+/* Numeric strings stay aligned across rows in tables, KPIs, etc. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* =============================================================================
+   TYPOGRAPHIC ROLES
+   These are semantic classes (not utility soup): apply them to <h1>/<h2>/<h3>
+   so heading hierarchy stays consistent across the app. They map directly to
+   the brand's stat-value / kpi-label / eyebrow grammar.
+   ============================================================================= */
+
+.h1 {
+  font-size: var(--text-xxl);
+  font-weight: var(--weight-black);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-display);
+  color: var(--color-text);
+}
+
+.h2 {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  color: var(--color-text);
+}
+
+.h3 {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  color: var(--color-text);
+}
+
+.h4 {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  color: var(--color-text);
+}
+
+/* Small uppercase kicker — section labels above an h1/h2. */
+.eyebrow {
+  font-size: var(--text-micro);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-uppercase);
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+/* Numeric KPIs — pair with .h1 (huge) or .stat-value (medium). */
+.stat-value {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-black);
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.stat-label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-uppercase);
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+/* Body roles */
+.body-md {
+  font-size: var(--text-md);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text-muted);
+}
+
+.body-sm {
+  font-size: var(--text-sm);
+  line-height: var(--leading-base);
+  color: var(--color-text-muted);
+}
+
+.body-xs {
+  font-size: var(--text-xs);
+  line-height: var(--leading-base);
+  color: var(--color-text-dim);
+}
+
+/* Inline code / mono runs in body text */
+code,
+.mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum", "zero", "ss01";
+}

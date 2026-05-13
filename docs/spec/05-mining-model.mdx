@@ -1,0 +1,62 @@
+---
+title: Mining Model
+order: 5
+---
+
+# Mining Model
+
+## Core formulas
+
+```
+mining_revenue       = deployed_hashrate (TH/s) × hashprice ($/TH/day) × uptime (%)
+operating_costs      = energy_cost + hosting_cost + pool_fee + maintenance
+mining_gross_margin  = mining_revenue − operating_costs
+distributable_yield  = (mining_gross_margin × revenue_share_hearst) − management_fee
+```
+
+Hearst does NOT operate ASICs directly. The vault buys **exposure to the cashflow** via revenue-share with 1-2 partner farms. Mining yield is delivered in USDC monthly via attestation.
+
+## Variables (Phase 1 — paper, Phase 2+ — partner-attested)
+
+| Variable | Source | Frequency |
+|---|---|---|
+| deployed_hashrate | internal contracted | monthly |
+| hashprice | Luxor / Hashrate Index API | daily |
+| BTC price | Chainlink + Coingecko fallback | 1min |
+| network difficulty | mempool.space | per adjustment |
+| uptime | partner reporting | daily |
+| energy_cost | contractual + spot index | monthly |
+| pool fee | pool config | static |
+| revenue_share_hearst | contract | static |
+
+## The 3 Mining Health scores (visible on Dashboard)
+
+### Mining Margin Score (0–100)
+```
+score = 50 + 50 × (current_margin / target_margin − 1)
+clipped to [0, 100]
+```
+Thresholds: 🟢 ≥70 / 🟠 50–69 / 🔴 <50
+
+### Hashprice Trend
+```
+trend_pct = (hashprice_30d_avg / hashprice_60d_avg − 1) × 100
+```
+Thresholds: 🟢 ≥−5% / 🟠 −5 to −15% / 🔴 <−15%
+
+### Operational Confidence (0–100)
+```
+score = 50% × (uptime_30d / 95%, capped 100)
+      + 30% × attestation_freshness_factor
+      + 20% × energy_cost_stability
+```
+
+## Conditional logic into rebalancing
+
+| Condition | Action |
+|---|---|
+| BTC ↑ + difficulty ↑ proportionnel | Mining yield stable → no action |
+| BTC ↓ + energy ↑ | Mining margin < 50 → ↓ mining, ↑ stable reserve |
+| Hashprice < $0.04/TH/day for 30d | Trigger human review |
+| Mining margin score > 75 + BTC momentum + | Maintain or ↑ mining +10% |
+| Halving D-30 | Pre-position: ↑ reserve, prepare margin compression scenario |

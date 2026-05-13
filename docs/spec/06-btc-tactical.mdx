@@ -1,0 +1,71 @@
+---
+title: BTC Tactical Engine
+order: 6
+---
+
+# BTC Tactical Engine
+
+## Purpose
+
+The vault does NOT just hold BTC passively. It sizes exposure with rules.
+
+## Dashboard card content
+
+| Field | Example |
+|---|---|
+| Position size | 14% AUM ($3.44M) |
+| BTC held | 36.5 BTC |
+| Avg entry price | $58,420 |
+| Current price | $94,180 |
+| Unrealized P&L | +$840k (+61.3%) |
+| Next accumulate | if BTC < $75,344 |
+| Next profit-take | if BTC > $113,946 |
+| Volatility guardrail | NORMAL ✓ |
+| Mining margin guardrail | HEALTHY ✓ |
+
+## Rules (deterministic, all approved by multisig at MVP)
+
+### R-BTC-1 — Accumulate T1
+- IF BTC drawdown > 20% from ATH 90d
+- AND Mining Margin Score ≥ 60
+- AND Position size < 20% AUM
+- THEN convert 5% AUM (USDC → BTC)
+
+### R-BTC-2 — Accumulate T2
+- IF BTC drawdown > 35% from ATH 90d
+- AND Mining Margin Score ≥ 60
+- AND Position size < 25% AUM
+- THEN convert 5% AUM additional
+
+### R-BTC-3 — Take-profit T1
+- IF BTC current > avg_entry × 1.30
+- AND Position size > 10% AUM
+- THEN sell 25% of BTC tactical position
+
+### R-BTC-4 — Take-profit T2
+- IF BTC current > avg_entry × 1.60
+- AND Position size > 10% AUM (post T1)
+- THEN sell 25% additional
+
+### R-BTC-5 — Volatility guardrail
+- IF BTC realised vol 30d > 90%
+- THEN halve BTC tactical, ↑ stable reserve
+
+### R-BTC-6 — Mining margin guardrail
+- IF Mining Margin Score < 50 for 14 consecutive days
+- THEN suspend accumulation, ↑ stable reserve
+
+## Execution flow
+
+```
+[Trigger fire]
+   → [Strategy Engine computes new allocation]
+   → [Scenario Engine simulates 30d impact]
+   → [Risk Engine validates against bounds]
+   → [Reporting Agent generates plain-English explanation]
+   → [Notification to multisig + dashboard alert]
+   → [Human approval]
+   → [Execution on-chain + event log]
+```
+
+Every execution emits a `RebalanceExecuted(timestamp, ruleId, fromAlloc, toAlloc)` event (Phase 2+).

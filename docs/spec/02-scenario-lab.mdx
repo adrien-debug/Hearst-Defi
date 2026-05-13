@@ -1,0 +1,65 @@
+---
+title: Scenario Lab
+order: 2
+---
+
+# Scenario Lab
+
+## Purpose
+
+Answer the client's central question: **"What happens if the market changes?"**
+
+## The 5 MVP presets
+
+| # | Scenario | Pre-filled assumptions | Sales use |
+|---|---|---|---|
+| 1 | Base Case | Current conditions ±0 | Memo baseline |
+| 2 | BTC Bear | BTC −40%, hashprice −30%, energy +5% | Reassure downside |
+| 3 | BTC Bull | BTC +60%, hashprice +20%, vol high | Show controlled upside |
+| 4 | Mining Margin Compression | Difficulty +30%, hashprice −25%, energy +15%, BTC stable | Show resilience beyond mining |
+| 5 | Extreme Stress | BTC −50%, hashprice −40%, DeFi shock, stable depeg 50bps | Reasonable worst case |
+
+## The 5 sliders (custom mode)
+
+1. BTC price change (−60% to +120%)
+2. Hashprice ($/TH/day, range 0.02–0.15)
+3. Energy cost ($/kWh, default 0.045)
+4. Stable base APY (1% to 8%)
+5. BTC volatility 30d (low / normal / high)
+
+## Output (every scenario shows these 11 items)
+
+1. Main assumptions (4 lines)
+2. Projected APY range (P25–P75)
+3. Monthly USDC distribution forecast (12m chart)
+4. Max drawdown estimate (%)
+5. Mining revenue impact (% vs base)
+6. BTC tactical action (accumulate / hold / profit-take, size)
+7. Vault mode change (Defensive / Balanced / Opportunistic)
+8. Rebalancing actions (ordered list, max 4)
+9. Confidence score (Low / Medium / High)
+10. Plain-English explanation (Scenario Narrative Agent)
+11. Client-friendly risk warning
+
+## PTAI block (mandatory rendering)
+
+Every scenario result renders a PTAI block:
+- **Projection** (1 line)
+- **Trigger** (1 line, cites rule ID)
+- **Action** (allocation moves, numeric)
+- **Impact** (APY range delta, distribution %, drawdown)
+
+See `/docs/spec/07-rebalancing-rules.mdx` for rule IDs.
+
+## Confidence formula
+
+```
+confidence = f(
+  data freshness  (40%),
+  historical fit  (30%),
+  assumption count out of range (20%),
+  rebalancing room within bounds (10%)
+)
+```
+
+Low / Medium / High thresholds defined in engine.

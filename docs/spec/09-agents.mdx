@@ -1,0 +1,108 @@
+---
+title: AI Agents
+order: 9
+---
+
+# AI Agents
+
+## Principle
+
+Agents produce **artifacts**, not chat. Invisible in UX except when delivering output.
+
+## The 4 agents
+
+### 1. Scenario Narrative Agent (Sonnet 4.6)
+- **Trigger**: `POST /api/scenarios/run`
+- **Input**: scenario_run JSON (assumptions + computed outputs)
+- **Output schema**:
+  ```ts
+  {
+    narrative: string;          // max 500 chars
+    risk_warning: string;       // max 200 chars
+    confidence: "low" | "medium" | "high";
+    key_drivers: string[];      // max 3
+  }
+  ```
+- **Guardrails**:
+  - Forbidden words: "guarantee", "promise", "certain", "will deliver", "risk-free"
+  - Must mention ≥ 1 assumption
+  - If confidence = low → must say so explicitly
+
+### 2. Mining Health Agent (Sonnet 4.6)
+- **Trigger**: daily 08:00 UTC cron + on-demand from Dashboard
+- **Input**: 30d hashprice, difficulty, BTC price, energy cost, uptime, allocation
+- **Output schema**:
+  ```ts
+  {
+    alert_level: "green" | "orange" | "red";
+    summary: string;            // max 400 chars
+    recommendation: string;     // max 200 chars (suggests, never executes)
+    key_metrics: {
+      mining_margin_score: number;
+      hashprice_trend_pct: number;
+      operational_confidence: number;
+    };
+  }
+  ```
+- **Guardrails**:
+  - Red alert → notify manager (no auto-action)
+  - Summary must cite ≥ 2 numeric metrics
+
+### 3. Risk Explanation Agent (Sonnet 4.6)
+- **Trigger**: daily + on every rebalancing event
+- **Input**: 5 risk scores + 30d evolution + current allocation
+- **Output schema**:
+  ```ts
+  {
+    top_risks: Array<{
+      risk_type: "market" | "mining" | "liquidity" | "smart_contract" | "counterparty";
+      score: number;
+      trend: "rising" | "stable" | "falling";
+      explanation: string;       // max 300 chars
+      suggested_guardrail: string; // max 200 chars
+    }>;
+  }
+  ```
+- **Guardrails**:
+  - Guardrails proposed must stay within vault bounds
+  - Never claims "we will fix" — proposes, doesn't decide
+
+### 4. Investor Memo Agent (Opus 4.7)
+- **Trigger**: click "Generate memo" + `client_name` + `logo_url`
+- **Input**: vault state + 3 scenarios + 3 backtests + methodology version
+- **Output schema**:
+  ```ts
+  {
+    sections: {
+      executive_summary: string;     // markdown
+      yield_source: string;          // markdown
+      stress_scenarios: PtaiBlock[]; // structured
+      vault_response: string;
+      methodology: string;
+      trust: string;
+      risks_and_terms: string;
+    };
+    methodology_version: string;
+    generated_at: string;            // ISO datetime
+    warnings: string[];              // missing data, low-confidence flags
+  }
+  ```
+- **Guardrails**:
+  - Methodology + glossary + disclaimers injected via **prompt caching** (immutable templates)
+  - Disclaimers NEVER generated, only templated
+  - If data missing → explicitly flagged in `warnings[]`, no invention
+
+## Stack
+
+- Anthropic SDK (`@anthropic-ai/sdk`)
+- **Prompt caching** on methodology + glossary + disclaimers
+- Sonnet 4.6 for ops, Opus 4.7 for memo final
+- All outputs validated via Zod schemas (`src/lib/agents/schemas.ts`)
+- Linter strips/rejects forbidden words (`src/lib/agents/validators.ts`)
+
+## Forbidden absolutely
+
+- ❌ Chat ("Ask the AI" widget)
+- ❌ Unsourced recommendations
+- ❌ Yield affirmations / guarantees
+- ❌ Autonomous decisions (agents propose, humans decide)

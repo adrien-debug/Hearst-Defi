@@ -1,0 +1,44 @@
+---
+title: Proof Center
+order: 3
+---
+
+# Proof Center
+
+## Purpose
+
+Sell the trust. This screen exists so the LP committee has nothing to attack on data provenance.
+
+## Sections
+
+### Proof of Reserves
+Vault total USDC + breakdown by bucket. Each line links to Etherscan (Phase 2+).
+
+### Mining Attestations
+Latest attestation timestamp, period, partner name, on-chain hash + tx link.
+
+### On-chain addresses
+- Vault contract
+- Manager (Safe 3/5)
+- PoR Registry
+- Custody address
+
+### Latest distributions
+Last 3-6 distributions with tx hashes, amount USDC, recipients count.
+
+### Latest rebalancing events
+Last 5 events with rule ID, PTAI modal on click.
+
+### Audit & methodology
+- Smart contract audit status (Spearbit, report PDF link)
+- Methodology version (link to `/docs/methodology/v1.0.md`)
+- Data freshness (all feeds < 24h check)
+
+## Badge taxonomy (rendered everywhere)
+
+- **Live** (green) — fetched fresh from oracle / on-chain
+- **Oracle** (blue) — aggregated oracle feed
+- **Attested** (purple) — signed by partner
+- **Estimated** (orange) — derived from live inputs
+- **Manual** (yellow) — manual hypothesis
+- **Stale** (red) — > freshness threshold

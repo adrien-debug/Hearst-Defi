@@ -1,0 +1,54 @@
+---
+title: Dashboard
+order: 1
+---
+
+# Dashboard
+
+## Purpose
+
+Show what the vault is **right now**, in 5 cards + 4 sections, scrollable in < 1.5x viewport.
+
+## Hero — 5 cards
+
+| Card | Value (example) | Sublabel | Provenance | Tooltip |
+|---|---|---|---|---|
+| AUM | `$24.6M` | ▲ +$1.2M (30d) | Live | "Assets Under Management. Total USDC equivalent of all vault holdings, marked to market." |
+| APY range | `9.4–12.8%` | forward 12m, conditional | Live + Hypothesis | "Forward 12m projected APY range, calculated from current allocation × asset-class yield assumptions. Not guaranteed. Methodology v1.0." |
+| Stressed APY | `5.2%` | Bear + Mining Compression | Scenario | "Projected APY under combined Bear scenario (BTC −40%, hashprice −30%). Conditional projection." |
+| Risk Score | `42/100` | Low–Moderate | Live | "Composite score (Market, Mining, Liquidity, Smart Contract, Counterparty). Lower = lower risk." |
+| Next distribution | `May 31` | ~$187k | Estimate | "Next monthly USDC distribution. Estimate from current mining margin + base yield accrual." |
+
+## Allocation section
+
+Donut chart with 4 buckets + yield source breakdown:
+- Mining cashflow (~6.2% net contribution)
+- USDC base yield (~4.8%)
+- BTC tactical P&L (variable)
+- Stable reserve (~4.5%)
+
+Blended target shown as **range**, never a point.
+
+## Mining Health section
+
+3 scores — see `/docs/spec/05-mining-model.mdx`:
+- Mining Margin Score (0-100)
+- Hashprice Trend (% 30d)
+- Operational Confidence (0-100)
+
+## BTC Tactical section
+
+Dedicated card — see `/docs/spec/06-btc-tactical.mdx`:
+- Position size, BTC held, avg entry, current price, unrealized P&L
+- Next accumulation / profit-taking triggers (numeric)
+- Volatility guardrail status
+- Mining margin guardrail status
+
+## Activity feed
+
+Last 5 events: rebalances, distributions, risk alerts. Each opens a PTAI modal.
+
+## Modes
+
+- **Simple** (default) — everything above
+- **Advanced** (toggle) — adds Sharpe, Sortino, top DeFi positions, fee accrual, NAV/share evolution

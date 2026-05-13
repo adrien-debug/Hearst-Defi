@@ -1,0 +1,192 @@
+// Hearst Connect — Prisma schema
+// MVP tables. Postgres in production, SQLite for local dev.
+// Source of truth for data model: /docs/spec/* + plan section 15.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// VAULT STATE — time-series snapshots
+// =============================================================================
+
+model VaultSnapshot {
+  id                   String   @id @default(cuid())
+  takenAt              DateTime @default(now())
+  aumUsdc              Float
+  currentApyLow        Float
+  currentApyHigh       Float
+  stressedApy          Float
+  riskScore            Int
+  miningMarginScore    Int
+  mode                 String   // defensive | balanced | opportunistic
+  source               String   @default("computed")
+
+  allocations          Allocation[]
+
+  @@index([takenAt])
+}
+
+model Allocation {
+  id                  String        @id @default(cuid())
+  snapshotId          String
+  snapshot            VaultSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  bucket              String        // mining | btc_tactical | usdc_base | stable_reserve
+  pct                 Float
+  valueUsdc           Float
+  yieldContributionBps Float
+
+  @@index([snapshotId])
+}
+
+// =============================================================================
+// MINING — daily metrics
+// =============================================================================
+
+model MiningMetric {
+  id                      String   @id @default(cuid())
+  takenAt                 DateTime @default(now())
+  hashprice               Float    // $/TH/day
+  difficulty              Float
+  btcPrice                Float
+  energyCost              Float    // $/kWh
+  uptimePct               Float
+  deployedHashrate        Float    // TH/s
+  miningMarginScore       Int
+  hashpriceTrendPct       Float
+  operationalConfidence   Int
+
+  @@index([takenAt])
+}
+
+// =============================================================================
+// SCENARIOS & BACKTESTS
+// =============================================================================
+
+model ScenarioRun {
+  id                  String   @id @default(cuid())
+  ranAt               DateTime @default(now())
+  userId              String?
+  preset              String?  // base | btc_bear | btc_bull | mining_compression | extreme_stress
+  inputs              String   // JSON: { btc_price_change, hashprice, energy, stable_apy, vol }
+  outputs             String   // JSON: ScenarioOutput
+  narrative           String?
+  riskWarning         String?
+  confidence          String   // low | medium | high
+  methodologyVersion  String   @default("v1.0")
+
+  @@index([ranAt])
+}
+
+model BacktestRun {
+  id                String   @id @default(cuid())
+  backtestKey       String   // bear_2022 | etf_halving_2024 | mining_crunch_2024
+  ranAt             DateTime @default(now())
+  initialCapital    Float
+  rulesMode         String   // hearst_rules | without_rules
+  endingValue       Float
+  totalReturnPct    Float
+  maxDrawdownPct    Float
+  worstMonthPct     Float
+  numRebalances     Int
+  monthlySeries     String   // JSON: [{ month, value, distribution }]
+  narrative         String?
+
+  @@index([backtestKey])
+}
+
+// =============================================================================
+// EVENTS — rebalancing, distributions, proofs
+// =============================================================================
+
+model RebalanceEvent {
+  id              String   @id @default(cuid())
+  executedAt      DateTime @default(now())
+  ruleId          String   // e.g. "R2", "R-BTC-3"
+  triggerText     String   // plain English
+  actionText      String
+  impactText      String
+  fromAllocation  String   // JSON
+  toAllocation    String   // JSON
+  txHash          String?  // Phase 2+
+  approvedBy      String   // JSON array of multisig signers
+
+  @@index([executedAt])
+}
+
+model Distribution {
+  id              String   @id @default(cuid())
+  distributedAt   DateTime
+  amountUsdc      Float
+  txHash          String?
+  recipientsCount Int
+  period          String   // "2026-04"
+
+  @@index([distributedAt])
+}
+
+model Proof {
+  id          String   @id @default(cuid())
+  proofType   String   // mining_attestation | custody | audit | methodology
+  period      String?
+  hash        String   // bytes32 hex
+  uri         String   // IPFS or HTTPS
+  postedAt    DateTime @default(now())
+  postedBy    String
+  txHash      String?
+
+  @@index([proofType, period])
+}
+
+// =============================================================================
+// REPORTS — investor memo exports
+// =============================================================================
+
+model ReportExport {
+  id                  String   @id @default(cuid())
+  generatedAt         DateTime @default(now())
+  generatedBy         String
+  clientName          String
+  scenariosIncluded   String   // JSON array
+  backtestsIncluded   String   // JSON array
+  methodologyVersion  String
+  pdfUrl              String?
+
+  @@index([generatedAt])
+}
+
+// =============================================================================
+// ADMIN — roadmap validation + feedback
+// =============================================================================
+
+model RoadmapValidation {
+  id            String    @id @default(cuid())
+  itemId        String    @unique  // FK virtual to docs/roadmap.json items
+  status        String    @default("todo")  // todo | in_progress | done | blocked | validated
+  validatedBy   String?
+  validatedAt   DateTime?
+  notes         String?
+  blockers      String?
+  evidenceUrl   String?
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status])
+}
+
+model Feedback {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  itemId      String?  // optional link to a roadmap item
+  pathname    String?  // page where feedback was submitted
+  message     String
+  author      String?  // optional name
+  resolved    Boolean  @default(false)
+
+  @@index([createdAt])
+  @@index([itemId])
+}

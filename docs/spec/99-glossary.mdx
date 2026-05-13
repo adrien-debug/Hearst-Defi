@@ -1,0 +1,52 @@
+---
+title: Glossary
+order: 99
+---
+
+# Glossary
+
+## Product
+
+- **Hearst Yield Vault** — the single MVP product. Cayman ELP, $250k min, 60d soft lock.
+- **AUM** — Assets Under Management. Total USDC equivalent.
+- **APY range** — forward 12m projected APY low and high, never a single point.
+- **Stressed APY** — APY under combined Bear + Mining Compression scenario.
+- **Distribution** — monthly USDC payout to LPs.
+
+## Mining
+
+- **Hashprice** — revenue per unit of hashrate per day, in USD. Source: Luxor / Hashrate Index.
+- **Hashrate** — computing power, TH/s (terahashes/second).
+- **Difficulty** — network parameter; adjusts every 2016 blocks (~2 weeks).
+- **Mining margin** — net mining revenue after operating costs.
+- **Mining Margin Score** — 0–100 composite (see `05-mining-model.mdx`).
+- **Operational Confidence** — 0–100 partner reliability score.
+- **Revenue-share** — Hearst's % of partner farm gross margin.
+
+## Vault
+
+- **Regime** — one of Defensive / Balanced / Opportunistic. Hard bounds enforced on-chain.
+- **PTAI** — Projection → Trigger → Action → Impact. The standard format for any simulation or action.
+- **Withdrawal queue** — 60-day soft lock-up queue (Phase 3+).
+
+## Data provenance badges
+
+- **Live** — fresh on-chain or oracle.
+- **Oracle** — aggregated oracle feed (e.g., Chainlink).
+- **Attested** — signed by partner (mining attestation, custodian).
+- **Estimated** — derived from live inputs by the engine.
+- **Manual** — manual hypothesis (e.g., scenario input).
+- **Stale** — beyond freshness threshold.
+
+## Methodology
+
+- **Methodology v1.0** — immutable spec document for projections. Versioned; bumps require ADR.
+- **Confidence** — Low / Medium / High score for any projection. Function of data freshness, historical fit, assumption range, rebalancing room.
+
+## Structure
+
+- **Cayman ELP** — Cayman Exempted Limited Partnership. The fund structure.
+- **GP** — General Partner (Hearst Management Co).
+- **LP** — Limited Partner (the investor).
+- **Multisig** — Safe 3/5 wallet that approves rebalancing.
+- **Timelock** — 48h delay on critical contract changes.

@@ -1,0 +1,40 @@
+---
+title: Investor Memo
+order: 4
+---
+
+# Investor Memo
+
+## Purpose
+
+Generate an 8-page PDF in 1 click that the sales team hands to a LP committee.
+
+## Structure (8 pages)
+
+| Page | Question answered | Components |
+|---|---|---|
+| 1 | (cover) | Hearst logo + client logo, vault name, date, "Confidential", RM contact |
+| 2 | What is this? | Pitch paragraph + 6 key metrics |
+| 3 | Where does the yield come from? | Mining causal diagram + 4-source breakdown + net yields table |
+| 4 | What can go wrong? | 3 PTAI blocks (Bear, Mining Compression, Extreme Stress) |
+| 5 | What does the vault do if things go wrong? | 8 rebalancing rules + regime diagram + last action |
+| 6 | How are projections calculated? | Methodology v1.0, assumptions, confidence explained, data sources |
+| 7 | What is verified? | Mini Proof Center — audit, attestations, on-chain links, methodology version, freshness |
+| 8 | What is not guaranteed? + What decision is requested? | 5 risks + disclaimers + subscription terms + contact |
+
+## Generation
+
+- 1 master template, only variable fields: `client_name`, `client_logo`, `generated_at`
+- `react-pdf` composable rendering
+- Generation < 5s target
+- Watermark "DRAFT" when MVP / seed data, removed in production
+- Audit trail: every export stored in `report_exports` table with `methodology_version`
+
+## Disclaimers (templated, never AI-generated)
+
+- "Past performance does not guarantee future results."
+- "Projection conditional on stated assumptions. Not a promise of return."
+- "Subscription minimum $250k. Lock-up 60 days soft."
+- Jurisdictional disclaimers (legal review S11-S12)
+
+See `/docs/methodology/v1.0.md` for the full methodology block.

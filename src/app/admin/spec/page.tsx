@@ -1,0 +1,16 @@
+import { redirect } from "next/navigation";
+
+import { getSpecIndex } from "@/lib/spec";
+
+export default async function SpecIndexPage() {
+  const entries = await getSpecIndex();
+  const first = entries[0];
+  if (first) {
+    redirect(`/admin/spec/${first.slug}`);
+  }
+  return (
+    <div className="text-sm text-[--color-text-muted]">
+      No spec files found in <code>/docs/spec/</code>.
+    </div>
+  );
+}

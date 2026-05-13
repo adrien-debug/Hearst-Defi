@@ -1,0 +1,139 @@
+{
+  "version": "2026-05-13",
+  "phases": [
+    {
+      "id": "mvp",
+      "label": "MVP — Mois 0-3 (Single vault, single share class)",
+      "weeks": [
+        {
+          "id": "w1-2",
+          "label": "Semaine 1-2 — Foundations",
+          "items": [
+            { "id": "repo-init", "label": "Repo Next.js + TS strict + Tailwind v4", "owner": "eng", "spec_ref": "/docs/spec/00-vision.mdx" },
+            { "id": "ui-atoms", "label": "6 UI atomic components (Card, Metric, Badge, ProvenanceBadge, Button, Progress)", "owner": "design+eng", "spec_ref": "/docs/spec/01-dashboard.mdx" },
+            { "id": "claude-config", "label": "CLAUDE.md + .claude/agents/ (4 sub-agents)", "owner": "eng", "spec_ref": "/docs/spec/00-vision.mdx" },
+            { "id": "docs-spec", "label": "10 spec MDX files in /docs/spec/", "owner": "product", "spec_ref": "/docs/spec/" },
+            { "id": "prisma-schema", "label": "Prisma schema (9 MVP tables)", "owner": "eng", "spec_ref": "/docs/spec/00-vision.mdx" },
+            { "id": "admin-roadmap", "label": "/admin/roadmap UI + validation flow", "owner": "eng", "spec_ref": "/docs/spec/00-vision.mdx" },
+            { "id": "admin-spec", "label": "/admin/spec MDX renderer", "owner": "eng", "spec_ref": "/docs/spec/00-vision.mdx" },
+            { "id": "admin-feedback", "label": "/admin/feedback form + persistence", "owner": "eng", "spec_ref": "/docs/spec/00-vision.mdx" },
+            { "id": "auth-privy", "label": "Auth Privy (magic link + wallet)", "owner": "eng", "spec_ref": "/docs/spec/00-vision.mdx" },
+            { "id": "ingest-btc-price", "label": "Ingestion BTC price (Chainlink + Coingecko fallback)", "owner": "eng", "spec_ref": "/docs/spec/05-mining-model.mdx" },
+            { "id": "ingest-hashprice", "label": "Ingestion hashprice (Luxor API)", "owner": "eng", "spec_ref": "/docs/spec/05-mining-model.mdx" },
+            { "id": "sentry-setup", "label": "Sentry error tracking", "owner": "eng", "spec_ref": null }
+          ]
+        },
+        {
+          "id": "w3-4",
+          "label": "Semaine 3-4 — Dashboard v0",
+          "items": [
+            { "id": "dash-layout", "label": "Dashboard layout (header, sections, navigation)", "owner": "eng+design", "spec_ref": "/docs/spec/01-dashboard.mdx" },
+            { "id": "dash-hero", "label": "5 hero metrics cards with tooltips + provenance badges", "owner": "eng", "spec_ref": "/docs/spec/01-dashboard.mdx" },
+            { "id": "dash-allocation", "label": "Allocation donut + yield source breakdown", "owner": "eng", "spec_ref": "/docs/spec/01-dashboard.mdx" },
+            { "id": "dash-mining-health", "label": "Mining Health section (3 scores + clear data)", "owner": "eng", "spec_ref": "/docs/spec/05-mining-model.mdx" },
+            { "id": "dash-btc-tactical", "label": "BTC Tactical card (avg entry, P&L, next triggers, guardrails)", "owner": "eng", "spec_ref": "/docs/spec/06-btc-tactical.mdx" },
+            { "id": "dash-activity", "label": "Activity feed (last 5 events, PTAI modal)", "owner": "eng", "spec_ref": "/docs/spec/07-rebalancing-rules.mdx" },
+            { "id": "dash-advanced-toggle", "label": "Advanced mode toggle (Sharpe, top positions)", "owner": "eng", "spec_ref": "/docs/spec/01-dashboard.mdx" }
+          ]
+        },
+        {
+          "id": "w5-6",
+          "label": "Semaine 5-6 — Scenario Engine",
+          "items": [
+            { "id": "engine-types", "label": "Engine types.ts (ScenarioInputs, ScenarioOutput, etc.)", "owner": "eng", "spec_ref": "/docs/spec/02-scenario-lab.mdx" },
+            { "id": "engine-mining", "label": "Mining model (mining.ts) pure functions", "owner": "eng", "spec_ref": "/docs/spec/05-mining-model.mdx" },
+            { "id": "engine-btc-tactical", "label": "BTC tactical rules (btc-tactical.ts)", "owner": "eng", "spec_ref": "/docs/spec/06-btc-tactical.mdx" },
+            { "id": "engine-rebalancing", "label": "Rebalancing rules + regime transitions", "owner": "eng", "spec_ref": "/docs/spec/07-rebalancing-rules.mdx" },
+            { "id": "engine-scenario", "label": "Scenario orchestrator (scenario.ts runScenario)", "owner": "eng", "spec_ref": "/docs/spec/02-scenario-lab.mdx" },
+            { "id": "engine-tests", "label": "Vitest snapshot tests (5 presets)", "owner": "eng", "spec_ref": "/docs/spec/02-scenario-lab.mdx" }
+          ]
+        },
+        {
+          "id": "w7-8",
+          "label": "Semaine 7-8 — Scenario Lab UI + Scenario Narrative Agent",
+          "items": [
+            { "id": "lab-layout", "label": "Scenario Lab split layout (sliders left, projection right)", "owner": "eng+design", "spec_ref": "/docs/spec/02-scenario-lab.mdx" },
+            { "id": "lab-presets", "label": "5 scenario preset buttons", "owner": "eng", "spec_ref": "/docs/spec/02-scenario-lab.mdx" },
+            { "id": "lab-sliders", "label": "5 custom sliders with bounds + live projection", "owner": "eng", "spec_ref": "/docs/spec/02-scenario-lab.mdx" },
+            { "id": "ptai-component", "label": "<Ptai> component (mandatory format)", "owner": "eng", "spec_ref": "/docs/spec/07-rebalancing-rules.mdx" },
+            { "id": "agent-scenario-narrative", "label": "Scenario Narrative Agent (Anthropic SDK)", "owner": "eng", "spec_ref": "/docs/spec/09-agents.mdx" },
+            { "id": "agent-schemas", "label": "Zod schemas + forbidden words validator", "owner": "eng", "spec_ref": "/docs/spec/09-agents.mdx" },
+            { "id": "lab-comparator", "label": "Side-by-side scenario comparator (2 max)", "owner": "eng", "spec_ref": "/docs/spec/02-scenario-lab.mdx" }
+          ]
+        },
+        {
+          "id": "w9-10",
+          "label": "Semaine 9-10 — Proof Center + Backtest Engine",
+          "items": [
+            { "id": "proof-center-layout", "label": "Proof Center screen (PoR, attestations, addresses, audit)", "owner": "eng+design", "spec_ref": "/docs/spec/03-proof-center.mdx" },
+            { "id": "data-backfill", "label": "Historical backfill 36m (Luxor, mempool.space, BTC price)", "owner": "eng", "spec_ref": "/docs/spec/05-mining-model.mdx" },
+            { "id": "engine-backtest", "label": "Backtest engine (3 periods) with rules/no-rules comparison", "owner": "eng", "spec_ref": "/docs/spec/02-scenario-lab.mdx" },
+            { "id": "mock-attestation", "label": "Mock mining attestation system (signed, verifiable)", "owner": "eng", "spec_ref": "/docs/spec/05-mining-model.mdx" }
+          ]
+        },
+        {
+          "id": "w11-12",
+          "label": "Semaine 11-12 — Investor Memo + Mining/Risk Agents",
+          "items": [
+            { "id": "agent-mining-health", "label": "Mining Health Agent (daily cron)", "owner": "eng", "spec_ref": "/docs/spec/09-agents.mdx" },
+            { "id": "agent-risk-explanation", "label": "Risk Explanation Agent (daily)", "owner": "eng", "spec_ref": "/docs/spec/09-agents.mdx" },
+            { "id": "agent-investor-memo", "label": "Investor Memo Agent (Opus 4.7, structured Markdown)", "owner": "eng", "spec_ref": "/docs/spec/09-agents.mdx" },
+            { "id": "memo-pdf-template", "label": "react-pdf 8-page template", "owner": "eng+design", "spec_ref": "/docs/spec/04-investor-memo.mdx" },
+            { "id": "memo-screen", "label": "Investor Memo screen (preview + branding + export)", "owner": "eng", "spec_ref": "/docs/spec/04-investor-memo.mdx" },
+            { "id": "methodology-v10", "label": "Methodology v1.0 PDF (source of truth)", "owner": "product+legal", "spec_ref": "/docs/methodology/v1.0.md" }
+          ]
+        },
+        {
+          "id": "w13",
+          "label": "Semaine 13 — Polish + SC Phase 2 + Pre-launch",
+          "items": [
+            { "id": "sc-event-logger", "label": "EventLogger.sol deployed Base Sepolia", "owner": "eng", "spec_ref": "/docs/spec/03-proof-center.mdx" },
+            { "id": "sc-por-registry", "label": "PoRRegistry.sol deployed Base Sepolia", "owner": "eng", "spec_ref": "/docs/spec/03-proof-center.mdx" },
+            { "id": "proof-center-wire", "label": "Proof Center wired to real testnet events", "owner": "eng", "spec_ref": "/docs/spec/03-proof-center.mdx" },
+            { "id": "polish-ux", "label": "Empty/error/loading states + mobile fallback", "owner": "eng+design", "spec_ref": null },
+            { "id": "sales-playbook", "label": "Sales playbook (1-pager + video demo + 8-question FAQ)", "owner": "product+sales", "spec_ref": null },
+            { "id": "audit-kickoff", "label": "Spearbit audit kickoff (kicked off S11 ideally)", "owner": "eng+product", "spec_ref": null }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "v1",
+      "label": "V1 — Mois 4-6 (Share classes + mainnet)",
+      "weeks": [
+        {
+          "id": "v1-launch",
+          "label": "V1 — Audit done, mainnet, share classes",
+          "items": [
+            { "id": "audit-final", "label": "Spearbit audit report + remediation", "owner": "eng", "spec_ref": null },
+            { "id": "vault-mainnet", "label": "ERC-4626 vault deployed Base mainnet", "owner": "eng", "spec_ref": null },
+            { "id": "share-class-a", "label": "Share class A ($250k/60d/1+10)", "owner": "eng+legal", "spec_ref": null },
+            { "id": "share-class-b", "label": "Share class B ($1M/90d/0.75+8)", "owner": "eng+legal", "spec_ref": null },
+            { "id": "custody-fireblocks", "label": "Fireblocks custody integration", "owner": "eng", "spec_ref": null },
+            { "id": "kyc-persona", "label": "Persona KYC/KYB workflow", "owner": "eng+product", "spec_ref": null },
+            { "id": "lp-portal", "label": "Read-only LP portal (per-LP P&L)", "owner": "eng", "spec_ref": null },
+            { "id": "advanced-metrics", "label": "Sharpe / Sortino / VaR in Advanced mode", "owner": "eng", "spec_ref": null }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "v2",
+      "label": "V2 — Mois 7-12 (Vault variants + tokenisation)",
+      "weeks": [
+        {
+          "id": "v2-variants",
+          "label": "V2 — Variants & advanced features",
+          "items": [
+            { "id": "vault-defensive", "label": "Hearst Defensive Vault (5-8% APY, mining 15-25%)", "owner": "eng+product", "spec_ref": null },
+            { "id": "vault-btc-plus", "label": "Hearst BTC Plus Vault (10-20% APY, more BTC tactical)", "owner": "eng+product", "spec_ref": null },
+            { "id": "monte-carlo", "label": "Monte Carlo simulation (V2 only)", "owner": "eng", "spec_ref": null },
+            { "id": "auto-execution", "label": "Auto-execution under strict guardrails", "owner": "eng", "spec_ref": null },
+            { "id": "white-label", "label": "White-label memos for partners", "owner": "product", "spec_ref": null },
+            { "id": "share-token", "label": "Tokenised share class (ERC-20 wrapper)", "owner": "eng+legal", "spec_ref": null }
+          ]
+        }
+      ]
+    }
+  ]
+}

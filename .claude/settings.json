@@ -1,0 +1,48 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm remove:*)",
+      "Bash(pnpm dev)",
+      "Bash(pnpm build)",
+      "Bash(pnpm start)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm typecheck)",
+      "Bash(pnpm test)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm db:*)",
+      "Bash(pnpm prisma:*)",
+      "Bash(prisma:*)",
+      "Bash(npx prisma:*)",
+      "Bash(git status)",
+      "Bash(git diff)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(gh pr:*)",
+      "Bash(gh issue:*)",
+      "Bash(ls:*)",
+      "Bash(cat docs/**)",
+      "Bash(forge:*)",
+      "Bash(cast:*)",
+      "Bash(node:*)",
+      "Bash(tsx:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(pnpm publish:*)",
+      "Bash(npm publish:*)"
+    ]
+  },
+  "env": {
+    "NODE_ENV": "development"
+  }
+}

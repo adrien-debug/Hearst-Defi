@@ -1,0 +1,45 @@
+---
+title: Risk Framework
+order: 8
+---
+
+# Risk Framework
+
+## The 5 risks (and only these 5)
+
+```
+risk_score_global = 0.30 × market_risk
+                  + 0.25 × mining_risk
+                  + 0.15 × liquidity_risk
+                  + 0.20 × smart_contract_risk
+                  + 0.10 × counterparty_risk
+```
+
+| # | Risk | Definition | Score range thresholds |
+|---|---|---|---|
+| 1 | Market | BTC + crypto volatility exposure | 🟢 <40 / 🟠 40–65 / 🔴 >65 |
+| 2 | Mining | Margin compression, downtime, difficulty | 🟢 <30 / 🟠 30–60 / 🔴 >60 |
+| 3 | Liquidity | Ability to honor redemptions | 🟢 <35 / 🟠 35–55 / 🔴 >55 |
+| 4 | Smart Contract | Code vulnerabilities | 🟢 <40 / 🟠 40–60 / 🔴 >60 |
+| 5 | Counterparty | Mining partner, custody, RWA | 🟢 <30 / 🟠 30–55 / 🔴 >55 |
+
+## Smart Contract Risk scoring
+
+Discrete steps:
+- Pre-audit: 80
+- Audited (Spearbit or peer): 30
+- Battle-tested > 6 months on mainnet: 20
+
+## Each risk surface (Dashboard Risk Card)
+
+Click expands to show:
+- Current score + 30d trend
+- Top driver of the score
+- Current mitigation in place
+- Client-facing one-liner
+
+## Forbidden in Risk UI
+
+- VaR / CVaR / Sharpe / Sortino on the headline view (Advanced mode only)
+- Heatmaps (overcomplicated)
+- Probability percentages without methodology link
