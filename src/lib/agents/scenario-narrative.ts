@@ -12,6 +12,7 @@ import {
   DISCLAIMER_PROJECTION,
 } from "@/lib/agents/system-prompts/disclaimers";
 import { assertCitesAssumption, assertNoForbiddenWords } from "@/lib/agents/validators";
+import type { ScenarioOutput } from "@/lib/engine/types";
 
 /**
  * Default model id for the Scenario Narrative Agent.
@@ -22,34 +23,11 @@ import { assertCitesAssumption, assertNoForbiddenWords } from "@/lib/agents/vali
  */
 export const SCENARIO_NARRATIVE_MODEL = "claude-sonnet-4-6" as const;
 
-/**
- * Local subset of the engine's scenario output. We deliberately re-declare
- * the shape here rather than import from `src/lib/engine` because:
- *   1) The engine package doesn't exist yet at this point in the roadmap.
- *   2) Even when it does, we want the agent surface to depend only on what
- *      it actually needs in the prompt — not the full engine type.
- */
-export interface ScenarioOutputLike {
-  /** APY range string, e.g. "9.4-12.8%". Never a single point. */
-  apy_range: string;
-  /** Allocation breakdown, percentage weights summing to ~100. */
-  allocations: {
-    mining_pct: number;
-    usdc_base_pct: number;
-    btc_tactical_pct: number;
-    stable_reserve_pct: number;
-  };
-  /** Projected monthly USDC distribution at midpoint of APY range. */
-  projected_distribution_usdc: number;
-  /** Human-readable assumptions used by the engine for this run. */
-  key_assumptions: string[];
-}
-
 export interface ScenarioNarrativeInput {
   /** Scenario identifier (e.g. "base", "bear", "bull", or custom id). */
   scenario_id: string;
   /** The pure-function engine output we want to narrate. */
-  scenario_output: ScenarioOutputLike;
+  scenario_output: ScenarioOutput;
 }
 
 export interface RunScenarioNarrativeOptions {
@@ -84,13 +62,35 @@ ${DISCLAIMER_PROJECTION}
 Methodology (immutable, do not contradict):
 ${METHODOLOGY_MD}`;
 
+function formatApyRange(range: { low: number; high: number }): string {
+  return `${range.low.toFixed(2)}-${range.high.toFixed(2)}%`;
+}
+
 function buildUserPrompt(input: ScenarioNarrativeInput): string {
+  const out = input.scenario_output;
   return [
     "Produce a Scenario Narrative for the following scenario run.",
     "",
     `scenario_id: ${input.scenario_id}`,
-    "scenario_output (JSON):",
-    JSON.stringify(input.scenario_output, null, 2),
+    "",
+    "scenario_output (engine, JSON):",
+    JSON.stringify(out, null, 2),
+    "",
+    "Pre-computed fields for convenience (use these verbatim where applicable):",
+    `- apy_range (formatted, use verbatim when quoting APY): ${formatApyRange(out.apy_range)}`,
+    `- stressed_apy: ${out.stressed_apy.toFixed(2)}%`,
+    `- risk_score: ${out.risk_score}`,
+    `- mining_margin_score: ${out.mining_margin_score}`,
+    `- mode: ${out.mode}`,
+    `- confidence (engine-provided, narrate accordingly): ${out.confidence}`,
+    "",
+    "Allocations (bucket / pct / yield_contribution_bps):",
+    ...out.allocations.map(
+      (a) => `- ${a.bucket}: ${a.pct}% (yield_contribution=${a.yield_contribution_bps}bps)`,
+    ),
+    "",
+    "Engine assumptions (cite at least one of these verbatim or by clear paraphrase):",
+    ...out.assumptions.map((a) => `- ${a}`),
     "",
     "Return ONLY a JSON object with this exact shape (no extra keys, no markdown fences):",
     JSON.stringify(
@@ -105,9 +105,11 @@ function buildUserPrompt(input: ScenarioNarrativeInput): string {
     ),
     "",
     "Constraints:",
-    "- narrative_md MUST cite at least one of the key_assumptions verbatim or by clear paraphrase.",
+    "- narrative_md MUST cite at least one of the engine assumptions verbatim or by clear paraphrase.",
+    "- When quoting APY, use the formatted apy_range above (range, never single point).",
     "- If confidence is low, narrative_md MUST begin with an explicit low-confidence note.",
     "- key_drivers are the 1-5 short bullet drivers behind the projected outcome.",
+    "- The confidence field in your output SHOULD generally match the engine confidence; deviate only if the narrative reveals a stronger or weaker signal and state the reason in narrative_md.",
   ].join("\n");
 }
 
@@ -127,7 +129,7 @@ export async function runScenarioNarrative(
   input: ScenarioNarrativeInput,
   opts: RunScenarioNarrativeOptions = {},
 ): Promise<ScenarioNarrativeOutput> {
-  const client = opts.client ?? new Anthropic();
+  const client = opts.client ?? new Anthropic({ apiKey: process.env["ANTHROPIC_API_KEY"] });
   const model = opts.model ?? SCENARIO_NARRATIVE_MODEL;
 
   const response = await client.messages.create({

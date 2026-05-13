@@ -12,6 +12,7 @@ import {
   DISCLAIMER_PROJECTION,
 } from "@/lib/agents/system-prompts/disclaimers";
 import { assertNoForbiddenWords } from "@/lib/agents/validators";
+import type { BacktestOutput, ScenarioOutput } from "@/lib/engine/types";
 
 /**
  * Default model id for the Investor Memo Agent.
@@ -21,26 +22,6 @@ import { assertNoForbiddenWords } from "@/lib/agents/validators";
  */
 export const INVESTOR_MEMO_MODEL = "claude-opus-4-7" as const;
 
-/**
- * Local subset of a scenario engine output.
- *
- * Re-declared here rather than imported from `src/lib/engine` per the same
- * rationale as scenario-narrative.ts: the agent surface depends only on what
- * it actually needs; it must never import engine internals.
- */
-type ScenarioOutputLike = {
-  label: string;
-  apy_range: { low: number; high: number };
-  projected_distribution_usdc: number;
-  key_assumptions: string[];
-};
-
-type BacktestSummary = {
-  key: string;
-  totalReturnPct: number;
-  maxDrawdownPct: number;
-};
-
 export type InvestorMemoInput = {
   vault: {
     aumUsdc: number;
@@ -48,8 +29,8 @@ export type InvestorMemoInput = {
     mode: string;
     riskScore: number;
   };
-  scenarios: ScenarioOutputLike[];
-  backtests: BacktestSummary[];
+  scenarios: ScenarioOutput[];
+  backtests: BacktestOutput[];
   generatedAt: string;
 };
 
@@ -102,25 +83,69 @@ ${DISCLAIMER_PROJECTION}
 Methodology (immutable, do not contradict):
 ${METHODOLOGY_MD}`;
 
+function formatApyRange(range: { low: number; high: number }): string {
+  return `${range.low.toFixed(2)}-${range.high.toFixed(2)}%`;
+}
+
+function buildScenarioBlock(scenario: ScenarioOutput, idx: number): string {
+  const allocLines = scenario.allocations
+    .map((a) => `    - ${a.bucket}: ${a.pct}% (yield_contribution=${a.yield_contribution_bps}bps)`)
+    .join("\n");
+  const assumptionLines = scenario.assumptions.map((a) => `    - ${a}`).join("\n");
+  return [
+    `Scenario #${idx + 1} — mode=${scenario.mode}, confidence=${scenario.confidence}`,
+    `  apy_range: ${formatApyRange(scenario.apy_range)}`,
+    `  stressed_apy: ${scenario.stressed_apy.toFixed(2)}%`,
+    `  risk_score: ${scenario.risk_score}`,
+    `  mining_margin_score: ${scenario.mining_margin_score}`,
+    `  allocations:`,
+    allocLines,
+    `  assumptions:`,
+    assumptionLines,
+  ].join("\n");
+}
+
+function buildBacktestBlock(bt: BacktestOutput, idx: number): string {
+  const assumptionLines = bt.assumptions.map((a) => `    - ${a}`).join("\n");
+  return [
+    `Backtest #${idx + 1} — key=${bt.key}, window=${bt.startDate} → ${bt.endDate}`,
+    `  initialCapital: ${bt.initialCapital} USDC`,
+    `  endingValue: ${bt.endingValue} USDC`,
+    `  totalReturnPct: ${bt.totalReturnPct.toFixed(2)}%`,
+    `  maxDrawdownPct: ${bt.maxDrawdownPct.toFixed(2)}%`,
+    `  worstMonthPct: ${bt.worstMonthPct.toFixed(2)}%`,
+    `  numRebalances: ${bt.numRebalances}`,
+    `  hearstRulesMode: ${bt.hearstRulesMode}`,
+    `  assumptions:`,
+    assumptionLines,
+  ].join("\n");
+}
+
 function buildUserPrompt(input: InvestorMemoInput): string {
+  const scenarioBlocks = input.scenarios.map(buildScenarioBlock).join("\n\n");
+  const backtestBlocks = input.backtests.map(buildBacktestBlock).join("\n\n");
+
   return [
     "Produce an Investor Memo for the following vault state, scenarios, and backtests.",
     "",
-    "Vault state (JSON):",
-    JSON.stringify(input.vault, null, 2),
+    "Vault state:",
+    `  aumUsdc: ${input.vault.aumUsdc}`,
+    `  apyRange (use verbatim when quoting headline APY): ${formatApyRange(input.vault.apyRange)}`,
+    `  mode: ${input.vault.mode}`,
+    `  riskScore: ${input.vault.riskScore}`,
     "",
-    "Scenarios (JSON):",
-    JSON.stringify(input.scenarios, null, 2),
+    `Scenarios (${input.scenarios.length}):`,
+    scenarioBlocks || "  (none provided — state this explicitly in scenario_analysis)",
     "",
-    "Backtests (JSON):",
-    JSON.stringify(input.backtests, null, 2),
+    `Backtests (${input.backtests.length}):`,
+    backtestBlocks || "  (none provided — state this explicitly in performance_section)",
     "",
     `Generated at: ${input.generatedAt}`,
     "",
     "Return ONLY a JSON object with this exact shape (no extra keys, no markdown fences):",
     JSON.stringify(
       {
-        executive_summary: "string (Markdown, 2-3 paragraphs, cites ≥1 assumption)",
+        executive_summary: "string (Markdown, 2-3 paragraphs, cites >=1 assumption)",
         vault_structure: "string (Markdown, 1-2 paragraphs, describes Cayman SPV + allocation buckets + lock-up)",
         scenario_analysis: "string (Markdown, 1 paragraph per scenario, uses APY ranges, references assumptions)",
         risk_section: "string (Markdown, covers all 5 risk dimensions: market, mining, liquidity, smart_contract, counterparty)",
@@ -137,9 +162,10 @@ function buildUserPrompt(input: InvestorMemoInput): string {
     "- All 8 fields must be non-empty Markdown strings.",
     "- No HTML tags anywhere in the output.",
     "- No ASCII-art tables. Use Markdown pipe tables if tabular data is needed.",
-    "- APY must always be stated as a range (e.g. '8.2-11.4%'), never as a single point.",
+    "- APY must always be stated as a range (e.g. '8.20-11.40%'), never as a single point.",
     "- The disclaimer field must reproduce the disclaimer templates verbatim.",
     "- Every section must explicitly cite at least one assumption.",
+    "- Performance section must reference totalReturnPct and maxDrawdownPct per backtest.",
   ].join("\n");
 }
 
