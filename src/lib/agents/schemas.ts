@@ -39,3 +39,47 @@ export const MiningHealthOutputSchema = z
   .strict();
 
 export type MiningHealthOutput = z.infer<typeof MiningHealthOutputSchema>;
+
+/* -------------------------------------------------------------------------- */
+/* Risk Explanation Agent (Sonnet 4.6)                                         */
+/* -------------------------------------------------------------------------- */
+
+export const RiskExplanationOutputSchema = z
+  .object({
+    top_risks: z
+      .array(
+        z
+          .object({
+            risk_id: z.string().min(1),
+            name: z.string().min(1),
+            explanation: z.string().min(1),
+            suggested_guardrail: z.string().min(1),
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(2),
+    overall_summary: z.string().min(1),
+  })
+  .strict();
+
+export type RiskExplanationOutput = z.infer<typeof RiskExplanationOutputSchema>;
+
+/* -------------------------------------------------------------------------- */
+/* Investor Memo Agent (Opus 4.7)                                              */
+/* -------------------------------------------------------------------------- */
+
+export const InvestorMemoOutputSchema = z
+  .object({
+    executive_summary: z.string().min(1),
+    vault_structure: z.string().min(1),
+    scenario_analysis: z.string().min(1),
+    risk_section: z.string().min(1),
+    mining_section: z.string().min(1),
+    performance_section: z.string().min(1),
+    methodology_note: z.string().min(1),
+    disclaimer: z.string().min(1),
+  })
+  .strict();
+
+export type InvestorMemoOutput = z.infer<typeof InvestorMemoOutputSchema>;

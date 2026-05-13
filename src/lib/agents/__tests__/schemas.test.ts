@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  InvestorMemoOutputSchema,
   MiningHealthOutputSchema,
+  RiskExplanationOutputSchema,
   ScenarioNarrativeOutputSchema,
 } from "@/lib/agents/schemas";
 import {
@@ -169,5 +171,143 @@ describe("assertCitesAssumption", () => {
     expect(() =>
       assertCitesAssumption("The projected APY is 9.4-12.8% and we expect strong results."),
     ).toThrowError(/assumption/i);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/* RiskExplanationOutputSchema                                                  */
+/* -------------------------------------------------------------------------- */
+
+describe("RiskExplanationOutputSchema", () => {
+  const validRisk = {
+    risk_id: "market",
+    name: "Market Risk",
+    explanation:
+      "Under the assumption that BTC price stays within the 30-day range, market risk is elevated due to recent volatility.",
+    suggested_guardrail:
+      "Consider reducing BTC tactical allocation per Rule RISK-01 if market score exceeds 65.",
+  };
+
+  it("parses a valid payload with 1 top_risk", () => {
+    const payload = {
+      top_risks: [validRisk],
+      overall_summary:
+        "Under the assumption of stable hashprice, overall risk posture is elevated primarily by market exposure.",
+    };
+    const parsed = RiskExplanationOutputSchema.parse(payload);
+    expect(parsed.top_risks).toHaveLength(1);
+    expect(parsed.top_risks[0]?.risk_id).toBe("market");
+  });
+
+  it("parses a valid payload with 2 top_risks", () => {
+    const secondRisk = {
+      risk_id: "mining",
+      name: "Mining Risk",
+      explanation:
+        "Under the assumption that energy costs remain at current contracted rates, mining margin compression is the key driver.",
+      suggested_guardrail:
+        "Consider reviewing the hosting contract pricing tier per Rule RISK-02 if margin drops below 10%.",
+    };
+    const payload = {
+      top_risks: [validRisk, secondRisk],
+      overall_summary:
+        "Under the assumption of stable operating conditions, both market and mining risks are elevated.",
+    };
+    const parsed = RiskExplanationOutputSchema.parse(payload);
+    expect(parsed.top_risks).toHaveLength(2);
+  });
+
+  it("rejects an empty top_risks array (min 1)", () => {
+    const payload = {
+      top_risks: [],
+      overall_summary: "Under the assumption of stable conditions, risk is low.",
+    };
+    expect(() => RiskExplanationOutputSchema.parse(payload)).toThrow();
+  });
+
+  it("rejects top_risks with more than 2 entries (max 2)", () => {
+    const payload = {
+      top_risks: [validRisk, validRisk, validRisk],
+      overall_summary: "Under the assumption of stable conditions, risk is elevated.",
+    };
+    expect(() => RiskExplanationOutputSchema.parse(payload)).toThrow();
+  });
+
+  it("rejects unknown extra keys at the top level (strict)", () => {
+    const payload = {
+      top_risks: [validRisk],
+      overall_summary: "Under the assumption of stable conditions, risk is elevated.",
+      unexpected_field: "not allowed",
+    };
+    expect(() => RiskExplanationOutputSchema.parse(payload)).toThrow();
+  });
+
+  it("rejects unknown extra keys inside a top_risk entry (strict)", () => {
+    const riskWithExtra = {
+      ...validRisk,
+      surprise_field: "not allowed",
+    };
+    const payload = {
+      top_risks: [riskWithExtra],
+      overall_summary: "Under the assumption of stable conditions, risk is elevated.",
+    };
+    expect(() => RiskExplanationOutputSchema.parse(payload)).toThrow();
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/* InvestorMemoOutputSchema                                                     */
+/* -------------------------------------------------------------------------- */
+
+describe("InvestorMemoOutputSchema", () => {
+  const validMemo = {
+    executive_summary:
+      "Under the assumption that hashprice remains within the 30-day range, the Hearst Yield Vault targets an APY range of 8-15%.",
+    vault_structure:
+      "The vault is structured as a Cayman Exempted Limited Partnership with a $250k minimum ticket and 60-day soft lock-up.",
+    scenario_analysis:
+      "Under the base-case assumption of stable BTC price and hashprice, the projected APY range is 9.4-12.8%.",
+    risk_section:
+      "Market risk score is 42 (amber). Mining risk score is 28 (green). Under the assumption of current difficulty, liquidity risk remains low.",
+    mining_section:
+      "Under the assumption that energy costs stay at the contracted rate, net mining margin is 18% for the trailing 30 days.",
+    performance_section:
+      "The bear-case backtest, under the assumption of BTC -40% and hashprice -30%, produced a total return of -2.1% with a max drawdown of -8.4%.",
+    methodology_note:
+      "This memo references Hearst methodology v1.0. All projections assume data freshness within 24 hours.",
+    disclaimer:
+      "Projections are conditional on the stated assumptions. Past performance does not indicate future results.",
+  };
+
+  it("parses a valid payload with all 8 fields", () => {
+    const parsed = InvestorMemoOutputSchema.parse(validMemo);
+    expect(Object.keys(parsed)).toHaveLength(8);
+    expect(parsed.executive_summary).toBe(validMemo.executive_summary);
+  });
+
+  it("rejects a payload missing one field", () => {
+    const { disclaimer: _omitted, ...withoutDisclaimer } = validMemo;
+    expect(() => InvestorMemoOutputSchema.parse(withoutDisclaimer)).toThrow();
+  });
+
+  it("rejects a payload missing multiple fields", () => {
+    const { executive_summary: _a, vault_structure: _b, ...rest } = validMemo;
+    expect(() => InvestorMemoOutputSchema.parse(rest)).toThrow();
+  });
+
+  it("rejects unknown extra keys (strict)", () => {
+    const withExtra = {
+      ...validMemo,
+      extra_section: "not allowed",
+    };
+    expect(() => InvestorMemoOutputSchema.parse(withExtra)).toThrow();
+  });
+
+  it("rejects empty string for any required field", () => {
+    const withEmpty = {
+      ...validMemo,
+      executive_summary: "",
+    };
+    expect(() => InvestorMemoOutputSchema.parse(withEmpty)).toThrow();
   });
 });
