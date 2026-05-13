@@ -32,6 +32,8 @@ next-env.d.ts
 # Database
 prisma/dev.db
 prisma/dev.db-journal
+prisma/**/*.db
+prisma/**/*.db-journal
 
 # Logs
 logs
