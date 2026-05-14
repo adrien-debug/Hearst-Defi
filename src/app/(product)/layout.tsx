@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { LoginButton } from "@/components/auth/login-button";
 import { cn } from "@/lib/cn";
 
 const NAV = [
@@ -43,12 +44,15 @@ export default function ProductLayout({
             ))}
           </nav>
 
-          <Link
-            href="/admin/roadmap"
-            className="text-xs font-medium text-[--color-text-dim] hover:text-[--color-text]"
-          >
-            Admin
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin/roadmap"
+              className="text-xs font-medium text-[--color-text-dim] hover:text-[--color-text]"
+            >
+              Admin
+            </Link>
+            <LoginButton />
+          </div>
         </div>
       </header>
 

@@ -1,9 +1,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import type { ProofItem, ProofType } from "@/lib/mock/proof-center";
+import { EXPLORER_ADDRESS_BASE, EXPLORER_TX_BASE } from "@/lib/chain/client";
+import type { ProofType } from "@/lib/mock/proof-center";
+
+import type { UnifiedProof } from "./proof-types";
 
 interface ProofCardProps {
-  proof: ProofItem;
+  proof: UnifiedProof;
 }
 
 const TYPE_LABEL: Record<ProofType, string> = {
@@ -33,17 +36,56 @@ function truncateHash(hash: string): string {
   return `${hash.slice(0, 6)}…${hash.slice(-4)}`;
 }
 
-function isHttps(uri: string): boolean {
-  return uri.startsWith("https://");
+function truncateAddress(addr: string): string {
+  if (addr.length <= 12) return addr;
+  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
 
 function uriLabel(uri: string): string {
   if (uri.startsWith("ipfs://")) return "View on IPFS";
-  if (isHttps(uri)) return "View document";
+  if (uri.startsWith("https://")) return "View document";
   return "Open";
 }
 
+function ipfsGatewayUrl(cid: string): string {
+  // viem returns the raw CID string; the contract spec says no "ipfs://" prefix on payloadCid.
+  if (cid.startsWith("ipfs://")) {
+    return `https://ipfs.io/ipfs/${cid.slice("ipfs://".length)}`;
+  }
+  if (cid.startsWith("https://") || cid.startsWith("http://")) return cid;
+  return `https://ipfs.io/ipfs/${cid}`;
+}
+
+function usdCompactFmt(value: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    notation: "compact",
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+function btcFmt(value: number): string {
+  return `${new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 4,
+  }).format(value)} BTC`;
+}
+
 export function ProofCard({ proof }: ProofCardProps) {
+  if (proof.source === "paper") {
+    return <PaperProofCard proof={proof} />;
+  }
+  if (proof.kind === "event") {
+    return <OnChainEventCard proof={proof.data} />;
+  }
+  return <OnChainAttestationCard proof={proof.data} />;
+}
+
+function PaperProofCard({
+  proof,
+}: {
+  proof: Extract<UnifiedProof, { source: "paper" }>;
+}) {
   const postedAt = new Date(proof.postedAt);
   const hashTruncated = truncateHash(proof.hash);
 
@@ -60,6 +102,10 @@ export function ProofCard({ proof }: ProofCardProps) {
       </header>
 
       <dl className="space-y-1.5">
+        <div className="flex items-baseline justify-between gap-3">
+          <dt className="body-xs">Source</dt>
+          <dd className="body-xs text-[--color-text-muted]">Off-chain</dd>
+        </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Posted</dt>
           <dd className="body-xs text-[--color-text-muted]">
@@ -95,7 +141,7 @@ export function ProofCard({ proof }: ProofCardProps) {
         </a>
         {proof.txHash ? (
           <a
-            href={`https://basescan.org/tx/${proof.txHash}`}
+            href={`${EXPLORER_TX_BASE}${proof.txHash}`}
             target="_blank"
             rel="noreferrer noopener"
             className="rounded-[--radius-button] border border-[--color-brand] bg-[--color-accent-dim] px-3 py-1.5 text-xs text-[--color-brand] transition-colors duration-[150ms] hover:bg-[--color-accent-subtle] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
@@ -112,6 +158,190 @@ export function ProofCard({ proof }: ProofCardProps) {
             Off-chain (Phase 1)
           </button>
         )}
+      </div>
+    </Card>
+  );
+}
+
+function OnChainEventCard({
+  proof,
+}: {
+  proof: import("@/lib/chain/event-logger").OnChainEvent;
+}) {
+  return (
+    <Card className="flex flex-col gap-4">
+      <header className="flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <span className="eyebrow">EventLogger · {proof.kind}</span>
+          <Badge variant="success" title="Read directly from Base Sepolia">
+            On-chain
+          </Badge>
+        </div>
+        <h3 className="h4 text-balance">
+          Hearst event #{proof.eventId.toString()} — {proof.kind}
+        </h3>
+      </header>
+
+      <dl className="space-y-1.5">
+        <div className="flex items-baseline justify-between gap-3">
+          <dt className="body-xs">Source</dt>
+          <dd className="body-xs text-[--color-text-muted]">
+            Base Sepolia · block {proof.blockNumber.toString()}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-3">
+          <dt className="body-xs">Posted</dt>
+          <dd className="body-xs text-[--color-text-muted]">
+            {dateFmt.format(proof.timestamp)} UTC
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-3">
+          <dt className="body-xs">Publisher</dt>
+          <dd
+            className="mono tabular text-xs text-[--color-text-muted]"
+            title={proof.publisher}
+          >
+            {truncateAddress(proof.publisher)}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-3">
+          <dt className="body-xs">Tx hash</dt>
+          <dd
+            className="mono tabular text-xs text-[--color-text]"
+            title={proof.txHash}
+            aria-label={`Transaction hash ${proof.txHash}`}
+          >
+            {truncateHash(proof.txHash)}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-3">
+          <dt className="body-xs">Context hash</dt>
+          <dd
+            className="mono tabular text-xs text-[--color-text-muted]"
+            title={proof.contextHash}
+          >
+            {truncateHash(proof.contextHash)}
+          </dd>
+        </div>
+      </dl>
+
+      <div className="mt-auto flex flex-wrap items-center gap-2 pt-2">
+        {proof.payloadCid.length > 0 ? (
+          <a
+            href={ipfsGatewayUrl(proof.payloadCid)}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="rounded-[--radius-button] border border-[--color-border-strong] bg-[--color-bg-elevated] px-3 py-1.5 text-xs text-[--color-text] transition-colors duration-[150ms] hover:bg-[--color-bg-tertiary] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
+          >
+            View payload (IPFS)
+          </a>
+        ) : null}
+        <a
+          href={`${EXPLORER_TX_BASE}${proof.txHash}`}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="rounded-[--radius-button] border border-[--color-brand] bg-[--color-accent-dim] px-3 py-1.5 text-xs text-[--color-brand] transition-colors duration-[150ms] hover:bg-[--color-accent-subtle] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
+        >
+          TX on Base
+        </a>
+      </div>
+    </Card>
+  );
+}
+
+function formatPeriod(period: bigint): string {
+  // YYYYMM → "YYYY-MM"
+  const raw = period.toString();
+  if (raw.length !== 6) return raw;
+  return `${raw.slice(0, 4)}-${raw.slice(4)}`;
+}
+
+function OnChainAttestationCard({
+  proof,
+}: {
+  proof: import("@/lib/chain/por-registry").OnChainAttestation;
+}) {
+  return (
+    <Card className="flex flex-col gap-4">
+      <header className="flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <span className="eyebrow">PoR attestation</span>
+          <Badge variant="brand" title="Proof-of-reserves period">
+            {formatPeriod(proof.period)}
+          </Badge>
+        </div>
+        <h3 className="h4 text-balance">
+          PoR #{proof.attestationId.toString()} — {formatPeriod(proof.period)}
+        </h3>
+      </header>
+
+      <dl className="space-y-1.5">
+        <div className="flex items-baseline justify-between gap-3">
+          <dt className="body-xs">Source</dt>
+          <dd className="body-xs">
+            <span className="rounded-[--radius-full] border border-[--color-success-border] bg-[--color-success-bg] px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-[--color-success]">
+              On-chain
+            </span>
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-3">
+          <dt className="body-xs">Total AUM</dt>
+          <dd className="mono tabular text-xs text-[--color-text]">
+            {usdCompactFmt(proof.totalAumUsd)}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-3">
+          <dt className="body-xs">Mined</dt>
+          <dd className="mono tabular text-xs text-[--color-text]">
+            {btcFmt(proof.minedBtc)}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-3">
+          <dt className="body-xs">Attestor</dt>
+          <dd
+            className="mono tabular text-xs text-[--color-text-muted]"
+            title={proof.attestor}
+          >
+            <a
+              href={`${EXPLORER_ADDRESS_BASE}${proof.attestor}`}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="hover:text-[--color-brand]"
+            >
+              {truncateAddress(proof.attestor)}
+            </a>
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-3">
+          <dt className="body-xs">Evidence hash</dt>
+          <dd
+            className="mono tabular text-xs text-[--color-text]"
+            title={proof.evidenceHash}
+          >
+            {truncateHash(proof.evidenceHash)}
+          </dd>
+        </div>
+      </dl>
+
+      <div className="mt-auto flex flex-wrap items-center gap-2 pt-2">
+        {proof.evidenceCid.length > 0 ? (
+          <a
+            href={ipfsGatewayUrl(proof.evidenceCid)}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="rounded-[--radius-button] border border-[--color-border-strong] bg-[--color-bg-elevated] px-3 py-1.5 text-xs text-[--color-text] transition-colors duration-[150ms] hover:bg-[--color-bg-tertiary] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
+          >
+            View evidence (IPFS)
+          </a>
+        ) : null}
+        <a
+          href={`${EXPLORER_TX_BASE}${proof.txHash}`}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="rounded-[--radius-button] border border-[--color-brand] bg-[--color-accent-dim] px-3 py-1.5 text-xs text-[--color-brand] transition-colors duration-[150ms] hover:bg-[--color-accent-subtle] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
+        >
+          TX on Base
+        </a>
       </div>
     </Card>
   );

@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
+import { HomeCta } from "@/components/auth/home-cta";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
@@ -26,18 +28,26 @@ export default function Home() {
           range 8–15%. Projection conditional on stated assumptions. Not
           guaranteed.
         </p>
-        <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
-          <Button variant="primary" size="lg" asChild>
-            <Link href="/dashboard">Open Dashboard</Link>
-          </Button>
-          <Link
-            href="/admin/roadmap"
-            className="rounded-[--radius-button] border border-[--color-border] px-5 py-3 text-base font-medium text-[--color-text-muted] hover:text-[--color-text]"
-          >
-            Admin
-          </Link>
-        </div>
+        <Suspense fallback={<HomeCtaFallback />}>
+          <HomeCta />
+        </Suspense>
       </div>
     </main>
+  );
+}
+
+function HomeCtaFallback() {
+  return (
+    <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
+      <Button variant="primary" size="lg" asChild>
+        <Link href="/dashboard">Open Dashboard</Link>
+      </Button>
+      <Link
+        href="/admin/roadmap"
+        className="rounded-[--radius-button] border border-[--color-border] px-5 py-3 text-base font-medium text-[--color-text-muted] hover:text-[--color-text]"
+      >
+        Admin
+      </Link>
+    </div>
   );
 }
