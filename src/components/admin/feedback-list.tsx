@@ -4,6 +4,8 @@ import { useTransition } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/cn";
 import { toggleResolved } from "@/app/admin/feedback/actions";
 
 export interface FeedbackItem {
@@ -44,12 +46,7 @@ function FeedbackRow({ item }: { item: FeedbackItem }) {
   }
 
   return (
-    <article
-      className={
-        "rounded-md border border-[--color-border] bg-[--color-bg-card] p-4 " +
-        (item.resolved ? "opacity-60" : "")
-      }
-    >
+    <Card className={cn("p-4", item.resolved && "opacity-60")}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-[--color-text-dim]">
@@ -76,6 +73,6 @@ function FeedbackRow({ item }: { item: FeedbackItem }) {
           {item.resolved ? "Reopen" : "Resolve"}
         </Button>
       </div>
-    </article>
+    </Card>
   );
 }

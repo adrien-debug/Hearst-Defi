@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/cn";
 import {
   statusDotColor,
   statusLabel,
@@ -41,31 +42,33 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
   }
 
   return (
-    <div className="rounded-md border border-[--color-border] bg-[--color-bg-elevated]/60">
-      <div className="flex items-center gap-3 px-4 py-3">
+    <div className="rounded-[--radius-button] border border-[--color-border] bg-[--color-bg-elevated]/60">
+      <div className="flex items-center gap-4 px-5 py-4">
         <span
           aria-hidden
-          className="inline-block h-2 w-2 rounded-full"
+          className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
           style={{ background: statusDotColor(item.status) }}
           title={statusLabel(item.status)}
         />
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="text-sm">{item.label}</span>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span className="text-base font-medium text-[--color-text]">
+              {item.label}
+            </span>
             <Badge variant="default">{item.owner}</Badge>
             {item.evidenceUrl ? (
               <a
                 href={item.evidenceUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs text-[--color-brand] underline-offset-2 hover:underline"
+                className="text-sm font-medium text-[--color-brand] underline-offset-2 hover:underline"
               >
                 Evidence ↗
               </a>
             ) : null}
             {item.blockers ? <Badge variant="danger">Blocker</Badge> : null}
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[--color-text-dim]">
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[--color-text-dim]">
             <span className="font-mono">{item.id}</span>
             {item.spec_ref ? (
               <span className="font-mono text-[--color-text-muted]">
@@ -90,17 +93,18 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
               type="button"
               onClick={() => setStatus(s)}
               disabled={isPending || item.status === s}
-              className={`rounded px-2 py-1 text-xs transition-colors ${
-                item.status === s
-                  ? "bg-[--color-bg-card] text-[--color-text]"
-                  : "text-[--color-text-dim] hover:bg-[--color-bg-card] hover:text-[--color-text]"
-              } disabled:cursor-default disabled:opacity-50`}
+              className={cn(
+              "rounded-[--radius-sm] px-2.5 py-1.5 text-xs transition-colors disabled:cursor-default disabled:opacity-50",
+              item.status === s
+                ? "bg-[--color-bg-card] text-[--color-text]"
+                : "text-[--color-text-dim] hover:bg-[--color-bg-card] hover:text-[--color-text]",
+            )}
               title={statusLabel(s)}
               aria-label={`Set status to ${statusLabel(s)}`}
             >
               <span
                 aria-hidden
-                className="inline-block h-1.5 w-1.5 rounded-full"
+                className="inline-block h-2 w-2 rounded-full"
                 style={{ background: statusDotColor(s) }}
               />
             </button>
@@ -132,7 +136,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
               <select
                 name="status"
                 defaultValue={item.status}
-                className="w-full rounded border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm"
+                className="w-full rounded-[--radius-input] border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm"
               >
                 {STATUSES.map((s) => (
                   <option key={s} value={s}>
@@ -151,7 +155,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
                 type="text"
                 defaultValue={item.validatedBy ?? ""}
                 placeholder="Adrien"
-                className="w-full rounded border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm"
+                className="w-full rounded-[--radius-input] border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm"
               />
             </label>
           </div>
@@ -165,7 +169,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
               type="url"
               defaultValue={item.evidenceUrl ?? ""}
               placeholder="https://… preview, PR, screenshot"
-              className="w-full rounded border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm font-mono"
+              className="w-full rounded-[--radius-input] border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm font-mono"
             />
           </label>
 
@@ -177,7 +181,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
               name="notes"
               rows={2}
               defaultValue={item.notes ?? ""}
-              className="w-full rounded border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm"
+              className="w-full rounded-[--radius-input] border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm"
             />
           </label>
 
@@ -190,7 +194,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
               rows={2}
               defaultValue={item.blockers ?? ""}
               placeholder="What's blocking this?"
-              className="w-full rounded border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm"
+              className="w-full rounded-[--radius-input] border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm"
             />
           </label>
 
