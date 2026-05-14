@@ -1,0 +1,122 @@
+import { Text, View } from "@react-pdf/renderer";
+
+import { COLORS, styles } from "./memo-styles";
+
+export interface MemoMeta {
+  period: string;
+  totalPages: number;
+}
+
+export function PageHeader({ period }: { period: string }) {
+  return (
+    <View>
+      <View style={styles.pageHeader} fixed>
+        <Text style={styles.pageHeaderEyebrow}>
+          HEARST YIELD VAULT &mdash; MONTHLY MEMO
+        </Text>
+        <Text style={styles.pageHeaderPeriod}>{period}</Text>
+      </View>
+      <View style={styles.pageHeaderAccent} fixed />
+    </View>
+  );
+}
+
+export function PageFooter({
+  pageNumber,
+  totalPages,
+}: {
+  pageNumber: number;
+  totalPages: number;
+}) {
+  return (
+    <View style={styles.pageFooter} fixed>
+      <Text style={styles.pageFooterText}>CONFIDENTIAL</Text>
+      <Text style={styles.pageFooterText}>
+        PAGE {pageNumber} / {totalPages}
+      </Text>
+    </View>
+  );
+}
+
+export function EyebrowTitle({
+  eyebrow,
+  title,
+}: {
+  eyebrow: string;
+  title: string;
+}) {
+  return (
+    <View>
+      <Text style={styles.eyebrow}>{eyebrow}</Text>
+      <Text style={styles.h1}>{title}</Text>
+    </View>
+  );
+}
+
+export function KpiCell({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+}) {
+  return (
+    <View style={styles.kpiCell}>
+      <Text style={styles.kpiCellLabel}>{label}</Text>
+      <Text style={styles.kpiCellValue}>{value}</Text>
+      {hint ? <Text style={styles.kpiCellHint}>{hint}</Text> : null}
+    </View>
+  );
+}
+
+export type PillTone = "success" | "warning" | "danger" | "neutral" | "brand";
+
+const TONE_STYLE: Record<PillTone, object> = {
+  success: styles.pillSuccess,
+  warning: styles.pillWarning,
+  danger: styles.pillDanger,
+  neutral: styles.pillNeutral,
+  brand: styles.pillBrand,
+};
+
+export function StatusPill({
+  label,
+  tone = "neutral",
+}: {
+  label: string;
+  tone?: PillTone;
+}) {
+  return <Text style={[styles.pill, TONE_STYLE[tone]]}>{label}</Text>;
+}
+
+export function Bullet({ children }: { children: string }) {
+  return (
+    <View style={styles.bullet}>
+      <Text style={styles.bulletDot}>&bull;</Text>
+      <Text style={styles.bulletText}>{children}</Text>
+    </View>
+  );
+}
+
+export function Commentary({ children }: { children: string }) {
+  return (
+    <View style={styles.sectionCommentary}>
+      <Text style={styles.bodySmall}>{children}</Text>
+    </View>
+  );
+}
+
+/** Hairline rule used to separate sub-sections within a page. */
+export function HairlineRule() {
+  return (
+    <View
+      style={{
+        height: 1,
+        backgroundColor: COLORS.border,
+        marginVertical: 12,
+      }}
+    />
+  );
+}
