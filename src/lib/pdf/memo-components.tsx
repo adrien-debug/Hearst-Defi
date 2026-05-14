@@ -73,13 +73,21 @@ export function KpiCell({
 
 export type PillTone = "success" | "warning" | "danger" | "neutral" | "brand";
 
-const TONE_STYLE: Record<PillTone, object> = {
-  success: styles.pillSuccess,
-  warning: styles.pillWarning,
-  danger: styles.pillDanger,
-  neutral: styles.pillNeutral,
-  brand: styles.pillBrand,
-};
+function toneStyle(tone: PillTone) {
+  switch (tone) {
+    case "success":
+      return styles.pillSuccess;
+    case "warning":
+      return styles.pillWarning;
+    case "danger":
+      return styles.pillDanger;
+    case "brand":
+      return styles.pillBrand;
+    case "neutral":
+    default:
+      return styles.pillNeutral;
+  }
+}
 
 export function StatusPill({
   label,
@@ -88,7 +96,7 @@ export function StatusPill({
   label: string;
   tone?: PillTone;
 }) {
-  return <Text style={[styles.pill, TONE_STYLE[tone]]}>{label}</Text>;
+  return <Text style={[styles.pill, toneStyle(tone)]}>{label}</Text>;
 }
 
 export function Bullet({ children }: { children: string }) {

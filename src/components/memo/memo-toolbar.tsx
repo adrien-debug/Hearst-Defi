@@ -5,9 +5,11 @@ import { cn } from "@/lib/cn";
 interface MemoToolbarProps {
   hasMemo: boolean;
   isPending: boolean;
+  isPdfPending: boolean;
   lastGeneratedAt: string | null;
   onGenerate: () => void;
   onDownload: () => void;
+  onDownloadPdf: () => void;
 }
 
 const dateFmt = new Intl.DateTimeFormat("en-US", {
@@ -19,17 +21,19 @@ const dateFmt = new Intl.DateTimeFormat("en-US", {
 export function MemoToolbar({
   hasMemo,
   isPending,
+  isPdfPending,
   lastGeneratedAt,
   onGenerate,
   onDownload,
+  onDownloadPdf,
 }: MemoToolbarProps) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <button
           type="button"
           onClick={onGenerate}
-          disabled={isPending}
+          disabled={isPending || isPdfPending}
           className={cn(
             "rounded-[--radius-button] border px-4 py-2 text-sm font-medium",
             "transition-[background-color,color,border-color,opacity] duration-[150ms]",
@@ -49,7 +53,7 @@ export function MemoToolbar({
           <button
             type="button"
             onClick={onDownload}
-            disabled={isPending}
+            disabled={isPending || isPdfPending}
             className={cn(
               "rounded-[--radius-button] border px-3.5 py-2 text-sm font-medium",
               "transition-[background-color,color,border-color] duration-[150ms]",
@@ -61,6 +65,21 @@ export function MemoToolbar({
             Download .md
           </button>
         ) : null}
+
+        <button
+          type="button"
+          onClick={onDownloadPdf}
+          disabled={isPending || isPdfPending}
+          className={cn(
+            "rounded-[--radius-button] border px-3.5 py-2 text-sm font-medium",
+            "transition-[background-color,color,border-color] duration-[150ms]",
+            "disabled:cursor-not-allowed disabled:opacity-40",
+            "border-[--color-border-strong] bg-transparent text-[--color-text]",
+            "hover:bg-[--color-bg-elevated]",
+          )}
+        >
+          {isPdfPending ? "Generating PDF…" : "Download PDF"}
+        </button>
       </div>
 
       <div className="text-right">

@@ -3,6 +3,7 @@
 import { useCallback, useState, useTransition } from "react";
 
 import { generateMemoAction } from "@/app/(product)/investor-memo/actions";
+import { generateMemoPdfAction } from "@/app/(product)/investor-memo/pdf-action";
 import { MemoSection } from "@/components/memo/memo-section";
 import { MemoToolbar } from "@/components/memo/memo-toolbar";
 import type { InvestorMemoOutput } from "@/lib/agents/schemas";
@@ -64,11 +65,30 @@ function SkeletonSection() {
   );
 }
 
+function downloadPdfBytes(bytes: Uint8Array, filename: string): void {
+  // Copy into a fresh ArrayBuffer so the Blob constructor sees a clean buffer
+  // (Uint8Arrays returned across the server-action boundary can carry the
+  // underlying transfer buffer; making a copy keeps types narrow).
+  const copy = new Uint8Array(bytes);
+  const blob = new Blob([copy.buffer as ArrayBuffer], {
+    type: "application/pdf",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 export function MemoShell() {
   const [memo, setMemo] = useState<InvestorMemoOutput | null>(null);
   const [lastGeneratedAt, setLastGeneratedAt] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [isPdfPending, startPdfTransition] = useTransition();
 
   const handleGenerate = useCallback(() => {
     setError(null);
@@ -89,14 +109,29 @@ export function MemoShell() {
     downloadMarkdown(memo);
   }, [memo]);
 
+  const handleDownloadPdf = useCallback(() => {
+    setError(null);
+    startPdfTransition(async () => {
+      try {
+        const { bytes, filename } = await generateMemoPdfAction(memo);
+        downloadPdfBytes(bytes, filename);
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        setError(message);
+      }
+    });
+  }, [memo]);
+
   return (
     <div className="space-y-6">
       <MemoToolbar
         hasMemo={memo !== null}
         isPending={isPending}
+        isPdfPending={isPdfPending}
         lastGeneratedAt={lastGeneratedAt}
         onGenerate={handleGenerate}
         onDownload={handleDownload}
+        onDownloadPdf={handleDownloadPdf}
       />
 
       {error ? (
