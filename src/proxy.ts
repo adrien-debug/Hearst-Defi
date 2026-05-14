@@ -4,7 +4,7 @@ import { type NextRequest, NextResponse } from "next/server";
  * Routes inside the `(product)` route group are gated behind Privy auth.
  * The admin console (`/admin/*`) and the homepage stay public.
  *
- * The middleware checks for the presence of Privy's session cookies; the
+ * The proxy checks for the presence of Privy's session cookies; the
  * cryptographic validity of the identity token is re-checked on the client
  * (Privy hooks) and can be re-checked server-side via `@privy-io/server-auth`
  * inside Server Components or API routes when we need a verified user.
@@ -16,6 +16,10 @@ import { type NextRequest, NextResponse } from "next/server";
  *   - `privy-refresh-token`— refresh token
  *
  * We accept any one of these as a "looks logged in" signal at the edge.
+ *
+ * Renamed from `middleware.ts` → `proxy.ts` for Next 16 (the `middleware`
+ * file convention is deprecated; see
+ * https://nextjs.org/docs/messages/middleware-to-proxy).
  */
 const PROTECTED_PREFIXES = [
   "/dashboard",
@@ -30,7 +34,7 @@ const PRIVY_COOKIE_NAMES = [
   "privy-refresh-token",
 ] as const;
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isProtected = PROTECTED_PREFIXES.some((prefix) =>
     pathname.startsWith(prefix),

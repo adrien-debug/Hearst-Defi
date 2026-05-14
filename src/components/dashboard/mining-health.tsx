@@ -4,8 +4,19 @@ import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
 import type { MiningHealth } from "@/lib/mock/dashboard";
 
+/**
+ * Optional live hashprice context. Shape kept structurally identical to
+ * `HashpriceData` (in `@/lib/data/hashprice`) but redeclared here so the
+ * component never imports `server-only` modules.
+ */
+export interface MiningHealthHashprice {
+  usd_per_th_day: number;
+  stale: boolean;
+}
+
 interface MiningHealthSectionProps {
   miningHealth: MiningHealth;
+  hashprice?: MiningHealthHashprice | null;
 }
 
 type Tone = "good" | "warn" | "bad";
@@ -80,6 +91,7 @@ function ScoreRow({ label, hint, value, tone, bar }: ScoreRowProps) {
 
 export function MiningHealthSection({
   miningHealth,
+  hashprice,
 }: MiningHealthSectionProps) {
   const marginTone = scoreTone(miningHealth.marginScore);
   const trendT = trendTone(miningHealth.hashpriceTrendPct);
@@ -115,7 +127,40 @@ export function MiningHealthSection({
           tone={opTone}
           bar={miningHealth.opConfidence}
         />
+        {hashprice && hashprice.usd_per_th_day > 0 ? (
+          <HashpriceRow hashprice={hashprice} />
+        ) : null}
       </div>
     </Card>
+  );
+}
+
+interface HashpriceRowProps {
+  hashprice: MiningHealthHashprice;
+}
+
+function HashpriceRow({ hashprice }: HashpriceRowProps) {
+  const provenance = hashprice.stale ? "stale" : "live";
+  return (
+    <div className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0">
+      <div className="flex items-baseline justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-[--color-text]">
+              Hashprice
+            </span>
+          </div>
+          <p className="mt-0.5 text-xs text-[--color-text-dim]">
+            BTC subsidy / network difficulty
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="stat-value leading-tight text-[--color-text]">
+            ${hashprice.usd_per_th_day.toFixed(3)} /TH/day
+          </span>
+          <ProvenanceBadge kind={provenance} />
+        </div>
+      </div>
+    </div>
   );
 }

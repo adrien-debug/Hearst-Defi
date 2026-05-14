@@ -2,6 +2,8 @@ import "server-only";
 
 import { prisma } from "@/lib/db";
 import type { MiningHealthInput } from "@/lib/agents/mining-health";
+import { fetchHashprice, type HashpriceData } from "@/lib/data/hashprice";
+import { computeMiningRevenue } from "@/lib/engine/mining";
 
 /**
  * Operational snapshot of the mining fleet for the Investor Memo PDF.
@@ -19,6 +21,12 @@ export interface MiningOpsSnapshot {
   margin_score: number;
   /** Count of `mining_attestation` proofs published over the look-back window. */
   attestations_count: number;
+  /**
+   * Live hashprice context (USD per TH per day) recomputed from
+   * mempool.space difficulty + Coingecko BTC price when available.
+   * `null` when both fail and we fall back to the DB-only snapshot.
+   */
+  hashprice?: HashpriceData | null;
 }
 
 /** Default look-back window for the ops snapshot (30 days). */
@@ -34,6 +42,23 @@ const OPS_FALLBACK: MiningOpsSnapshot = {
 
 /** Conversion: schema stores `deployedHashrate` in TH/s; PDF wants PH/s. */
 const TH_PER_PH = 1_000;
+
+/**
+ * Industry-average energy cost ($/kWh) used to recompute `margin_score`
+ * from the live hashprice. No public real-time feed exists for this —
+ * private hosting contracts are negotiated and confidential. We pin a
+ * conservative mid-tier number (5¢/kWh) so the live margin_score moves
+ * with hashprice + BTC price but stays comparable across runs.
+ */
+const ENERGY_COST_USD_PER_KWH = 0.05;
+
+/**
+ * Default stable APY (%) passed to the engine for margin computation.
+ * The engine does not actually use this for `margin_score` (only revenue
+ * inputs matter) but `ScenarioInputs` requires it.
+ */
+const ENGINE_STABLE_APY_PCT = 3.8;
+const ENGINE_VOL_INDEX = 50;
 
 /**
  * Reads the most recent `MiningMetric` row and projects it onto the shape
@@ -113,7 +138,7 @@ export async function loadMiningOpsSnapshot(
   const periodEnd = opts.periodEnd ?? new Date();
   const periodStart = new Date(periodEnd.getTime() - OPS_WINDOW_DAYS * 24 * 60 * 60 * 1000);
 
-  const [rows, attestationsCount] = await Promise.all([
+  const [rows, attestationsCount, hashprice] = await Promise.all([
     prisma.miningMetric.findMany({
       where: { takenAt: { gte: periodStart, lte: periodEnd } },
       orderBy: { takenAt: "desc" },
@@ -124,10 +149,30 @@ export async function loadMiningOpsSnapshot(
         postedAt: { gte: periodStart, lte: periodEnd },
       },
     }),
+    // Never throws — fetchHashprice has its own silent fallback.
+    fetchHashprice(),
   ]);
 
+  // Compute a margin_score from the live hashprice when the upstream
+  // datapoint is fresh. We keep this strictly out of `src/lib/engine/*`
+  // and call the engine here (data-access layer), preserving engine purity.
+  const liveMarginScore =
+    hashprice.usd_per_th_day > 0 && !hashprice.stale
+      ? computeMiningRevenue({
+          btc_price_change_pct: 0,
+          hashprice_usd_th_day: hashprice.usd_per_th_day,
+          energy_cost_kwh: ENERGY_COST_USD_PER_KWH,
+          stable_apy_pct: ENGINE_STABLE_APY_PCT,
+          vol_index: ENGINE_VOL_INDEX,
+        }).margin_score
+      : null;
+
   if (rows.length === 0) {
-    return OPS_FALLBACK;
+    return {
+      ...OPS_FALLBACK,
+      margin_score: liveMarginScore ?? OPS_FALLBACK.margin_score,
+      hashprice,
+    };
   }
 
   const avgDeployedTh =
@@ -135,13 +180,16 @@ export async function loadMiningOpsSnapshot(
   const avgUptime = rows.reduce((sum, r) => sum + r.uptimePct, 0) / rows.length;
   const latest = rows[0];
   // rows[0] is non-undefined here because rows.length > 0 (noUncheckedIndexedAccess).
-  const marginScore = latest ? latest.miningMarginScore : OPS_FALLBACK.margin_score;
+  const dbMarginScore = latest ? latest.miningMarginScore : OPS_FALLBACK.margin_score;
 
   return {
     hashrate_ph_s: round1(avgDeployedTh / TH_PER_PH),
     uptime_pct: round1(avgUptime),
-    margin_score: marginScore,
+    // Prefer the engine-recomputed score from live hashprice; otherwise
+    // fall back to the last DB value.
+    margin_score: liveMarginScore ?? dbMarginScore,
     attestations_count: attestationsCount,
+    hashprice,
   };
 }
 

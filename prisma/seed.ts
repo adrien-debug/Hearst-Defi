@@ -13,6 +13,16 @@ const prisma = new PrismaClient();
 
 const AUM_USDC = 25_000_000;
 const SEED_NOW = new Date("2026-05-14T00:00:00Z");
+
+// ---------------------------------------------------------------------------
+// Daily timeline — 30 days back from SEED_NOW.
+// AUM grows 8M -> 12M, APY oscillates 9-13%, allocations stay near balanced.
+// ---------------------------------------------------------------------------
+
+const DAILY_WINDOW_DAYS = 30;
+const DAILY_AUM_START = 8_000_000;
+const DAILY_AUM_END = 12_000_000;
+
 const PRESETS: Preset[] = [
   "base",
   "btc_bear",
@@ -35,14 +45,6 @@ const SNAPSHOT_DATES: Record<Preset, Date> = {
 };
 
 const MINING_BASE_INPUTS: ScenarioInputs = getPresetInputs("base");
-const MINING_MONTHS: Array<{ takenAt: Date; label: string }> = [
-  { takenAt: new Date("2025-12-15T00:00:00Z"), label: "2025-12" },
-  { takenAt: new Date("2026-01-15T00:00:00Z"), label: "2026-01" },
-  { takenAt: new Date("2026-02-15T00:00:00Z"), label: "2026-02" },
-  { takenAt: new Date("2026-03-15T00:00:00Z"), label: "2026-03" },
-  { takenAt: new Date("2026-04-15T00:00:00Z"), label: "2026-04" },
-  { takenAt: new Date("2026-05-15T00:00:00Z"), label: "2026-05" },
-];
 
 const APPROVED_BY = JSON.stringify(["multisig:0xAAA", "multisig:0xBBB"]);
 
@@ -86,6 +88,15 @@ const REBALANCE_FIXTURES: RebalanceFixture[] = [
   },
   {
     ruleId: "R4",
+    executedAt: new Date("2026-04-22T15:00:00Z"),
+    triggerText: "Hashprice 30d avg trending -3.4% vs 60d (watchlist band)",
+    actionText: "No allocation change. Operational confidence steady at 81.",
+    impactText: "APY range unchanged. Continue monitoring; review trigger at -5%.",
+    fromAllocation: { mining: 27, btc_tactical: 20, usdc_base: 43, stable_reserve: 10 },
+    toAllocation: { mining: 27, btc_tactical: 20, usdc_base: 43, stable_reserve: 10 },
+  },
+  {
+    ruleId: "R5",
     executedAt: new Date("2026-04-28T15:00:00Z"),
     triggerText: "Mode shifted defensive -> balanced (risk 58, margin 72)",
     actionText: "Rebalance to balanced mode targets",
@@ -94,7 +105,26 @@ const REBALANCE_FIXTURES: RebalanceFixture[] = [
     toAllocation: { mining: 35, btc_tactical: 15, usdc_base: 40, stable_reserve: 10 },
   },
   {
-    ruleId: "R5",
+    ruleId: "R-DIST-1",
+    executedAt: new Date("2026-05-01T09:00:00Z"),
+    triggerText: "Distribution window 2026-04 closed; attestation v1 received.",
+    actionText: "Distribute $179,400 USDC pro-rata to LP shares.",
+    impactText: "Realised APY April = 8.8% annualised. Distribution-to-date $1.04M.",
+    fromAllocation: { mining: 35, btc_tactical: 15, usdc_base: 40, stable_reserve: 10 },
+    toAllocation: { mining: 35, btc_tactical: 15, usdc_base: 40, stable_reserve: 10 },
+  },
+  {
+    ruleId: "R-BTC-3",
+    executedAt: new Date("2026-05-05T11:10:00Z"),
+    triggerText:
+      "R-BTC-3 evaluated — BTC 91,800 vs avg entry 58,420 (ratio 1.57, > 1.30) but sleeve < 10% AUM gate not met.",
+    actionText: "No execution. Trigger queued; awaiting sleeve > 10% AUM precondition.",
+    impactText: "BTC tactical exposure preserved. Next evaluation on next price tick.",
+    fromAllocation: { mining: 35, btc_tactical: 15, usdc_base: 40, stable_reserve: 10 },
+    toAllocation: { mining: 35, btc_tactical: 15, usdc_base: 40, stable_reserve: 10 },
+  },
+  {
+    ruleId: "R6",
     executedAt: new Date("2026-05-12T15:00:00Z"),
     triggerText: "Vol index above 80 sustained 7 days (current: 84)",
     actionText: "Reduce btc_tactical to 50% of mode target",
@@ -115,11 +145,55 @@ const PROOF_FIXTURES: ProofFixture[] = [
   { proofType: "mining_attestation", period: "2026-02", postedAt: new Date("2026-03-03T09:00:00Z"), seed: "mining-2026-02" },
   { proofType: "mining_attestation", period: "2026-03", postedAt: new Date("2026-04-03T09:00:00Z"), seed: "mining-2026-03" },
   { proofType: "mining_attestation", period: "2026-04", postedAt: new Date("2026-05-03T09:00:00Z"), seed: "mining-2026-04" },
+  { proofType: "mining_attestation", period: "2026-05-week1", postedAt: new Date("2026-05-08T09:00:00Z"), seed: "mining-2026-05w1" },
   { proofType: "custody", period: "2026-03", postedAt: new Date("2026-04-05T09:00:00Z"), seed: "custody-2026-03" },
   { proofType: "custody", period: "2026-04", postedAt: new Date("2026-05-05T09:00:00Z"), seed: "custody-2026-04" },
+  { proofType: "custody", period: "2026-05-mid", postedAt: new Date("2026-05-13T09:00:00Z"), seed: "custody-2026-05-mid" },
   { proofType: "audit", period: "2026-Q1", postedAt: new Date("2026-04-10T09:00:00Z"), seed: "audit-2026-Q1" },
   { proofType: "audit", period: "2026-Q2", postedAt: new Date("2026-05-10T09:00:00Z"), seed: "audit-2026-Q2" },
   { proofType: "methodology", period: null, postedAt: new Date("2026-01-15T09:00:00Z"), seed: "methodology-v1.0" },
+  { proofType: "methodology", period: null, postedAt: new Date("2026-04-20T09:00:00Z"), seed: "methodology-v1.0-addendum" },
+];
+
+interface DistributionFixture {
+  distributedAt: Date;
+  period: string;
+  amountUsdc: number;
+  txHash: string | null;
+  recipientsCount: number;
+}
+
+// 4 monthly distributions: Feb, Mar, Apr paid; May scheduled.
+const DISTRIBUTION_FIXTURES: DistributionFixture[] = [
+  {
+    distributedAt: new Date("2026-03-01T09:00:00Z"),
+    period: "2026-02",
+    amountUsdc: 68_000,
+    txHash: "0xd1a2c4b5e6f7081f2c34a5b6c7d8e9f0a1b2c3d4e5f60718293a4b5c6d7e8f00",
+    recipientsCount: 12,
+  },
+  {
+    distributedAt: new Date("2026-04-02T10:00:00Z"),
+    period: "2026-03",
+    amountUsdc: 86_400,
+    txHash: "0xd2b3c4d5e6f7081f2c34a5b6c7d8e9f0a1b2c3d4e5f60718293a4b5c6d7e8f11",
+    recipientsCount: 18,
+  },
+  {
+    distributedAt: new Date("2026-05-01T09:00:00Z"),
+    period: "2026-04",
+    amountUsdc: 102_800,
+    txHash: "0xd3c4d5e6f7081f2c34a5b6c7d8e9f0a1b2c3d4e5f60718293a4b5c6d7e8f1100",
+    recipientsCount: 24,
+  },
+  {
+    // May 31 — scheduled, not yet paid (txHash null marks "scheduled" in loader).
+    distributedAt: new Date("2026-05-31T09:00:00Z"),
+    period: "2026-05",
+    amountUsdc: 96_000,
+    txHash: null,
+    recipientsCount: 24,
+  },
 ];
 
 function hashFor(seed: string): string {
@@ -150,15 +224,25 @@ function ipfsUriFor(hash: string): string {
 }
 
 async function resetTables(): Promise<void> {
+  // Order matters: children before parents.
   await prisma.allocation.deleteMany();
   await prisma.vaultSnapshot.deleteMany();
   await prisma.backtestRun.deleteMany();
+  await prisma.scenarioRun.deleteMany();
   await prisma.rebalanceEvent.deleteMany();
+  await prisma.distribution.deleteMany();
   await prisma.miningMetric.deleteMany();
   await prisma.proof.deleteMany();
 }
 
-async function seedVaultSnapshots(): Promise<{ snapshots: number; allocations: number }> {
+// ---------------------------------------------------------------------------
+// Vault snapshots — preset-anchored (used by memo loader) + daily timeline.
+// ---------------------------------------------------------------------------
+
+async function seedPresetVaultSnapshots(): Promise<{
+  snapshots: number;
+  allocations: number;
+}> {
   let snapshots = 0;
   let allocations = 0;
   for (const preset of PRESETS) {
@@ -194,6 +278,126 @@ async function seedVaultSnapshots(): Promise<{ snapshots: number; allocations: n
   return { snapshots, allocations };
 }
 
+interface BucketDefinition {
+  bucket: "mining" | "btc_tactical" | "usdc_base" | "stable_reserve";
+  basePct: number;
+  oscillation: number;
+  yieldBps: number;
+}
+
+// Target allocation centred on "balanced" mode with mild daily oscillation.
+const DAILY_BUCKETS: BucketDefinition[] = [
+  { bucket: "mining", basePct: 34, oscillation: 2, yieldBps: 620 },
+  { bucket: "btc_tactical", basePct: 14, oscillation: 1.5, yieldBps: 0 },
+  { bucket: "usdc_base", basePct: 38, oscillation: 1.5, yieldBps: 480 },
+  { bucket: "stable_reserve", basePct: 14, oscillation: 1, yieldBps: 450 },
+];
+
+async function seedDailyVaultTimeline(): Promise<{
+  snapshots: number;
+  allocations: number;
+}> {
+  let snapshots = 0;
+  let allocations = 0;
+
+  for (let dayOffset = DAILY_WINDOW_DAYS - 1; dayOffset >= 0; dayOffset -= 1) {
+    const takenAt = new Date(SEED_NOW.getTime() - dayOffset * 24 * 60 * 60 * 1000);
+    const t = (DAILY_WINDOW_DAYS - 1 - dayOffset) / Math.max(1, DAILY_WINDOW_DAYS - 1);
+
+    // Linear AUM growth 8M -> 12M with a small sinusoidal wobble.
+    const aumLinear =
+      DAILY_AUM_START + (DAILY_AUM_END - DAILY_AUM_START) * t;
+    const aumWobble = 1 + 0.01 * Math.sin(dayOffset * 0.4);
+    const aumUsdc = Math.round(aumLinear * aumWobble);
+
+    // APY oscillates between 9.0 and 13.0 with a slight upward drift.
+    const apyMid = 10.5 + 1.5 * Math.sin(dayOffset * 0.35);
+    const apyLow = round2(apyMid - 0.6);
+    const apyHigh = round2(apyMid + 0.6);
+    const stressedApy = round2(apyLow * 0.55);
+
+    const riskScore = 38 + Math.round(8 * Math.abs(Math.sin(dayOffset * 0.5)));
+    const miningMarginScore =
+      62 + Math.round(12 * Math.abs(Math.cos(dayOffset * 0.4)));
+    const mode =
+      riskScore >= 60
+        ? "defensive"
+        : miningMarginScore >= 70
+          ? "opportunistic"
+          : "balanced";
+
+    const snap = await prisma.vaultSnapshot.create({
+      data: {
+        takenAt,
+        aumUsdc,
+        currentApyLow: apyLow,
+        currentApyHigh: apyHigh,
+        stressedApy,
+        riskScore,
+        miningMarginScore,
+        mode,
+        source: "daily-seed",
+      },
+    });
+    snapshots++;
+
+    // Build allocation that sums to ~100. We normalise so the rounding error
+    // does not show up on the donut chart.
+    const rawPcts = DAILY_BUCKETS.map((b) => {
+      const wave = Math.sin(dayOffset * 0.6 + DAILY_BUCKETS.indexOf(b));
+      return b.basePct + b.oscillation * wave;
+    });
+    const sum = rawPcts.reduce((acc, v) => acc + v, 0);
+    const normPcts = rawPcts.map((v) => (v / sum) * 100);
+
+    for (let i = 0; i < DAILY_BUCKETS.length; i += 1) {
+      const def = DAILY_BUCKETS[i];
+      const pctRaw = normPcts[i];
+      if (def === undefined || pctRaw === undefined) continue;
+      const pct = round2(pctRaw);
+      await prisma.allocation.create({
+        data: {
+          snapshotId: snap.id,
+          bucket: def.bucket,
+          pct,
+          valueUsdc: round2(aumUsdc * (pct / 100)),
+          yieldContributionBps: def.yieldBps,
+        },
+      });
+      allocations++;
+    }
+  }
+
+  return { snapshots, allocations };
+}
+
+// ---------------------------------------------------------------------------
+// Scenarios — persist one ScenarioRun per preset so the memo loader works.
+// ---------------------------------------------------------------------------
+
+async function seedScenarioRuns(): Promise<number> {
+  let count = 0;
+  for (const preset of PRESETS) {
+    const inputs = getPresetInputs(preset);
+    const output = runScenario(inputs, { preset, now: SEED_NOW });
+    await prisma.scenarioRun.create({
+      data: {
+        ranAt: SNAPSHOT_DATES[preset],
+        userId: null,
+        preset,
+        inputs: JSON.stringify(inputs),
+        outputs: JSON.stringify(output),
+        narrative: null,
+        riskWarning: null,
+        confidence: output.confidence,
+        methodologyVersion: "v1.0",
+      },
+    });
+    count++;
+  }
+  return count;
+}
+
 async function seedBacktests(): Promise<number> {
   let count = 0;
   for (const key of BACKTEST_KEYS) {
@@ -218,34 +422,62 @@ async function seedBacktests(): Promise<number> {
   return count;
 }
 
+// ---------------------------------------------------------------------------
+// Mining metrics — one row per day across the 30-day window.
+// ---------------------------------------------------------------------------
+
 async function seedMiningMetrics(): Promise<number> {
   const baseHashprice = MINING_BASE_INPUTS.hashprice_usd_th_day;
   let prevHashprice: number | null = null;
   let count = 0;
-  for (let i = 0; i < MINING_MONTHS.length; i++) {
-    const entry = MINING_MONTHS[i];
-    if (!entry) continue;
-    const hashprice = Number((baseHashprice * (1 + 0.01 * (i - 3))).toFixed(6));
-    const monthlyInputs: ScenarioInputs = { ...MINING_BASE_INPUTS, hashprice_usd_th_day: hashprice };
+
+  for (let dayOffset = DAILY_WINDOW_DAYS - 1; dayOffset >= 0; dayOffset -= 1) {
+    const takenAt = new Date(SEED_NOW.getTime() - dayOffset * 24 * 60 * 60 * 1000);
+    const t = (DAILY_WINDOW_DAYS - 1 - dayOffset) / Math.max(1, DAILY_WINDOW_DAYS - 1);
+
+    // Hashprice oscillates in [0.05, 0.07] with a mild downward bias toward the
+    // end of the window (matches the "Hashprice Trend -3.4%" line on the UI).
+    const hashprice = round6(
+      0.06 + 0.01 * Math.sin(dayOffset * 0.45) - 0.005 * t,
+    );
+
+    // Difficulty rises ~1.5% across the window.
+    const difficulty = 110e12 * (1 + 0.015 * t);
+
+    // BTC price drifts 90k -> 100k.
+    const btcPrice = Math.round(90_000 + 10_000 * t + 1_500 * Math.sin(dayOffset * 0.5));
+
+    const energyCost = MINING_BASE_INPUTS.energy_cost_kwh;
+    const uptimePct = round2(97.5 + 1.4 * Math.abs(Math.cos(dayOffset * 0.4)));
+
+    const monthlyInputs: ScenarioInputs = {
+      ...MINING_BASE_INPUTS,
+      hashprice_usd_th_day: hashprice,
+    };
     const revenue = computeMiningRevenue(monthlyInputs);
+
     const hashpriceTrendPct =
-      prevHashprice === null
+      prevHashprice === null || prevHashprice === 0
         ? 0
-        : Number((((hashprice - prevHashprice) / prevHashprice) * 100).toFixed(2));
+        : round2(((hashprice - prevHashprice) / prevHashprice) * 100);
+
+    const operationalConfidence = 80 + Math.round(8 * Math.abs(Math.sin(dayOffset * 0.6)));
+
     await prisma.miningMetric.create({
       data: {
-        takenAt: entry.takenAt,
+        takenAt,
         hashprice,
-        difficulty: 110e12,
-        btcPrice: 95000,
-        energyCost: monthlyInputs.energy_cost_kwh,
-        uptimePct: 99.2,
-        deployedHashrate: 2500,
+        difficulty,
+        btcPrice,
+        energyCost,
+        uptimePct,
+        deployedHashrate: 2500 + Math.round(120 * Math.sin(dayOffset * 0.3)),
         miningMarginScore: Math.round(revenue.margin_score),
         hashpriceTrendPct,
-        operationalConfidence: 85,
+        operationalConfidence,
       },
     });
+
     prevHashprice = hashprice;
     count++;
   }
@@ -273,6 +505,23 @@ async function seedRebalanceEvents(): Promise<number> {
   return count;
 }
 
+async function seedDistributions(): Promise<number> {
+  let count = 0;
+  for (const d of DISTRIBUTION_FIXTURES) {
+    await prisma.distribution.create({
+      data: {
+        distributedAt: d.distributedAt,
+        amountUsdc: d.amountUsdc,
+        txHash: d.txHash,
+        recipientsCount: d.recipientsCount,
+        period: d.period,
+      },
+    });
+    count++;
+  }
+  return count;
+}
+
 async function seedProofs(): Promise<number> {
   let count = 0;
   for (const p of PROOF_FIXTURES) {
@@ -293,20 +542,33 @@ async function seedProofs(): Promise<number> {
   return count;
 }
 
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+function round6(n: number): number {
+  return Math.round(n * 1_000_000) / 1_000_000;
+}
+
 async function main(): Promise<void> {
   await resetTables();
-  const vault = await seedVaultSnapshots();
+  const presetVault = await seedPresetVaultSnapshots();
+  const dailyVault = await seedDailyVaultTimeline();
+  const scenarios = await seedScenarioRuns();
   const backtests = await seedBacktests();
   const miningMetrics = await seedMiningMetrics();
   const rebalances = await seedRebalanceEvents();
+  const distributions = await seedDistributions();
   const proofs = await seedProofs();
 
   console.log("Hearst Connect seed complete:");
-  console.log(`  VaultSnapshot:   ${vault.snapshots}`);
-  console.log(`  Allocation:      ${vault.allocations}`);
+  console.log(`  VaultSnapshot:   ${presetVault.snapshots + dailyVault.snapshots} (${presetVault.snapshots} preset + ${dailyVault.snapshots} daily)`);
+  console.log(`  Allocation:      ${presetVault.allocations + dailyVault.allocations}`);
+  console.log(`  ScenarioRun:     ${scenarios}`);
   console.log(`  BacktestRun:     ${backtests}`);
   console.log(`  MiningMetric:    ${miningMetrics}`);
   console.log(`  RebalanceEvent:  ${rebalances}`);
+  console.log(`  Distribution:    ${distributions}`);
   console.log(`  Proof:           ${proofs}`);
 }
 
