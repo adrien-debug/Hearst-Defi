@@ -8,6 +8,7 @@ import {
   runScenarioAction,
 } from "@/app/(product)/scenario-lab/actions";
 import { BacktestPanel } from "@/components/scenario/backtest-panel";
+import { CompareMode } from "@/components/scenario/compare-mode";
 import { InputsPanel } from "@/components/scenario/inputs-panel";
 import { OutputPanel } from "@/components/scenario/output-panel";
 import { PresetBar } from "@/components/scenario/preset-bar";
@@ -32,6 +33,8 @@ const BASE_INPUTS: ScenarioInputs = {
 };
 
 type Tab = "scenario" | "backtest";
+
+type ScenarioMode = "single" | "compare";
 
 interface BacktestMeta {
   key: BacktestKey;
@@ -113,6 +116,46 @@ function TabBar({ active, onChange }: TabBarProps) {
         );
       })}
     </nav>
+  );
+}
+
+// ── Scenario mode toggle (Single / Compare) ───────────────────────────────────
+
+interface ScenarioModeToggleProps {
+  active: ScenarioMode;
+  onChange: (mode: ScenarioMode) => void;
+}
+
+function ScenarioModeToggle({ active, onChange }: ScenarioModeToggleProps) {
+  return (
+    <div
+      role="tablist"
+      aria-label="Scenario mode"
+      className="inline-flex gap-1 rounded-[--radius-button] border border-[--color-border] bg-[--color-bg-elevated] p-1"
+    >
+      {(["single", "compare"] as ScenarioMode[]).map((mode) => {
+        const isActive = active === mode;
+        return (
+          <button
+            key={mode}
+            type="button"
+            role="tab"
+            aria-selected={isActive}
+            onClick={() => onChange(mode)}
+            className={cn(
+              "rounded-[--radius-sm] px-4 py-1.5 text-xs font-semibold uppercase tracking-wider",
+              "transition-[background-color,color] duration-150",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg-elevated]",
+              isActive
+                ? "bg-[--color-brand] text-[--color-brand-fg]"
+                : "text-[--color-text-muted] hover:text-[--color-text]",
+            )}
+          >
+            {mode}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -258,6 +301,7 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
 
 export function LabShell() {
   const [activeTab, setActiveTab] = useState<Tab>("scenario");
+  const [scenarioMode, setScenarioMode] = useState<ScenarioMode>("single");
 
   // — Scenario state —
   const [scenarioState, setScenarioState] = useState<LabShellState>({
@@ -332,145 +376,31 @@ export function LabShell() {
       {/* ── Scenario tab ──────────────────────────────────────────────── */}
       {activeTab === "scenario" && (
         <div className="space-y-6">
-          <PresetBar
-            selected={scenarioState.selectedPreset}
-            onSelect={handlePresetSelect}
-            disabled={scenarioPending}
-          />
-
-          {scenarioError && (
-            <p className="rounded-[--radius-button] border border-[--color-danger] bg-[--color-danger-bg] px-4 py-2.5 text-sm text-[--color-danger]">
-              {scenarioError}
+          {/* Mode toggle: Single | Compare */}
+          <div className="flex items-center justify-between gap-4">
+            <p className="eyebrow">
+              {scenarioMode === "single"
+                ? "Run one scenario"
+                : "Compare two scenarios side-by-side"}
             </p>
-          )}
-
-          <div className="grid gap-8 lg:grid-cols-[minmax(360px,420px)_1fr]">
-            {/* Left: Inputs panel */}
-            <div className="flex flex-col gap-0 rounded-[--radius-card] border border-[--color-border] bg-[--color-bg-card]">
-              <div className="border-b border-[--color-border-subtle] px-6 py-4">
-                <h2 className="h4">Inputs</h2>
-                <p className="mt-0.5 text-xs text-[--color-text-dim]">
-                  Adjust sliders or select a preset above
-                </p>
-              </div>
-
-              <div
-                className={cn(
-                  "flex-1 px-6 py-5",
-                  scenarioPending && "pointer-events-none opacity-50",
-                )}
-              >
-                <InputsPanel
-                  inputs={scenarioState.inputs}
-                  onChange={handleInputChange}
-                  disabled={scenarioPending}
-                />
-              </div>
-
-              <div className="border-t border-[--color-border-subtle] px-6 py-5">
-                <Button
-                  variant="primary"
-                  size="lg"
-                  className="w-full font-semibold"
-                  onClick={() => submit(scenarioState.inputs)}
-                  disabled={scenarioPending}
-                >
-                  {scenarioPending ? (
-                    <>
-                      <Spinner />
-                      Running…
-                    </>
-                  ) : (
-                    <>
-                      <svg
-                        className="h-4 w-4"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        aria-hidden
-                      >
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
-                      Run scenario
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            {/* Right: Output panel */}
-            <div className="min-w-0">
-              {scenarioState.output ? (
-                <OutputPanel
-                  output={scenarioState.output}
-                  isPending={scenarioPending}
-                />
-              ) : (
-                <div
-                  className={cn(
-                    "flex min-h-80 flex-col items-center justify-center gap-3",
-                    "rounded-[--radius-card] border border-dashed border-[--color-border-subtle]",
-                    "transition-opacity duration-150",
-                    scenarioPending && "opacity-50",
-                  )}
-                >
-                  {scenarioPending ? (
-                    <>
-                      <svg
-                        className="h-5 w-5 animate-spin text-[--color-brand]"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        aria-hidden
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                        />
-                      </svg>
-                      <p className="stat-label">Computing…</p>
-                    </>
-                  ) : (
-                    <>
-                      <svg
-                        className="h-8 w-8 text-[--color-text-dim]"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        aria-hidden
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
-                        />
-                      </svg>
-                      <p className="max-w-xs text-center text-sm text-[--color-text-dim]">
-                        Select a preset above or adjust the sliders,{" "}
-                        <br />
-                        then press{" "}
-                        <span className="font-semibold text-[--color-text-muted]">
-                          Run scenario
-                        </span>{" "}
-                        to see projections.
-                      </p>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
+            <ScenarioModeToggle
+              active={scenarioMode}
+              onChange={setScenarioMode}
+            />
           </div>
+
+          {scenarioMode === "compare" ? (
+            <CompareMode />
+          ) : (
+            <SingleMode
+              scenarioState={scenarioState}
+              scenarioPending={scenarioPending}
+              scenarioError={scenarioError}
+              onPresetSelect={handlePresetSelect}
+              onInputChange={handleInputChange}
+              onSubmit={() => submit(scenarioState.inputs)}
+            />
+          )}
         </div>
       )}
 
@@ -483,6 +413,170 @@ export function LabShell() {
           onSelect={handleBacktestSelect}
         />
       )}
+    </div>
+  );
+}
+
+// ── Single mode (extracted from original Scenario tab body) ──────────────────
+
+interface SingleModeProps {
+  scenarioState: LabShellState;
+  scenarioPending: boolean;
+  scenarioError: string | null;
+  onPresetSelect: (preset: Preset) => void;
+  onInputChange: (inputs: ScenarioInputs) => void;
+  onSubmit: () => void;
+}
+
+function SingleMode({
+  scenarioState,
+  scenarioPending,
+  scenarioError,
+  onPresetSelect,
+  onInputChange,
+  onSubmit,
+}: SingleModeProps) {
+  return (
+    <div className="space-y-6">
+      <PresetBar
+        selected={scenarioState.selectedPreset}
+        onSelect={onPresetSelect}
+        disabled={scenarioPending}
+      />
+
+      {scenarioError && (
+        <p className="rounded-[--radius-button] border border-[--color-danger] bg-[--color-danger-bg] px-4 py-2.5 text-sm text-[--color-danger]">
+          {scenarioError}
+        </p>
+      )}
+
+      <div className="grid gap-8 lg:grid-cols-[minmax(360px,420px)_1fr]">
+        {/* Left: Inputs panel */}
+        <div className="flex flex-col gap-0 rounded-[--radius-card] border border-[--color-border] bg-[--color-bg-card]">
+          <div className="border-b border-[--color-border-subtle] px-6 py-4">
+            <h2 className="h4">Inputs</h2>
+            <p className="mt-0.5 text-xs text-[--color-text-dim]">
+              Adjust sliders or select a preset above
+            </p>
+          </div>
+
+          <div
+            className={cn(
+              "flex-1 px-6 py-5",
+              scenarioPending && "pointer-events-none opacity-50",
+            )}
+          >
+            <InputsPanel
+              inputs={scenarioState.inputs}
+              onChange={onInputChange}
+              disabled={scenarioPending}
+            />
+          </div>
+
+          <div className="border-t border-[--color-border-subtle] px-6 py-5">
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full font-semibold"
+              onClick={onSubmit}
+              disabled={scenarioPending}
+            >
+              {scenarioPending ? (
+                <>
+                  <Spinner />
+                  Running…
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="h-4 w-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden
+                  >
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                  Run scenario
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Right: Output panel */}
+        <div className="min-w-0">
+          {scenarioState.output ? (
+            <OutputPanel
+              output={scenarioState.output}
+              isPending={scenarioPending}
+            />
+          ) : (
+            <div
+              className={cn(
+                "flex min-h-80 flex-col items-center justify-center gap-3",
+                "rounded-[--radius-card] border border-dashed border-[--color-border-subtle]",
+                "transition-opacity duration-150",
+                scenarioPending && "opacity-50",
+              )}
+            >
+              {scenarioPending ? (
+                <>
+                  <svg
+                    className="h-5 w-5 animate-spin text-[--color-brand]"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    aria-hidden
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
+                  </svg>
+                  <p className="stat-label">Computing…</p>
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="h-8 w-8 text-[--color-text-dim]"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    aria-hidden
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
+                    />
+                  </svg>
+                  <p className="max-w-xs text-center text-sm text-[--color-text-dim]">
+                    Select a preset above or adjust the sliders,{" "}
+                    <br />
+                    then press{" "}
+                    <span className="font-semibold text-[--color-text-muted]">
+                      Run scenario
+                    </span>{" "}
+                    to see projections.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

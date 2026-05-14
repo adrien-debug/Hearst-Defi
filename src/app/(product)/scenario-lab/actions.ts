@@ -43,6 +43,17 @@ export async function getPresetInputsAction(
   return getPresetInputs(preset);
 }
 
+export async function runComparisonAction(
+  presets: [Preset, Preset],
+): Promise<[ScenarioOutput, ScenarioOutput]> {
+  const now = new Date();
+  const [a, b] = await Promise.all([
+    Promise.resolve(runScenario(getPresetInputs(presets[0]), { now, preset: presets[0] })),
+    Promise.resolve(runScenario(getPresetInputs(presets[1]), { now, preset: presets[1] })),
+  ]);
+  return [a, b];
+}
+
 export async function runBacktestAction(
   key: BacktestKey,
 ): Promise<BacktestOutput> {

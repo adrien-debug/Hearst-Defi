@@ -1,0 +1,334 @@
+import { ApyRange } from "@/components/ui/apy-range";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { ProvenanceBadge } from "@/components/ui/provenance-badge";
+import { cn } from "@/lib/cn";
+import type {
+  AllocationBucket,
+  ScenarioOutput,
+} from "@/lib/engine/types";
+
+// ── helpers ──────────────────────────────────────────────────────────────────
+
+const BUCKET_LABEL: Record<AllocationBucket, string> = {
+  mining: "Mining cashflow",
+  btc_tactical: "BTC tactical",
+  usdc_base: "USDC base yield",
+  stable_reserve: "Stable reserve",
+};
+
+const BUCKET_COLOR: Record<AllocationBucket, string> = {
+  mining: "var(--color-brand)",
+  btc_tactical: "var(--color-warning)",
+  usdc_base: "var(--color-info)",
+  stable_reserve: "var(--color-text-dim)",
+};
+
+const CONFIDENCE_VARIANT: Record<
+  ScenarioOutput["confidence"],
+  "danger" | "warning" | "success"
+> = {
+  low: "danger",
+  medium: "warning",
+  high: "success",
+};
+
+const MODE_LABEL: Record<ScenarioOutput["mode"], string> = {
+  defensive: "Defensive",
+  balanced: "Balanced",
+  opportunistic: "Opportunistic",
+};
+
+const MODE_VARIANT: Record<
+  ScenarioOutput["mode"],
+  "danger" | "default" | "success"
+> = {
+  defensive: "danger",
+  balanced: "default",
+  opportunistic: "success",
+};
+
+function scoreColorClass(score: number, invertedRisk = false): string {
+  if (invertedRisk) {
+    if (score > 70) return "bg-[--color-danger]";
+    if (score > 40) return "bg-[--color-warning]";
+    return "bg-[--color-success]";
+  }
+  if (score < 30) return "bg-[--color-danger]";
+  if (score < 60) return "bg-[--color-warning]";
+  return "bg-[--color-success]";
+}
+
+// ── delta helpers ────────────────────────────────────────────────────────────
+
+interface ApyDelta {
+  /** B − A on the midpoint of the APY range, in absolute APY % points. */
+  value: number;
+}
+
+interface RiskDelta {
+  /** B − A on the 0–100 risk score. */
+  value: number;
+}
+
+export function computeApyDelta(
+  a: ScenarioOutput,
+  b: ScenarioOutput,
+): ApyDelta {
+  const midA = (a.apy_range.low + a.apy_range.high) / 2;
+  const midB = (b.apy_range.low + b.apy_range.high) / 2;
+  return { value: midB - midA };
+}
+
+export function computeRiskDelta(
+  a: ScenarioOutput,
+  b: ScenarioOutput,
+): RiskDelta {
+  return { value: b.risk_score - a.risk_score };
+}
+
+function formatSignedFixed(n: number, precision: number): string {
+  const sign = n > 0 ? "+" : n < 0 ? "−" : "±";
+  return `${sign}${Math.abs(n).toFixed(precision)}`;
+}
+
+function formatSignedInt(n: number): string {
+  const sign = n > 0 ? "+" : n < 0 ? "−" : "±";
+  return `${sign}${Math.abs(Math.round(n))}`;
+}
+
+// ── compact components ───────────────────────────────────────────────────────
+
+interface OutputPanelCompactProps {
+  output: ScenarioOutput;
+  presetLabel: string;
+  side: "A" | "B";
+  /** Optional comparison reference (the other panel). When present on side B,
+   * deltas are rendered under hero APY and risk score. */
+  vs?: ScenarioOutput | null;
+  isPending?: boolean;
+}
+
+export function OutputPanelCompact({
+  output,
+  presetLabel,
+  side,
+  vs,
+  isPending,
+}: OutputPanelCompactProps) {
+  const riskColorClass = scoreColorClass(output.risk_score, true);
+  const miningColorClass = scoreColorClass(output.mining_margin_score, false);
+
+  const showDeltas = side === "B" && vs !== null && vs !== undefined;
+  const apyDelta = showDeltas ? computeApyDelta(vs, output) : null;
+  const riskDelta = showDeltas ? computeRiskDelta(vs, output) : null;
+
+  // For APY: higher is "better" (positive delta = green).
+  // For Risk: higher is "worse" (positive delta = red).
+  const apyDeltaToneClass = apyDelta
+    ? apyDelta.value > 0.05
+      ? "text-[--color-success]"
+      : apyDelta.value < -0.05
+        ? "text-[--color-danger]"
+        : "text-[--color-text-dim]"
+    : "";
+
+  const riskDeltaToneClass = riskDelta
+    ? riskDelta.value > 0.5
+      ? "text-[--color-danger]"
+      : riskDelta.value < -0.5
+        ? "text-[--color-success]"
+        : "text-[--color-text-dim]"
+    : "";
+
+  return (
+    <section
+      className={cn(
+        "relative flex flex-col gap-4 rounded-[--radius-card]",
+        "border border-[--color-border] bg-[--color-bg-card]",
+        "border-l-4",
+        side === "A"
+          ? "border-l-[--color-border-strong]"
+          : "border-l-[--color-brand]",
+        "px-5 py-5",
+        "transition-opacity duration-150",
+        isPending && "pointer-events-none opacity-50",
+      )}
+      aria-busy={isPending}
+      aria-label={`Scenario ${side}: ${presetLabel}`}
+    >
+      {/* Header */}
+      <header className="flex flex-col gap-0.5">
+        <span className="eyebrow">Scenario {side}</span>
+        <h3 className="h3 truncate" title={presetLabel}>
+          {presetLabel}
+        </h3>
+      </header>
+
+      {/* ── APY Hero ─────────────────────────────────────────────────── */}
+      <Card className="p-5">
+        <CardHeader className="mb-3">
+          <CardTitle className="text-base">Projected APY</CardTitle>
+          <ProvenanceBadge kind="estimated" />
+        </CardHeader>
+
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <ApyRange
+            low={output.apy_range.low}
+            high={output.apy_range.high}
+            className={cn(
+              "font-mono text-[--text-4xl] font-black tabular-nums",
+              "text-[--color-brand] leading-none",
+            )}
+          />
+          <div className="flex flex-col items-end gap-1">
+            <span className="stat-label text-[--text-micro]">Confidence</span>
+            <Badge
+              variant={CONFIDENCE_VARIANT[output.confidence]}
+              className="text-[--text-micro]"
+            >
+              {output.confidence.toUpperCase()}
+            </Badge>
+          </div>
+        </div>
+
+        {/* APY delta vs A (only on B) */}
+        {apyDelta && (
+          <p
+            className={cn(
+              "mt-3 font-mono text-xs font-semibold tabular-nums",
+              apyDeltaToneClass,
+            )}
+            aria-label={`APY midpoint delta vs Scenario A: ${apyDelta.value.toFixed(2)} percentage points`}
+          >
+            Δ {formatSignedFixed(apyDelta.value, 2)} pts{" "}
+            <span className="font-sans font-normal text-[--color-text-dim]">
+              midpoint vs Scenario A
+            </span>
+          </p>
+        )}
+      </Card>
+
+      {/* ── Risk + Mining 2×1 ───────────────────────────────────────── */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        {/* Risk Score */}
+        <Card className="p-4">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <span className="stat-label text-[--text-micro]">Risk Score</span>
+            <ProvenanceBadge kind="estimated" />
+          </div>
+          <div className="mb-1 flex items-baseline gap-1">
+            <span className="font-mono text-xl font-black tabular-nums text-[--color-text]">
+              {output.risk_score.toFixed(0)}
+            </span>
+            <span className="text-xs text-[--color-text-dim]">/100</span>
+          </div>
+          <Progress
+            value={output.risk_score}
+            fillClassName={riskColorClass}
+            className="mt-1.5"
+          />
+          {/* Risk delta (only on B) */}
+          {riskDelta && (
+            <p
+              className={cn(
+                "mt-2 font-mono text-[--text-micro] font-semibold tabular-nums",
+                riskDeltaToneClass,
+              )}
+              aria-label={`Risk score delta vs Scenario A: ${Math.round(riskDelta.value)}`}
+            >
+              Δ {formatSignedInt(riskDelta.value)}{" "}
+              <span className="font-sans font-normal text-[--color-text-dim]">
+                vs A
+              </span>
+            </p>
+          )}
+        </Card>
+
+        {/* Mining Margin */}
+        <Card className="p-4">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <span className="stat-label text-[--text-micro]">
+              Mining Margin
+            </span>
+            <ProvenanceBadge kind="estimated" />
+          </div>
+          <div className="mb-1 flex items-baseline gap-1">
+            <span className="font-mono text-xl font-black tabular-nums text-[--color-text]">
+              {output.mining_margin_score.toFixed(0)}
+            </span>
+            <span className="text-xs text-[--color-text-dim]">/100</span>
+          </div>
+          <Progress
+            value={output.mining_margin_score}
+            fillClassName={miningColorClass}
+            className="mt-1.5"
+          />
+          <p className="mt-2 text-[--text-micro] text-[--color-text-dim]">
+            Current vs target
+          </p>
+        </Card>
+      </div>
+
+      {/* ── Vault Mode ───────────────────────────────────────────────── */}
+      <Card className="p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="stat-label text-[--text-micro]">Vault Mode</p>
+            <p className="mt-0.5 text-[--text-micro] text-[--color-text-dim]">
+              Allocation posture
+            </p>
+          </div>
+          <Badge
+            variant={MODE_VARIANT[output.mode]}
+            className="px-3 py-1.5 text-xs"
+          >
+            {MODE_LABEL[output.mode]}
+          </Badge>
+        </div>
+      </Card>
+
+      {/* ── Allocation (compact table, no stacked bar) ────────────────── */}
+      <Card className="p-4">
+        <CardHeader className="mb-3">
+          <CardTitle className="text-base">Allocation</CardTitle>
+          <ProvenanceBadge kind="estimated" />
+        </CardHeader>
+
+        <div>
+          <div className="mb-1.5 grid grid-cols-[1fr_auto_auto] gap-x-3 text-[--text-micro] font-semibold uppercase tracking-wider text-[--color-text-dim]">
+            <span>Bucket</span>
+            <span className="text-right">Pct</span>
+            <span className="text-right">Yield</span>
+          </div>
+          <ul className="divide-y divide-[--color-border-subtle]">
+            {output.allocations.map((a) => (
+              <li
+                key={a.bucket}
+                className="grid grid-cols-[1fr_auto_auto] items-center gap-x-3 py-1.5 text-sm first:pt-0.5 last:pb-0.5"
+              >
+                <span className="flex min-w-0 items-center gap-2 text-[--color-text-muted]">
+                  <span
+                    className="inline-block h-2 w-2 shrink-0 rounded-full"
+                    style={{ background: BUCKET_COLOR[a.bucket] }}
+                    aria-hidden
+                  />
+                  <span className="truncate">{BUCKET_LABEL[a.bucket]}</span>
+                </span>
+                <span className="text-right font-mono tabular-nums text-[--color-text]">
+                  {a.pct.toFixed(0)}%
+                </span>
+                <span className="text-right font-mono text-xs tabular-nums text-[--color-text-dim]">
+                  {a.yield_contribution_bps > 0
+                    ? `+${a.yield_contribution_bps}bps`
+                    : "P&L"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Card>
+    </section>
+  );
+}
