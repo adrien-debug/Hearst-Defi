@@ -31,6 +31,37 @@ export interface ScenarioOutput {
   allocations: Allocation[];
   assumptions: string[];
   confidence: Confidence;
+  btc_tactical: BtcTacticalAssessment;
+}
+
+export type BtcTriggerKind = "accumulate" | "take_profit" | "reduce_size" | "hold";
+
+export interface BtcTrigger {
+  id: string;
+  kind: BtcTriggerKind;
+  condition: string;
+  action: string;
+  armed: boolean;
+}
+
+export type BtcGuardrailKind =
+  | "volatility"
+  | "mining_margin"
+  | "concentration"
+  | "liquidity";
+
+export interface BtcGuardrail {
+  id: string;
+  kind: BtcGuardrailKind;
+  label: string;
+  status: "healthy" | "normal" | "warning" | "breached";
+  detail: string;
+}
+
+export interface BtcTacticalAssessment {
+  triggers: BtcTrigger[];
+  guardrails: BtcGuardrail[];
+  targetExposurePct: number;
 }
 
 export type Preset =
@@ -44,4 +75,27 @@ export interface MiningRevenue {
   gross_revenue_usd_th_day: number;
   net_margin_usd_th_day: number;
   margin_score: number;
+}
+
+export type BacktestKey = "bear_2022" | "etf_halving_2024" | "mining_crunch_2024";
+
+export interface MonthlyPoint {
+  month: string;
+  valueUsdc: number;
+  distributionUsdc: number;
+}
+
+export interface BacktestOutput {
+  key: BacktestKey;
+  startDate: string;
+  endDate: string;
+  initialCapital: number;
+  endingValue: number;
+  totalReturnPct: number;
+  maxDrawdownPct: number;
+  worstMonthPct: number;
+  numRebalances: number;
+  monthlySeries: MonthlyPoint[];
+  hearstRulesMode: boolean;
+  assumptions: string[];
 }

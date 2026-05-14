@@ -1,3 +1,4 @@
+import { assessBtcTactical } from "./btc-tactical";
 import { computeMiningRevenue } from "./mining";
 import { decideMode, deriveAllocations } from "./rebalancing";
 import { computeRiskScore } from "./risk";
@@ -95,6 +96,8 @@ export function runScenario(
   const assumptions = buildAssumptions(inputs, mode, now, opts.preset);
   assertNoForbiddenWords(assumptions);
 
+  const btc_tactical = assessBtcTactical(inputs, mode);
+
   return {
     apy_range,
     stressed_apy,
@@ -104,6 +107,7 @@ export function runScenario(
     allocations,
     assumptions,
     confidence,
+    btc_tactical,
   };
 }
 
