@@ -6,8 +6,8 @@ import type { AllocationBucket, ApyRange as ApyRangeT } from "@/lib/mock/dashboa
 
 const BUCKET_TONES: Record<AllocationBucket["id"], string> = {
   mining: "var(--color-brand)",
-  "usdc-base": "rgba(167, 251, 144, 0.55)",
-  "btc-tactical": "rgba(245, 158, 11, 0.85)",
+  "usdc-base": "rgba(var(--brand-accent-rgb), 0.55)",
+  "btc-tactical": "rgba(var(--color-warning-rgb), 0.85)",
   "stable-reserve": "rgba(255, 255, 255, 0.35)",
 };
 

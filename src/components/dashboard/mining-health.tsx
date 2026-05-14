@@ -1,4 +1,5 @@
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
 import type { MiningHealth } from "@/lib/mock/dashboard";
@@ -33,10 +34,10 @@ const TONE_BAR: Record<Tone, string> = {
   bad: "bg-[--color-danger]",
 };
 
-const TONE_DOT: Record<Tone, string> = {
-  good: "🟢",
-  warn: "🟠",
-  bad: "🔴",
+const TONE_DOT_COLOR: Record<Tone, string> = {
+  good: "var(--color-success)",
+  warn: "var(--color-warning)",
+  bad: "var(--color-danger)",
 };
 
 interface ScoreRowProps {
@@ -53,29 +54,25 @@ function ScoreRow({ label, hint, value, tone, bar }: ScoreRowProps) {
       <div className="flex items-baseline justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <span aria-hidden className="text-[10px]">
-              {TONE_DOT[tone]}
-            </span>
-            <span className="text-sm font-medium">{label}</span>
+            <span
+              aria-hidden
+              className="inline-block h-2 w-2 rounded-full"
+              style={{ background: TONE_DOT_COLOR[tone] }}
+            />
+            <span className="text-sm font-medium text-[--color-text]">{label}</span>
           </div>
           <p className="mt-0.5 text-xs text-[--color-text-dim]">{hint}</p>
         </div>
-        <span
-          className={cn(
-            "font-mono text-lg tabular-nums",
-            TONE_TEXT[tone],
-          )}
-        >
+        <span className={cn("stat-value leading-tight", TONE_TEXT[tone])}>
           {value}
         </span>
       </div>
       {typeof bar === "number" ? (
-        <div className="h-1 w-full overflow-hidden rounded-full bg-[--color-bg-elevated]">
-          <div
-            className={cn("h-full", TONE_BAR[tone])}
-            style={{ width: `${Math.max(0, Math.min(100, bar))}%` }}
-          />
-        </div>
+        <Progress
+          value={bar}
+          fillClassName={TONE_BAR[tone]}
+          className="h-1"
+        />
       ) : null}
     </div>
   );

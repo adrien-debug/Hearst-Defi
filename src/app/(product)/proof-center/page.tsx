@@ -16,7 +16,7 @@ export default async function ProofCenterPage({
   const proofs = getProofs();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <header className="space-y-1">
         <p className="eyebrow">Hearst Yield Vault</p>
         <h1 className="h1">Proof Center</h1>

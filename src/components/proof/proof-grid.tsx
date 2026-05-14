@@ -15,14 +15,17 @@ export function ProofGrid({ proofs, filter }: ProofGridProps) {
 
   if (filtered.length === 0) {
     return (
-      <div className="rounded-[--radius-card] border border-dashed border-[--color-border-subtle] py-12 text-center">
+      <div className="flex flex-col items-center gap-4 py-16 text-center">
+        <svg className="h-10 w-10 text-[--color-text-dim]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M3 12h18M3 17h12" />
+        </svg>
         <p className="body-sm">No proofs found for this filter.</p>
       </div>
     );
   }
 
   return (
-    <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <ul className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       {filtered.map((proof) => (
         <li key={proof.id} className="contents">
           <ProofCard proof={proof} />

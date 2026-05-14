@@ -47,14 +47,22 @@
     sans-serif;
   --font-mono: "Satoshi", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 
-  /* Type scale — brand canonical (matches src/styles/theme/tokens.css) */
+  /* Type scale — rebalanced for desktop (1440–1920 viewports).
+     Base body now sits at --text-md (16px); larger end pushed up so page
+     titles read as page titles on a 1920×1080. Older aliases kept so any
+     external callers don't blow up. */
   --text-micro: 11px;
   --text-xs: 12px;
   --text-sm: 14px;
   --text-md: 16px;
-  --text-lg: 20px;
-  --text-xl: 24px;
-  --text-xxl: 40px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+  --text-3xl: 36px;
+  --text-4xl: 48px;
+  --text-5xl: 60px;
+  /* Legacy alias — points to the old "xxl" slot, now rebased to 3xl. */
+  --text-xxl: var(--text-3xl);
 
   /* Font weights */
   --weight-regular: 400;
@@ -96,9 +104,9 @@
   /* ---- Radius ---- */
   --radius-sm: 8px;
   --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
-  --radius-2xl: 24px;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
+  --radius-2xl: 28px;
   --radius-full: 9999px;
 
   /* Semantic radius — used by components, change primitives to re-skin */
@@ -121,6 +129,26 @@
   --color-accent-subtle: rgba(var(--brand-accent-rgb), 0.15);
   --color-accent-glow: rgba(var(--brand-accent-rgb), 0.25);
 
+  /* ---- Status surface colors (bg + border pour badges & banners) ---- */
+  --color-success-bg: oklch(0.22 0.06 145);
+  --color-success-border: oklch(0.38 0.10 145);
+
+  --color-warning-bg: oklch(0.24 0.06 70);
+  --color-warning-border: oklch(0.40 0.10 70);
+  --color-warning-rgb: 245, 158, 11;
+
+  --color-danger-bg: oklch(0.24 0.10 25);
+  --color-danger-border: oklch(0.40 0.14 25);
+  --color-danger-bg-hover: oklch(0.28 0.12 25);
+
+  /* ---- Shadows ---- */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.40);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.50);
+  --shadow-glow: 0 0 0 3px var(--color-accent-glow);
+
+  /* ---- Form controls ---- */
+  --radius-input: var(--radius-sm);
+
   color-scheme: dark;
 }
 
@@ -133,11 +161,12 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  line-height: var(--leading-base);
+  font-size: var(--text-md);
+  line-height: var(--leading-relaxed);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "ss01", "cv11";
+  text-rendering: optimizeLegibility;
 }
 
 * {
@@ -162,7 +191,7 @@ body {
    ============================================================================= */
 
 .h1 {
-  font-size: var(--text-xxl);
+  font-size: var(--text-5xl);
   font-weight: var(--weight-black);
   letter-spacing: var(--tracking-tight);
   line-height: var(--leading-display);
@@ -170,7 +199,7 @@ body {
 }
 
 .h2 {
-  font-size: var(--text-xl);
+  font-size: var(--text-3xl);
   font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-tight);
   line-height: var(--leading-tight);
@@ -178,7 +207,7 @@ body {
 }
 
 .h3 {
-  font-size: var(--text-lg);
+  font-size: var(--text-xl);
   font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-tight);
   line-height: var(--leading-tight);
@@ -186,7 +215,7 @@ body {
 }
 
 .h4 {
-  font-size: var(--text-md);
+  font-size: var(--text-lg);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-tight);
   color: var(--color-text);
@@ -194,31 +223,38 @@ body {
 
 /* Small uppercase kicker — section labels above an h1/h2. */
 .eyebrow {
-  font-size: var(--text-micro);
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-uppercase);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   color: var(--color-text-dim);
 }
 
 /* Numeric KPIs — pair with .h1 (huge) or .stat-value (medium). */
 .stat-value {
-  font-size: var(--text-xl);
+  font-size: var(--text-2xl);
   font-weight: var(--weight-black);
   letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
   font-variant-numeric: tabular-nums;
   color: var(--color-text);
 }
 
 .stat-label {
-  font-size: var(--text-xs);
-  font-weight: var(--weight-medium);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-uppercase);
   text-transform: uppercase;
-  color: var(--color-text-dim);
+  color: var(--color-text-muted);
 }
 
 /* Body roles */
+.body-lg {
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text-muted);
+}
+
 .body-md {
   font-size: var(--text-md);
   line-height: var(--leading-relaxed);

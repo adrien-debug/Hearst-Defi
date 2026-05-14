@@ -11,17 +11,19 @@ interface SliderFieldMeta {
   max: number;
   step: number;
   format: (v: number) => string;
+  formatUnit: (v: number) => string;
 }
 
 const FIELDS: SliderFieldMeta[] = [
   {
     key: "btc_price_change_pct",
-    label: "BTC price change",
+    label: "BTC Price Change",
     unit: "%",
     min: -60,
     max: 120,
     step: 1,
-    format: (v) => `${v >= 0 ? "+" : ""}${v}%`,
+    format: (v) => `${v >= 0 ? "+" : ""}${v}`,
+    formatUnit: () => "%",
   },
   {
     key: "hashprice_usd_th_day",
@@ -31,33 +33,38 @@ const FIELDS: SliderFieldMeta[] = [
     max: 0.15,
     step: 0.001,
     format: (v) => `$${v.toFixed(3)}`,
+    formatUnit: () => "$/TH/day",
   },
   {
     key: "energy_cost_kwh",
-    label: "Energy cost",
+    label: "Energy Cost",
     unit: "$/kWh",
     min: 0.02,
     max: 0.12,
     step: 0.001,
     format: (v) => `$${v.toFixed(3)}`,
+    formatUnit: () => "$/kWh",
   },
   {
     key: "stable_apy_pct",
-    label: "Stable base APY",
+    label: "Stable Base APY",
     unit: "%",
     min: 1,
     max: 8,
     step: 0.1,
-    format: (v) => `${v.toFixed(1)}%`,
+    format: (v) => v.toFixed(1),
+    formatUnit: () => "%",
   },
   {
     key: "vol_index",
-    label: "BTC volatility (30d)",
-    unit: "index",
+    label: "BTC Volatility (30d)",
+    unit: "index 1–4",
     min: 1,
     max: 4,
     step: 0.05,
     format: (v) =>
+      v < 1.75 ? "Low" : v < 2.5 ? "Normal" : v < 3.25 ? "High" : "Extreme",
+    formatUnit: (v) =>
       v < 1.75 ? "Low" : v < 2.5 ? "Normal" : v < 3.25 ? "High" : "Extreme",
   },
 ];
@@ -76,50 +83,75 @@ export function InputsPanel({ inputs, onChange, disabled }: InputsPanelProps) {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="divide-y divide-[--color-border-subtle]">
       {FIELDS.map((field) => {
         const value = inputs[field.key];
-        const pct =
-          ((value - field.min) / (field.max - field.min)) * 100;
+        const pct = ((value - field.min) / (field.max - field.min)) * 100;
+        const isVolIndex = field.key === "vol_index";
 
         return (
-          <div key={field.key} className="space-y-2">
-            <div className="flex items-baseline justify-between gap-2">
+          <div
+            key={field.key}
+            className="py-5 first:pt-0 last:pb-0"
+          >
+            {/* Label row — eyebrow left, value right */}
+            <div className="mb-3 flex items-baseline justify-between gap-2">
               <label
                 htmlFor={`slider-${field.key}`}
-                className="stat-label"
-              >
-                {field.label}
-              </label>
-              <span
                 className={cn(
-                  "font-mono text-sm tabular-nums text-[--color-text]",
+                  "stat-label",
                   disabled && "opacity-50",
                 )}
               >
-                {field.format(value)}
-                <span className="ml-1 text-[--color-text-dim]">
-                  {field.unit}
+                {field.label}
+              </label>
+              <div className="flex items-baseline gap-1.5">
+                <span
+                  className={cn(
+                    "font-mono text-xl font-bold tabular-nums text-[--color-text]",
+                    disabled && "opacity-50",
+                  )}
+                >
+                  {field.format(value)}
                 </span>
-              </span>
+                {!isVolIndex && (
+                  <span className="text-xs text-[--color-text-dim]">
+                    {field.unit}
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="relative flex items-center">
-              <input
-                id={`slider-${field.key}`}
-                type="range"
-                min={field.min}
-                max={field.max}
-                step={field.step}
-                value={value}
-                disabled={disabled}
-                onChange={(e) => handleChange(field.key, e.target.value)}
-                className="slider-track w-full cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
-                style={
-                  {
-                    "--slider-pct": `${pct}%`,
-                  } as React.CSSProperties
-                }
-              />
+
+            {/* Slider */}
+            <input
+              id={`slider-${field.key}`}
+              type="range"
+              min={field.min}
+              max={field.max}
+              step={field.step}
+              value={value}
+              disabled={disabled}
+              onChange={(e) => handleChange(field.key, e.target.value)}
+              className="slider-track w-full cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+              style={{ "--slider-pct": `${pct}%` } as React.CSSProperties}
+            />
+
+            {/* Min / max labels */}
+            <div className="mt-1.5 flex justify-between">
+              <span className="text-[--text-micro] text-[--color-text-dim]">
+                {field.key === "btc_price_change_pct"
+                  ? "−60%"
+                  : field.key === "vol_index"
+                    ? "Low"
+                    : `${field.min} ${field.unit}`}
+              </span>
+              <span className="text-[--text-micro] text-[--color-text-dim]">
+                {field.key === "btc_price_change_pct"
+                  ? "+120%"
+                  : field.key === "vol_index"
+                    ? "Extreme"
+                    : `${field.max} ${field.unit}`}
+              </span>
             </div>
           </div>
         );

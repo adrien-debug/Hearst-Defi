@@ -12,14 +12,15 @@ const buttonVariants = cva(
           "bg-[--color-brand] text-[--color-brand-fg] hover:bg-[--color-brand-strong]",
         secondary:
           "border border-[--color-border-strong] bg-[--color-bg-elevated] text-[--color-text] hover:bg-[--color-bg-card]",
-        ghost: "text-[--color-text-muted] hover:text-[--color-text]",
+        ghost:
+          "text-[--color-text-muted] hover:bg-[--color-bg-elevated] hover:text-[--color-text]",
         danger:
-          "border border-[oklch(0.40_0.14_25)] bg-[oklch(0.24_0.10_25)] text-[--color-danger] hover:bg-[oklch(0.28_0.12_25)]",
+          "border border-[--color-danger-border] bg-[--color-danger-bg] text-[--color-danger] hover:bg-[--color-danger-bg-hover]",
       },
       size: {
-        sm: "h-8 px-3",
-        md: "h-9 px-4",
-        lg: "h-10 px-5",
+        sm: "h-9 px-3.5 text-sm",
+        md: "h-10 px-4 text-sm",
+        lg: "h-11 px-5 text-base",
       },
     },
     defaultVariants: {

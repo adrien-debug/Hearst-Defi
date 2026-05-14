@@ -2,7 +2,7 @@ import { LabShell } from "@/components/scenario/lab-shell";
 
 export default function ScenarioLabPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <header className="space-y-1">
         <p className="eyebrow">Hearst Yield Vault</p>
         <h1 className="h1">Scenario Lab</h1>

@@ -100,7 +100,7 @@ export function MemoShell() {
       />
 
       {error ? (
-        <div className="rounded-[--radius-button] border border-[--color-danger] bg-[oklch(0.24_0.10_25)] px-4 py-3">
+        <div className="rounded-[--radius-button] border border-[--color-danger] bg-[--color-danger-bg] px-4 py-3">
           <p className="stat-label text-[--color-danger]">Generation failed</p>
           <p className="mt-1 font-mono text-xs text-[--color-danger] break-words">
             {error}

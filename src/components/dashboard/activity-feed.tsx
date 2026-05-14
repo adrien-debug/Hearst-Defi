@@ -41,7 +41,7 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
       </CardHeader>
       <ol className="divide-y divide-[--color-border-subtle]">
         {last5.map((event) => (
-          <li key={event.id} className="py-4 first:pt-0 last:pb-0">
+          <li key={event.id} className="py-3 first:pt-0 last:pb-0">
             <div className="mb-3 flex items-center gap-2">
               <Badge variant={KIND_VARIANT[event.kind]}>
                 {KIND_LABEL[event.kind]}

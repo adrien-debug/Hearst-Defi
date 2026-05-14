@@ -36,7 +36,7 @@ export function HeroMetrics({ snapshot }: HeroMetricsProps) {
         provenance={snapshot.aum.provenance}
         trend={{
           direction: aumTrendDirection,
-          text: `${delta30d >= 0 ? "+" : "−"}${usdShort.format(Math.abs(delta30d)).replace("$", "$")} (30d)`,
+          text: `${delta30d >= 0 ? "+" : "−"}${usdShort.format(Math.abs(delta30d))} (30d)`,
         }}
         tooltip="Assets Under Management. Total USDC equivalent of all vault holdings, marked to market."
       />

@@ -40,9 +40,9 @@ function guardrailVariant(
 function guardrailLabel(status: BtcGuardrail["status"]): string {
   switch (status) {
     case "healthy":
-      return "HEALTHY ✓";
+      return "HEALTHY";
     case "normal":
-      return "NORMAL ✓";
+      return "NORMAL";
     case "warning":
       return "WARNING";
     case "breached":
@@ -80,7 +80,7 @@ export function BtcTacticalSection({ btcTactical }: BtcTacticalSectionProps) {
         <ProvenanceBadge kind={btcTactical.provenance} />
       </CardHeader>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
         <div className="divide-y divide-[--color-border-subtle]">
           <Row
             label="Position size"
@@ -101,49 +101,57 @@ export function BtcTacticalSection({ btcTactical }: BtcTacticalSectionProps) {
 
         <div className="space-y-5">
           <div>
-            <h4 className="mb-2 text-[10px] uppercase tracking-[0.18em] text-[--color-text-dim]">
+            <p className="stat-label mb-2">
               Next triggers
-            </h4>
-            <ul className="space-y-2">
-              {btcTactical.nextTriggers.map((t) => (
-                <li
-                  key={t.id}
-                  className="rounded-[--radius-button] border border-[--color-border-subtle] bg-[--color-bg-elevated] px-3 py-2"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium">{t.label}</span>
-                    <Badge variant="default">{t.ruleId}</Badge>
-                  </div>
-                  <p className="mt-1 font-mono text-xs text-[--color-text-muted] tabular-nums">
-                    {t.condition}
-                  </p>
-                </li>
-              ))}
-            </ul>
+            </p>
+            {btcTactical.nextTriggers.length > 0 ? (
+              <ul className="space-y-2">
+                {btcTactical.nextTriggers.map((t) => (
+                  <li
+                    key={t.id}
+                    className="rounded-[--radius-button] border border-[--color-border-subtle] bg-[--color-bg-elevated] px-3 py-2"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium">{t.label}</span>
+                      <Badge variant="default">{t.ruleId}</Badge>
+                    </div>
+                    <p className="mt-1 font-mono text-xs text-[--color-text-muted] tabular-nums">
+                      {t.condition}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="body-sm">No triggers currently armed.</p>
+            )}
           </div>
 
           <div>
-            <h4 className="mb-2 text-[10px] uppercase tracking-[0.18em] text-[--color-text-dim]">
+            <p className="stat-label mb-2">
               Guardrails
-            </h4>
-            <ul className="space-y-2">
-              {btcTactical.guardrails.map((g) => (
-                <li
-                  key={g.id}
-                  className="flex items-start justify-between gap-3 rounded-[--radius-button] border border-[--color-border-subtle] bg-[--color-bg-elevated] px-3 py-2"
-                >
-                  <div>
-                    <div className="text-sm font-medium">{g.label}</div>
-                    <p className="mt-0.5 text-xs text-[--color-text-dim]">
-                      {g.detail}
-                    </p>
-                  </div>
-                  <Badge variant={guardrailVariant(g.status)}>
-                    {guardrailLabel(g.status)}
-                  </Badge>
-                </li>
-              ))}
-            </ul>
+            </p>
+            {btcTactical.guardrails.length > 0 ? (
+              <ul className="space-y-2">
+                {btcTactical.guardrails.map((g) => (
+                  <li
+                    key={g.id}
+                    className="flex items-start justify-between gap-3 rounded-[--radius-button] border border-[--color-border-subtle] bg-[--color-bg-elevated] px-3 py-2"
+                  >
+                    <div>
+                      <div className="text-sm font-medium">{g.label}</div>
+                      <p className="mt-0.5 text-xs text-[--color-text-dim]">
+                        {g.detail}
+                      </p>
+                    </div>
+                    <Badge variant={guardrailVariant(g.status)}>
+                      {guardrailLabel(g.status)}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="body-sm">All guardrails within bounds.</p>
+            )}
           </div>
         </div>
       </div>

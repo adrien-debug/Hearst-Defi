@@ -15,14 +15,14 @@ export default async function RoadmapPage() {
     : 0;
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-3">
+    <div className="space-y-16">
+      <header className="space-y-5">
         <p className="eyebrow">Build progress</p>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-4">
           <h1 className="h1">Roadmap</h1>
           <Badge variant="default">v {version}</Badge>
         </div>
-        <p className="body-sm max-w-2xl">
+        <p className="body-md max-w-3xl">
           Source of truth lives in{" "}
           <span className="mono text-[--color-text]">
             /docs/roadmap.json
@@ -31,14 +31,14 @@ export default async function RoadmapPage() {
           the roadmap = PR on the JSON file. Marking progress = click here.
         </p>
         {mvpPhase ? (
-          <Card className="max-w-md">
+          <Card className="max-w-xl">
             <div className="flex items-center justify-between gap-3">
               <span className="stat-label">MVP progress</span>
-              <span className="mono text-sm tabular text-[--color-text]">
+              <span className="mono tabular text-base text-[--color-text]">
                 {mvpPhase.doneCount} / {mvpPhase.total} ({mvpPct}%)
               </span>
             </div>
-            <div className="mt-3">
+            <div className="mt-4">
               <Progress value={mvpPct} />
             </div>
           </Card>
@@ -46,27 +46,27 @@ export default async function RoadmapPage() {
       </header>
 
       {phases.map((phase) => (
-        <section key={phase.id} className="space-y-4">
-          <div className="flex items-baseline justify-between gap-3">
+        <section key={phase.id} className="space-y-6">
+          <div className="flex items-baseline justify-between gap-3 border-b border-[--color-border-subtle] pb-3">
             <h2 className="h2">{phase.label}</h2>
-            <span className="mono text-xs text-[--color-text-dim] tabular">
+            <span className="mono tabular text-sm text-[--color-text-muted]">
               {phase.doneCount} / {phase.total}
             </span>
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-6">
             {phase.weeks.map((week) => (
               <Card key={week.id}>
                 <CardHeader>
-                  <div>
+                  <div className="space-y-2">
                     <CardTitle>{week.label}</CardTitle>
-                    <div className="mt-2 flex items-center gap-2 text-xs text-[--color-text-dim]">
+                    <div className="flex items-center gap-3 text-sm text-[--color-text-muted]">
                       <span className="mono tabular">
                         {week.doneCount} / {week.total}
                       </span>
                       <Progress
                         value={(week.doneCount / Math.max(1, week.total)) * 100}
-                        className="w-32"
+                        className="w-40"
                       />
                     </div>
                   </div>

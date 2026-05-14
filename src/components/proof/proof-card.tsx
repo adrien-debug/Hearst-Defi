@@ -56,7 +56,7 @@ export function ProofCard({ proof }: ProofCardProps) {
             {proof.period ?? "evergreen"}
           </Badge>
         </div>
-        <h3 className="h3 text-balance">{proof.title}</h3>
+        <h3 className="h4 text-balance">{proof.title}</h3>
       </header>
 
       <dl className="space-y-1.5">
@@ -89,7 +89,7 @@ export function ProofCard({ proof }: ProofCardProps) {
           href={proof.uri}
           target="_blank"
           rel="noreferrer noopener"
-          className="rounded-[--radius-button] border border-[--color-border-strong] bg-[--color-bg-elevated] px-3 py-1.5 text-xs text-[--color-text] transition-colors duration-[150ms] hover:bg-[--color-bg-tertiary]"
+          className="rounded-[--radius-button] border border-[--color-border-strong] bg-[--color-bg-elevated] px-3 py-1.5 text-xs text-[--color-text] transition-colors duration-[150ms] hover:bg-[--color-bg-tertiary] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
         >
           {uriLabel(proof.uri)}
         </a>
@@ -98,17 +98,19 @@ export function ProofCard({ proof }: ProofCardProps) {
             href={`https://basescan.org/tx/${proof.txHash}`}
             target="_blank"
             rel="noreferrer noopener"
-            className="rounded-[--radius-button] border border-[--color-brand] bg-[--color-accent-dim] px-3 py-1.5 text-xs text-[--color-brand] transition-colors duration-[150ms] hover:bg-[--color-accent-subtle]"
+            className="rounded-[--radius-button] border border-[--color-brand] bg-[--color-accent-dim] px-3 py-1.5 text-xs text-[--color-brand] transition-colors duration-[150ms] hover:bg-[--color-accent-subtle] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
           >
             TX on Base
           </a>
         ) : (
-          <span
+          <button
+            type="button"
+            disabled
             className="rounded-[--radius-button] border border-dashed border-[--color-border-subtle] px-3 py-1.5 text-xs text-[--color-text-dim]"
             title="Phase 2 will mirror this proof on-chain via the EventLogger contract."
           >
             Off-chain (Phase 1)
-          </span>
+          </button>
         )}
       </div>
     </Card>

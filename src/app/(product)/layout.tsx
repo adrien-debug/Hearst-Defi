@@ -17,14 +17,14 @@ export default function ProductLayout({
   return (
     <div className="min-h-dvh bg-[--color-bg]">
       <header className="sticky top-0 z-10 border-b border-[--color-border-subtle] bg-[--color-bg]/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
+        <div className="mx-auto flex max-w-screen-2xl items-center justify-between px-8 py-4">
           <Link href="/dashboard" aria-label="Hearst Connect — Dashboard">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logos/hearst-connect.svg"
               alt=""
               aria-hidden
-              className="h-7 w-auto"
+              className="h-8 w-auto"
             />
           </Link>
 
@@ -34,7 +34,7 @@ export default function ProductLayout({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "rounded-[--radius-button] px-3 py-1.5 text-sm transition-colors",
+                  "rounded-[--radius-button] px-4 py-2 text-sm font-medium transition-colors",
                   "text-[--color-text-muted] hover:bg-[--color-bg-elevated] hover:text-[--color-text]",
                 )}
               >
@@ -45,14 +45,14 @@ export default function ProductLayout({
 
           <Link
             href="/admin/roadmap"
-            className="text-xs text-[--color-text-dim] hover:text-[--color-text]"
+            className="text-xs font-medium text-[--color-text-dim] hover:text-[--color-text]"
           >
             Admin
           </Link>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-8">{children}</main>
+      <main className="mx-auto max-w-screen-2xl px-8 py-12">{children}</main>
     </div>
   );
 }

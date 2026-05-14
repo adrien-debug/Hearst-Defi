@@ -33,7 +33,7 @@ export function Ptai({
     >
       {ROWS.map(({ key, label }) => (
         <div key={key} className="contents">
-          <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-[--color-text-dim] pt-0.5">
+          <dt className="font-mono text-[--text-micro] uppercase tracking-[--tracking-display] text-[--color-text-dim] pt-0.5">
             {label}
           </dt>
           <dd className="text-[--color-text]">

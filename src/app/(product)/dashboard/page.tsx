@@ -31,7 +31,7 @@ export default function DashboardPage() {
 
       <HeroMetrics snapshot={snapshot} />
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
         <div className="lg:col-span-2">
           <AllocationSection
             allocations={snapshot.allocations}
