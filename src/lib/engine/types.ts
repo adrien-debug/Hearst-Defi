@@ -3,7 +3,7 @@ export interface ScenarioInputs {
   hashprice_usd_th_day: number;
   energy_cost_kwh: number;
   stable_apy_pct: number;
-  vol_index: number;
+  vol_index: number; // 0-100, BTC 30d volatility index
 }
 
 export type AllocationBucket =

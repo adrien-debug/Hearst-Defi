@@ -4,9 +4,9 @@ import { computeRiskScore } from "../risk";
 describe("computeRiskScore", () => {
   it("always returns a value in [1, 100]", () => {
     const cases = [
-      { btc_price_change_pct: 0, hashprice_usd_th_day: 0.085, energy_cost_kwh: 0.045, stable_apy_pct: 4.5, vol_index: 2 },
-      { btc_price_change_pct: -65, hashprice_usd_th_day: 0.03, energy_cost_kwh: 0.07, stable_apy_pct: 3.0, vol_index: 3 },
-      { btc_price_change_pct: 120, hashprice_usd_th_day: 0.15, energy_cost_kwh: 0.02, stable_apy_pct: 8.0, vol_index: 1 },
+      { btc_price_change_pct: 0, hashprice_usd_th_day: 0.085, energy_cost_kwh: 0.045, stable_apy_pct: 4.5, vol_index: 45 },
+      { btc_price_change_pct: -65, hashprice_usd_th_day: 0.03, energy_cost_kwh: 0.07, stable_apy_pct: 3.0, vol_index: 85 },
+      { btc_price_change_pct: 120, hashprice_usd_th_day: 0.15, energy_cost_kwh: 0.02, stable_apy_pct: 8.0, vol_index: 10 },
     ];
     for (const inputs of cases) {
       const score = computeRiskScore(inputs);
@@ -21,7 +21,7 @@ describe("computeRiskScore", () => {
       hashprice_usd_th_day: 0.12,
       energy_cost_kwh: 0.03,
       stable_apy_pct: 6.0,
-      vol_index: 1,
+      vol_index: 10,
     });
     expect(score).toBeLessThan(40);
   });
@@ -32,7 +32,7 @@ describe("computeRiskScore", () => {
       hashprice_usd_th_day: 0.035,
       energy_cost_kwh: 0.065,
       stable_apy_pct: 2.5,
-      vol_index: 3,
+      vol_index: 85,
     });
     expect(score).toBeGreaterThan(60);
   });
@@ -43,7 +43,7 @@ describe("computeRiskScore", () => {
       hashprice_usd_th_day: 0.07,
       energy_cost_kwh: 0.05,
       stable_apy_pct: 4.0,
-      vol_index: 2,
+      vol_index: 50,
     });
     expect(score).toBeGreaterThan(30);
     expect(score).toBeLessThan(70);

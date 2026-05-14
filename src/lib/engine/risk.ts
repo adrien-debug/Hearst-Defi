@@ -6,8 +6,8 @@ const W_LIQUIDITY = 0.15;
 const W_SMART_CONTRACT = 0.2;
 const W_COUNTERPARTY = 0.1;
 
-const VOL_INDEX_LOW = 1;
-const VOL_INDEX_HIGH = 3;
+const VOL_INDEX_LOW = 0;
+const VOL_INDEX_HIGH = 100;
 
 const SMART_CONTRACT_BASELINE_PRE_AUDIT = 80;
 

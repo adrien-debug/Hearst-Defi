@@ -1,0 +1,198 @@
+"use client";
+
+import { useState } from "react";
+
+import { BacktestChart } from "@/components/scenario/backtest-chart";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/cn";
+import type { BacktestOutput } from "@/lib/engine/types";
+
+interface BacktestPanelProps {
+  output: BacktestOutput;
+  isPending: boolean;
+}
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+
+/**
+ * Parses an assumption string. If it contains `=`, splits on the first `=` and
+ * returns { key, value }. Otherwise returns the full string as value.
+ */
+function parseAssumption(line: string): { key: string | null; value: string } {
+  const eqIdx = line.indexOf("=");
+  if (eqIdx === -1) return { key: null, value: line };
+  const key = line.slice(0, eqIdx).trim().replace(/_/g, " ");
+  const value = line.slice(eqIdx + 1).trim();
+  return { key, value };
+}
+
+function AssumptionsList({ assumptions }: { assumptions: string[] }) {
+  const [expanded, setExpanded] = useState(false);
+  const THRESHOLD = 5;
+  const shouldTruncate = assumptions.length > THRESHOLD;
+  const visible =
+    shouldTruncate && !expanded ? assumptions.slice(0, THRESHOLD) : assumptions;
+
+  return (
+    <div>
+      <ul className="space-y-2">
+        {visible.map((line, i) => {
+          const { key, value } = parseAssumption(line);
+          return (
+            <li key={i} className="flex items-start gap-2 text-sm">
+              <span
+                className="mt-0.5 shrink-0 text-[--text-micro] text-[--color-brand]"
+                aria-hidden
+              >
+                ▸
+              </span>
+              {key !== null ? (
+                <span>
+                  <span className="font-semibold capitalize text-[--color-text-muted]">
+                    {key}
+                  </span>
+                  <span className="text-[--color-text-dim]">: </span>
+                  <span className="font-mono text-[--color-text-muted]">
+                    {value}
+                  </span>
+                </span>
+              ) : (
+                <span className="text-[--color-text-muted]">{value}</span>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      {shouldTruncate && (
+        <button
+          type="button"
+          onClick={() => setExpanded((x) => !x)}
+          className={cn(
+            "mt-3 text-xs font-semibold text-[--color-brand]",
+            "transition-colors duration-150 hover:text-[--color-brand-strong]",
+          )}
+        >
+          {expanded
+            ? "Show less"
+            : `Show ${assumptions.length - THRESHOLD} more`}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ── main component ─────────────────────────────────────────────────────────────
+
+export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
+  const isPositive = output.totalReturnPct >= 0;
+
+  return (
+    <div
+      className={cn(
+        "relative space-y-4 transition-opacity duration-150",
+        isPending && "pointer-events-none opacity-50",
+      )}
+      aria-busy={isPending}
+    >
+      {isPending && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[--radius-card] bg-[--color-bg-card]/60 backdrop-blur-sm">
+          <span className="text-sm text-[--color-text-muted]">Computing backtest…</span>
+        </div>
+      )}
+
+      {/* ── Section 1: KPIs 2×2 grid ────────────────────────────────────── */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Total Return */}
+        <Card>
+          <p className="stat-label mb-2">Total Return</p>
+          <p
+            className={cn(
+              "stat-value",
+              isPositive ? "text-[--color-success]" : "text-[--color-danger]",
+            )}
+          >
+            {isPositive ? "+" : ""}
+            {output.totalReturnPct.toFixed(1)}%
+          </p>
+          <p className="mt-1 text-xs text-[--color-text-dim]">
+            {output.startDate} — {output.endDate}
+          </p>
+        </Card>
+
+        {/* Max Drawdown */}
+        <Card>
+          <p className="stat-label mb-2">Max Drawdown</p>
+          <p className="stat-value text-[--color-danger]">
+            -{output.maxDrawdownPct.toFixed(1)}%
+          </p>
+          <p className="mt-1 text-xs text-[--color-text-dim]">peak-to-trough</p>
+        </Card>
+
+        {/* Worst Month */}
+        <Card>
+          <p className="stat-label mb-2">Worst Month</p>
+          <p className="stat-value text-[--color-warning]">
+            {output.worstMonthPct.toFixed(1)}%
+          </p>
+          <p className="mt-1 text-xs text-[--color-text-dim]">
+            single-month floor
+          </p>
+        </Card>
+
+        {/* Rebalances */}
+        <Card>
+          <p className="stat-label mb-2">Rebalances</p>
+          <p className="stat-value text-[--color-text]">
+            {output.numRebalances}
+          </p>
+          <p className="mt-1 text-xs text-[--color-text-dim]">
+            mode triggers
+          </p>
+        </Card>
+      </div>
+
+      {/* ── Section 2: Monthly chart ─────────────────────────────────────── */}
+      <Card>
+        <CardHeader className="mb-4">
+          <CardTitle>Monthly Vault Value</CardTitle>
+          <span className="stat-label">USDC</span>
+        </CardHeader>
+        <BacktestChart series={output.monthlySeries} />
+      </Card>
+
+      {/* ── Section 3: Hearst Rules badge ────────────────────────────────── */}
+      <Card>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="stat-label mb-1">Rule Engine</p>
+            <p className="text-xs text-[--color-text-dim]">
+              Rule-based rebalancing enabled
+            </p>
+          </div>
+          <Badge variant={output.hearstRulesMode ? "success" : "default"}>
+            {output.hearstRulesMode ? "Rules Active" : "Rules Off"}
+          </Badge>
+        </div>
+      </Card>
+
+      {/* ── Section 4: Assumptions ───────────────────────────────────────── */}
+      <Card>
+        <CardHeader className="mb-4">
+          <CardTitle>Assumptions</CardTitle>
+        </CardHeader>
+        <AssumptionsList assumptions={output.assumptions} />
+      </Card>
+
+      {/* ── Disclaimer ───────────────────────────────────────────────────── */}
+      <p className="border-t border-[--color-border-subtle] pt-4 text-xs italic text-[--color-text-dim]">
+        <span className="font-semibold not-italic text-[--color-text-muted]">
+          Not guaranteed.
+        </span>{" "}
+        Historical simulation based on stated assumptions. Past performance does
+        not predict future returns. Methodology v1.0. This is not a projection
+        of future performance.
+      </p>
+    </div>
+  );
+}

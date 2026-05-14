@@ -4,14 +4,24 @@ import { useCallback, useState, useTransition } from "react";
 
 import {
   getPresetInputsAction,
+  runBacktestAction,
   runScenarioAction,
 } from "@/app/(product)/scenario-lab/actions";
+import { BacktestPanel } from "@/components/scenario/backtest-panel";
 import { InputsPanel } from "@/components/scenario/inputs-panel";
 import { OutputPanel } from "@/components/scenario/output-panel";
 import { PresetBar } from "@/components/scenario/preset-bar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
-import type { Preset, ScenarioInputs, ScenarioOutput } from "@/lib/engine/types";
+import type {
+  BacktestKey,
+  BacktestOutput,
+  Preset,
+  ScenarioInputs,
+  ScenarioOutput,
+} from "@/lib/engine/types";
+
+// ── Constants ─────────────────────────────────────────────────────────────────
 
 const BASE_INPUTS: ScenarioInputs = {
   btc_price_change_pct: 0,
@@ -21,58 +31,198 @@ const BASE_INPUTS: ScenarioInputs = {
   vol_index: 2,
 };
 
+type Tab = "scenario" | "backtest";
+
+interface BacktestMeta {
+  key: BacktestKey;
+  label: string;
+  subtitle: string;
+  description: string;
+}
+
+const BACKTEST_PERIODS: BacktestMeta[] = [
+  {
+    key: "bear_2022",
+    label: "BTC Bear 2022",
+    subtitle: "Jun 2022 — Jun 2023 · 12 months",
+    description:
+      "BTC dropped 65%, hashprice fell 60%. Tests vault resilience in a sustained bear market with mining margin compression.",
+  },
+  {
+    key: "etf_halving_2024",
+    label: "ETF + Halving 2024",
+    subtitle: "Oct 2023 — Apr 2025 · 18 months",
+    description:
+      "Spot ETF approval drove BTC +150%. Halving compression created a mid-period dip before recovery.",
+  },
+  {
+    key: "mining_crunch_2024",
+    label: "Mining Crunch 2024",
+    subtitle: "Apr 2024 — Dec 2024 · 9 months",
+    description:
+      "Hashprice fell 40%, difficulty rose 30%, BTC price flat. Pure mining-margin stress with no price relief.",
+  },
+];
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
 interface LabShellState {
   selectedPreset: Preset | null;
   inputs: ScenarioInputs;
   output: ScenarioOutput | null;
 }
 
-export function LabShell() {
-  const [state, setState] = useState<LabShellState>({
-    selectedPreset: null,
-    inputs: BASE_INPUTS,
-    output: null,
-  });
-  const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+interface BacktestState {
+  selectedKey: BacktestKey | null;
+  output: BacktestOutput | null;
+}
 
-  const submit = useCallback((inputs: ScenarioInputs) => {
-    setError(null);
-    startTransition(async () => {
-      try {
-        const output = await runScenarioAction(inputs);
-        setState((prev) => ({ ...prev, inputs, output }));
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Unknown error");
-      }
-    });
-  }, []);
+// ── Tab toggle ────────────────────────────────────────────────────────────────
 
-  function handlePresetSelect(preset: Preset) {
-    setError(null);
-    startTransition(async () => {
-      try {
-        const inputs = await getPresetInputsAction(preset);
-        const output = await runScenarioAction(inputs);
-        setState({ selectedPreset: preset, inputs, output });
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Unknown error");
-      }
-    });
-  }
+interface TabBarProps {
+  active: Tab;
+  onChange: (tab: Tab) => void;
+}
 
-  function handleInputChange(inputs: ScenarioInputs) {
-    setState((prev) => ({ ...prev, selectedPreset: null, inputs }));
-  }
+function TabBar({ active, onChange }: TabBarProps) {
+  return (
+    <nav
+      aria-label="Scenario Lab tabs"
+      className="flex gap-1 rounded-[--radius-button] border border-[--color-border] bg-[--color-bg-elevated] p-1 w-fit"
+    >
+      {(["scenario", "backtest"] as Tab[]).map((tab) => {
+        const isActive = active === tab;
+        return (
+          <button
+            key={tab}
+            type="button"
+            role="tab"
+            aria-selected={isActive}
+            onClick={() => onChange(tab)}
+            className={cn(
+              "rounded-[--radius-sm] px-5 py-2 text-sm font-semibold capitalize",
+              "transition-[background-color,color] duration-150",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg-elevated]",
+              isActive
+                ? "bg-[--color-brand] text-[--color-brand-fg]"
+                : "text-[--color-text-muted] hover:text-[--color-text]",
+            )}
+          >
+            {tab === "scenario" ? "Scenario" : "Backtest"}
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
 
+// ── Spinner ───────────────────────────────────────────────────────────────────
+
+function Spinner() {
+  return (
+    <svg
+      className="h-4 w-4 animate-spin"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      aria-hidden
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+      />
+    </svg>
+  );
+}
+
+// ── Backtest tab ──────────────────────────────────────────────────────────────
+
+interface BacktestTabProps {
+  state: BacktestState;
+  isPending: boolean;
+  error: string | null;
+  onSelect: (key: BacktestKey) => void;
+}
+
+function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
   return (
     <div className="space-y-6">
-      {/* Preset bar */}
-      <PresetBar
-        selected={state.selectedPreset}
-        onSelect={handlePresetSelect}
-        disabled={isPending}
-      />
+      {/* Period selector */}
+      <div className="flex flex-wrap gap-3">
+        {BACKTEST_PERIODS.map((p) => {
+          const isActive = state.selectedKey === p.key;
+          return (
+            <button
+              key={p.key}
+              type="button"
+              disabled={isPending}
+              onClick={() => onSelect(p.key)}
+              aria-pressed={isActive}
+              className={cn(
+                "flex flex-col items-start gap-0.5 rounded-[--radius-button] border px-4 py-3 text-left",
+                "transition-[background-color,color,border-color,box-shadow] duration-150",
+                "disabled:cursor-not-allowed disabled:opacity-40",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]",
+                isActive
+                  ? [
+                      "border-[--color-brand] bg-[--color-brand] text-[--color-brand-fg]",
+                      "shadow-[0_0_0_3px_var(--color-accent-glow)]",
+                    ]
+                  : [
+                      "border-[--color-border-strong] bg-[--color-bg-elevated]",
+                      "text-[--color-text-muted]",
+                      "hover:border-[--color-border-strong] hover:bg-[--color-bg-tertiary] hover:text-[--color-text]",
+                    ],
+              )}
+            >
+              <span className="text-sm font-semibold leading-tight">
+                {p.label}
+              </span>
+              <span
+                className={cn(
+                  "text-xs leading-tight",
+                  isActive
+                    ? "text-[--color-brand-fg] opacity-70"
+                    : "text-[--color-text-dim]",
+                )}
+              >
+                {p.subtitle}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Period description — shown when no results yet */}
+      {!state.output && !isPending && state.selectedKey === null && (
+        <div className="space-y-3">
+          {BACKTEST_PERIODS.map((p) => (
+            <div
+              key={p.key}
+              className="rounded-[--radius-card] border border-[--color-border-subtle] bg-[--color-bg-card] px-5 py-4"
+            >
+              <p className="text-sm font-semibold text-[--color-text-muted]">
+                {p.label}
+              </p>
+              <p className="mt-1 text-xs text-[--color-text-dim]">
+                {p.subtitle}
+              </p>
+              <p className="mt-2 text-sm text-[--color-text-muted]">
+                {p.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Error banner */}
       {error && (
@@ -81,155 +231,258 @@ export function LabShell() {
         </p>
       )}
 
-      {/* Main 2-column layout */}
-      <div className="grid gap-8 lg:grid-cols-[minmax(360px,420px)_1fr]">
-
-        {/* ── Left: Inputs panel ──────────────────────────────────────── */}
-        <div className="flex flex-col gap-0 rounded-[--radius-card] border border-[--color-border] bg-[--color-bg-card]">
-          {/* Panel header */}
-          <div className="border-b border-[--color-border-subtle] px-6 py-4">
-            <h2 className="h4">Inputs</h2>
-            <p className="mt-0.5 text-xs text-[--color-text-dim]">
-              Adjust sliders or select a preset above
-            </p>
-          </div>
-
-          {/* Sliders */}
-          <div
-            className={cn(
-              "flex-1 px-6 py-5",
-              isPending && "pointer-events-none opacity-50",
-            )}
-          >
-            <InputsPanel
-              inputs={state.inputs}
-              onChange={handleInputChange}
-              disabled={isPending}
-            />
-          </div>
-
-          {/* Run button — pinned to bottom */}
-          <div className="border-t border-[--color-border-subtle] px-6 py-5">
-            <Button
-              variant="primary"
-              size="lg"
-              className="w-full font-semibold"
-              onClick={() => submit(state.inputs)}
-              disabled={isPending}
-            >
-              {isPending ? (
-                <>
-                  <svg
-                    className="h-4 w-4 animate-spin"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    aria-hidden
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                    />
-                  </svg>
-                  Running…
-                </>
-              ) : (
-                <>
-                  <svg
-                    className="h-4 w-4"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    aria-hidden
-                  >
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                  Run scenario
-                </>
-              )}
-            </Button>
-          </div>
+      {/* Loading state */}
+      {isPending && (
+        <div
+          className={cn(
+            "flex min-h-64 flex-col items-center justify-center gap-3",
+            "rounded-[--radius-card] border border-dashed border-[--color-border-subtle]",
+          )}
+        >
+          <Spinner />
+          <p className="stat-label text-[--color-text-muted]">
+            Computing backtest…
+          </p>
         </div>
+      )}
 
-        {/* ── Right: Output panel ─────────────────────────────────────── */}
-        <div className="min-w-0">
-          {state.output ? (
-            <OutputPanel output={state.output} isPending={isPending} />
-          ) : (
-            <div
-              className={cn(
-                "flex min-h-80 flex-col items-center justify-center gap-3",
-                "rounded-[--radius-card] border border-dashed border-[--color-border-subtle]",
-                "transition-opacity duration-150",
-                isPending && "opacity-50",
-              )}
-            >
-              {isPending ? (
-                <>
-                  <svg
-                    className="h-5 w-5 animate-spin text-[--color-brand]"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    aria-hidden
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                    />
-                  </svg>
-                  <p className="stat-label">Computing…</p>
-                </>
-              ) : (
-                <>
-                  <svg
-                    className="h-8 w-8 text-[--color-text-dim]"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    aria-hidden
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
-                    />
-                  </svg>
-                  <p className="max-w-xs text-center text-sm text-[--color-text-dim]">
-                    Select a preset above or adjust the sliders,{" "}
-                    <br />
-                    then press{" "}
-                    <span className="font-semibold text-[--color-text-muted]">
+      {/* Results */}
+      {state.output && !isPending && (
+        <BacktestPanel output={state.output} isPending={isPending} />
+      )}
+    </div>
+  );
+}
+
+// ── Main shell ────────────────────────────────────────────────────────────────
+
+export function LabShell() {
+  const [activeTab, setActiveTab] = useState<Tab>("scenario");
+
+  // — Scenario state —
+  const [scenarioState, setScenarioState] = useState<LabShellState>({
+    selectedPreset: null,
+    inputs: BASE_INPUTS,
+    output: null,
+  });
+  const [scenarioPending, startScenarioTransition] = useTransition();
+  const [scenarioError, setScenarioError] = useState<string | null>(null);
+
+  // — Backtest state —
+  const [backtestState, setBacktestState] = useState<BacktestState>({
+    selectedKey: null,
+    output: null,
+  });
+  const [backtestPending, startBacktestTransition] = useTransition();
+  const [backtestError, setBacktestError] = useState<string | null>(null);
+
+  // ── Scenario handlers ───────────────────────────────────────────────────────
+
+  const submit = useCallback((inputs: ScenarioInputs) => {
+    setScenarioError(null);
+    startScenarioTransition(async () => {
+      try {
+        const output = await runScenarioAction(inputs);
+        setScenarioState((prev) => ({ ...prev, inputs, output }));
+      } catch (e) {
+        setScenarioError(e instanceof Error ? e.message : "Unknown error");
+      }
+    });
+  }, []);
+
+  function handlePresetSelect(preset: Preset) {
+    setScenarioError(null);
+    startScenarioTransition(async () => {
+      try {
+        const inputs = await getPresetInputsAction(preset);
+        const output = await runScenarioAction(inputs);
+        setScenarioState({ selectedPreset: preset, inputs, output });
+      } catch (e) {
+        setScenarioError(e instanceof Error ? e.message : "Unknown error");
+      }
+    });
+  }
+
+  function handleInputChange(inputs: ScenarioInputs) {
+    setScenarioState((prev) => ({ ...prev, selectedPreset: null, inputs }));
+  }
+
+  // ── Backtest handlers ───────────────────────────────────────────────────────
+
+  function handleBacktestSelect(key: BacktestKey) {
+    setBacktestError(null);
+    setBacktestState((prev) => ({ ...prev, selectedKey: key, output: null }));
+    startBacktestTransition(async () => {
+      try {
+        const output = await runBacktestAction(key);
+        setBacktestState({ selectedKey: key, output });
+      } catch (e) {
+        setBacktestError(e instanceof Error ? e.message : "Unknown error");
+      }
+    });
+  }
+
+  // ── Render ──────────────────────────────────────────────────────────────────
+
+  return (
+    <div className="space-y-6">
+      {/* Tab toggle */}
+      <TabBar active={activeTab} onChange={setActiveTab} />
+
+      {/* ── Scenario tab ──────────────────────────────────────────────── */}
+      {activeTab === "scenario" && (
+        <div className="space-y-6">
+          <PresetBar
+            selected={scenarioState.selectedPreset}
+            onSelect={handlePresetSelect}
+            disabled={scenarioPending}
+          />
+
+          {scenarioError && (
+            <p className="rounded-[--radius-button] border border-[--color-danger] bg-[--color-danger-bg] px-4 py-2.5 text-sm text-[--color-danger]">
+              {scenarioError}
+            </p>
+          )}
+
+          <div className="grid gap-8 lg:grid-cols-[minmax(360px,420px)_1fr]">
+            {/* Left: Inputs panel */}
+            <div className="flex flex-col gap-0 rounded-[--radius-card] border border-[--color-border] bg-[--color-bg-card]">
+              <div className="border-b border-[--color-border-subtle] px-6 py-4">
+                <h2 className="h4">Inputs</h2>
+                <p className="mt-0.5 text-xs text-[--color-text-dim]">
+                  Adjust sliders or select a preset above
+                </p>
+              </div>
+
+              <div
+                className={cn(
+                  "flex-1 px-6 py-5",
+                  scenarioPending && "pointer-events-none opacity-50",
+                )}
+              >
+                <InputsPanel
+                  inputs={scenarioState.inputs}
+                  onChange={handleInputChange}
+                  disabled={scenarioPending}
+                />
+              </div>
+
+              <div className="border-t border-[--color-border-subtle] px-6 py-5">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full font-semibold"
+                  onClick={() => submit(scenarioState.inputs)}
+                  disabled={scenarioPending}
+                >
+                  {scenarioPending ? (
+                    <>
+                      <Spinner />
+                      Running…
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="h-4 w-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        aria-hidden
+                      >
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
                       Run scenario
-                    </span>{" "}
-                    to see projections.
-                  </p>
-                </>
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* Right: Output panel */}
+            <div className="min-w-0">
+              {scenarioState.output ? (
+                <OutputPanel
+                  output={scenarioState.output}
+                  isPending={scenarioPending}
+                />
+              ) : (
+                <div
+                  className={cn(
+                    "flex min-h-80 flex-col items-center justify-center gap-3",
+                    "rounded-[--radius-card] border border-dashed border-[--color-border-subtle]",
+                    "transition-opacity duration-150",
+                    scenarioPending && "opacity-50",
+                  )}
+                >
+                  {scenarioPending ? (
+                    <>
+                      <svg
+                        className="h-5 w-5 animate-spin text-[--color-brand]"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        aria-hidden
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                        />
+                      </svg>
+                      <p className="stat-label">Computing…</p>
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="h-8 w-8 text-[--color-text-dim]"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        aria-hidden
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
+                        />
+                      </svg>
+                      <p className="max-w-xs text-center text-sm text-[--color-text-dim]">
+                        Select a preset above or adjust the sliders,{" "}
+                        <br />
+                        then press{" "}
+                        <span className="font-semibold text-[--color-text-muted]">
+                          Run scenario
+                        </span>{" "}
+                        to see projections.
+                      </p>
+                    </>
+                  )}
+                </div>
               )}
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* ── Backtest tab ───────────────────────────────────────────────── */}
+      {activeTab === "backtest" && (
+        <BacktestTab
+          state={backtestState}
+          isPending={backtestPending}
+          error={backtestError}
+          onSelect={handleBacktestSelect}
+        />
+      )}
     </div>
   );
 }

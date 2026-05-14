@@ -32,35 +32,35 @@ const PRESET_BASELINE_INPUTS: Record<Preset, ScenarioInputs> = {
     hashprice_usd_th_day: 0.085,
     energy_cost_kwh: 0.045,
     stable_apy_pct: 4.5,
-    vol_index: 2,
+    vol_index: 45,
   },
   btc_bear: {
     btc_price_change_pct: -40,
     hashprice_usd_th_day: 0.06,
     energy_cost_kwh: 0.047,
     stable_apy_pct: 4.5,
-    vol_index: 2.5,
+    vol_index: 60,
   },
   btc_bull: {
     btc_price_change_pct: 60,
     hashprice_usd_th_day: 0.102,
     energy_cost_kwh: 0.045,
     stable_apy_pct: 4.5,
-    vol_index: 3,
+    vol_index: 35,
   },
   mining_compression: {
     btc_price_change_pct: 0,
     hashprice_usd_th_day: 0.064,
     energy_cost_kwh: 0.052,
     stable_apy_pct: 4.5,
-    vol_index: 2,
+    vol_index: 55,
   },
   extreme_stress: {
     btc_price_change_pct: -50,
     hashprice_usd_th_day: 0.051,
     energy_cost_kwh: 0.05,
     stable_apy_pct: 3.8,
-    vol_index: 3,
+    vol_index: 85,
   },
 };
 
@@ -144,8 +144,8 @@ function deriveConfidence(
   const spread = apy_range.high - apy_range.low;
   const vol = inputs.vol_index;
 
-  if (vol >= 2.75) return "low";
-  if (vol >= 2 || spread > 4) return "medium";
+  if (vol >= 75) return "low";
+  if (vol >= 50 || spread > 4) return "medium";
   return "high";
 }
 

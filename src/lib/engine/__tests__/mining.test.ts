@@ -8,7 +8,7 @@ describe("computeMiningRevenue", () => {
       hashprice_usd_th_day: 0.12,
       energy_cost_kwh: 0.03,
       stable_apy_pct: 4.5,
-      vol_index: 2,
+      vol_index: 45,
     });
     expect(result.margin_score).toBeGreaterThan(70);
     expect(result.margin_score).toBeGreaterThanOrEqual(1);
@@ -22,7 +22,7 @@ describe("computeMiningRevenue", () => {
       hashprice_usd_th_day: 0.062,
       energy_cost_kwh: 0.052,
       stable_apy_pct: 4.5,
-      vol_index: 2,
+      vol_index: 45,
     });
     expect(result.margin_score).toBeGreaterThan(30);
     expect(result.margin_score).toBeLessThan(70);
@@ -36,7 +36,7 @@ describe("computeMiningRevenue", () => {
       hashprice_usd_th_day: 0.03,
       energy_cost_kwh: 0.065,
       stable_apy_pct: 4.5,
-      vol_index: 3,
+      vol_index: 85,
     });
     expect(result.margin_score).toBeLessThan(30);
     expect(result.margin_score).toBeGreaterThanOrEqual(1);

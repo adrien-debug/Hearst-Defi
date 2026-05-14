@@ -32,13 +32,13 @@ exports[`runScenario snapshots > matches snapshot for preset=base 1`] = `
     "methodology_version=v1.0",
     "preset=base; vault_mode=balanced; generated_at=2026-01-01T00:00:00.000Z",
     "hashprice=0.085 USD/TH/day, energy=0.045 USD/kWh, uptime=98% (paper phase)",
-    "btc_price_change_30d=0%, vol_index=2, stable_base_apy=4.5%",
+    "btc_price_change_30d=0%, vol_index=45, stable_base_apy=4.5%",
     "Outputs are projections, not guaranteed. Past performance does not predict future results.",
   ],
   "btc_tactical": {
     "guardrails": [
       {
-        "detail": "vol_index=2 (warning > 65, breached > 80)",
+        "detail": "vol_index=45 (warning > 65, breached > 80)",
         "id": "G-BTC-VOL",
         "kind": "volatility",
         "label": "Volatility guardrail",
@@ -101,7 +101,7 @@ exports[`runScenario snapshots > matches snapshot for preset=base 1`] = `
   "confidence": "medium",
   "mining_margin_score": 92.25,
   "mode": "balanced",
-  "risk_score": 45.6,
+  "risk_score": 44.81,
   "stressed_apy": 83.62,
 }
 `;
@@ -138,13 +138,13 @@ exports[`runScenario snapshots > matches snapshot for preset=btc_bear 1`] = `
     "methodology_version=v1.0",
     "preset=btc_bear; vault_mode=defensive; generated_at=2026-01-01T00:00:00.000Z",
     "hashprice=0.06 USD/TH/day, energy=0.047 USD/kWh, uptime=98% (paper phase)",
-    "btc_price_change_30d=-40%, vol_index=2.5, stable_base_apy=4.5%",
+    "btc_price_change_30d=-40%, vol_index=60, stable_base_apy=4.5%",
     "Outputs are projections, not guaranteed. Past performance does not predict future results.",
   ],
   "btc_tactical": {
     "guardrails": [
       {
-        "detail": "vol_index=2.5 (warning > 65, breached > 80)",
+        "detail": "vol_index=60 (warning > 65, breached > 80)",
         "id": "G-BTC-VOL",
         "kind": "volatility",
         "label": "Volatility guardrail",
@@ -172,11 +172,11 @@ exports[`runScenario snapshots > matches snapshot for preset=btc_bear 1`] = `
         "status": "normal",
       },
     ],
-    "targetExposurePct": 6,
+    "targetExposurePct": 5,
     "triggers": [
       {
         "action": "convert 5% AUM USDC -> BTC",
-        "armed": true,
+        "armed": false,
         "condition": "BTC 30d change <= -20% AND vol_index < 60",
         "id": "R-BTC-1",
         "kind": "accumulate",
@@ -197,7 +197,7 @@ exports[`runScenario snapshots > matches snapshot for preset=btc_bear 1`] = `
       },
       {
         "action": "maintain current BTC exposure within mode bounds",
-        "armed": false,
+        "armed": true,
         "condition": "no accumulate/take_profit/reduce_size rule armed",
         "id": "R-BTC-4",
         "kind": "hold",
@@ -207,7 +207,7 @@ exports[`runScenario snapshots > matches snapshot for preset=btc_bear 1`] = `
   "confidence": "medium",
   "mining_margin_score": 61.37,
   "mode": "defensive",
-  "risk_score": 68.09,
+  "risk_score": 65.72,
   "stressed_apy": 41.12,
 }
 `;
@@ -244,13 +244,13 @@ exports[`runScenario snapshots > matches snapshot for preset=btc_bull 1`] = `
     "methodology_version=v1.0",
     "preset=btc_bull; vault_mode=balanced; generated_at=2026-01-01T00:00:00.000Z",
     "hashprice=0.102 USD/TH/day, energy=0.045 USD/kWh, uptime=98% (paper phase)",
-    "btc_price_change_30d=60%, vol_index=3, stable_base_apy=4.5%",
+    "btc_price_change_30d=60%, vol_index=35, stable_base_apy=4.5%",
     "Outputs are projections, not guaranteed. Past performance does not predict future results.",
   ],
   "btc_tactical": {
     "guardrails": [
       {
-        "detail": "vol_index=3 (warning > 65, breached > 80)",
+        "detail": "vol_index=35 (warning > 65, breached > 80)",
         "id": "G-BTC-VOL",
         "kind": "volatility",
         "label": "Volatility guardrail",
@@ -310,10 +310,10 @@ exports[`runScenario snapshots > matches snapshot for preset=btc_bull 1`] = `
       },
     ],
   },
-  "confidence": "low",
+  "confidence": "medium",
   "mining_margin_score": 100,
   "mode": "balanced",
-  "risk_score": 56.33,
+  "risk_score": 46.09,
   "stressed_apy": 103.31,
 }
 `;
@@ -350,17 +350,17 @@ exports[`runScenario snapshots > matches snapshot for preset=extreme_stress 1`] 
     "methodology_version=v1.0",
     "preset=extreme_stress; vault_mode=defensive; generated_at=2026-01-01T00:00:00.000Z",
     "hashprice=0.051 USD/TH/day, energy=0.05 USD/kWh, uptime=98% (paper phase)",
-    "btc_price_change_30d=-50%, vol_index=3, stable_base_apy=3.8%",
+    "btc_price_change_30d=-50%, vol_index=85, stable_base_apy=3.8%",
     "Outputs are projections, not guaranteed. Past performance does not predict future results.",
   ],
   "btc_tactical": {
     "guardrails": [
       {
-        "detail": "vol_index=3 (warning > 65, breached > 80)",
+        "detail": "vol_index=85 (warning > 65, breached > 80)",
         "id": "G-BTC-VOL",
         "kind": "volatility",
         "label": "Volatility guardrail",
-        "status": "normal",
+        "status": "breached",
       },
       {
         "detail": "margin_score=49.97 (warning [50, 70), healthy >= 70)",
@@ -384,11 +384,11 @@ exports[`runScenario snapshots > matches snapshot for preset=extreme_stress 1`] 
         "status": "normal",
       },
     ],
-    "targetExposurePct": 6,
+    "targetExposurePct": 3,
     "triggers": [
       {
         "action": "convert 5% AUM USDC -> BTC",
-        "armed": true,
+        "armed": false,
         "condition": "BTC 30d change <= -20% AND vol_index < 60",
         "id": "R-BTC-1",
         "kind": "accumulate",
@@ -402,7 +402,7 @@ exports[`runScenario snapshots > matches snapshot for preset=extreme_stress 1`] 
       },
       {
         "action": "reduce BTC exposure to 50% of target",
-        "armed": false,
+        "armed": true,
         "condition": "vol_index > 80",
         "id": "R-BTC-3",
         "kind": "reduce_size",
@@ -419,7 +419,7 @@ exports[`runScenario snapshots > matches snapshot for preset=extreme_stress 1`] 
   "confidence": "low",
   "mining_margin_score": 49.97,
   "mode": "defensive",
-  "risk_score": 71.89,
+  "risk_score": 71.33,
   "stressed_apy": 33.7,
 }
 `;
@@ -456,13 +456,13 @@ exports[`runScenario snapshots > matches snapshot for preset=mining_compression 
     "methodology_version=v1.0",
     "preset=mining_compression; vault_mode=balanced; generated_at=2026-01-01T00:00:00.000Z",
     "hashprice=0.064 USD/TH/day, energy=0.052 USD/kWh, uptime=98% (paper phase)",
-    "btc_price_change_30d=0%, vol_index=2, stable_base_apy=4.5%",
+    "btc_price_change_30d=0%, vol_index=55, stable_base_apy=4.5%",
     "Outputs are projections, not guaranteed. Past performance does not predict future results.",
   ],
   "btc_tactical": {
     "guardrails": [
       {
-        "detail": "vol_index=2 (warning > 65, breached > 80)",
+        "detail": "vol_index=55 (warning > 65, breached > 80)",
         "id": "G-BTC-VOL",
         "kind": "volatility",
         "label": "Volatility guardrail",
@@ -525,7 +525,7 @@ exports[`runScenario snapshots > matches snapshot for preset=mining_compression 
   "confidence": "medium",
   "mining_margin_score": 65.65,
   "mode": "balanced",
-  "risk_score": 50.15,
+  "risk_score": 50.94,
   "stressed_apy": 60.06,
 }
 `;

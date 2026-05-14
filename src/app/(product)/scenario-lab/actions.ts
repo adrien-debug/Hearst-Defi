@@ -1,7 +1,13 @@
 "use server";
 
 import { getPresetInputs, runScenario } from "@/lib/engine/scenario";
-import type { Preset, ScenarioInputs, ScenarioOutput } from "@/lib/engine/types";
+import type {
+  BacktestKey,
+  BacktestOutput,
+  Preset,
+  ScenarioInputs,
+  ScenarioOutput,
+} from "@/lib/engine/types";
 
 const BOUNDS: Record<keyof ScenarioInputs, { min: number; max: number }> = {
   btc_price_change_pct: { min: -100, max: 300 },
@@ -35,4 +41,11 @@ export async function getPresetInputsAction(
   preset: Preset,
 ): Promise<ScenarioInputs> {
   return getPresetInputs(preset);
+}
+
+export async function runBacktestAction(
+  key: BacktestKey,
+): Promise<BacktestOutput> {
+  const { runBacktest } = await import("@/lib/engine/backtest");
+  return runBacktest(key, { now: new Date() });
 }

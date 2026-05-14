@@ -3,12 +3,16 @@ import { AllocationSection } from "@/components/dashboard/allocation-section";
 import { BtcTacticalSection } from "@/components/dashboard/btc-tactical";
 import { HeroMetrics } from "@/components/dashboard/hero-metrics";
 import { MiningHealthSection } from "@/components/dashboard/mining-health";
+import { fetchBtcPrice } from "@/lib/data/btc-price";
 import { getDashboardSnapshot } from "@/lib/mock/dashboard";
 
 export const dynamic = "force-dynamic";
 
-export default function DashboardPage() {
-  const snapshot = getDashboardSnapshot();
+export default async function DashboardPage() {
+  const [snapshot, btcPrice] = await Promise.all([
+    Promise.resolve(getDashboardSnapshot()),
+    fetchBtcPrice(),
+  ]);
   const asOf = new Date(snapshot.asOf);
 
   return (
@@ -29,7 +33,7 @@ export default function DashboardPage() {
         </span>
       </header>
 
-      <HeroMetrics snapshot={snapshot} />
+      <HeroMetrics snapshot={snapshot} btcPrice={btcPrice} />
 
       <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
         <div className="lg:col-span-2">
