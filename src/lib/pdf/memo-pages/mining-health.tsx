@@ -33,11 +33,15 @@ export function MiningHealthPage({
     data.input.scenarios.find((s) => s.mode === data.input.vault.mode) ??
     data.input.scenarios[0];
 
-  const marginScore = baseScenario?.mining_margin_score ?? 0;
-  // Hashrate / uptime placeholders — not yet in InvestorMemoInput. Documented
-  // in the final report.
-  const hashrateDeployed = "182 PH/s";
-  const uptime = "98.4%";
+  // Operational numbers are sourced from `data.miningOps` (MiningMetric +
+  // Proof loader). The margin score still comes from the active scenario so
+  // it stays in lock-step with the engine output reported elsewhere in the
+  // memo; if the scenario has none we fall back to the loader's margin.
+  const marginScore =
+    baseScenario?.mining_margin_score ?? data.miningOps.margin_score;
+  const hashrateDeployed = `${data.miningOps.hashrate_ph_s.toFixed(0)} PH/s`;
+  const uptime = `${data.miningOps.uptime_pct.toFixed(1)}%`;
+  const attestationsCount = data.miningOps.attestations_count;
 
   return (
     <Page size="A4" style={styles.page}>
@@ -71,7 +75,10 @@ export function MiningHealthPage({
           label={`Margin ${marginScore >= 65 ? "Healthy" : marginScore >= 45 ? "Compressed" : "Stressed"}`}
           tone={marginTone(marginScore)}
         />
-        <StatusPill label="Attestation: paper" tone="warning" />
+        <StatusPill
+          label={`Attestations ${attestationsCount}`}
+          tone={attestationsCount > 0 ? "success" : "warning"}
+        />
         <StatusPill label="On-chain proof: pending Phase 2" tone="neutral" />
       </View>
 

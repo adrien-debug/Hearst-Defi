@@ -1,0 +1,24 @@
+# Foundry build artifacts
+out/
+cache/
+broadcast/
+
+# Coverage
+lcov.info
+coverage/
+
+# Dependencies (managed by forge install)
+# lib/ is intentionally NOT ignored — forge-std is vendored via git submodule;
+# if you switch to plain `forge install`, uncomment the next line and commit only foundry.lock instead.
+# lib/
+
+# Env
+.env
+.env.local
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store

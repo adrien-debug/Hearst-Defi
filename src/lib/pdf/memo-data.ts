@@ -1,6 +1,19 @@
 import "server-only";
 
 import type { InvestorMemoInput } from "@/lib/agents/investor-memo";
+import {
+  loadDistributionHistory,
+  loadLatestDistribution,
+  type DistributionSnapshot,
+} from "@/lib/agents/loaders/distribution";
+import {
+  loadMiningOpsSnapshot,
+  type MiningOpsSnapshot,
+} from "@/lib/agents/loaders/mining";
+import {
+  loadVaultMonthlyHistory,
+  type VaultMonthlyRow,
+} from "@/lib/agents/loaders/vault";
 import type { InvestorMemoOutput } from "@/lib/agents/schemas";
 
 /**
@@ -21,7 +34,64 @@ export interface MemoPdfData {
   memo: InvestorMemoOutput | null;
   generatedAt: string;
   period: string;
+  /**
+   * Operational mining snapshot. Drives the hashrate / uptime / attestations
+   * KPIs on the Mining Health page. Sourced from `MiningMetric` + `Proof` via
+   * `loadMiningOpsSnapshot`; falls back to canned values when the DB is
+   * empty so the PDF still renders in dev.
+   */
+  miningOps: MiningOpsSnapshot;
+  /**
+   * The latest distribution (paid or scheduled) for the period. Drives the
+   * "Distribution paid" KPI on the executive summary. Sourced from
+   * `Distribution`; falls back to a synthesised 0.8% × AUM scheduled entry
+   * when the table is empty.
+   */
+  distribution: DistributionSnapshot;
+  /**
+   * Trailing monthly performance rows. Drives the performance overview
+   * table. Sourced from `VaultSnapshot` joined with `Distribution`; falls
+   * back to a deterministic synthetic series when not enough months exist.
+   */
+  monthlyHistory: VaultMonthlyRow[];
 }
+
+/**
+ * Months of history shown on the Performance Overview page. Matches the
+ * existing "trailing 4-month performance" copy in the PDF.
+ */
+export const MEMO_MONTHLY_HISTORY_WINDOW = 4;
+
+/**
+ * Server-side helper that batches the three PDF-only loaders behind a single
+ * `Promise.all`. The PDF action and any other server caller should pass the
+ * results to `MemoDocument` via `MemoPdfData`.
+ *
+ * This function does NOT load the structured `InvestorMemoInput` because
+ * different callers source it differently (Phase 1 dev: mock; production:
+ * `loadMemoInput` from `loaders/vault.ts`); the caller passes it in.
+ */
+export async function loadMemoPdfExtras(): Promise<{
+  miningOps: MiningOpsSnapshot;
+  distribution: DistributionSnapshot;
+  monthlyHistory: VaultMonthlyRow[];
+}> {
+  const [miningOps, distribution, monthlyHistory] = await Promise.all([
+    loadMiningOpsSnapshot(),
+    loadLatestDistribution(),
+    loadVaultMonthlyHistory(MEMO_MONTHLY_HISTORY_WINDOW),
+  ]);
+  return { miningOps, distribution, monthlyHistory };
+}
+
+/** Re-export so callers don't need to know the loader file paths. */
+export {
+  loadDistributionHistory,
+  loadLatestDistribution,
+  loadMiningOpsSnapshot,
+  loadVaultMonthlyHistory,
+};
+export type { DistributionSnapshot, MiningOpsSnapshot, VaultMonthlyRow };
 
 /** Stable label for an APY range field. */
 export function formatApyRange(range: { low: number; high: number }): string {

@@ -38,8 +38,10 @@ export function ExecutiveSummaryPage({
     ? extractBullets(memo.executive_summary, 4).map(stripMarkdown)
     : FALLBACK_BULLETS;
   const safeBullets = bullets.length > 0 ? bullets : FALLBACK_BULLETS;
-  // Monthly distribution placeholder: 0.8% of AUM (matches mock series).
-  const distributionUsdc = Math.round(input.vault.aumUsdc * 0.008);
+  // Distribution is loaded from the `Distribution` table (or its synthesised
+  // fallback) and reported verbatim — no longer derived from AUM × 0.8%.
+  const distributionUsdc = data.distribution.amount_usdc;
+  const distributionStatus = data.distribution.status;
 
   return (
     <Page size="A4" style={styles.page}>
@@ -67,7 +69,11 @@ export function ExecutiveSummaryPage({
           hint="Vault mandate, methodology v1.0"
         />
         <KpiCell
-          label="Distribution paid"
+          label={
+            distributionStatus === "paid"
+              ? "Distribution paid"
+              : "Distribution scheduled"
+          }
           value={formatUsd(distributionUsdc)}
           hint="USDC, monthly, all LPs"
         />
@@ -94,7 +100,16 @@ export function ExecutiveSummaryPage({
       <Text style={styles.h2}>Posture statement</Text>
       <View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}>
         <StatusPill label={`Mode ${input.vault.mode}`} tone="brand" />
-        <StatusPill label="Distribution on schedule" tone="success" />
+        <StatusPill
+          label={
+            distributionStatus === "paid"
+              ? "Distribution paid"
+              : distributionStatus === "scheduled"
+                ? "Distribution scheduled"
+                : "Distribution pending"
+          }
+          tone={distributionStatus === "paid" ? "success" : "neutral"}
+        />
         <StatusPill
           label={`${input.scenarios.length} scenarios re-run`}
           tone="neutral"

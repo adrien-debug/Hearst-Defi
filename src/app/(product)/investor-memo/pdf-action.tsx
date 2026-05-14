@@ -2,7 +2,7 @@
 
 import type { InvestorMemoOutput } from "@/lib/agents/schemas";
 import { getMockMemoInput } from "@/lib/mock/investor-memo";
-import { periodFromIso } from "@/lib/pdf/memo-data";
+import { loadMemoPdfExtras, periodFromIso } from "@/lib/pdf/memo-data";
 
 /**
  * Generates the 8-page Investor Memo PDF on the server.
@@ -30,6 +30,11 @@ export async function generateMemoPdfAction(
   const generatedAt = new Date().toISOString();
   const period = periodFromIso(generatedAt);
 
+  // PDF-only extras (mining ops, latest distribution, monthly history) are
+  // sourced from Prisma. Loaders return canned fallbacks when the DB is
+  // empty so this never throws during dev / preview.
+  const { miningOps, distribution, monthlyHistory } = await loadMemoPdfExtras();
+
   const buffer = await renderToBuffer(
     <MemoDocument
       data={{
@@ -37,6 +42,9 @@ export async function generateMemoPdfAction(
         memo,
         generatedAt,
         period,
+        miningOps,
+        distribution,
+        monthlyHistory,
       }}
     />,
   );

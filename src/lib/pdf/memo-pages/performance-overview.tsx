@@ -18,16 +18,13 @@ interface PerfRow {
 }
 
 function buildRows(data: MemoPdfData): PerfRow[] {
-  // Derive a 4-month look-back from the longest available backtest. Mock data
-  // provides monthly series for backtests — we use it as a stand-in until the
-  // Phase 1 loader populates VaultSnapshot history.
-  const longestBacktest = data.input.backtests
-    .slice()
-    .sort((a, b) => b.monthlySeries.length - a.monthlySeries.length)[0];
-
-  const series = longestBacktest?.monthlySeries ?? [];
-  const last4 = series.slice(-4);
-  if (last4.length === 0) {
+  // Source of truth for the 4-month look-back is now `data.monthlyHistory`
+  // (VaultSnapshot ⊕ Distribution via the Phase 1 loader). The loader
+  // already pads its output with a deterministic synthetic series when the
+  // DB has fewer months than the requested window, so this code path no
+  // longer needs a "no data" branch.
+  const history = data.monthlyHistory;
+  if (history.length === 0) {
     return [
       {
         month: data.period,
@@ -38,20 +35,13 @@ function buildRows(data: MemoPdfData): PerfRow[] {
       },
     ];
   }
-  return last4.map((p, idx) => {
-    const prev = idx === 0 ? p.valueUsdc * 0.992 : last4[idx - 1]!.valueUsdc;
-    const monthlyReturnPct = ((p.valueUsdc - prev) / prev) * 100;
-    const annualised = monthlyReturnPct * 12;
-    const lowEdge = Math.max(0, annualised - 1.4);
-    const highEdge = annualised + 2.0;
-    return {
-      month: p.month,
-      apyRange: `${lowEdge.toFixed(1)}-${highEdge.toFixed(1)}%`,
-      apyAchieved: `${annualised.toFixed(1)}%`,
-      distributionUsdc: p.distributionUsdc,
-      navUsdc: p.valueUsdc,
-    };
-  });
+  return history.map((row) => ({
+    month: row.period,
+    apyRange: `${row.apy_low.toFixed(1)}-${row.apy_high.toFixed(1)}%`,
+    apyAchieved: `${row.apy_achieved.toFixed(1)}%`,
+    distributionUsdc: row.distribution_usdc,
+    navUsdc: row.nav_usdc,
+  }));
 }
 
 export function PerformanceOverviewPage({
