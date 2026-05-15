@@ -1,10 +1,19 @@
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
+import { AdvancedMetrics } from "@/components/dashboard/advanced-metrics";
+import {
+  AdvancedContent,
+  AdvancedProvider,
+  AdvancedTrigger,
+} from "@/components/dashboard/advanced-toggle";
 import { AllocationSection } from "@/components/dashboard/allocation-section";
 import { BtcTacticalSection } from "@/components/dashboard/btc-tactical";
 import { HeroMetrics } from "@/components/dashboard/hero-metrics";
 import { MiningHealthSection } from "@/components/dashboard/mining-health";
+import { RiskFrameworkSection } from "@/components/dashboard/risk-framework";
 import { TimeseriesSection } from "@/components/dashboard/timeseries-section";
+import { loadAdvancedMetrics } from "@/lib/data/advanced-metrics";
 import { loadDashboardData } from "@/lib/data/dashboard";
+import { loadRiskFramework } from "@/lib/data/risk-framework";
 import { fetchHashprice } from "@/lib/data/hashprice";
 import { projectionFor } from "@/lib/data/ptai-projections";
 import type {
@@ -23,64 +32,80 @@ import type {
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [data, hashprice] = await Promise.all([
+  const [data, hashprice, riskFramework, advancedMetrics] = await Promise.all([
     loadDashboardData(),
     fetchHashprice(),
+    loadRiskFramework(),
+    loadAdvancedMetrics(),
   ]);
   const snapshot = toDashboardSnapshot(data);
   const asOf = new Date(snapshot.asOf);
 
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="eyebrow">Hearst Yield Vault</p>
-          <h1 className="h1">Dashboard</h1>
-        </div>
-        <span className="mono tabular text-xs text-[--color-text-dim]">
-          as of{" "}
-          {asOf.toLocaleString("en-US", {
-            dateStyle: "medium",
-            timeStyle: "short",
-            timeZone: "UTC",
-          })}{" "}
-          UTC
-        </span>
-      </header>
+    <AdvancedProvider>
+      <div className="space-y-8">
+        <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="eyebrow">Hearst Yield Vault</p>
+            <h1 className="h1">Dashboard</h1>
+          </div>
+          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4">
+            <span className="mono tabular text-xs text-[--color-text-dim]">
+              as of{" "}
+              {asOf.toLocaleString("en-US", {
+                dateStyle: "medium",
+                timeStyle: "short",
+                timeZone: "UTC",
+              })}{" "}
+              UTC
+            </span>
+            <AdvancedTrigger />
+          </div>
+        </header>
 
-      <HeroMetrics snapshot={snapshot} btcPrice={data.btcPrice} />
+        <HeroMetrics snapshot={snapshot} btcPrice={data.btcPrice} />
 
-      <TimeseriesSection data={data.timeseries} />
+        <AdvancedContent>
+          <AdvancedMetrics data={advancedMetrics} />
+        </AdvancedContent>
 
-      <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
-        <div className="lg:col-span-2">
-          <AllocationSection
-            allocations={snapshot.allocations}
-            blendedYieldRange={snapshot.blendedYieldRange}
+        <TimeseriesSection data={data.timeseries} />
+
+        <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
+          <div className="lg:col-span-2">
+            <AllocationSection
+              allocations={snapshot.allocations}
+              blendedYieldRange={snapshot.blendedYieldRange}
+            />
+          </div>
+          <MiningHealthSection
+            miningHealth={snapshot.miningHealth}
+            hashprice={{
+              usd_per_th_day: hashprice.usd_per_th_day,
+              stale: hashprice.stale,
+            }}
           />
         </div>
-        <MiningHealthSection
-          miningHealth={snapshot.miningHealth}
-          hashprice={{
-            usd_per_th_day: hashprice.usd_per_th_day,
-            stale: hashprice.stale,
-          }}
-        />
+
+        <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
+          <div className="lg:col-span-2">
+            <BtcTacticalSection btcTactical={snapshot.btcTactical} />
+          </div>
+          <RiskFrameworkSection data={riskFramework} />
+        </div>
+
+        <ActivityFeed events={snapshot.recentEvents} />
+
+        <footer className="border-t border-[--color-border-subtle] pt-6">
+          <p className="body-xs">
+            Projections are conditional on the assumptions stated in
+            Methodology v1.0. APY ranges are not guaranteed; past performance
+            does not predict future returns. Mining cashflow is paper at
+            Phase 1, partner-attested from Phase 2.
+          </p>
+        </footer>
       </div>
-
-      <BtcTacticalSection btcTactical={snapshot.btcTactical} />
-
-      <ActivityFeed events={snapshot.recentEvents} />
-
-      <footer className="border-t border-[--color-border-subtle] pt-6">
-        <p className="body-xs">
-          Projections are conditional on the assumptions stated in Methodology
-          v1.0. APY ranges are not guaranteed; past performance does not predict
-          future returns. Mining cashflow is paper at Phase 1,
-          partner-attested from Phase 2.
-        </p>
-      </footer>
-    </div>
+    </AdvancedProvider>
   );
 }
 
@@ -192,7 +217,7 @@ function toDashboardSnapshot(data: DashboardData): DashboardSnapshot {
         }`,
       },
     ],
-    provenance: "oracle",
+    provenance: "partial",
   };
 
   const blendedBps = data.allocations.reduce(
@@ -220,7 +245,7 @@ function toDashboardSnapshot(data: DashboardData): DashboardSnapshot {
     riskScore: {
       value: data.vault.riskScore,
       bandLabel: riskBand(data.vault.riskScore),
-      provenance: "live",
+      provenance: "partial",
     },
     nextDistribution: {
       dateLabel: formatDistributionDate(data.latestDistribution),

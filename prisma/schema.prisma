@@ -60,6 +60,9 @@ model MiningMetric {
   miningMarginScore       Int
   hashpriceTrendPct       Float
   operationalConfidence   Int
+  alertLevel              String?  // green | amber | red
+  summary                 String?
+  recommendation          String?
 
   @@index([takenAt])
 }
@@ -156,6 +159,7 @@ model ReportExport {
   backtestsIncluded   String   // JSON array
   methodologyVersion  String
   pdfUrl              String?
+  content             String?  // JSON: full InvestorMemoOutput
 
   @@index([generatedAt])
 }

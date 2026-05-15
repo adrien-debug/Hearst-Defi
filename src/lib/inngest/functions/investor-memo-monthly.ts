@@ -4,9 +4,12 @@ import { inngest } from "@/lib/inngest/client";
 import {
   runInvestorMemo,
   type InvestorMemoInput,
+  INVESTOR_MEMO_MODEL,
 } from "@/lib/agents/investor-memo";
 import { loadMemoInput } from "@/lib/agents/loaders/vault";
 import type { InvestorMemoOutput } from "@/lib/agents/schemas";
+import { prisma } from "@/lib/db";
+import { METHODOLOGY_VERSION } from "@/lib/agents/system-prompts/methodology";
 
 /**
  * Investor Memo Agent — monthly cron (1st of month at 09:00 UTC).
@@ -15,9 +18,7 @@ import type { InvestorMemoOutput } from "@/lib/agents/schemas";
  *   1. load-memo-input → single Prisma read pulling vault snapshot, recent
  *                          persisted scenarios, and recent backtests.
  *   2. run-agent       → call Investor Memo Agent (Opus 4.7).
- *
- * Persistence to a `Report` row remains stubbed in this salvo (structured
- * console log only).
+ *   3. persist         → write structured memo to `ReportExport`.
  */
 export const INVESTOR_MEMO_MONTHLY_ID = "investor-memo-monthly" as const;
 export const INVESTOR_MEMO_MONTHLY_CRON = "0 9 1 * *" as const;
@@ -37,7 +38,31 @@ export async function investorMemoMonthlyHandler({
 
   const result = await step.run("run-agent", () => runInvestorMemo(input));
 
-  console.info("[memo-monthly] generated");
+  await step.run("persist", async () => {
+    try {
+      await prisma.reportExport.create({
+        data: {
+          generatedBy: INVESTOR_MEMO_MODEL,
+          clientName: "Hearst Connect",
+          scenariosIncluded: JSON.stringify(
+            input.scenarios.map((s) => s.mode),
+          ),
+          backtestsIncluded: JSON.stringify(
+            input.backtests.map((b) => b.key),
+          ),
+          methodologyVersion: METHODOLOGY_VERSION,
+          content: JSON.stringify(result),
+        },
+      });
+      console.info("[memo-monthly] persisted to ReportExport");
+    } catch (err) {
+      console.error(
+        "[memo-monthly] DB persist failed:",
+        err instanceof Error ? err.message : String(err),
+      );
+    }
+  });
+
   return result;
 }
 

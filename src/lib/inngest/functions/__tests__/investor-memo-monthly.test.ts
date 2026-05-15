@@ -52,6 +52,24 @@ vi.mock("@/lib/agents/investor-memo", async () => {
   };
 });
 
+/**
+ * Mock Prisma so the persist step does not hit the real database.
+ */
+const reportExportCreateMock = vi.fn(
+  async (args: { data: Record<string, unknown> }) => ({
+    id: "mock-report-export-id",
+    ...args.data,
+  }),
+);
+
+vi.mock("@/lib/db", () => ({
+  prisma: {
+    reportExport: {
+      create: reportExportCreateMock,
+    },
+  },
+}));
+
 describe("investorMemoMonthly Inngest function", () => {
   it("registers with id 'investor-memo-monthly'", async () => {
     const { investorMemoMonthly, INVESTOR_MEMO_MONTHLY_ID } = await import(
@@ -95,5 +113,38 @@ describe("investorMemoMonthly Inngest function", () => {
     expect(runInvestorMemoMock).toHaveBeenCalledTimes(1);
     expect(runInvestorMemoMock).toHaveBeenCalledWith(loaderFake);
     expect(out).toEqual(memoOutputFake);
+  });
+
+  it("persists agent output to ReportExport", async () => {
+    reportExportCreateMock.mockClear();
+
+    const { investorMemoMonthlyHandler } = await import(
+      "@/lib/inngest/functions/investor-memo-monthly"
+    );
+
+    const stepShim = {
+      run: <T,>(_name: string, fn: () => T | Promise<T>): Promise<T> =>
+        Promise.resolve(fn()),
+    };
+
+    await investorMemoMonthlyHandler({ step: stepShim });
+
+    expect(reportExportCreateMock).toHaveBeenCalledTimes(1);
+
+    const createCall = reportExportCreateMock.mock.calls[0];
+    expect(createCall).toBeDefined();
+    if (!createCall) {
+      throw new Error("Expected prisma.reportExport.create to be called.");
+    }
+
+    const { data } = createCall[0] as { data: Record<string, unknown> };
+    expect(data.generatedBy).toBe("claude-opus-4-7");
+    expect(data.clientName).toBe("Hearst Connect");
+    expect(data.methodologyVersion).toBe("v1.0");
+    expect(data.scenariosIncluded).toBe("[]");
+    expect(data.backtestsIncluded).toBe("[]");
+    expect(typeof data.content).toBe("string");
+    const parsedContent = JSON.parse(data.content as string) as InvestorMemoOutput;
+    expect(parsedContent.executive_summary).toBe(memoOutputFake.executive_summary);
   });
 });

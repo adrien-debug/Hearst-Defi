@@ -39,6 +39,37 @@ vi.mock("@/lib/agents/mining-health", () => ({
   runMiningHealth: runMiningHealthMock,
 }));
 
+/**
+ * Mock Prisma so the persist step does not hit the real database.
+ */
+const miningMetricFindFirstMock = vi.fn(async () => ({
+  hashprice: 0.085,
+  difficulty: 100,
+  btcPrice: 65_000,
+  energyCost: 0.05,
+  uptimePct: 98.4,
+  deployedHashrate: 182_000,
+  miningMarginScore: 64,
+  hashpriceTrendPct: 3.2,
+  operationalConfidence: 80,
+}));
+
+const miningMetricCreateMock = vi.fn(
+  async (args: { data: Record<string, unknown> }) => ({
+    id: "mock-mining-metric-id",
+    ...args.data,
+  }),
+);
+
+vi.mock("@/lib/db", () => ({
+  prisma: {
+    miningMetric: {
+      findFirst: miningMetricFindFirstMock,
+      create: miningMetricCreateMock,
+    },
+  },
+}));
+
 describe("miningHealthDaily Inngest function", () => {
   it("registers with id 'mining-health-daily'", async () => {
     const { miningHealthDaily, MINING_HEALTH_DAILY_ID } = await import(
@@ -97,5 +128,41 @@ describe("miningHealthDaily Inngest function", () => {
     expect(runMiningHealthMock).toHaveBeenCalledTimes(1);
     expect(runMiningHealthMock).toHaveBeenCalledWith(loaderFake);
     expect(out.alert_level).toBe("green");
+  });
+
+  it("persists agent output to a new MiningMetric row", async () => {
+    miningMetricFindFirstMock.mockClear();
+    miningMetricCreateMock.mockClear();
+
+    const { miningHealthDailyHandler } = await import(
+      "@/lib/inngest/functions/mining-health-daily"
+    );
+
+    const stepShim = {
+      run: <T,>(_name: string, fn: () => T | Promise<T>): Promise<T> =>
+        Promise.resolve(fn()),
+    };
+
+    await miningHealthDailyHandler({ step: stepShim });
+
+    expect(miningMetricFindFirstMock).toHaveBeenCalledTimes(1);
+    expect(miningMetricCreateMock).toHaveBeenCalledTimes(1);
+
+    const createCall = miningMetricCreateMock.mock.calls[0];
+    expect(createCall).toBeDefined();
+    if (!createCall) {
+      throw new Error("Expected prisma.miningMetric.create to be called.");
+    }
+
+    const { data } = createCall[0] as { data: Record<string, unknown> };
+    expect(data.alertLevel).toBe("green");
+    expect(data.summary).toBe(
+      "Under the assumption that hashprice stays flat, margins are healthy at 17.5%.",
+    );
+    expect(data.recommendation).toBe(
+      "Suggest continued monitoring of the hosting contract.",
+    );
+    expect(data.hashprice).toBe(0.085);
+    expect(data.miningMarginScore).toBe(64);
   });
 });

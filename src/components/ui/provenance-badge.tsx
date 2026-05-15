@@ -5,6 +5,7 @@ export type Provenance =
   | "oracle"
   | "attested"
   | "estimated"
+  | "partial"
   | "manual"
   | "stale";
 
@@ -13,6 +14,7 @@ const labels: Record<Provenance, string> = {
   oracle: "Oracle",
   attested: "Attested",
   estimated: "Estimated",
+  partial: "Partial",
   manual: "Manual",
   stale: "Stale",
 };
@@ -25,6 +27,7 @@ const variants: Record<
   oracle: "brand",
   attested: "brand",
   estimated: "warning",
+  partial: "warning",
   manual: "default",
   stale: "danger",
 };
@@ -34,6 +37,7 @@ const dotColor: Record<Provenance, string> = {
   oracle: "var(--color-brand)",
   attested: "var(--color-brand)",
   estimated: "var(--color-warning)",
+  partial: "var(--color-warning)",
   manual: "var(--color-text-dim)",
   stale: "var(--color-danger)",
 };

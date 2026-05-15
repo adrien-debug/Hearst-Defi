@@ -59,12 +59,25 @@ const BAND_BAR: Record<RiskBand, string> = {
   high: "bg-[--color-danger]",
 };
 
+function provenanceFromSource(
+  source: RiskFrameworkData["source"],
+): import("@/components/ui/provenance-badge").Provenance {
+  switch (source) {
+    case "db":
+      return "live";
+    case "partial":
+      return "partial";
+    case "fallback":
+      return "estimated";
+  }
+}
+
 export function RiskFrameworkSection({ data }: RiskFrameworkSectionProps) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>Risk Framework</CardTitle>
-        <ProvenanceBadge kind="estimated" />
+        <ProvenanceBadge kind={provenanceFromSource(data.source)} />
       </CardHeader>
 
       <CompositeHeader

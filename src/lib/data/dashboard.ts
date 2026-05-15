@@ -77,6 +77,8 @@ export interface ApyPoint {
 export interface DashboardTimeseries {
   nav30d: NavPoint[];
   apy30d: ApyPoint[];
+  /** `fallback` when the series was synthesised because fewer than 7 DB rows exist. */
+  source: "db" | "fallback";
 }
 
 export interface DashboardData {
@@ -367,7 +369,7 @@ function buildTimeseries(
 ): DashboardTimeseries {
   if (rows.length < 7) {
     markFallback();
-    return synthesiseTimeseries(vault);
+    return { ...synthesiseTimeseries(vault), source: "fallback" };
   }
 
   // Collapse to one point per day (keep the latest snapshot per UTC date).
@@ -390,7 +392,7 @@ function buildTimeseries(
     apy_high: r.currentApyHigh,
   }));
 
-  return { nav30d, apy30d };
+  return { nav30d, apy30d, source: "db" };
 }
 
 function synthesiseTimeseries(vault: DashboardVault): DashboardTimeseries {
@@ -420,7 +422,7 @@ function synthesiseTimeseries(vault: DashboardVault): DashboardTimeseries {
     apy30d.push({ date, apy_low, apy_high });
   }
 
-  return { nav30d, apy30d };
+  return { nav30d, apy30d, source: "fallback" };
 }
 
 // ---------------------------------------------------------------------------

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { BacktestChart } from "@/components/scenario/backtest-chart";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
 import type { BacktestOutput } from "@/lib/engine/types";
 
@@ -105,7 +106,10 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
       <div className="grid grid-cols-2 gap-4">
         {/* Total Return */}
         <Card>
-          <p className="stat-label mb-2">Total Return</p>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="stat-label">Total Return</p>
+            <ProvenanceBadge kind="estimated" />
+          </div>
           <p
             className={cn(
               "stat-value",
@@ -122,7 +126,10 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
 
         {/* Max Drawdown */}
         <Card>
-          <p className="stat-label mb-2">Max Drawdown</p>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="stat-label">Max Drawdown</p>
+            <ProvenanceBadge kind="estimated" />
+          </div>
           <p className="stat-value text-[--color-danger]">
             -{output.maxDrawdownPct.toFixed(1)}%
           </p>
@@ -131,7 +138,10 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
 
         {/* Worst Month */}
         <Card>
-          <p className="stat-label mb-2">Worst Month</p>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="stat-label">Worst Month</p>
+            <ProvenanceBadge kind="estimated" />
+          </div>
           <p className="stat-value text-[--color-warning]">
             {output.worstMonthPct.toFixed(1)}%
           </p>
@@ -142,7 +152,10 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
 
         {/* Rebalances */}
         <Card>
-          <p className="stat-label mb-2">Rebalances</p>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="stat-label">Rebalances</p>
+            <ProvenanceBadge kind="estimated" />
+          </div>
           <p className="stat-value text-[--color-text]">
             {output.numRebalances}
           </p>

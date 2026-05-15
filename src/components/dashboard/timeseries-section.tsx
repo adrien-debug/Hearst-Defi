@@ -47,13 +47,14 @@ interface TimeseriesSectionProps {
 }
 
 export function TimeseriesSection({ data }: TimeseriesSectionProps) {
+  const provenance = data.source === "fallback" ? "estimated" : "live";
   return (
     <section
       aria-label="30-day trailing time-series"
       className="grid gap-6 lg:grid-cols-2"
     >
-      <NavChart points={data.nav30d} />
-      <ApyChart points={data.apy30d} />
+      <NavChart points={data.nav30d} provenance={provenance} />
+      <ApyChart points={data.apy30d} provenance={provenance} />
     </section>
   );
 }
@@ -64,9 +65,10 @@ export function TimeseriesSection({ data }: TimeseriesSectionProps) {
 
 interface NavChartProps {
   points: NavPoint[];
+  provenance: import("@/components/ui/provenance-badge").Provenance;
 }
 
-export function NavChart({ points }: NavChartProps) {
+export function NavChart({ points, provenance }: NavChartProps) {
   if (points.length === 0) return null;
 
   const values = points.map((p) => p.aum_usdc);
@@ -112,7 +114,7 @@ export function NavChart({ points }: NavChartProps) {
               {deltaPct >= 0 ? "+" : ""}
               {deltaPct.toFixed(1)}% (30d)
             </span>
-            <ProvenanceBadge kind="live" />
+            <ProvenanceBadge kind={provenance} />
           </div>
         </div>
       </CardHeader>
@@ -191,9 +193,10 @@ export function NavChart({ points }: NavChartProps) {
 
 interface ApyChartProps {
   points: ApyPoint[];
+  provenance: import("@/components/ui/provenance-badge").Provenance;
 }
 
-export function ApyChart({ points }: ApyChartProps) {
+export function ApyChart({ points, provenance }: ApyChartProps) {
   if (points.length === 0) return null;
 
   const lastPoint = points[points.length - 1];
@@ -235,7 +238,7 @@ export function ApyChart({ points }: ApyChartProps) {
               high={lastPoint.apy_high}
             />
           ) : null}
-          <ProvenanceBadge kind="live" />
+          <ProvenanceBadge kind={provenance} />
         </div>
       </CardHeader>
 
