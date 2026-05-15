@@ -365,7 +365,15 @@ export async function loadVaultMonthlyHistory(
 
   // Pull a generous slice so we can de-dupe by month and still land on
   // `safeMonths` distinct calendar months.
+  //
+  // IMPORTANT: filter to source="backfill" only. The "daily-seed" and
+  // "computed" rows are written at a different NAV scale (~10–12 M) compared
+  // to the authoritative backfill series (~17–26 M). Mixing them creates a
+  // giant apparent drawdown (≈ −62%) that makes every ratio nonsensical.
+  // The backfill rows are the canonical monthly history; daily-seed rows are
+  // used only for real-time dashboard display, not for risk ratio computation.
   const snapshots = await prisma.vaultSnapshot.findMany({
+    where: { source: "backfill" },
     orderBy: { takenAt: "desc" },
     take: safeMonths * 6,
   });
