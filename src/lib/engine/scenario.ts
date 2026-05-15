@@ -1,13 +1,18 @@
 import { assessBtcTactical } from "./btc-tactical";
 import { computeMiningRevenue } from "./mining";
+import { calcMaxDrawdown, calcSharpe, calcSortino, calcVaR } from "./ratios";
 import { decideMode, deriveAllocations } from "./rebalancing";
 import { computeRiskScore } from "./risk";
 import type {
   Allocation,
   Confidence,
+  MonthlyReturn,
   Preset,
+  ScenarioDelta,
   ScenarioInputs,
   ScenarioOutput,
+  ScenarioParams,
+  ScenarioResult,
 } from "./types";
 
 export const METHODOLOGY_VERSION = "v1.0";
@@ -73,7 +78,19 @@ export function getPresetInputs(preset: Preset): ScenarioInputs {
   return { ...PRESET_BASELINE_INPUTS[preset] };
 }
 
+export function runScenario(params: ScenarioParams): ScenarioResult;
+export function runScenario(inputs: ScenarioInputs, opts?: RunScenarioOpts): ScenarioOutput;
 export function runScenario(
+  inputsOrParams: ScenarioInputs | ScenarioParams,
+  opts: RunScenarioOpts = {},
+): ScenarioOutput | ScenarioResult {
+  if ("btcPriceUsd" in inputsOrParams) {
+    return runScenarioV2(inputsOrParams);
+  }
+  return runScenarioV1(inputsOrParams, opts);
+}
+
+function runScenarioV1(
   inputs: ScenarioInputs,
   opts: RunScenarioOpts = {},
 ): ScenarioOutput {
@@ -182,4 +199,185 @@ function assertNoForbiddenWords(assumptions: string[]): void {
 function round(n: number, decimals: number): number {
   const f = Math.pow(10, decimals);
   return Math.round(n * f) / f;
+}
+
+// ─── v2: ScenarioParams → ScenarioResult ─────────────────────────────────────
+
+const MONTHLY_USDC_YIELD = 0.048 / 12;
+const MONTHLY_STABLE_YIELD = 0.045 / 12;
+
+// BTC tactical monthly return proxy: hashprice is correlated with BTC network
+// activity and miner revenue. A high hashprice (> $0.05/100TH/day) implies
+// miner profitability is intact and BTC demand is trending positive; a low
+// hashprice signals the opposite. This is a deterministic rule-based proxy —
+// NOT a price forecast.
+const HASHPRICE_POSITIVE_THRESHOLD = 0.05;
+const BTC_MONTHLY_POSITIVE_DRIFT = 0.003;
+const BTC_MONTHLY_NEGATIVE_DRIFT = -0.005;
+
+// Stress multipliers applied to derive stressedApy (BTC -40%, hashprice -30%)
+const STRESS_BTC_MULTIPLIER = 0.6;
+const STRESS_HASHPRICE_MULTIPLIER = 0.7;
+
+function validateWeights(weights: ScenarioParams["allocationWeights"]): void {
+  const sum =
+    weights.mining +
+    weights.btcTactical +
+    weights.usdcBase +
+    weights.stableReserve;
+  if (Math.abs(sum - 1) > 1e-9) {
+    throw new Error(
+      `allocationWeights must sum to 1.0, got ${sum.toFixed(6)}`,
+    );
+  }
+}
+
+function btcMonthlyReturn(hashpricePer100Th: number): number {
+  return hashpricePer100Th > HASHPRICE_POSITIVE_THRESHOLD
+    ? BTC_MONTHLY_POSITIVE_DRIFT
+    : BTC_MONTHLY_NEGATIVE_DRIFT;
+}
+
+function buildMonthlySeriesV2(
+  params: ScenarioParams,
+  hashpricePer100Th: number,
+): MonthlyReturn[] {
+  const miningMonthly = params.miningYieldPct / 12;
+  const btcMonthly = btcMonthlyReturn(hashpricePer100Th);
+  const w = params.allocationWeights;
+
+  const series: MonthlyReturn[] = [];
+  let nav = 100;
+
+  for (let m = 1; m <= params.durationMonths; m++) {
+    const miningContrib = w.mining * miningMonthly;
+    const btcContrib = w.btcTactical * btcMonthly;
+    const usdcContrib = w.usdcBase * MONTHLY_USDC_YIELD;
+    const stableContrib = w.stableReserve * MONTHLY_STABLE_YIELD;
+
+    const periodReturn = miningContrib + btcContrib + usdcContrib + stableContrib;
+    nav = nav * (1 + periodReturn);
+
+    series.push({
+      month: m,
+      nav: round(nav, 6),
+      return: round(periodReturn, 8),
+      miningContrib: round(miningContrib, 8),
+      btcContrib: round(btcContrib, 8),
+      usdcContrib: round(usdcContrib, 8),
+    });
+  }
+
+  return series;
+}
+
+function percentile(sorted: number[], p: number): number {
+  if (sorted.length === 0) return 0;
+  const pos = p * (sorted.length - 1);
+  const lo = Math.floor(pos);
+  const hi = Math.ceil(pos);
+  const loVal = sorted[lo] ?? 0;
+  const hiVal = sorted[hi] ?? loVal;
+  return loVal + (hiVal - loVal) * (pos - lo);
+}
+
+function apyBoundsFromReturns(
+  returns: number[],
+  durationMonths: number,
+): { low: number; high: number; median: number } {
+  if (returns.length === 0) return { low: 0, high: 0, median: 0 };
+
+  const sorted = [...returns].sort((a, b) => a - b);
+  const usePercentile = durationMonths >= 12;
+
+  const low = usePercentile
+    ? percentile(sorted, 0.05)
+    : (sorted[0] ?? 0);
+  const high = usePercentile
+    ? percentile(sorted, 0.95)
+    : (sorted[sorted.length - 1] ?? 0);
+  const median = percentile(sorted, 0.5);
+
+  return {
+    low: Math.max(0, low) * 12,
+    high: Math.max(0, high) * 12,
+    median: Math.max(0, median) * 12,
+  };
+}
+
+function buildAssumptionsV2(params: ScenarioParams): string[] {
+  const w = params.allocationWeights;
+  return [
+    `methodology_version=${METHODOLOGY_VERSION}`,
+    `BTC price (spot): $${params.btcPriceUsd.toLocaleString("en-US")}`,
+    `hashprice: $${params.hashpricePer100Th}/100TH/day; networkHashrate: ${params.networkHashrateEh} EH/s`,
+    `allocationWeights: mining=${(w.mining * 100).toFixed(1)}%, btcTactical=${(w.btcTactical * 100).toFixed(1)}%, usdcBase=${(w.usdcBase * 100).toFixed(1)}%, stableReserve=${(w.stableReserve * 100).toFixed(1)}%`,
+    `miningYieldPct=${(params.miningYieldPct * 100).toFixed(2)}% annualized (simple, no compounding within month)`,
+    `riskFreeRate=${(params.riskFreeRate * 100).toFixed(2)}% annualized; duration=${params.durationMonths} months`,
+    "usdcBase APY: 4.8% fixed; stableReserve APY: 4.5% fixed",
+    "BTC monthly return: rule-based proxy derived from hashprice signal (not Monte Carlo)",
+    "Not Monte Carlo — deterministic rule-based projection",
+  ];
+}
+
+function runScenarioV2(params: ScenarioParams): ScenarioResult {
+  validateWeights(params.allocationWeights);
+
+  const monthly = buildMonthlySeriesV2(params, params.hashpricePer100Th);
+  const returns = monthly.map((m) => m.return);
+  const navSeries = [100, ...monthly.map((m) => m.nav)];
+
+  const { low, high, median } = apyBoundsFromReturns(returns, params.durationMonths);
+
+  const sharpe = calcSharpe(returns, params.riskFreeRate, 12);
+  const sortino = calcSortino(returns, params.riskFreeRate, 12);
+  const maxDrawdown = calcMaxDrawdown(navSeries);
+  const var95 = calcVaR(returns, 0.95);
+
+  // Stressed scenario: BTC proxy goes negative (-40% BTC → hashprice × 0.7 below threshold)
+  const stressedHashprice = params.hashpricePer100Th * STRESS_HASHPRICE_MULTIPLIER;
+  const stressedParams: ScenarioParams = {
+    ...params,
+    hashpricePer100Th: stressedHashprice,
+    miningYieldPct: params.miningYieldPct * STRESS_BTC_MULTIPLIER,
+  };
+  const stressedMonthly = buildMonthlySeriesV2(stressedParams, stressedHashprice);
+  const stressedReturns = stressedMonthly.map((m) => m.return);
+  const { median: stressedMedian } = apyBoundsFromReturns(
+    stressedReturns,
+    params.durationMonths,
+  );
+
+  const assumptions = buildAssumptionsV2(params);
+  assertNoForbiddenWords(assumptions);
+
+  const disclaimer =
+    "Projections are conditional on stated assumptions. Past performance does not predict future results. Hearst Yield Vault is offered exclusively to professional / qualified investors. Not an offer or solicitation where prohibited.";
+
+  return {
+    params,
+    monthly,
+    apyLow: round(low, 6),
+    apyHigh: round(high, 6),
+    apyMedian: round(median, 6),
+    sharpe: round(sharpe, 6),
+    sortino: round(sortino, 6),
+    maxDrawdown: round(maxDrawdown, 6),
+    var95: round(var95, 6),
+    stressedApy: round(stressedMedian, 6),
+    assumptions,
+    disclaimer,
+  };
+}
+
+export function compareScenarios(
+  a: ScenarioResult,
+  b: ScenarioResult,
+): ScenarioDelta {
+  return {
+    apyMedian: round(b.apyMedian - a.apyMedian, 6),
+    maxDrawdown: round(b.maxDrawdown - a.maxDrawdown, 6),
+    sharpe: round(b.sharpe - a.sharpe, 6),
+    var95: round(b.var95 - a.var95, 6),
+  };
 }

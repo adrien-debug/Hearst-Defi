@@ -90,7 +90,10 @@ export function deriveAllocations(
 
 function miningApyBps(net_margin_usd_th_day: number): number {
   const annualised_usd = Math.max(0, net_margin_usd_th_day) * 365;
-  const invested_usd_per_th = 6;
+  // Vault deploys capital via revenue-share contracts; $120/TH reflects the
+  // blended capex + prepaid-hosting cost the vault prices into each contracted
+  // TH unit. At base hashprice this yields ~22% bucket APY → ~8% vault contribution.
+  const invested_usd_per_th = 120;
   const apy = annualised_usd / invested_usd_per_th;
   return Math.round(apy * 10_000);
 }

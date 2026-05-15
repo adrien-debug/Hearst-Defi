@@ -6,7 +6,7 @@ exports[`runScenario snapshots > matches snapshot for preset=base 1`] = `
     {
       "bucket": "mining",
       "pct": 35,
-      "yield_contribution_bps": 15713,
+      "yield_contribution_bps": 786,
     },
     {
       "bucket": "btc_tactical",
@@ -25,8 +25,8 @@ exports[`runScenario snapshots > matches snapshot for preset=base 1`] = `
     },
   ],
   "apy_range": {
-    "high": 189.74,
-    "low": 128.64,
+    "high": 13.61,
+    "low": 9.22,
   },
   "assumptions": [
     "methodology_version=v1.0",
@@ -102,7 +102,7 @@ exports[`runScenario snapshots > matches snapshot for preset=base 1`] = `
   "mining_margin_score": 92.25,
   "mode": "balanced",
   "risk_score": 44.81,
-  "stressed_apy": 83.62,
+  "stressed_apy": 5.99,
 }
 `;
 
@@ -112,7 +112,7 @@ exports[`runScenario snapshots > matches snapshot for preset=btc_bear 1`] = `
     {
       "bucket": "mining",
       "pct": 25,
-      "yield_contribution_bps": 7467,
+      "yield_contribution_bps": 373,
     },
     {
       "bucket": "btc_tactical",
@@ -131,8 +131,8 @@ exports[`runScenario snapshots > matches snapshot for preset=btc_bear 1`] = `
     },
   ],
   "apy_range": {
-    "high": 93.3,
-    "low": 63.26,
+    "high": 9.59,
+    "low": 6.5,
   },
   "assumptions": [
     "methodology_version=v1.0",
@@ -208,7 +208,7 @@ exports[`runScenario snapshots > matches snapshot for preset=btc_bear 1`] = `
   "mining_margin_score": 61.37,
   "mode": "defensive",
   "risk_score": 65.72,
-  "stressed_apy": 41.12,
+  "stressed_apy": 4.23,
 }
 `;
 
@@ -218,7 +218,7 @@ exports[`runScenario snapshots > matches snapshot for preset=btc_bull 1`] = `
     {
       "bucket": "mining",
       "pct": 35,
-      "yield_contribution_bps": 19261,
+      "yield_contribution_bps": 963,
     },
     {
       "bucket": "btc_tactical",
@@ -237,8 +237,8 @@ exports[`runScenario snapshots > matches snapshot for preset=btc_bull 1`] = `
     },
   ],
   "apy_range": {
-    "high": 234.44,
-    "low": 158.94,
+    "high": 18.53,
+    "low": 12.56,
   },
   "assumptions": [
     "methodology_version=v1.0",
@@ -314,7 +314,7 @@ exports[`runScenario snapshots > matches snapshot for preset=btc_bull 1`] = `
   "mining_margin_score": 100,
   "mode": "balanced",
   "risk_score": 46.09,
-  "stressed_apy": 103.31,
+  "stressed_apy": 8.16,
 }
 `;
 
@@ -324,7 +324,7 @@ exports[`runScenario snapshots > matches snapshot for preset=extreme_stress 1`] 
     {
       "bucket": "mining",
       "pct": 25,
-      "yield_contribution_bps": 6080,
+      "yield_contribution_bps": 304,
     },
     {
       "bucket": "btc_tactical",
@@ -343,8 +343,8 @@ exports[`runScenario snapshots > matches snapshot for preset=extreme_stress 1`] 
     },
   ],
   "apy_range": {
-    "high": 76.48,
-    "low": 51.85,
+    "high": 8.32,
+    "low": 5.64,
   },
   "assumptions": [
     "methodology_version=v1.0",
@@ -420,7 +420,7 @@ exports[`runScenario snapshots > matches snapshot for preset=extreme_stress 1`] 
   "mining_margin_score": 49.97,
   "mode": "defensive",
   "risk_score": 71.33,
-  "stressed_apy": 33.7,
+  "stressed_apy": 3.67,
 }
 `;
 
@@ -430,7 +430,7 @@ exports[`runScenario snapshots > matches snapshot for preset=mining_compression 
     {
       "bucket": "mining",
       "pct": 35,
-      "yield_contribution_bps": 11183,
+      "yield_contribution_bps": 559,
     },
     {
       "bucket": "btc_tactical",
@@ -449,8 +449,8 @@ exports[`runScenario snapshots > matches snapshot for preset=mining_compression 
     },
   ],
   "apy_range": {
-    "high": 136.29,
-    "low": 92.4,
+    "high": 10.93,
+    "low": 7.41,
   },
   "assumptions": [
     "methodology_version=v1.0",
@@ -526,6 +526,6 @@ exports[`runScenario snapshots > matches snapshot for preset=mining_compression 
   "mining_margin_score": 65.65,
   "mode": "balanced",
   "risk_score": 50.94,
-  "stressed_apy": 60.06,
+  "stressed_apy": 4.82,
 }
 `;

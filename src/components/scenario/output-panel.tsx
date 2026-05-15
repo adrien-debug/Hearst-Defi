@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 
+import { NavSparkline } from "@/components/scenario/nav-sparkline";
+import { PtaiBlock } from "@/components/scenario/ptai-block";
+import { RebalancingActions } from "@/components/scenario/rebalancing-actions";
 import { ApyRange } from "@/components/ui/apy-range";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
@@ -239,7 +242,13 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
         </div>
       </Card>
 
-      {/* ── Section 2: Risk & Mining 2×2 grid ───────────────────────────── */}
+      {/* ── Section 2: PTAI block ────────────────────────────────────────── */}
+      <PtaiBlock output={output} />
+
+      {/* ── Section 3: 12-Month NAV Projection ──────────────────────────── */}
+      <NavSparkline output={output} />
+
+      {/* ── Section 4: Risk & Mining 2×2 grid ───────────────────────────── */}
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Risk Score */}
         <Card>
@@ -403,7 +412,10 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
         </Card>
       )}
 
-      {/* ── Section 6: Assumptions ──────────────────────────────────────── */}
+      {/* ── Section 6: Rebalancing Actions ──────────────────────────────── */}
+      <RebalancingActions output={output} />
+
+      {/* ── Section 7: Assumptions ──────────────────────────────────────── */}
       <Card>
         <CardHeader className="mb-4">
           <CardTitle>Assumptions</CardTitle>

@@ -79,6 +79,54 @@ export interface MiningRevenue {
 
 export type BacktestKey = "bear_2022" | "etf_halving_2024" | "mining_crunch_2024";
 
+// ─── Scenario Engine v2 contract (ui-dev coding against this) ──────────────
+
+export type ScenarioParams = {
+  btcPriceUsd: number;
+  networkHashrateEh: number;
+  hashpricePer100Th: number;
+  miningYieldPct: number;
+  allocationWeights: {
+    mining: number;
+    btcTactical: number;
+    usdcBase: number;
+    stableReserve: number;
+  };
+  durationMonths: number;
+  riskFreeRate: number;
+};
+
+export type MonthlyReturn = {
+  month: number;
+  nav: number;
+  return: number;
+  miningContrib: number;
+  btcContrib: number;
+  usdcContrib: number;
+};
+
+export type ScenarioResult = {
+  params: ScenarioParams;
+  monthly: MonthlyReturn[];
+  apyLow: number;
+  apyHigh: number;
+  apyMedian: number;
+  sharpe: number;
+  sortino: number;
+  maxDrawdown: number;
+  var95: number;
+  stressedApy: number;
+  assumptions: string[];
+  disclaimer: string;
+};
+
+export type ScenarioDelta = {
+  apyMedian: number;
+  maxDrawdown: number;
+  sharpe: number;
+  var95: number;
+};
+
 export interface MonthlyPoint {
   month: string;
   valueUsdc: number;

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 
 import { runComparisonAction } from "@/app/(product)/scenario-lab/actions";
+import { DeltaRow } from "@/components/scenario/delta-row";
 import { OutputPanelCompact } from "@/components/scenario/output-panel-compact";
 import { PRESETS } from "@/components/scenario/preset-bar";
 import { cn } from "@/lib/cn";
@@ -342,6 +343,11 @@ export function CompareMode() {
           <Placeholder side="B" pending={pending && !!presetB} />
         )}
       </div>
+
+      {/* Delta row: B vs A */}
+      {showOutputs && outputs.a && outputs.b && (
+        <DeltaRow a={outputs.a} b={outputs.b} />
+      )}
 
       {/* Shared disclaimer */}
       <p className="border-t border-[--color-border-subtle] pt-4 text-xs italic text-[--color-text-dim]">
