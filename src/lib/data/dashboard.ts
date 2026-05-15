@@ -61,6 +61,24 @@ export interface DashboardRecentEvent {
   impactText: string;
 }
 
+export interface NavPoint {
+  /** ISO `YYYY-MM-DD` UTC date. */
+  date: string;
+  aum_usdc: number;
+}
+
+export interface ApyPoint {
+  /** ISO `YYYY-MM-DD` UTC date. */
+  date: string;
+  apy_low: number;
+  apy_high: number;
+}
+
+export interface DashboardTimeseries {
+  nav30d: NavPoint[];
+  apy30d: ApyPoint[];
+}
+
 export interface DashboardData {
   vault: DashboardVault;
   allocations: DashboardAllocation[];
@@ -73,6 +91,8 @@ export interface DashboardData {
   monthlyHistory: VaultMonthlyRow[];
   btcPrice: BtcPriceData;
   recentEvents: DashboardRecentEvent[];
+  /** 30-day NAV + APY range trailing time-series for the dashboard charts. */
+  timeseries: DashboardTimeseries;
   /**
    * `db` when every field above came from real rows; `partial` when at least
    * one fallback fired; `fallback` when no DB data exists yet.
@@ -92,6 +112,8 @@ const FALLBACK_APY = { low: 9.4, high: 12.8 } as const;
  * even when the DB is empty (e.g. fresh `db:push` without `db:seed`).
  */
 export async function loadDashboardData(): Promise<DashboardData> {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
   const [
     latestSnapshot,
     miningOps,
@@ -100,6 +122,7 @@ export async function loadDashboardData(): Promise<DashboardData> {
     monthlyHistory,
     btcPrice,
     rebalanceRows,
+    trailingSnapshots,
   ] = await Promise.all([
     prisma.vaultSnapshot.findFirst({
       orderBy: { takenAt: "desc" },
@@ -113,6 +136,16 @@ export async function loadDashboardData(): Promise<DashboardData> {
     prisma.rebalanceEvent.findMany({
       orderBy: { executedAt: "desc" },
       take: 5,
+    }),
+    prisma.vaultSnapshot.findMany({
+      where: { takenAt: { gte: thirtyDaysAgo } },
+      orderBy: { takenAt: "asc" },
+      select: {
+        takenAt: true,
+        aumUsdc: true,
+        currentApyLow: true,
+        currentApyHigh: true,
+      },
     }),
   ]);
 
@@ -140,6 +173,10 @@ export async function loadDashboardData(): Promise<DashboardData> {
   }));
   if (recentEvents.length === 0) usedFallback = true;
 
+  const timeseries = buildTimeseries(trailingSnapshots, vault, () => {
+    usedFallback = true;
+  });
+
   const source: DashboardData["source"] =
     latestSnapshot === null && recentEvents.length === 0
       ? "fallback"
@@ -157,6 +194,7 @@ export async function loadDashboardData(): Promise<DashboardData> {
     monthlyHistory,
     btcPrice,
     recentEvents,
+    timeseries,
     source,
   };
 }
@@ -300,6 +338,89 @@ function normaliseBucket(b: string): DashboardAllocationBucket {
     return b;
   }
   return "mining";
+}
+
+// ---------------------------------------------------------------------------
+// Time-series builders
+// ---------------------------------------------------------------------------
+
+interface TrailingSnapshotRow {
+  takenAt: Date;
+  aumUsdc: number;
+  currentApyLow: number;
+  currentApyHigh: number;
+}
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+function toIsoDate(d: Date): string {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function buildTimeseries(
+  rows: TrailingSnapshotRow[],
+  vault: DashboardVault,
+  markFallback: () => void,
+): DashboardTimeseries {
+  if (rows.length < 7) {
+    markFallback();
+    return synthesiseTimeseries(vault);
+  }
+
+  // Collapse to one point per day (keep the latest snapshot per UTC date).
+  const byDay = new Map<string, TrailingSnapshotRow>();
+  for (const r of rows) {
+    byDay.set(toIsoDate(r.takenAt), r);
+  }
+
+  const ordered = Array.from(byDay.entries())
+    .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+    .slice(-30);
+
+  const nav30d: NavPoint[] = ordered.map(([date, r]) => ({
+    date,
+    aum_usdc: r.aumUsdc,
+  }));
+  const apy30d: ApyPoint[] = ordered.map(([date, r]) => ({
+    date,
+    apy_low: r.currentApyLow,
+    apy_high: r.currentApyHigh,
+  }));
+
+  return { nav30d, apy30d };
+}
+
+function synthesiseTimeseries(vault: DashboardVault): DashboardTimeseries {
+  const endAum = vault.aumUsdc;
+  const startAum = Math.max(0, endAum - 4_000_000);
+  const today = new Date();
+  // Anchor to start of day UTC.
+  today.setUTCHours(0, 0, 0, 0);
+
+  const nav30d: NavPoint[] = [];
+  const apy30d: ApyPoint[] = [];
+
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today.getTime() - i * MS_PER_DAY);
+    const t = (29 - i) / 29; // 0 .. 1
+    // Smooth linear growth + tiny deterministic wiggle so the line is not flat.
+    const wiggle = Math.sin(t * Math.PI * 3) * (endAum * 0.01);
+    const aum = Math.round(startAum + (endAum - startAum) * t + wiggle);
+
+    // APY band oscillates around methodology target (12%) within 9-13.
+    const mid = 11 + Math.sin(t * Math.PI * 2.4) * 0.8;
+    const apy_low = Math.round((mid - 1.6) * 10) / 10;
+    const apy_high = Math.round((mid + 1.2) * 10) / 10;
+
+    const date = toIsoDate(d);
+    nav30d.push({ date, aum_usdc: aum });
+    apy30d.push({ date, apy_low, apy_high });
+  }
+
+  return { nav30d, apy30d };
 }
 
 // ---------------------------------------------------------------------------

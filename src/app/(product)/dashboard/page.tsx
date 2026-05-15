@@ -3,8 +3,10 @@ import { AllocationSection } from "@/components/dashboard/allocation-section";
 import { BtcTacticalSection } from "@/components/dashboard/btc-tactical";
 import { HeroMetrics } from "@/components/dashboard/hero-metrics";
 import { MiningHealthSection } from "@/components/dashboard/mining-health";
+import { TimeseriesSection } from "@/components/dashboard/timeseries-section";
 import { loadDashboardData } from "@/lib/data/dashboard";
 import { fetchHashprice } from "@/lib/data/hashprice";
+import { projectionFor } from "@/lib/data/ptai-projections";
 import type {
   AllocationBucket,
   BtcTactical,
@@ -47,6 +49,8 @@ export default async function DashboardPage() {
       </header>
 
       <HeroMetrics snapshot={snapshot} btcPrice={data.btcPrice} />
+
+      <TimeseriesSection data={data.timeseries} />
 
       <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
         <div className="lg:col-span-2">
@@ -236,6 +240,7 @@ function toPtaiEvent(e: DashboardRecentEvent): PtaiEvent {
   return {
     id: e.id,
     timestamp: e.takenAt.toISOString(),
+    ruleId: e.ruleId,
     kind: classifyEvent(e.ruleId),
     projection: e.impactText,
     trigger: `${e.ruleId} — ${e.triggerText}`,

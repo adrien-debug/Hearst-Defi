@@ -53,6 +53,7 @@ export interface BtcTactical {
 export interface PtaiEvent {
   id: string;
   timestamp: string;
+  ruleId: string;
   kind: "rebalance" | "distribution" | "alert";
   projection: string;
   trigger: string;
@@ -187,6 +188,7 @@ export function getDashboardSnapshot(): DashboardSnapshot {
       {
         id: "evt-2026-05-11",
         timestamp: "2026-05-11T14:22:00Z",
+        ruleId: "R3",
         kind: "rebalance",
         projection:
           "Forward 12m APY range 9.4–12.8% under current mining margin and BTC mid-band assumption.",
@@ -200,6 +202,7 @@ export function getDashboardSnapshot(): DashboardSnapshot {
       {
         id: "evt-2026-05-01",
         timestamp: "2026-05-01T09:00:00Z",
+        ruleId: "R-DIST-1",
         kind: "distribution",
         projection:
           "Monthly USDC distribution from April mining cashflow + base yield accrual.",
@@ -212,6 +215,7 @@ export function getDashboardSnapshot(): DashboardSnapshot {
       {
         id: "evt-2026-04-22",
         timestamp: "2026-04-22T16:45:00Z",
+        ruleId: "R4",
         kind: "alert",
         projection:
           "Hashprice 30d avg trending −3.4% vs 60d. Within tolerance band.",
@@ -224,6 +228,7 @@ export function getDashboardSnapshot(): DashboardSnapshot {
       {
         id: "evt-2026-04-15",
         timestamp: "2026-04-15T11:10:00Z",
+        ruleId: "R-BTC-3",
         kind: "rebalance",
         projection:
           "BTC tactical sleeve at 14% AUM, below R-BTC-3 profit-take floor.",
@@ -237,6 +242,7 @@ export function getDashboardSnapshot(): DashboardSnapshot {
       {
         id: "evt-2026-04-02",
         timestamp: "2026-04-02T10:00:00Z",
+        ruleId: "R-DIST-1",
         kind: "distribution",
         projection:
           "March distribution from mining margin + USDC base + tactical realised P&L.",
