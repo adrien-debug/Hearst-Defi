@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  transpilePackages: ["@hearst/cockpit-shell"],
   output: "standalone",
   reactStrictMode: true,
   typescript: {
