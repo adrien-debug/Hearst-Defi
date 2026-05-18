@@ -94,9 +94,9 @@ function NavChart({ points, provenance }: NavChartProps) {
             <span
               className={cn(
                 "mono tabular-nums text-sm font-medium px-2 py-0.5 rounded-md backdrop-blur-md",
-                trendDir === "up" && "bg-green-500/10 text-green-400 border border-green-500/20",
-                trendDir === "down" && "bg-red-500/10 text-red-400 border border-red-500/20",
-                trendDir === "flat" && "bg-white/5 text-white/60 border border-white/10",
+                trendDir === "up" && "ct-status-success-bg",
+                trendDir === "down" && "ct-status-danger-bg",
+                trendDir === "flat" && "ct-surface-1 ct-text-body ct-border-base",
               )}
             >
               {deltaPct >= 0 ? "+" : ""}
@@ -107,7 +107,7 @@ function NavChart({ points, provenance }: NavChartProps) {
         </div>
       </CardHeader>
 
-      <div className="flex-1 min-h-[140px] relative -mx-4 -mb-4 mt-4">
+      <div className="flex-1 min-h-[8.75rem] relative -mx-4 -mb-4 mt-4">
         <svg
           viewBox={`0 0 ${VIEWBOX_WIDTH} ${CHART_HEIGHT}`}
           preserveAspectRatio="none"
@@ -122,8 +122,8 @@ function NavChart({ points, provenance }: NavChartProps) {
         >
           <defs>
             <linearGradient id="nav-gradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="rgba(255,255,255,0.15)" />
-              <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+              <stop offset="0%" stopColor="var(--ct-surface-3)" />
+              <stop offset="100%" stopColor="transparent" />
             </linearGradient>
             <filter id="glow">
               <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
@@ -140,7 +140,7 @@ function NavChart({ points, provenance }: NavChartProps) {
           <path
             d={projection.linePath}
             fill="none"
-            stroke="rgba(255,255,255,0.8)"
+            stroke="var(--ct-text-primary)"
             strokeWidth={2.5}
             strokeLinejoin="round"
             strokeLinecap="round"
@@ -159,7 +159,7 @@ function NavChart({ points, provenance }: NavChartProps) {
                   i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"
                 }
                 fontSize={11}
-                fill="rgba(255,255,255,0.4)"
+                fill="var(--ct-text-faint)"
                 fontFamily="var(--font-sans)"
                 className="font-medium"
               >
@@ -173,7 +173,7 @@ function NavChart({ points, provenance }: NavChartProps) {
                 cx={projection.xs[projection.xs.length - 1]}
                 cy={projection.ys[projection.ys.length - 1]}
                 r={8}
-                fill="rgba(255,255,255,0.2)"
+                fill="var(--ct-surface-3)"
                 className="animate-pulse"
               />
               <circle
@@ -238,7 +238,7 @@ function ApyChart({ points, provenance }: ApyChartProps) {
         </div>
       </CardHeader>
 
-      <div className="flex-1 min-h-[140px] relative -mx-4 -mb-4 mt-4">
+      <div className="flex-1 min-h-[8.75rem] relative -mx-4 -mb-4 mt-4">
         <svg
           viewBox={`0 0 ${VIEWBOX_WIDTH} ${CHART_HEIGHT}`}
           preserveAspectRatio="none"
@@ -260,13 +260,13 @@ function ApyChart({ points, provenance }: ApyChartProps) {
               </feMerge>
             </filter>
           </defs>
-          <path d={bandPath} fill="rgba(74,222,128,0.1)" />
+          <path d={bandPath} fill="var(--ct-status-success-soft)" />
           <line
             x1={0}
             x2={VIEWBOX_WIDTH}
             y1={targetY}
             y2={targetY}
-            stroke="rgba(255,255,255,0.3)"
+            stroke="var(--ct-text-faint)"
             strokeWidth={1.5}
             strokeDasharray="4 4"
             vectorEffect="non-scaling-stroke"
@@ -274,7 +274,7 @@ function ApyChart({ points, provenance }: ApyChartProps) {
           <path
             d={highProj.linePath}
             fill="none"
-            stroke="rgba(74,222,128,0.8)"
+            stroke="var(--ct-status-success)"
             strokeWidth={2}
             strokeLinejoin="round"
             strokeLinecap="round"
@@ -284,7 +284,7 @@ function ApyChart({ points, provenance }: ApyChartProps) {
           <path
             d={lowProj.linePath}
             fill="none"
-            stroke="rgba(74,222,128,0.4)"
+            stroke="var(--ct-status-success-soft)"
             strokeWidth={2}
             strokeLinejoin="round"
             strokeLinecap="round"
@@ -302,7 +302,7 @@ function ApyChart({ points, provenance }: ApyChartProps) {
                   i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"
                 }
                 fontSize={11}
-                fill="rgba(255,255,255,0.4)"
+                fill="var(--ct-text-faint)"
                 fontFamily="var(--font-sans)"
                 className="font-medium"
               >

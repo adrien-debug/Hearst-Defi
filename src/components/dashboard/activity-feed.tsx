@@ -40,11 +40,11 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
         <span className="text-xs font-medium uppercase tracking-widest text-white/40">last 5 events</span>
       </CardHeader>
       <div className="relative">
-        <div className="absolute left-[15px] top-4 bottom-4 w-px bg-gradient-to-b from-white/20 via-white/10 to-transparent" />
+        <div className="absolute left-[0.9375rem] top-4 bottom-4 w-px bg-gradient-to-b from-[--ct-surface-3] via-[--ct-surface-2] to-transparent" />
         <ol className="space-y-6">
           {last5.map((event) => (
             <li key={event.id} className="relative pl-10 group">
-              <div className="absolute left-[11px] top-1.5 h-2.5 w-2.5 rounded-full bg-black border border-white/30 group-hover:border-white/80 group-hover:shadow-[0_0_10px_rgba(255,255,255,0.5)] transition-all duration-300 z-10" />
+              <div className="absolute left-[0.6875rem] top-1.5 h-2.5 w-2.5 rounded-full border border-[--ct-border-strong] group-hover:border-[--ct-text-strong] transition-all duration-300 z-10" style={{ background: "var(--ct-bg-deep)" }} />
               <div className="mb-4 flex items-center gap-3">
                 <Badge variant={KIND_VARIANT[event.kind]}>
                   {KIND_LABEL[event.kind]}

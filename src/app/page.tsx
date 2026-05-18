@@ -28,7 +28,7 @@ export default function Home() {
             <h1 className="h1 text-balance text-4xl md:text-6xl lg:text-7xl">
               Institutional USDC vault.
               <br />
-              <span className="text-[--color-text-muted]">
+              <span className="text-[--ct-text-body]">
                 Mining-backed structured yield.
               </span>
             </h1>
@@ -159,7 +159,7 @@ function HomeCtaFallback() {
       </Button>
       <Link
         href="/admin/roadmap"
-        className="rounded-[--radius-button] border border-[--color-border] px-5 py-3 text-base font-medium text-[--color-text-muted] hover:text-[--color-text]"
+        className="rounded-[--radius-button] border border-[--ct-border] px-5 py-3 text-base font-medium text-[--ct-text-body] hover:text-[--ct-text-primary]"
       >
         Admin
       </Link>

@@ -38,8 +38,8 @@ export function MemoToolbar({
             "rounded-[--radius-button] border px-4 py-2 text-sm font-medium",
             "transition-[background-color,color,border-color,opacity] duration-[150ms]",
             "disabled:cursor-not-allowed disabled:opacity-40",
-            "border-[--color-brand] bg-[--color-brand] text-[--color-brand-fg]",
-            "hover:bg-[--color-brand-strong] hover:border-[--color-brand-strong]",
+            "border-[--ct-text-strong] bg-[--ct-text-strong] text-[--ct-bg-deep]",
+            "hover:bg-[--ct-text-strong] hover:border-[--ct-text-strong]",
           )}
         >
           {isPending
@@ -58,8 +58,8 @@ export function MemoToolbar({
               "rounded-[--radius-button] border px-3.5 py-2 text-sm font-medium",
               "transition-[background-color,color,border-color] duration-[150ms]",
               "disabled:cursor-not-allowed disabled:opacity-40",
-              "border-[--color-border-strong] bg-transparent text-[--color-text]",
-              "hover:bg-[--color-bg-elevated]",
+              "border-[--ct-border-strong] bg-transparent text-[--ct-text-primary]",
+              "hover:bg-[--ct-surface-1]",
             )}
           >
             Download .md
@@ -74,8 +74,8 @@ export function MemoToolbar({
             "rounded-[--radius-button] border px-3.5 py-2 text-sm font-medium",
             "transition-[background-color,color,border-color] duration-[150ms]",
             "disabled:cursor-not-allowed disabled:opacity-40",
-            "border-[--color-border-strong] bg-transparent text-[--color-text]",
-            "hover:bg-[--color-bg-elevated]",
+            "border-[--ct-border-strong] bg-transparent text-[--ct-text-primary]",
+            "hover:bg-[--ct-surface-1]",
           )}
         >
           {isPdfPending ? "Generating PDF…" : "Download PDF"}

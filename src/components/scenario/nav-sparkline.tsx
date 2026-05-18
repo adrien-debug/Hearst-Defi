@@ -104,7 +104,7 @@ function Sparkline({ series }: SparklineProps) {
       {/* Band fill */}
       <polygon
         points={bandPoints}
-        fill="var(--color-brand)"
+        fill="var(--ct-text-strong)"
         opacity="0.08"
       />
 
@@ -112,7 +112,7 @@ function Sparkline({ series }: SparklineProps) {
       <polyline
         points={polyline(highVals)}
         fill="none"
-        stroke="var(--color-brand)"
+        stroke="var(--ct-text-strong)"
         strokeWidth="1"
         strokeOpacity="0.35"
         strokeDasharray="4 3"
@@ -122,7 +122,7 @@ function Sparkline({ series }: SparklineProps) {
       <polyline
         points={polyline(lowVals)}
         fill="none"
-        stroke="var(--color-brand)"
+        stroke="var(--ct-text-strong)"
         strokeWidth="1"
         strokeOpacity="0.35"
         strokeDasharray="4 3"
@@ -132,7 +132,7 @@ function Sparkline({ series }: SparklineProps) {
       <polyline
         points={polyline(midVals)}
         fill="none"
-        stroke="var(--color-brand)"
+        stroke="var(--ct-text-strong)"
         strokeWidth="2"
         strokeOpacity="0.85"
         strokeLinecap="round"
@@ -151,7 +151,7 @@ function Sparkline({ series }: SparklineProps) {
             y={H + 16}
             textAnchor="middle"
             fontSize={9}
-            fill="var(--color-text-dim)"
+            fill="var(--ct-text-muted)"
             fontFamily="var(--font-sans)"
           >
             {`M${m}`}
@@ -182,34 +182,34 @@ export function NavSparkline({ output }: NavSparklineProps) {
       <div className="mb-3 flex flex-wrap items-end gap-6 text-sm">
         <div className="flex flex-col gap-0.5">
           <span className="stat-label text-[--text-micro]">Low band</span>
-          <span className="font-mono font-bold text-[--color-text-muted]">
+          <span className="font-mono font-bold text-[--ct-text-body]">
             {last ? formatUsd(last.low) : "—"}
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
           <span className="stat-label text-[--text-micro]">Midpoint</span>
-          <span className="font-mono font-bold text-[--color-brand]">
+          <span className="font-mono font-bold text-[--ct-text-strong]">
             {last ? formatUsd(last.mid) : "—"}
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
           <span className="stat-label text-[--text-micro]">High band</span>
-          <span className="font-mono font-bold text-[--color-text-muted]">
+          <span className="font-mono font-bold text-[--ct-text-body]">
             {last ? formatUsd(last.high) : "—"}
           </span>
         </div>
-        <div className="ml-auto text-[--text-micro] text-[--color-text-dim]">
+        <div className="ml-auto text-[--text-micro] text-[--ct-text-muted]">
           Notional $1M · 12 months
         </div>
       </div>
 
       <Sparkline series={series} />
 
-      <div className="mt-3 flex items-center gap-4 text-[--text-micro] text-[--color-text-dim]">
+      <div className="mt-3 flex items-center gap-4 text-[--text-micro] text-[--ct-text-muted]">
         <span className="flex items-center gap-1.5">
           <span
             className="inline-block h-0.5 w-4 rounded-full"
-            style={{ background: "var(--color-brand)", opacity: 0.85 }}
+            style={{ background: "var(--ct-text-strong)", opacity: 0.85 }}
           />
           Midpoint
         </span>
@@ -217,9 +217,9 @@ export function NavSparkline({ output }: NavSparklineProps) {
           <span
             className="inline-block h-0.5 w-4 rounded-full"
             style={{
-              background: "var(--color-brand)",
+              background: "var(--ct-text-strong)",
               opacity: 0.35,
-              borderTop: "1px dashed var(--color-brand)",
+              borderTop: "1px dashed var(--ct-text-strong)",
             }}
           />
           Low / High range

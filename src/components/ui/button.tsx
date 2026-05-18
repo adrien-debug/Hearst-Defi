@@ -4,18 +4,18 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/cn";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-full text-sm font-medium transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-black active:scale-[0.98]",
+  "inline-flex items-center justify-center gap-2 rounded-full text-sm font-medium transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-border-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep] active:scale-[0.98]",
   {
     variants: {
       variant: {
         primary:
-          "bg-white text-black hover:bg-white/90 shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]",
+          "bg-[--ct-text-strong] text-[--ct-bg-deep] hover:bg-[--ct-text-primary] shadow-[var(--ct-glow-subtle)] hover:shadow-[var(--ct-glow-soft)]",
         secondary:
-          "glass-panel-subtle text-white/90 hover:bg-white/10 hover:border-white/20 hover:text-white shadow-sm",
+          "glass-panel-subtle text-[--ct-text-primary] hover:bg-[--ct-surface-2] hover:border-[--ct-border-strong] hover:text-[--ct-text-strong] shadow-sm",
         ghost:
-          "text-white/60 hover:bg-white/10 hover:text-white",
+          "text-[--ct-text-muted] hover:bg-[--ct-surface-1] hover:text-[--ct-text-strong]",
         danger:
-          "border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 shadow-[0_0_15px_rgba(248,113,113,0.1)] hover:shadow-[0_0_20px_rgba(248,113,113,0.2)]",
+          "border border-[--ct-status-danger-border] bg-[--ct-status-danger-soft] text-[--ct-status-danger] hover:bg-[--ct-status-danger-soft] shadow-[var(--ct-glow-subtle)] hover:shadow-[var(--ct-glow-soft)]",
       },
       size: {
         sm: "h-8 px-4 text-xs",

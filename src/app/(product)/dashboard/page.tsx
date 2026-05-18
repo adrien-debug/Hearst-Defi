@@ -42,14 +42,14 @@ export default async function DashboardPage() {
 
   return (
     <AdvancedProvider>
-      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 ease-out fill-mode-both">
+      <section className="ct-section space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 ease-out fill-mode-both">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between px-2">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <div className="h-2 w-2 rounded-full bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)] animate-pulse" />
-              <p className="eyebrow tracking-widest text-white/50">Hearst Yield Vault</p>
+              <div className="h-2 w-2 rounded-full ct-status-dot-success animate-pulse" />
+              <p className="eyebrow tracking-widest" style={{ color: "var(--ct-text-muted)" }}>Hearst Yield Vault</p>
             </div>
-            <h1 className="text-6xl font-semibold tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 drop-shadow-sm">
+            <h1 className="h1 ct-section-title" style={{ fontSize: "3.5rem", letterSpacing: "-0.03em" }}>
               Dashboard
             </h1>
           </div>
@@ -103,15 +103,15 @@ export default async function DashboardPage() {
 
         <ActivityFeed events={snapshot.recentEvents} />
 
-        <footer className="border-t border-white/10 pt-8 pb-12 text-center">
-          <p className="body-xs text-white/30 max-w-2xl mx-auto leading-relaxed">
+        <footer className="border-t pb-12 text-center" style={{ borderColor: "var(--ct-border-soft)", paddingTop: "2rem" }}>
+          <p className="body-xs max-w-2xl mx-auto leading-relaxed">
             Projections are conditional on the assumptions stated in
             Methodology v1.0. APY ranges are not guaranteed; past performance
             does not predict future returns. Mining cashflow is paper at
             Phase 1, partner-attested from Phase 2.
           </p>
         </footer>
-      </div>
+      </section>
     </AdvancedProvider>
   );
 }

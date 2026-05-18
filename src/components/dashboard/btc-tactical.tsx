@@ -68,9 +68,9 @@ function Row({ label, value, valueClass }: RowProps) {
 export function BtcTacticalSection({ btcTactical }: BtcTacticalSectionProps) {
   const pnlTone =
     btcTactical.pnlUsd > 0
-      ? "text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.3)]"
+      ? "ct-status-glow-success"
       : btcTactical.pnlUsd < 0
-        ? "text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.3)]"
+        ? "ct-status-glow-danger"
         : "text-white/90";
 
   return (

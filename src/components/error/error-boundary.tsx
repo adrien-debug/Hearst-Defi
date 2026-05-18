@@ -47,9 +47,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
       return (
         <div className="min-h-[50vh] flex items-center justify-center">
           <div className="max-w-md w-full space-y-6 text-center p-8">
-            <div className="w-16 h-16 mx-auto rounded-full bg-red-500/10 flex items-center justify-center">
+            <div className="w-16 h-16 mx-auto rounded-full ct-status-danger-bg flex items-center justify-center">
               <svg
-                className="w-8 h-8 text-red-400"
+                className="w-8 h-8 ct-status-danger"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -78,7 +78,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
               Refresh page
             </button>
             {process.env.NODE_ENV === "development" && this.state.error && (
-              <pre className="mt-4 p-4 rounded-lg bg-red-500/5 text-left text-xs text-red-300 overflow-auto">
+              <pre className="mt-4 p-4 rounded-lg ct-status-danger-bg text-left text-xs overflow-auto" style={{ color: "var(--ct-status-danger)" }}>
                 {this.state.error.message}
               </pre>
             )}

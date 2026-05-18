@@ -55,12 +55,12 @@ function downloadMarkdown(memo: InvestorMemoOutput): void {
 
 function SkeletonSection() {
   return (
-    <div className="rounded-[--radius-card] border border-[--color-border] bg-[--color-bg-card] p-6">
-      <div className="mb-4 h-5 w-1/3 animate-pulse rounded bg-[--color-bg-elevated]" />
+    <div className="rounded-[--radius-card] border border-[--ct-border] bg-[--ct-surface-2] p-6">
+      <div className="mb-4 h-5 w-1/3 animate-pulse rounded bg-[--ct-surface-1]" />
       <div className="space-y-2">
-        <div className="h-3 w-full animate-pulse rounded bg-[--color-bg-elevated]" />
-        <div className="h-3 w-11/12 animate-pulse rounded bg-[--color-bg-elevated]" />
-        <div className="h-3 w-4/5 animate-pulse rounded bg-[--color-bg-elevated]" />
+        <div className="h-3 w-full animate-pulse rounded bg-[--ct-surface-1]" />
+        <div className="h-3 w-11/12 animate-pulse rounded bg-[--ct-surface-1]" />
+        <div className="h-3 w-4/5 animate-pulse rounded bg-[--ct-surface-1]" />
       </div>
     </div>
   );
@@ -143,9 +143,9 @@ export function MemoShell() {
       />
 
       {error ? (
-        <div className="rounded-[--radius-button] border border-[--color-danger] bg-[--color-danger-bg] px-4 py-3">
-          <p className="stat-label text-[--color-danger]">Generation failed</p>
-          <p className="mt-1 font-mono text-xs text-[--color-danger] break-words">
+        <div className="rounded-[--radius-button] border border-[--ct-status-danger] bg-[--ct-status-danger-soft] px-4 py-3">
+          <p className="stat-label text-[--ct-status-danger]">Generation failed</p>
+          <p className="mt-1 font-mono text-xs text-[--ct-status-danger] break-words">
             {error}
           </p>
         </div>
@@ -164,10 +164,10 @@ export function MemoShell() {
           ))}
         </div>
       ) : (
-        <div className="flex h-48 items-center justify-center rounded-[--radius-card] border border-dashed border-[--color-border-subtle] text-center">
+        <div className="flex h-48 items-center justify-center rounded-[--radius-card] border border-dashed border-[--ct-border-soft] text-center">
           <p className="body-sm max-w-md">
             Press{" "}
-            <span className="text-[--color-text]">Generate memo</span> to produce
+            <span className="text-[--ct-text-primary]">Generate memo</span> to produce
             the 8-section institutional memo via Claude Opus 4.7. Generation
             takes a few seconds; nothing is auto-distributed.
           </p>

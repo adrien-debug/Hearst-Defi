@@ -33,13 +33,13 @@ const variants: Record<
 };
 
 const dotColor: Record<Provenance, string> = {
-  live: "var(--color-success)",
-  oracle: "var(--color-brand)",
-  attested: "var(--color-brand)",
-  estimated: "var(--color-warning)",
-  partial: "var(--color-warning)",
-  manual: "var(--color-text-dim)",
-  stale: "var(--color-danger)",
+  live: "var(--ct-status-success)",
+  oracle: "var(--ct-text-strong)",
+  attested: "var(--ct-text-strong)",
+  estimated: "var(--ct-status-warning)",
+  partial: "var(--ct-status-warning)",
+  manual: "var(--ct-text-muted)",
+  stale: "var(--ct-status-danger)",
 };
 
 export function ProvenanceBadge({ kind }: { kind: Provenance }) {

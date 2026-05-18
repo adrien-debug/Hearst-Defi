@@ -20,7 +20,7 @@ export function FeedbackForm() {
     <form ref={formRef} action={onSubmit} className="space-y-3" aria-label="Feedback form">
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block text-xs" htmlFor="feedback-itemId">
-          <span className="mb-1 block text-[--color-text-dim] uppercase tracking-wide">
+          <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
             Roadmap item ID (optional)
           </span>
           <input
@@ -28,11 +28,11 @@ export function FeedbackForm() {
             name="itemId"
             type="text"
             placeholder="e.g. dash-hero"
-            className="w-full rounded border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm font-mono"
+            className="ct-input font-mono"
           />
         </label>
         <label className="block text-xs" htmlFor="feedback-author">
-          <span className="mb-1 block text-[--color-text-dim] uppercase tracking-wide">
+          <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
             Your name (optional)
           </span>
           <input
@@ -40,13 +40,13 @@ export function FeedbackForm() {
             name="author"
             type="text"
             placeholder="Adrien"
-            className="w-full rounded border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm"
+            className="ct-input"
           />
         </label>
       </div>
 
       <label className="block text-xs" htmlFor="feedback-pathname">
-        <span className="mb-1 block text-[--color-text-dim] uppercase tracking-wide">
+        <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
           Pathname or context (optional)
         </span>
         <input
@@ -54,12 +54,12 @@ export function FeedbackForm() {
           name="pathname"
           type="text"
           placeholder="/admin/roadmap"
-          className="w-full rounded border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm font-mono"
+          className="ct-input font-mono"
         />
       </label>
 
       <label className="block text-xs" htmlFor="feedback-message">
-        <span className="mb-1 block text-[--color-text-dim] uppercase tracking-wide">
+        <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
           Feedback
         </span>
         <textarea
@@ -69,10 +69,10 @@ export function FeedbackForm() {
           required
           minLength={2}
           placeholder="What works? What doesn't? What's confusing?"
-          className="w-full rounded border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm"
+          className="ct-textarea"
           aria-describedby="feedback-hint"
         />
-        <span id="feedback-hint" className="mt-1 block text-[--color-text-dim]">
+        <span id="feedback-hint" className="mt-1 block text-[--ct-text-muted]">
           Your feedback helps us improve the platform.
         </span>
       </label>

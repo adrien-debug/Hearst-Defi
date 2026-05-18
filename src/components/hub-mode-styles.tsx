@@ -12,7 +12,7 @@ import { useHubMode } from "@hearst/hub-sdk";
 // backdrop-filter:blur, -webkit-backdrop-filter, ni mask-image correctement →
 // zones noires/vides. On neutralise .glass-panel qui porte ces propriétés.
 //
-// Accent couleur Connect : #F0567A
+// Accent couleur Connect : see CT_PRODUCT_CONNECT_HEX in src/lib/cockpit-tokens.ts
 // ---------------------------------------------------------------------------
 
 export function HubModeStyles() {
@@ -26,6 +26,19 @@ export function HubModeStyles() {
       /* ── Ambient background orbs (filter/blur → compositing webview) ── */
       .fixed.inset-0.pointer-events-none.z-0 { display: none !important; }
 
+      /* ── Shell Cockpit : rails + bottombar neutralisés en hub-mode ── */
+      [data-cockpit-shell],
+      .ct-rail-left,
+      .ct-rail-right,
+      .ct-bottom-bar { display: none !important; }
+
+      /* ── Page area : pleine largeur sans rails ── */
+      .ct-page-area {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-bottom: 0 !important;
+      }
+
       /* ── Main : padding-top compensatoire (header masqué, espace libéré) ── */
       main#main-content { padding-top: 0 !important; margin-top: 0 !important; }
 
@@ -33,7 +46,7 @@ export function HubModeStyles() {
       .glass-panel {
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
-        background: rgba(10, 10, 10, 0.90) !important;
+        background: var(--ct-bg-deep) !important;
       }
       .glass-panel::before {
         backdrop-filter: none !important;

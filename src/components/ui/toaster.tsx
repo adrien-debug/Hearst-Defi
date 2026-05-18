@@ -12,12 +12,14 @@ export function Toaster() {
   return (
     <SonnerToaster
       position="bottom-right"
+      theme="dark"
+      richColors
       toastOptions={{
         style: {
-          background: "rgba(0,0,0,0.9)",
-          color: "#fff",
-          border: "1px solid rgba(255,255,255,0.1)",
-          backdropFilter: "blur(10px)",
+          background: "var(--ct-surface-2)",
+          color: "var(--ct-text-primary)",
+          border: "1px solid var(--ct-border)",
+          backdropFilter: "blur(40px) saturate(110%)",
         },
       }}
     />

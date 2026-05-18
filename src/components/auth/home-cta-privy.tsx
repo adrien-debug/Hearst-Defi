@@ -64,7 +64,7 @@ export function HomeCtaWithPrivy() {
       {dashboardCta}
       <Link
         href="/admin/roadmap"
-        className="rounded-[--radius-button] border border-[--color-border] px-5 py-3 text-base font-medium text-[--color-text-muted] hover:text-[--color-text]"
+        className="rounded-[--radius-button] border border-[--ct-border] px-5 py-3 text-base font-medium text-[--ct-text-body] hover:text-[--ct-text-primary]"
       >
         Admin
       </Link>

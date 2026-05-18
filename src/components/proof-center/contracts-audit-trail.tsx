@@ -72,11 +72,11 @@ function truncateTx(tx: string): string {
 
 const variantStyles: Record<"success" | "warning" | "default", string> = {
   success:
-    "border-[--color-success-border] bg-[--color-success-bg] text-[--color-success]",
+    "border-[--ct-status-success-border] bg-[--ct-status-success-soft] text-[--ct-status-success]",
   warning:
-    "border-[--color-warning-border] bg-[--color-warning-bg] text-[--color-warning]",
+    "border-[--ct-status-warning-border] bg-[--ct-status-warning-soft] text-[--ct-status-warning]",
   default:
-    "border-[--color-border-strong] bg-[--color-bg-elevated] text-[--color-text-muted]",
+    "border-[--ct-border-strong] bg-[--ct-surface-1] text-[--ct-text-body]",
 };
 
 export function ContractsAuditTrail() {
@@ -96,7 +96,7 @@ export function ContractsAuditTrail() {
           {DEPLOYED_CONTRACTS.map((contract) => (
             <article
               key={contract.address}
-              className="rounded-[--radius-md] border border-[--color-border-subtle] bg-[--color-bg-elevated] p-5"
+              className="rounded-[--radius-md] border border-[--ct-border-soft] bg-[--ct-surface-1] p-5"
             >
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h4 className="h4">{contract.name}</h4>
@@ -113,7 +113,7 @@ export function ContractsAuditTrail() {
                       href={`${EXPLORER_ADDRESS_BASE}${contract.address}`}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="mono tabular text-xs text-[--color-text] hover:text-[--color-brand] transition-colors duration-[150ms]"
+                      className="mono tabular text-xs text-[--ct-text-primary] hover:text-[--ct-text-strong] transition-colors duration-[150ms]"
                       title={contract.address}
                     >
                       {truncateAddress(contract.address)}
@@ -127,7 +127,7 @@ export function ContractsAuditTrail() {
                       href={`${EXPLORER_TX_BASE}${contract.deployTxHash}`}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="mono tabular text-xs text-[--color-text-muted] hover:text-[--color-brand] transition-colors duration-[150ms]"
+                      className="mono tabular text-xs text-[--ct-text-body] hover:text-[--ct-text-strong] transition-colors duration-[150ms]"
                       title={contract.deployTxHash}
                     >
                       {truncateTx(contract.deployTxHash)}
@@ -136,13 +136,13 @@ export function ContractsAuditTrail() {
                 </div>
                 <div className="flex flex-wrap items-baseline justify-between gap-3">
                   <dt className="body-xs">Deploy block</dt>
-                  <dd className="mono tabular text-xs text-[--color-text-muted]">
+                  <dd className="mono tabular text-xs text-[--ct-text-body]">
                     {contract.deployBlock}
                   </dd>
                 </div>
                 <div className="flex flex-wrap items-baseline justify-between gap-3">
                   <dt className="body-xs">Network</dt>
-                  <dd className="body-xs text-[--color-text-muted]">
+                  <dd className="body-xs text-[--ct-text-body]">
                     Base Sepolia (chain id 84532)
                   </dd>
                 </div>
@@ -154,10 +154,10 @@ export function ContractsAuditTrail() {
                   target="_blank"
                   rel="noreferrer noopener"
                   className={cn(
-                    "rounded-[--radius-button] border border-[--color-brand] bg-[--color-accent-dim]",
-                    "px-3 py-1.5 text-xs text-[--color-brand]",
-                    "transition-colors duration-[150ms] hover:bg-[--color-accent-subtle]",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]",
+                    "rounded-[--radius-button] border border-[--ct-text-strong] bg-[--ct-surface-1]",
+                    "px-3 py-1.5 text-xs text-[--ct-text-strong]",
+                    "transition-colors duration-[150ms] hover:bg-[--ct-surface-2]",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]",
                   )}
                 >
                   View on Basescan
@@ -167,10 +167,10 @@ export function ContractsAuditTrail() {
                   target="_blank"
                   rel="noreferrer noopener"
                   className={cn(
-                    "rounded-[--radius-button] border border-[--color-border-strong] bg-[--color-bg-elevated]",
-                    "px-3 py-1.5 text-xs text-[--color-text]",
-                    "transition-colors duration-[150ms] hover:bg-[--color-bg-tertiary]",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]",
+                    "rounded-[--radius-button] border border-[--ct-border-strong] bg-[--ct-surface-1]",
+                    "px-3 py-1.5 text-xs text-[--ct-text-primary]",
+                    "transition-colors duration-[150ms] hover:bg-[--ct-surface-3]",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]",
                   )}
                 >
                   Deploy tx
@@ -194,13 +194,13 @@ export function ContractsAuditTrail() {
           {AUDIT_ENTRIES.map((entry) => (
             <li
               key={entry.label}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-[--radius-md] border border-[--color-border-subtle] bg-[--color-bg-elevated] px-4 py-3"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-[--radius-md] border border-[--ct-border-soft] bg-[--ct-surface-1] px-4 py-3"
             >
               <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium text-[--color-text]">
+                <span className="text-sm font-medium text-[--ct-text-primary]">
                   {entry.label}
                 </span>
-                <span className="text-xs text-[--color-text-muted]">
+                <span className="text-xs text-[--ct-text-body]">
                   {entry.status}
                 </span>
               </div>
@@ -223,10 +223,10 @@ export function ContractsAuditTrail() {
                     target="_blank"
                     rel="noreferrer noopener"
                     className={cn(
-                      "rounded-[--radius-button] border border-[--color-border-strong] bg-[--color-bg-elevated]",
-                      "px-3 py-1 text-xs text-[--color-text]",
-                      "transition-colors duration-[150ms] hover:bg-[--color-bg-tertiary]",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]",
+                      "rounded-[--radius-button] border border-[--ct-border-strong] bg-[--ct-surface-1]",
+                      "px-3 py-1 text-xs text-[--ct-text-primary]",
+                      "transition-colors duration-[150ms] hover:bg-[--ct-surface-3]",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]",
                     )}
                   >
                     View document
@@ -237,7 +237,7 @@ export function ContractsAuditTrail() {
           ))}
         </ul>
 
-        <p className="body-xs mt-4 border-t border-[--color-border-subtle] pt-4">
+        <p className="body-xs mt-4 border-t border-[--ct-border-soft] pt-4">
           Phase 3 will require a Spearbit audit pass before any ERC-4626 vault
           deployment. Methodology is immutable at v1.0; a version bump requires
           an ADR and LP notification.

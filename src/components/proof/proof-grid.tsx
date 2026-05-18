@@ -29,7 +29,7 @@ export function ProofGrid({ proofs, filter }: ProofGridProps) {
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
         <svg
-          className="h-10 w-10 text-[--color-text-dim]"
+          className="h-10 w-10 text-[--ct-text-muted]"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

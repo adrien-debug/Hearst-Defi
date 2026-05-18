@@ -110,7 +110,7 @@ export default async function ProofCenterPage({
       </section>
 
       {/* ── Footer ─────────────────────────────────────────── */}
-      <footer className="border-t border-[--color-border-subtle] pt-6">
+      <footer className="border-t border-[--ct-border-soft] pt-6">
         <p className="body-xs">
           On-chain entries are read directly from Base Sepolia via the
           EventLogger (<span className="mono">0xb07E…3D9E</span>) and

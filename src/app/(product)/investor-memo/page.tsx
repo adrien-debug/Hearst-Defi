@@ -19,7 +19,7 @@ export default function InvestorMemoPage() {
 
       <MemoShell />
 
-      <footer className="border-t border-[--color-border-subtle] pt-6">
+      <footer className="border-t border-[--ct-border-soft] pt-6">
         <p className="body-xs">
           Generated on demand from live vault data. Every export is logged with
           its methodology version. Projections are not a guarantee of future

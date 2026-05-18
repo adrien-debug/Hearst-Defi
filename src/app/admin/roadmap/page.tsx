@@ -15,7 +15,7 @@ export default async function RoadmapPage() {
     : 0;
 
   return (
-    <div className="space-y-16">
+    <section className="ct-section space-y-16">
       <header className="space-y-5">
         <p className="eyebrow">Build progress</p>
         <div className="flex flex-wrap items-center gap-4">
@@ -24,7 +24,7 @@ export default async function RoadmapPage() {
         </div>
         <p className="body-md max-w-3xl">
           Source of truth lives in{" "}
-          <span className="mono text-[--color-text]">
+          <span className="mono" style={{ color: "var(--ct-text-primary)" }}>
             /docs/roadmap.json
           </span>{" "}
           (git-versioned). Status is persisted in Postgres / SQLite. Modifying
@@ -34,7 +34,7 @@ export default async function RoadmapPage() {
           <Card className="max-w-xl">
             <div className="flex items-center justify-between gap-3">
               <span className="stat-label">MVP progress</span>
-              <span className="mono tabular text-base text-[--color-text]">
+              <span className="mono tabular text-base" style={{ color: "var(--ct-text-primary)" }}>
                 {mvpPhase.doneCount} / {mvpPhase.total} ({mvpPct}%)
               </span>
             </div>
@@ -46,10 +46,10 @@ export default async function RoadmapPage() {
       </header>
 
       {phases.map((phase) => (
-        <section key={phase.id} className="space-y-6">
-          <div className="flex items-baseline justify-between gap-3 border-b border-[--color-border-subtle] pb-3">
+        <div key={phase.id} className="space-y-6">
+          <div className="flex items-baseline justify-between gap-3 border-b pb-3" style={{ borderColor: "var(--ct-border-soft)" }}>
             <h2 className="h2">{phase.label}</h2>
-            <span className="mono tabular text-sm text-[--color-text-muted]">
+            <span className="mono tabular text-sm" style={{ color: "var(--ct-text-muted)" }}>
               {phase.doneCount} / {phase.total}
             </span>
           </div>
@@ -60,7 +60,7 @@ export default async function RoadmapPage() {
                 <CardHeader>
                   <div className="space-y-2">
                     <CardTitle>{week.label}</CardTitle>
-                    <div className="flex items-center gap-3 text-sm text-[--color-text-muted]">
+                    <div className="flex items-center gap-3 text-sm" style={{ color: "var(--ct-text-muted)" }}>
                       <span className="mono tabular">
                         {week.doneCount} / {week.total}
                       </span>
@@ -80,8 +80,8 @@ export default async function RoadmapPage() {
               </Card>
             ))}
           </div>
-        </section>
+        </div>
       ))}
-    </div>
+    </section>
   );
 }

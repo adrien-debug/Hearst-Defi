@@ -15,21 +15,21 @@ interface RiskFrameworkSectionProps {
 }
 
 const SEVERITY_TEXT: Record<RiskSeverity, string> = {
-  low: "text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]",
-  medium: "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]",
-  high: "text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.5)]",
+  low: "ct-status-glow-success",
+  medium: "ct-status-glow-warning",
+  high: "ct-status-glow-danger",
 };
 
 const SEVERITY_BAR: Record<RiskSeverity, string> = {
-  low: "bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)]",
-  medium: "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.8)]",
-  high: "bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.8)]",
+  low: "ct-status-dot-success",
+  medium: "ct-status-dot-warning",
+  high: "ct-status-dot-danger",
 };
 
 const SEVERITY_DOT: Record<RiskSeverity, string> = {
-  low: "rgb(74, 222, 128)",
-  medium: "rgb(251, 191, 36)",
-  high: "rgb(248, 113, 113)",
+  low: "var(--ct-status-success)",
+  medium: "var(--ct-status-warning)",
+  high: "var(--ct-status-danger)",
 };
 
 const SEVERITY_VARIANT: Record<
@@ -48,15 +48,15 @@ const BAND_VARIANT: Record<RiskBand, "success" | "warning" | "danger"> = {
 };
 
 const BAND_TEXT: Record<RiskBand, string> = {
-  low: "text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]",
-  medium: "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]",
-  high: "text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.5)]",
+  low: "ct-status-glow-success",
+  medium: "ct-status-glow-warning",
+  high: "ct-status-glow-danger",
 };
 
 const BAND_BAR: Record<RiskBand, string> = {
-  low: "bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)]",
-  medium: "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.8)]",
-  high: "bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.8)]",
+  low: "ct-status-dot-success",
+  medium: "ct-status-dot-warning",
+  high: "ct-status-dot-danger",
 };
 
 function provenanceFromSource(
@@ -86,7 +86,7 @@ export function RiskFrameworkSection({ data }: RiskFrameworkSectionProps) {
         bandLabel={data.bandLabel}
       />
 
-      <ul className="mt-6 divide-y divide-white/10">
+      <ul className="mt-6 ct-divide-soft">
         {data.dimensions.map((d) => (
           <li key={d.id}>
             <RiskRow dimension={d} />
@@ -120,7 +120,7 @@ function CompositeHeader({ composite, band, bandLabel }: CompositeHeaderProps) {
           </span>
         </span>
       </div>
-      <div className="flex items-center gap-4 sm:min-w-[240px]">
+      <div className="flex items-center gap-4 sm:min-w-[15rem]">
         <Progress
           value={composite}
           fillClassName={BAND_BAR[band]}
@@ -156,7 +156,7 @@ function RiskRow({ dimension }: RiskRowProps) {
           <p className="mt-1 text-xs text-white/40 group-hover:text-white/60 transition-colors">{detail}</p>
         </div>
       </div>
-      <div className="flex items-center gap-4 sm:w-[180px] sm:justify-end">
+      <div className="flex items-center gap-4 sm:w-[11.25rem] sm:justify-end">
         <span
           className={cn(
             "text-lg font-semibold leading-none w-9 text-right tabular-nums",
@@ -168,7 +168,7 @@ function RiskRow({ dimension }: RiskRowProps) {
         <Progress
           value={score}
           fillClassName={SEVERITY_BAR[severity]}
-          className="h-1.5 w-[80px] sm:w-[100px]"
+          className="h-1.5 w-[5rem] sm:w-[6.25rem]"
         />
       </div>
     </div>

@@ -61,7 +61,7 @@ export function BacktestChart({ series }: BacktestChartProps) {
               height={barHeight}
               rx={2}
               ry={2}
-              fill="var(--color-brand)"
+              fill="var(--ct-text-strong)"
               opacity={opacity}
             >
               <title>
@@ -75,7 +75,7 @@ export function BacktestChart({ series }: BacktestChartProps) {
                 y={CHART_HEIGHT + 15}
                 textAnchor="middle"
                 fontSize={9}
-                fill="var(--color-text-dim)"
+                fill="var(--ct-text-muted)"
                 fontFamily="var(--font-sans)"
               >
                 {monthLabel}

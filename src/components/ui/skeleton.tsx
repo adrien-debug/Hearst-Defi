@@ -12,7 +12,7 @@ interface SkeletonProps {
 
 function Skeleton({ className, variant = "rect" }: SkeletonProps) {
   const baseClasses =
-    "animate-pulse bg-white/[0.06] rounded-md relative overflow-hidden";
+    "animate-pulse bg-[--ct-surface-2] rounded-md relative overflow-hidden";
 
   const variantClasses = {
     rect: "",
@@ -25,7 +25,7 @@ function Skeleton({ className, variant = "rect" }: SkeletonProps) {
       className={cn(baseClasses, variantClasses[variant], className)}
       aria-hidden="true"
     >
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/[0.04] to-transparent" />
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-[--ct-surface-1] to-transparent" />
     </div>
   );
 }
@@ -35,7 +35,7 @@ function Skeleton({ className, variant = "rect" }: SkeletonProps) {
  */
 export function SkeletonCard() {
   return (
-    <div className="space-y-4 p-6 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+    <div className="space-y-4 p-6 rounded-2xl border border-[--ct-border-soft] bg-[--ct-surface-0]">
       <Skeleton className="h-6 w-1/3" />
       <Skeleton className="h-24 w-full" />
       <div className="flex gap-3">

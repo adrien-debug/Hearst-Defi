@@ -91,7 +91,7 @@ function TabBar({ active, onChange }: TabBarProps) {
   return (
     <nav
       aria-label="Scenario Lab tabs"
-      className="flex gap-1 rounded-[--radius-button] border border-[--color-border] bg-[--color-bg-elevated] p-1 w-fit"
+      className="flex gap-1 rounded-[--radius-button] border border-[--ct-border] bg-[--ct-surface-1] p-1 w-fit"
     >
       {(["scenario", "backtest"] as Tab[]).map((tab) => {
         const isActive = active === tab;
@@ -105,10 +105,10 @@ function TabBar({ active, onChange }: TabBarProps) {
             className={cn(
               "rounded-[--radius-sm] px-5 py-2 text-sm font-semibold capitalize",
               "transition-[background-color,color] duration-150",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg-elevated]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-surface-1]",
               isActive
-                ? "bg-[--color-brand] text-[--color-brand-fg]"
-                : "text-[--color-text-muted] hover:text-[--color-text]",
+                ? "bg-[--ct-text-strong] text-[--ct-bg-deep]"
+                : "text-[--ct-text-body] hover:text-[--ct-text-primary]",
             )}
           >
             {tab === "scenario" ? "Scenario" : "Backtest"}
@@ -131,7 +131,7 @@ function ScenarioModeToggle({ active, onChange }: ScenarioModeToggleProps) {
     <div
       role="tablist"
       aria-label="Scenario mode"
-      className="inline-flex gap-1 rounded-[--radius-button] border border-[--color-border] bg-[--color-bg-elevated] p-1"
+      className="inline-flex gap-1 rounded-[--radius-button] border border-[--ct-border] bg-[--ct-surface-1] p-1"
     >
       {(["single", "compare"] as ScenarioMode[]).map((mode) => {
         const isActive = active === mode;
@@ -145,10 +145,10 @@ function ScenarioModeToggle({ active, onChange }: ScenarioModeToggleProps) {
             className={cn(
               "rounded-[--radius-sm] px-4 py-1.5 text-xs font-semibold uppercase tracking-wider",
               "transition-[background-color,color] duration-150",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg-elevated]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-surface-1]",
               isActive
-                ? "bg-[--color-brand] text-[--color-brand-fg]"
-                : "text-[--color-text-muted] hover:text-[--color-text]",
+                ? "bg-[--ct-text-strong] text-[--ct-bg-deep]"
+                : "text-[--ct-text-body] hover:text-[--ct-text-primary]",
             )}
           >
             {mode}
@@ -214,16 +214,16 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
                 "flex flex-col items-start gap-0.5 rounded-[--radius-button] border px-4 py-3 text-left",
                 "transition-[background-color,color,border-color,box-shadow] duration-150",
                 "disabled:cursor-not-allowed disabled:opacity-40",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]",
                 isActive
                   ? [
-                      "border-[--color-brand] bg-[--color-brand] text-[--color-brand-fg]",
-                      "shadow-[0_0_0_3px_var(--color-accent-glow)]",
+                      "border-[--ct-text-strong] bg-[--ct-text-strong] text-[--ct-bg-deep]",
+                      "shadow-[0_0_0_3px_var(--ct-glow-soft)]",
                     ]
                   : [
-                      "border-[--color-border-strong] bg-[--color-bg-elevated]",
-                      "text-[--color-text-muted]",
-                      "hover:border-[--color-border-strong] hover:bg-[--color-bg-tertiary] hover:text-[--color-text]",
+                      "border-[--ct-border-strong] bg-[--ct-surface-1]",
+                      "text-[--ct-text-body]",
+                      "hover:border-[--ct-border-strong] hover:bg-[--ct-surface-3] hover:text-[--ct-text-primary]",
                     ],
               )}
             >
@@ -234,8 +234,8 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
                 className={cn(
                   "text-xs leading-tight",
                   isActive
-                    ? "text-[--color-brand-fg] opacity-70"
-                    : "text-[--color-text-dim]",
+                    ? "text-[--ct-bg-deep] opacity-70"
+                    : "text-[--ct-text-muted]",
                 )}
               >
                 {p.subtitle}
@@ -251,15 +251,15 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
           {BACKTEST_PERIODS.map((p) => (
             <div
               key={p.key}
-              className="rounded-[--radius-card] border border-[--color-border-subtle] bg-[--color-bg-card] px-5 py-4"
+              className="rounded-[--radius-card] border border-[--ct-border-soft] bg-[--ct-surface-2] px-5 py-4"
             >
-              <p className="text-sm font-semibold text-[--color-text-muted]">
+              <p className="text-sm font-semibold text-[--ct-text-body]">
                 {p.label}
               </p>
-              <p className="mt-1 text-xs text-[--color-text-dim]">
+              <p className="mt-1 text-xs text-[--ct-text-muted]">
                 {p.subtitle}
               </p>
-              <p className="mt-2 text-sm text-[--color-text-muted]">
+              <p className="mt-2 text-sm text-[--ct-text-body]">
                 {p.description}
               </p>
             </div>
@@ -269,7 +269,7 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
 
       {/* Error banner */}
       {error && (
-        <p className="rounded-[--radius-button] border border-[--color-danger] bg-[--color-danger-bg] px-4 py-2.5 text-sm text-[--color-danger]">
+        <p className="rounded-[--radius-button] border border-[--ct-status-danger] bg-[--ct-status-danger-soft] px-4 py-2.5 text-sm text-[--ct-status-danger]">
           {error}
         </p>
       )}
@@ -279,11 +279,11 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
         <div
           className={cn(
             "flex min-h-64 flex-col items-center justify-center gap-3",
-            "rounded-[--radius-card] border border-dashed border-[--color-border-subtle]",
+            "rounded-[--radius-card] border border-dashed border-[--ct-border-soft]",
           )}
         >
           <Spinner />
-          <p className="stat-label text-[--color-text-muted]">
+          <p className="stat-label text-[--ct-text-body]">
             Computing backtest…
           </p>
         </div>
@@ -445,17 +445,17 @@ function SingleMode({
       />
 
       {scenarioError && (
-        <p className="rounded-[--radius-button] border border-[--color-danger] bg-[--color-danger-bg] px-4 py-2.5 text-sm text-[--color-danger]">
+        <p className="rounded-[--radius-button] border border-[--ct-status-danger] bg-[--ct-status-danger-soft] px-4 py-2.5 text-sm text-[--ct-status-danger]">
           {scenarioError}
         </p>
       )}
 
       <div className="grid gap-8 lg:grid-cols-[minmax(360px,420px)_1fr]">
         {/* Left: Inputs panel */}
-        <div className="flex flex-col gap-0 rounded-[--radius-card] border border-[--color-border] bg-[--color-bg-card]">
-          <div className="border-b border-[--color-border-subtle] px-6 py-4">
+        <div className="flex flex-col gap-0 rounded-[--radius-card] border border-[--ct-border] bg-[--ct-surface-2]">
+          <div className="border-b border-[--ct-border-soft] px-6 py-4">
             <h2 className="h4">Inputs</h2>
-            <p className="mt-0.5 text-xs text-[--color-text-dim]">
+            <p className="mt-0.5 text-xs text-[--ct-text-muted]">
               Adjust sliders or select a preset above
             </p>
           </div>
@@ -473,7 +473,7 @@ function SingleMode({
             />
           </div>
 
-          <div className="border-t border-[--color-border-subtle] px-6 py-5">
+          <div className="border-t border-[--ct-border-soft] px-6 py-5">
             <Button
               variant="primary"
               size="lg"
@@ -515,7 +515,7 @@ function SingleMode({
             <div
               className={cn(
                 "flex min-h-80 flex-col items-center justify-center gap-3",
-                "rounded-[--radius-card] border border-dashed border-[--color-border-subtle]",
+                "rounded-[--radius-card] border border-dashed border-[--ct-border-soft]",
                 "transition-opacity duration-150",
                 scenarioPending && "opacity-50",
               )}
@@ -523,7 +523,7 @@ function SingleMode({
               {scenarioPending ? (
                 <>
                   <svg
-                    className="h-5 w-5 animate-spin text-[--color-brand]"
+                    className="h-5 w-5 animate-spin text-[--ct-text-strong]"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -548,7 +548,7 @@ function SingleMode({
               ) : (
                 <>
                   <svg
-                    className="h-8 w-8 text-[--color-text-dim]"
+                    className="h-8 w-8 text-[--ct-text-muted]"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -562,11 +562,11 @@ function SingleMode({
                       d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
                     />
                   </svg>
-                  <p className="max-w-xs text-center text-sm text-[--color-text-dim]">
+                  <p className="max-w-xs text-center text-sm text-[--ct-text-muted]">
                     Select a preset above or adjust the sliders,{" "}
                     <br />
                     then press{" "}
-                    <span className="font-semibold text-[--color-text-muted]">
+                    <span className="font-semibold text-[--ct-text-body]">
                       Run scenario
                     </span>{" "}
                     to see projections.

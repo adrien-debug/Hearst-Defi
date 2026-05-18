@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import "./globals.css";
 import "@hearst/cockpit-shell/tokens.css";
+import "./cockpit.css";
+import "./globals.css";
 
 import { ConnectShell } from "@/components/ConnectShell";
 import { Analytics } from "@/components/analytics";

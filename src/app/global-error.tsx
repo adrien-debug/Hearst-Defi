@@ -1,5 +1,7 @@
 "use client";
 
+import { CT_CHROME, CT_PDF, CT_PRODUCT_CONNECT_HEX } from "@/lib/cockpit-tokens";
+
 export const dynamic = "force-dynamic";
 
 export default function GlobalError({
@@ -14,8 +16,8 @@ export default function GlobalError({
       <body
         style={{
           margin: 0,
-          background: "#0a0a0a",
-          color: "#ededed",
+          background: CT_CHROME.bgDeep,
+          color: CT_CHROME.textPrimary,
           fontFamily: "system-ui, sans-serif",
           display: "flex",
           alignItems: "center",
@@ -31,7 +33,7 @@ export default function GlobalError({
             <p
               style={{
                 fontSize: "0.75rem",
-                color: "#888",
+                color: CT_PDF.textDim,
                 marginBottom: "1.5rem",
               }}
             >
@@ -42,8 +44,8 @@ export default function GlobalError({
             onClick={reset}
             style={{
               padding: "0.5rem 1.25rem",
-              background: "#a7fb90",
-              color: "#0a0a0a",
+              background: CT_PRODUCT_CONNECT_HEX,
+              color: CT_PDF.textPrimary,
               border: "none",
               borderRadius: "6px",
               cursor: "pointer",

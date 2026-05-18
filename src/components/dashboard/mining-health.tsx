@@ -29,21 +29,21 @@ function trendTone(pct: number): Tone {
 }
 
 const TONE_TEXT: Record<Tone, string> = {
-  good: "text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]",
-  warn: "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]",
-  bad: "text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.5)]",
+  good: "ct-status-glow-success",
+  warn: "ct-status-glow-warning",
+  bad: "ct-status-glow-danger",
 };
 
 const TONE_BAR: Record<Tone, string> = {
-  good: "bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)]",
-  warn: "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.8)]",
-  bad: "bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.8)]",
+  good: "ct-status-dot-success",
+  warn: "ct-status-dot-warning",
+  bad: "ct-status-dot-danger",
 };
 
 const TONE_DOT_COLOR: Record<Tone, string> = {
-  good: "rgb(74, 222, 128)",
-  warn: "rgb(251, 191, 36)",
-  bad: "rgb(248, 113, 113)",
+  good: "var(--ct-status-success)",
+  warn: "var(--ct-status-warning)",
+  bad: "var(--ct-status-danger)",
 };
 
 interface ScoreRowProps {

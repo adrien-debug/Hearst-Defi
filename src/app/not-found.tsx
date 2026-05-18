@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { CT_CHROME, CT_PDF, CT_PRODUCT_CONNECT_HEX } from "@/lib/cockpit-tokens";
+
 export const dynamic = "force-dynamic";
 
 export default function NotFound() {
@@ -8,8 +10,8 @@ export default function NotFound() {
       <body
         style={{
           margin: 0,
-          background: "#0a0a0a",
-          color: "#ededed",
+          background: CT_CHROME.bgDeep,
+          color: CT_CHROME.textPrimary,
           fontFamily: "system-ui, sans-serif",
           display: "flex",
           alignItems: "center",
@@ -27,8 +29,8 @@ export default function NotFound() {
               display: "inline-block",
               marginTop: "1rem",
               padding: "0.5rem 1.25rem",
-              background: "#a7fb90",
-              color: "#0a0a0a",
+              background: CT_PRODUCT_CONNECT_HEX,
+              color: CT_PDF.textPrimary,
               borderRadius: "6px",
               textDecoration: "none",
               fontWeight: 600,

@@ -5,10 +5,10 @@ import { cn } from "@/lib/cn";
 import type { AllocationBucket, ApyRange as ApyRangeT } from "@/lib/mock/dashboard";
 
 const BUCKET_TONES: Record<AllocationBucket["id"], string> = {
-  mining: "rgb(255, 255, 255)",
-  "usdc-base": "rgba(255, 255, 255, 0.6)",
-  "btc-tactical": "rgba(251, 191, 36, 0.9)",
-  "stable-reserve": "rgba(255, 255, 255, 0.2)",
+  mining: "var(--ct-text-strong)",
+  "usdc-base": "var(--ct-text-body)",
+  "btc-tactical": "var(--ct-status-warning)",
+  "stable-reserve": "var(--ct-text-faint)",
 };
 
 interface AllocationSectionProps {
@@ -55,7 +55,7 @@ export function AllocationSection({
       </CardHeader>
 
       <div className="flex flex-col gap-8 lg:flex-row lg:items-center">
-        <div className="flex justify-center lg:w-[220px] relative group">
+        <div className="flex justify-center lg:w-[13.75rem] relative group">
           <div className="absolute inset-0 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-colors duration-500" />
           <svg
             viewBox={`0 0 ${SIZE} ${SIZE}`}
@@ -63,14 +63,15 @@ export function AllocationSection({
             height={SIZE}
             role="img"
             aria-label="Allocation breakdown"
-            className="-rotate-90 relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+            className="-rotate-90 relative z-10"
+            style={{ filter: "drop-shadow(var(--ct-glow-subtle))" }}
           >
             <circle
               cx={SIZE / 2}
               cy={SIZE / 2}
               r={RADIUS}
               fill="none"
-              stroke="rgba(255,255,255,0.05)"
+              stroke="var(--ct-border-soft)"
               strokeWidth={STROKE}
             />
             {segments.map(({ bucket, dash, gap, offset }) => (

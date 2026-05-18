@@ -104,24 +104,24 @@ function PaperProofCard({
       <dl className="space-y-1.5">
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Source</dt>
-          <dd className="body-xs text-[--color-text-muted]">Off-chain</dd>
+          <dd className="body-xs text-[--ct-text-body]">Off-chain</dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Posted</dt>
-          <dd className="body-xs text-[--color-text-muted]">
+          <dd className="body-xs text-[--ct-text-body]">
             {dateFmt.format(postedAt)} UTC
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Signer</dt>
-          <dd className="body-xs text-[--color-text-muted]">
+          <dd className="body-xs text-[--ct-text-body]">
             {proof.postedBy}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Hash</dt>
           <dd
-            className="mono tabular text-xs text-[--color-text]"
+            className="mono tabular text-xs text-[--ct-text-primary]"
             title={proof.hash}
             aria-label={`Hash ${proof.hash}`}
           >
@@ -135,7 +135,7 @@ function PaperProofCard({
           href={proof.uri}
           target="_blank"
           rel="noreferrer noopener"
-          className="rounded-[--radius-button] border border-[--color-border-strong] bg-[--color-bg-elevated] px-3 py-1.5 text-xs text-[--color-text] transition-colors duration-[150ms] hover:bg-[--color-bg-tertiary] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
+          className="rounded-[--radius-button] border border-[--ct-border-strong] bg-[--ct-surface-1] px-3 py-1.5 text-xs text-[--ct-text-primary] transition-colors duration-[150ms] hover:bg-[--ct-surface-3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]"
         >
           {uriLabel(proof.uri)}
         </a>
@@ -144,7 +144,7 @@ function PaperProofCard({
             href={`${EXPLORER_TX_BASE}${proof.txHash}`}
             target="_blank"
             rel="noreferrer noopener"
-            className="rounded-[--radius-button] border border-[--color-brand] bg-[--color-accent-dim] px-3 py-1.5 text-xs text-[--color-brand] transition-colors duration-[150ms] hover:bg-[--color-accent-subtle] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
+            className="rounded-[--radius-button] border border-[--ct-text-strong] bg-[--ct-surface-1] px-3 py-1.5 text-xs text-[--ct-text-strong] transition-colors duration-[150ms] hover:bg-[--ct-surface-2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]"
           >
             TX on Base
           </a>
@@ -152,7 +152,7 @@ function PaperProofCard({
           <button
             type="button"
             disabled
-            className="rounded-[--radius-button] border border-dashed border-[--color-border-subtle] px-3 py-1.5 text-xs text-[--color-text-dim]"
+            className="rounded-[--radius-button] border border-dashed border-[--ct-border-soft] px-3 py-1.5 text-xs text-[--ct-text-muted]"
             title="Phase 2 will mirror this proof on-chain via the EventLogger contract."
           >
             Off-chain (Phase 1)
@@ -185,20 +185,20 @@ function OnChainEventCard({
       <dl className="space-y-1.5">
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Source</dt>
-          <dd className="body-xs text-[--color-text-muted]">
+          <dd className="body-xs text-[--ct-text-body]">
             Base Sepolia · block {proof.blockNumber.toString()}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Posted</dt>
-          <dd className="body-xs text-[--color-text-muted]">
+          <dd className="body-xs text-[--ct-text-body]">
             {dateFmt.format(proof.timestamp)} UTC
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Publisher</dt>
           <dd
-            className="mono tabular text-xs text-[--color-text-muted]"
+            className="mono tabular text-xs text-[--ct-text-body]"
             title={proof.publisher}
           >
             {truncateAddress(proof.publisher)}
@@ -207,7 +207,7 @@ function OnChainEventCard({
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Tx hash</dt>
           <dd
-            className="mono tabular text-xs text-[--color-text]"
+            className="mono tabular text-xs text-[--ct-text-primary]"
             title={proof.txHash}
             aria-label={`Transaction hash ${proof.txHash}`}
           >
@@ -217,7 +217,7 @@ function OnChainEventCard({
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Context hash</dt>
           <dd
-            className="mono tabular text-xs text-[--color-text-muted]"
+            className="mono tabular text-xs text-[--ct-text-body]"
             title={proof.contextHash}
           >
             {truncateHash(proof.contextHash)}
@@ -231,7 +231,7 @@ function OnChainEventCard({
             href={ipfsGatewayUrl(proof.payloadCid)}
             target="_blank"
             rel="noreferrer noopener"
-            className="rounded-[--radius-button] border border-[--color-border-strong] bg-[--color-bg-elevated] px-3 py-1.5 text-xs text-[--color-text] transition-colors duration-[150ms] hover:bg-[--color-bg-tertiary] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
+            className="rounded-[--radius-button] border border-[--ct-border-strong] bg-[--ct-surface-1] px-3 py-1.5 text-xs text-[--ct-text-primary] transition-colors duration-[150ms] hover:bg-[--ct-surface-3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]"
           >
             View payload (IPFS)
           </a>
@@ -240,7 +240,7 @@ function OnChainEventCard({
           href={`${EXPLORER_TX_BASE}${proof.txHash}`}
           target="_blank"
           rel="noreferrer noopener"
-          className="rounded-[--radius-button] border border-[--color-brand] bg-[--color-accent-dim] px-3 py-1.5 text-xs text-[--color-brand] transition-colors duration-[150ms] hover:bg-[--color-accent-subtle] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
+          className="rounded-[--radius-button] border border-[--ct-text-strong] bg-[--ct-surface-1] px-3 py-1.5 text-xs text-[--ct-text-strong] transition-colors duration-[150ms] hover:bg-[--ct-surface-2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]"
         >
           TX on Base
         </a>
@@ -279,34 +279,34 @@ function OnChainAttestationCard({
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Source</dt>
           <dd className="body-xs">
-            <span className="rounded-[--radius-full] border border-[--color-success-border] bg-[--color-success-bg] px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-[--color-success]">
+            <span className="rounded-[--radius-full] border border-[--ct-status-success-border] bg-[--ct-status-success-soft] px-1.5 py-0.5 text-[0.625rem] uppercase tracking-wider text-[--ct-status-success]">
               On-chain
             </span>
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Total AUM</dt>
-          <dd className="mono tabular text-xs text-[--color-text]">
+          <dd className="mono tabular text-xs text-[--ct-text-primary]">
             {usdCompactFmt(proof.totalAumUsd)}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Mined</dt>
-          <dd className="mono tabular text-xs text-[--color-text]">
+          <dd className="mono tabular text-xs text-[--ct-text-primary]">
             {btcFmt(proof.minedBtc)}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Attestor</dt>
           <dd
-            className="mono tabular text-xs text-[--color-text-muted]"
+            className="mono tabular text-xs text-[--ct-text-body]"
             title={proof.attestor}
           >
             <a
               href={`${EXPLORER_ADDRESS_BASE}${proof.attestor}`}
               target="_blank"
               rel="noreferrer noopener"
-              className="hover:text-[--color-brand]"
+              className="hover:text-[--ct-text-strong]"
             >
               {truncateAddress(proof.attestor)}
             </a>
@@ -315,7 +315,7 @@ function OnChainAttestationCard({
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Evidence hash</dt>
           <dd
-            className="mono tabular text-xs text-[--color-text]"
+            className="mono tabular text-xs text-[--ct-text-primary]"
             title={proof.evidenceHash}
           >
             {truncateHash(proof.evidenceHash)}
@@ -329,7 +329,7 @@ function OnChainAttestationCard({
             href={ipfsGatewayUrl(proof.evidenceCid)}
             target="_blank"
             rel="noreferrer noopener"
-            className="rounded-[--radius-button] border border-[--color-border-strong] bg-[--color-bg-elevated] px-3 py-1.5 text-xs text-[--color-text] transition-colors duration-[150ms] hover:bg-[--color-bg-tertiary] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
+            className="rounded-[--radius-button] border border-[--ct-border-strong] bg-[--ct-surface-1] px-3 py-1.5 text-xs text-[--ct-text-primary] transition-colors duration-[150ms] hover:bg-[--ct-surface-3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]"
           >
             View evidence (IPFS)
           </a>
@@ -338,7 +338,7 @@ function OnChainAttestationCard({
           href={`${EXPLORER_TX_BASE}${proof.txHash}`}
           target="_blank"
           rel="noreferrer noopener"
-          className="rounded-[--radius-button] border border-[--color-brand] bg-[--color-accent-dim] px-3 py-1.5 text-xs text-[--color-brand] transition-colors duration-[150ms] hover:bg-[--color-accent-subtle] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
+          className="rounded-[--radius-button] border border-[--ct-text-strong] bg-[--ct-surface-1] px-3 py-1.5 text-xs text-[--ct-text-strong] transition-colors duration-[150ms] hover:bg-[--ct-surface-2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]"
         >
           TX on Base
         </a>

@@ -3,8 +3,10 @@
 import { CockpitShell } from "@hearst/cockpit-shell";
 import type { ReactNode } from "react";
 
+import { CT_PRODUCT_CONNECT_HEX } from "@/lib/cockpit-tokens";
+
 const CONNECT_PRODUCTS = [
-  { id: "connect" as const, name: "Hearst Connect", short: "CN", color: "#A7FB90" },
+  { id: "connect" as const, name: "Hearst Connect", short: "CN", color: CT_PRODUCT_CONNECT_HEX },
 ];
 
 export function ConnectShell({ children }: { children: ReactNode }) {

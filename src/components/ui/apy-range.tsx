@@ -19,15 +19,24 @@ export function ApyRange({
   const fmt = (n: number) => n.toFixed(precision);
   return (
     <span
-      className={cn("font-mono tabular-nums text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-emerald-500 font-semibold drop-shadow-[0_0_8px_rgba(74,222,128,0.3)]", className)}
+      className={cn(
+        "font-mono tabular-nums font-semibold ct-status-glow-success",
+        className,
+      )}
+      style={{ color: "var(--ct-status-success)" }}
       aria-label={`APY range ${fmt(a)} to ${fmt(b)} ${suffix}`}
     >
       {fmt(a)}
-      <span aria-hidden className="mx-1 text-white/30 font-sans font-light">
+      <span aria-hidden className="mx-1 text-[--ct-text-muted] font-sans font-light">
         —
       </span>
       {fmt(b)}
-      <span className="text-emerald-400/80 ml-0.5">{suffix}</span>
+      <span
+        className="ml-0.5"
+        style={{ color: "var(--ct-status-success)", opacity: 0.8 }}
+      >
+        {suffix}
+      </span>
     </span>
   );
 }

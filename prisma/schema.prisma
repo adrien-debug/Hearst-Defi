@@ -196,6 +196,32 @@ model Feedback {
 }
 
 // =============================================================================
+// COCKPIT CHAT — persistent chat threads (isolation by Privy userId at app layer)
+// =============================================================================
+
+model CockpitChat {
+  id        String           @id @default(cuid())
+  userId    String           // Privy DID
+  title     String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  messages  CockpitMessage[]
+
+  @@index([userId, updatedAt])
+}
+
+model CockpitMessage {
+  id        String      @id @default(cuid())
+  chatId    String
+  chat      CockpitChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  role      String      // 'user' | 'assistant' | 'system'
+  content   String
+  createdAt DateTime    @default(now())
+
+  @@index([chatId, createdAt])
+}
+
+// =============================================================================
 // LLM OBSERVABILITY — every agent call is traced here
 // =============================================================================
 

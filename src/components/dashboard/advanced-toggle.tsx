@@ -107,8 +107,9 @@ export function AdvancedTrigger({ className }: TriggerProps) {
           className={cn(
             "absolute top-0.5 left-0.5 block h-3.5 w-3.5 rounded-full bg-white shadow-sm",
             "transition-transform duration-300 ease-out",
-            enabled ? "translate-x-4 shadow-[0_0_10px_rgba(255,255,255,0.8)]" : "translate-x-0 opacity-70",
+            enabled ? "translate-x-4" : "translate-x-0 opacity-70",
           )}
+          style={enabled ? { boxShadow: "var(--ct-glow-strong)" } : undefined}
           suppressHydrationWarning
         />
       </span>
@@ -129,7 +130,7 @@ export function AdvancedContent({ children }: ContentProps) {
       aria-hidden={!enabled}
       className={cn(
         "transition-all duration-500 ease-out overflow-hidden",
-        enabled ? "opacity-100 max-h-[500px] translate-y-0" : "opacity-0 max-h-0 -translate-y-4"
+        enabled ? "opacity-100 max-h-[31.25rem] translate-y-0" : "opacity-0 max-h-0 -translate-y-4"
       )}
     >
       {children}

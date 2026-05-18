@@ -55,8 +55,8 @@ function PresetPicker({
 
   const sideAccent =
     side === "A"
-      ? "border-l-[--color-border-strong]"
-      : "border-l-[--color-brand]";
+      ? "border-l-[--ct-border-strong]"
+      : "border-l-[--ct-text-strong]";
 
   return (
     <div ref={rootRef} className="relative">
@@ -68,13 +68,13 @@ function PresetPicker({
         aria-expanded={open}
         className={cn(
           "flex w-full items-center justify-between gap-3 rounded-[--radius-button]",
-          "border border-[--color-border-strong] border-l-4",
+          "border border-[--ct-border-strong] border-l-4",
           sideAccent,
-          "bg-[--color-bg-elevated] px-4 py-3 text-left",
+          "bg-[--ct-surface-1] px-4 py-3 text-left",
           "transition-[background-color,border-color] duration-150",
           "disabled:cursor-not-allowed disabled:opacity-40",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]",
-          !disabled && "hover:bg-[--color-bg-tertiary]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]",
+          !disabled && "hover:bg-[--ct-surface-3]",
         )}
       >
         <span className="flex min-w-0 flex-col gap-0.5">
@@ -82,7 +82,7 @@ function PresetPicker({
           <span
             className={cn(
               "h4 truncate",
-              !value && "text-[--color-text-dim] font-medium",
+              !value && "text-[--ct-text-muted] font-medium",
             )}
           >
             {value ? labelFor(value) : "Select a scenario"}
@@ -90,7 +90,7 @@ function PresetPicker({
         </span>
         <svg
           className={cn(
-            "h-4 w-4 shrink-0 text-[--color-text-muted] transition-transform duration-150",
+            "h-4 w-4 shrink-0 text-[--ct-text-body] transition-transform duration-150",
             open && "rotate-180",
           )}
           xmlns="http://www.w3.org/2000/svg"
@@ -114,7 +114,7 @@ function PresetPicker({
           aria-label={`Pick a scenario for ${side}`}
           className={cn(
             "absolute z-20 mt-2 w-full overflow-hidden rounded-[--radius-button]",
-            "border border-[--color-border-strong] bg-[--color-bg-elevated]",
+            "border border-[--ct-border-strong] bg-[--ct-surface-1]",
             "shadow-[var(--shadow-card)]",
           )}
         >
@@ -138,14 +138,14 @@ function PresetPicker({
                     "transition-colors duration-150",
                     "focus-visible:outline-none",
                     isSelected
-                      ? "bg-[--color-accent-dim] text-[--color-brand]"
-                      : "text-[--color-text-muted] hover:bg-[--color-bg-tertiary] hover:text-[--color-text]",
+                      ? "bg-[--ct-surface-1] text-[--ct-text-strong]"
+                      : "text-[--ct-text-body] hover:bg-[--ct-surface-3] hover:text-[--ct-text-primary]",
                     isExcluded &&
                       "cursor-not-allowed opacity-40 hover:bg-transparent",
                   )}
                 >
                   <span className="text-sm font-semibold">{p.label}</span>
-                  <span className="text-[--text-micro] text-[--color-text-dim]">
+                  <span className="text-[--text-micro] text-[--ct-text-muted]">
                     {isExcluded ? "Already on the other side" : p.description}
                   </span>
                 </button>
@@ -170,11 +170,11 @@ function Placeholder({ side, pending }: PlaceholderProps) {
     <div
       className={cn(
         "flex min-h-[28rem] flex-col items-center justify-center gap-3",
-        "rounded-[--radius-card] border border-dashed border-[--color-border-subtle]",
+        "rounded-[--radius-card] border border-dashed border-[--ct-border-soft]",
         "border-l-4",
         side === "A"
-          ? "border-l-[--color-border-strong]"
-          : "border-l-[--color-brand]",
+          ? "border-l-[--ct-border-strong]"
+          : "border-l-[--ct-text-strong]",
         "px-5 py-5",
         "transition-opacity duration-150",
         pending && "opacity-50",
@@ -184,7 +184,7 @@ function Placeholder({ side, pending }: PlaceholderProps) {
       {pending ? (
         <>
           <svg
-            className="h-5 w-5 animate-spin text-[--color-brand]"
+            className="h-5 w-5 animate-spin text-[--ct-text-strong]"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -204,12 +204,12 @@ function Placeholder({ side, pending }: PlaceholderProps) {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
             />
           </svg>
-          <p className="stat-label text-[--color-text-muted]">Computing…</p>
+          <p className="stat-label text-[--ct-text-body]">Computing…</p>
         </>
       ) : (
         <>
           <svg
-            className="h-7 w-7 text-[--color-text-dim]"
+            className="h-7 w-7 text-[--ct-text-muted]"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -223,8 +223,8 @@ function Placeholder({ side, pending }: PlaceholderProps) {
               d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"
             />
           </svg>
-          <p className="text-center text-sm text-[--color-text-dim]">
-            <span className="font-semibold text-[--color-text-muted]">
+          <p className="text-center text-sm text-[--ct-text-muted]">
+            <span className="font-semibold text-[--ct-text-body]">
               Scenario {side}
             </span>
             <br />
@@ -316,7 +316,7 @@ export function CompareMode() {
       {error && (
         <p
           role="alert"
-          className="rounded-[--radius-button] border border-[--color-danger] bg-[--color-danger-bg] px-4 py-2.5 text-sm text-[--color-danger]"
+          className="rounded-[--radius-button] border border-[--ct-status-danger] bg-[--ct-status-danger-soft] px-4 py-2.5 text-sm text-[--ct-status-danger]"
         >
           {error}
         </p>
@@ -354,8 +354,8 @@ export function CompareMode() {
       )}
 
       {/* Shared disclaimer */}
-      <p className="border-t border-[--color-border-subtle] pt-4 text-xs italic text-[--color-text-dim]">
-        <span className="font-semibold not-italic text-[--color-text-muted]">
+      <p className="border-t border-[--ct-border-soft] pt-4 text-xs italic text-[--ct-text-muted]">
+        <span className="font-semibold not-italic text-[--ct-text-body]">
           Not guaranteed.
         </span>{" "}
         Projections are conditional on stated assumptions. Methodology v1.0. Past

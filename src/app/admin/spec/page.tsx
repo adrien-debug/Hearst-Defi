@@ -9,7 +9,7 @@ export default async function SpecIndexPage() {
     redirect(`/admin/spec/${first.slug}`);
   }
   return (
-    <div className="text-sm text-[--color-text-muted]">
+    <div className="text-sm text-[--ct-text-body]">
       No spec files found in <code>/docs/spec/</code>.
     </div>
   );

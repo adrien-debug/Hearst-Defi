@@ -12,7 +12,7 @@ export function Card({
       )}
       {...props}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[--ct-surface-0] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
       <div className="relative z-10">{props.children}</div>
     </div>
   );
@@ -37,5 +37,5 @@ export function CardTitle({
   className,
   ...props
 }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return <h3 className={cn("text-2xl font-semibold tracking-tight text-white drop-shadow-sm", className)} {...props} />;
+  return <h3 className={cn("text-2xl font-semibold tracking-tight text-[--ct-text-strong] drop-shadow-sm", className)} {...props} />;
 }

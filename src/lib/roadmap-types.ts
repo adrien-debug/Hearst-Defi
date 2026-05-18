@@ -73,15 +73,15 @@ export function statusLabel(status: RoadmapStatus): string {
 export function statusDotColor(status: RoadmapStatus): string {
   switch (status) {
     case "todo":
-      return "var(--color-text-dim)";
+      return "var(--ct-text-muted)";
     case "in_progress":
-      return "var(--color-warning)";
+      return "var(--ct-status-warning)";
     case "done":
-      return "var(--color-success)";
+      return "var(--ct-status-success)";
     case "blocked":
-      return "var(--color-danger)";
+      return "var(--ct-status-danger)";
     case "validated":
-      return "var(--color-brand)";
+      return "var(--ct-text-strong)";
   }
 }
 

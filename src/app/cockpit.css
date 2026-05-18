@@ -1,0 +1,464 @@
+/* ============================================================
+   cockpit.css — Connect heritage → Cockpit token bridge
+   Importé après tokens.css (package) et avant globals.css.
+
+   RÈGLES :
+   - Aucune couleur hex en dur (var(--ct-*) uniquement)
+   - Aucun spacing en px hors transitions/borders (rem ou tokens)
+   - Ne redéfinit PAS les tokens --ct-* ni les classes .ct-* du package
+   ============================================================ */
+
+/* ── TOKENS COMPLÉMENTAIRES manquants dans tokens.css du package ── */
+:root {
+  --ct-text-faint: rgba(245, 245, 245, 0.40);
+
+  /* Status semantic colors (source of truth — tokens.css n'en a pas) */
+  --ct-status-success: #4ade80;
+  --ct-status-success-soft: rgba(74, 222, 128, 0.10);
+  --ct-status-success-border: rgba(74, 222, 128, 0.20);
+  --ct-status-success-glow: rgba(74, 222, 128, 0.50);
+
+  --ct-status-warning: #fbbf24;
+  --ct-status-warning-soft: rgba(251, 191, 36, 0.10);
+  --ct-status-warning-border: rgba(251, 191, 36, 0.20);
+  --ct-status-warning-glow: rgba(251, 191, 36, 0.50);
+
+  --ct-status-danger: #f87171;
+  --ct-status-danger-soft: rgba(248, 113, 113, 0.10);
+  --ct-status-danger-border: rgba(248, 113, 113, 0.20);
+  --ct-status-danger-glow: rgba(248, 113, 113, 0.50);
+
+  --ct-status-info: #60a5fa;
+  --ct-status-info-soft: rgba(96, 165, 250, 0.10);
+  --ct-status-info-border: rgba(96, 165, 250, 0.20);
+
+  /* Radius tokens (alignés sur le DS) */
+  --ct-radius-sm: 0.375rem;
+  --ct-radius-md: 0.5rem;
+  --ct-radius-lg: 0.75rem;
+  --ct-radius-xl: 1rem;
+  --ct-radius-full: 9999px;
+
+  /* z-index */
+  --ct-z-base: 1;
+  --ct-z-raised: 10;
+  --ct-z-overlay: 100;
+  --ct-z-modal: 1000;
+
+  /* Shadows */
+  --ct-shadow-soft: 0 4px 24px -4px rgba(0, 0, 0, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  --ct-shadow-elevated: 0 12px 48px -12px rgba(0, 0, 0, 0.60), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  --ct-glow-subtle: 0 0 15px rgba(255, 255, 255, 0.10);
+  --ct-glow-soft:   0 0 10px rgba(255, 255, 255, 0.50);
+  --ct-glow-strong: 0 0 10px rgba(255, 255, 255, 0.80);
+}
+
+/* ── HELPERS sémantiques status (utilitaires Cockpit) ── */
+.ct-status-success { color: var(--ct-status-success); }
+.ct-status-warning { color: var(--ct-status-warning); }
+.ct-status-danger  { color: var(--ct-status-danger); }
+.ct-status-info    { color: var(--ct-status-info); }
+
+.ct-status-success-bg { background: var(--ct-status-success-soft); border: 1px solid var(--ct-status-success-border); color: var(--ct-status-success); }
+.ct-status-warning-bg { background: var(--ct-status-warning-soft); border: 1px solid var(--ct-status-warning-border); color: var(--ct-status-warning); }
+.ct-status-danger-bg  { background: var(--ct-status-danger-soft);  border: 1px solid var(--ct-status-danger-border);  color: var(--ct-status-danger); }
+.ct-status-info-bg    { background: var(--ct-status-info-soft);    border: 1px solid var(--ct-status-info-border);    color: var(--ct-status-info); }
+
+.ct-status-dot-success { background: var(--ct-status-success); box-shadow: 0 0 10px var(--ct-status-success-glow); }
+.ct-status-dot-warning { background: var(--ct-status-warning); box-shadow: 0 0 10px var(--ct-status-warning-glow); }
+.ct-status-dot-danger  { background: var(--ct-status-danger);  box-shadow: 0 0 10px var(--ct-status-danger-glow); }
+
+.ct-status-glow-success { color: var(--ct-status-success); filter: drop-shadow(0 0 8px var(--ct-status-success-glow)); }
+.ct-status-glow-warning { color: var(--ct-status-warning); filter: drop-shadow(0 0 8px var(--ct-status-warning-glow)); }
+.ct-status-glow-danger  { color: var(--ct-status-danger);  filter: drop-shadow(0 0 8px var(--ct-status-danger-glow)); }
+
+/* ── HELPERS texte/surface (utilitaires Cockpit pour purge tokens) ── */
+.ct-text-primary { color: var(--ct-text-primary); }
+.ct-text-body    { color: var(--ct-text-body); }
+.ct-text-muted   { color: var(--ct-text-muted); }
+.ct-text-faint   { color: var(--ct-text-faint); }
+.ct-text-strong  { color: var(--ct-text-strong); }
+
+.ct-surface-0    { background: var(--ct-surface-0); }
+.ct-surface-1    { background: var(--ct-surface-1); }
+.ct-surface-2    { background: var(--ct-surface-2); }
+.ct-surface-3    { background: var(--ct-surface-3); }
+.ct-hover-surface:hover { background: var(--ct-surface-2); }
+
+.ct-border-soft   { border: 1px solid var(--ct-border-soft); }
+.ct-border-base   { border: 1px solid var(--ct-border); }
+.ct-border-strong { border: 1px solid var(--ct-border-strong); }
+
+.ct-divide-soft > * + * { border-top: 1px solid var(--ct-border-soft); }
+.ct-divide-base > * + * { border-top: 1px solid var(--ct-border); }
+
+/* ── ALIASES HERITAGE — remappe les classes Connect aux tokens Cockpit ──
+   Permet aux ~30 composants métier d'afficher le look Cockpit
+   sans modifier leurs className. */
+
+/* glass-panel → ct-card visuel */
+.glass-panel {
+  background: var(--ct-surface-1);
+  backdrop-filter: blur(40px) saturate(110%);
+  -webkit-backdrop-filter: blur(40px) saturate(110%);
+  border: 1px solid var(--ct-border);
+  box-shadow: var(--ct-shadow-depth);
+  border-radius: 0.75rem;
+  transition:
+    background var(--ct-dur-base) var(--ct-ease),
+    border-color var(--ct-dur-base) var(--ct-ease);
+}
+
+.glass-panel:hover {
+  background: var(--ct-surface-2);
+  border-color: var(--ct-border-strong);
+}
+
+.glass-panel-subtle {
+  background: var(--ct-surface-0);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--ct-border-soft);
+  border-radius: 0.75rem;
+}
+
+/* .h1 → ct-title style */
+.h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--ct-text-primary);
+}
+
+/* .h2 → sous-titre Cockpit */
+.h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  color: var(--ct-text-primary);
+}
+
+/* .h3 → section heading */
+.h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: var(--ct-text-primary);
+}
+
+/* .h4 → card heading */
+.h4 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ct-text-body);
+}
+
+/* .eyebrow → ct-eyebrow style */
+.eyebrow {
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ct-text-muted);
+}
+
+/* .stat-value → ct-kpi-value style */
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  color: var(--ct-text-primary);
+}
+
+/* .stat-label → ct-kpi-label style */
+.stat-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ct-text-muted);
+}
+
+/* .body-lg / .body-md / .body-sm / .body-xs → ct-card-body palette */
+.body-lg {
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--ct-text-body);
+}
+.body-md {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--ct-text-body);
+}
+.body-sm {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--ct-text-body);
+}
+.body-xs {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--ct-text-muted);
+}
+
+/* ── SECTION-TITLE utilitaire additionnel ── */
+.ct-section-title {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ct-text-muted);
+  margin-bottom: 0.75rem;
+}
+
+/* ── PILL utilitaire (badges/tags heritage) ── */
+.ct-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  background: var(--ct-surface-2);
+  border: 1px solid var(--ct-border);
+  color: var(--ct-text-body);
+}
+
+.ct-pill.accent {
+  background: var(--ct-accent-soft);
+  border-color: var(--ct-border-accent);
+  color: var(--ct-text-primary);
+}
+
+/* ── FORM INPUTS — ct-input / ct-select / ct-textarea ── */
+.ct-input,
+.ct-select,
+.ct-textarea {
+  width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid var(--ct-border-strong);
+  background: var(--ct-surface-1);
+  color: var(--ct-text-primary);
+  padding: 0.375rem 0.5rem;
+  font-size: 0.875rem;
+  transition:
+    border-color var(--ct-dur-base) var(--ct-ease),
+    background var(--ct-dur-base) var(--ct-ease);
+}
+
+.ct-input:focus,
+.ct-select:focus,
+.ct-textarea:focus {
+  outline: none;
+  border-color: var(--ct-border-accent);
+  background: var(--ct-surface-2);
+}
+
+.ct-input::placeholder,
+.ct-textarea::placeholder {
+  color: var(--ct-text-faint);
+}
+
+.ct-select option {
+  background: var(--ct-bg-deep);
+  color: var(--ct-text-primary);
+}
+
+/* ── RAIL INTRA-APP — nav verticale dans la zone .ct-rail-left ──
+   Position fixed, superposée au rail du shell @hearst/cockpit-shell
+   (qui ne supporte pas de slot nav intra-app en v0.1.0). */
+.ct-rail-intra {
+  position: fixed;
+  left: 0;
+  top: 5rem; /* 80px — sous le launcher inter-apps du shell (~48px header + 32px offset) */
+  width: var(--ct-rail-left, 5.5rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0;
+  z-index: 50;
+}
+
+.ct-rail-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.625rem;
+  color: var(--ct-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  transition:
+    color var(--ct-dur-base) var(--ct-ease),
+    background var(--ct-dur-base) var(--ct-ease),
+    border-color var(--ct-dur-base) var(--ct-ease);
+  text-decoration: none;
+}
+
+.ct-rail-item:hover {
+  color: var(--ct-text-primary);
+  background: var(--ct-surface-2);
+  border-color: var(--ct-border);
+}
+
+.ct-rail-item-active {
+  color: var(--ct-text-strong);
+  background: var(--ct-accent-soft);
+  border-color: var(--ct-border-accent);
+}
+
+.ct-rail-item-active:hover {
+  background: var(--ct-accent-soft);
+  border-color: var(--ct-border-accent);
+}
+
+/* Tooltip au hover */
+.ct-rail-item-tooltip {
+  position: absolute;
+  left: calc(100% + 0.75rem);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--ct-surface-3);
+  border: 1px solid var(--ct-border-strong);
+  color: var(--ct-text-primary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.375rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--ct-dur-base) var(--ct-ease);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 100;
+}
+
+.ct-rail-item:hover .ct-rail-item-tooltip {
+  opacity: 1;
+}
+
+/* Hub-mode : masque le rail intra (le hub fournit sa propre nav) */
+[data-hub-mode="true"] .ct-rail-intra,
+.hub-active .ct-rail-intra {
+  display: none !important;
+}
+
+/* ── BOTTOM BAR nav classes (déjà définies dans le template package — on
+   les ré-expose ici pour que ConnectBottomBar fonctionne sans import CSS
+   supplémentaire si le package ne les charge pas) ── */
+.ct-bottom-bar {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  width: max-content;
+  max-width: calc(100% - 3rem);
+  padding: 0.75rem 1.75rem;
+  border-radius: 9999px;
+  background: var(--ct-surface-2);
+  border: 1px solid var(--ct-border-strong);
+  backdrop-filter: blur(60px) saturate(110%) brightness(105%);
+  -webkit-backdrop-filter: blur(60px) saturate(110%) brightness(105%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    0 20px 60px -20px rgba(0, 0, 0, 0.6);
+}
+
+/* Hub-mode : masque la bottom bar */
+[data-hub-mode="true"] .ct-bottom-bar,
+.hub-active .ct-bottom-bar {
+  display: none !important;
+}
+
+.ct-bottom-bar-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.ct-seg-track {
+  display: flex;
+  align-items: center;
+  padding: 0.25rem;
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+}
+
+.ct-seg-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--ct-text-primary);
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: inherit;
+  border-radius: 9999px;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition:
+    background var(--ct-dur-base) var(--ct-ease),
+    color var(--ct-dur-base) var(--ct-ease);
+}
+
+.ct-seg-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.ct-seg-btn.active {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.ct-seg-btn.primary {
+  background: var(--ct-text-strong);
+  color: var(--ct-bg-deep);
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ── SONNER TOAST — Cockpit dark theme ── */
+[data-sonner-toaster] [data-sonner-toast] {
+  background: var(--ct-surface-2) !important;
+  border: 1px solid var(--ct-border) !important;
+  color: var(--ct-text-primary) !important;
+  backdrop-filter: blur(40px) saturate(110%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(110%) !important;
+}
+
+[data-sonner-toaster] [data-sonner-toast] [data-description] {
+  color: var(--ct-text-body) !important;
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="success"] {
+  border-color: rgba(34, 197, 94, 0.3) !important;
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="error"] {
+  border-color: var(--ct-border-accent) !important;
+}
