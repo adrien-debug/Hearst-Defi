@@ -51,3 +51,4 @@ docs/audit/
 # Playwright MCP screenshots / snapshots
 .playwright-mcp/
 advanced-metrics-fixed.png
+.vercel
