@@ -4,23 +4,23 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/cn";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-[--radius-button] text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]",
+  "inline-flex items-center justify-center gap-2 rounded-full text-sm font-medium transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-black active:scale-[0.98]",
   {
     variants: {
       variant: {
         primary:
-          "bg-[--color-brand] text-[--color-brand-fg] hover:bg-[--color-brand-strong]",
+          "bg-white text-black hover:bg-white/90 shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]",
         secondary:
-          "border border-[--color-border-strong] bg-[--color-bg-elevated] text-[--color-text] hover:bg-[--color-bg-card]",
+          "glass-panel-subtle text-white/90 hover:bg-white/10 hover:border-white/20 hover:text-white shadow-sm",
         ghost:
-          "text-[--color-text-muted] hover:bg-[--color-bg-elevated] hover:text-[--color-text]",
+          "text-white/60 hover:bg-white/10 hover:text-white",
         danger:
-          "border border-[--color-danger-border] bg-[--color-danger-bg] text-[--color-danger] hover:bg-[--color-danger-bg-hover]",
+          "border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 shadow-[0_0_15px_rgba(248,113,113,0.1)] hover:shadow-[0_0_20px_rgba(248,113,113,0.2)]",
       },
       size: {
-        sm: "h-9 px-3.5 text-sm",
-        md: "h-10 px-4 text-sm",
-        lg: "h-11 px-5 text-base",
+        sm: "h-8 px-4 text-xs",
+        md: "h-10 px-5 text-sm",
+        lg: "h-12 px-6 text-base",
       },
     },
     defaultVariants: {
@@ -30,7 +30,7 @@ const buttonVariants = cva(
   },
 );
 
-export interface ButtonProps
+interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;

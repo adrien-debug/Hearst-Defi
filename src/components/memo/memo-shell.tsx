@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { generateMemoAction } from "@/app/(product)/investor-memo/actions";
 import { generateMemoPdfAction } from "@/app/(product)/investor-memo/pdf-action";
@@ -92,14 +93,17 @@ export function MemoShell() {
 
   const handleGenerate = useCallback(() => {
     setError(null);
+    const toastId = toast.loading("Generating investor memo with Claude Opus 4.7...");
     startTransition(async () => {
       try {
         const result = await generateMemoAction();
         setMemo(result);
         setLastGeneratedAt(new Date().toISOString());
+        toast.success("Investor memo generated successfully", { id: toastId });
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         setError(message);
+        toast.error(`Generation failed: ${message}`, { id: toastId });
       }
     });
   }, []);
@@ -107,17 +111,21 @@ export function MemoShell() {
   const handleDownload = useCallback(() => {
     if (!memo) return;
     downloadMarkdown(memo);
+    toast.success("Markdown memo downloaded");
   }, [memo]);
 
   const handleDownloadPdf = useCallback(() => {
     setError(null);
+    const toastId = toast.loading("Generating PDF...");
     startPdfTransition(async () => {
       try {
         const { bytes, filename } = await generateMemoPdfAction(memo);
         downloadPdfBytes(bytes, filename);
+        toast.success("PDF downloaded", { id: toastId });
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         setError(message);
+        toast.error(`PDF generation failed: ${message}`, { id: toastId });
       }
     });
   }, [memo]);

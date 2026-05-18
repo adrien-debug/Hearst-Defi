@@ -5,16 +5,11 @@ interface AdvancedMetricsProps {
   data: AdvancedMetricsData;
 }
 
-// ---------------------------------------------------------------------------
-// Renders the institutional risk ratios row. Pure render — every number on
-// this surface was computed server-side by `src/lib/engine/ratios.ts`.
-// ---------------------------------------------------------------------------
-
 export function AdvancedMetrics({ data }: AdvancedMetricsProps) {
   if (!data.available) {
     return (
-      <section aria-label="Advanced risk ratios">
-        <p className="text-xs text-[--color-text-dim]">
+      <section aria-label="Advanced risk ratios" className="glass-panel-subtle p-6 rounded-2xl">
+        <p className="text-sm text-white/50 italic">
           Need at least 6 months of NAV history to derive institutional risk
           ratios. Currently {data.monthsUsed}{" "}
           {data.monthsUsed === 1 ? "month" : "months"} available.
@@ -26,7 +21,7 @@ export function AdvancedMetrics({ data }: AdvancedMetricsProps) {
   return (
     <section
       aria-label="Advanced risk ratios"
-      className="flex flex-col gap-3"
+      className="flex flex-col gap-4"
     >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <Metric
@@ -65,7 +60,7 @@ export function AdvancedMetrics({ data }: AdvancedMetricsProps) {
           tooltip="Annualised return divided by the magnitude of max drawdown. Higher is better; >0.5 is considered acceptable, >1 is strong."
         />
       </div>
-      <p className="text-xs text-[--color-text-dim]">
+      <p className="text-xs text-white/30 italic px-2">
         Derived from {data.monthsUsed} months of NAV history. Not a guarantee of
         future performance.
       </p>
@@ -79,10 +74,6 @@ function formatRatio(n: number): string {
   return `${sign}${Math.abs(n).toFixed(2)}`;
 }
 
-/**
- * Formats a signed decimal (e.g. -0.042) as "-4.2%" with a true minus sign.
- * Zero renders as "0.0%" with no sign.
- */
 function formatSignedPct(decimal: number): string {
   const pct = decimal * 100;
   if (Math.abs(pct) < 0.05) return "0.0%";

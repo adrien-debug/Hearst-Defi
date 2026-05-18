@@ -7,11 +7,14 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-[--radius-card] border border-[--color-border] bg-[--color-bg-card] p-6",
+        "glass-panel p-8 relative overflow-hidden group",
         className,
       )}
       {...props}
-    />
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="relative z-10">{props.children}</div>
+    </div>
   );
 }
 
@@ -21,7 +24,7 @@ export function CardHeader({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("mb-5 flex items-start justify-between gap-4", className)}
+      className={cn("mb-8 flex items-start justify-between gap-4", className)}
       {...props}
     />
   );
@@ -29,12 +32,10 @@ export function CardHeader({
 
 /**
  * Section title inside a card. Renders as h3 with the .h3 typographic role
- * (was previously mapped to .stat-label which made every section look like
- * a tiny caption).
  */
 export function CardTitle({
   className,
   ...props
 }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return <h3 className={cn("h3", className)} {...props} />;
+  return <h3 className={cn("text-2xl font-semibold tracking-tight text-white drop-shadow-sm", className)} {...props} />;
 }

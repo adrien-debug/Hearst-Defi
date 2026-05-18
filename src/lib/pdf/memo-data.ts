@@ -60,7 +60,7 @@ export interface MemoPdfData {
  * Months of history shown on the Performance Overview page. Matches the
  * existing "trailing 4-month performance" copy in the PDF.
  */
-export const MEMO_MONTHLY_HISTORY_WINDOW = 4;
+const MEMO_MONTHLY_HISTORY_WINDOW = 4;
 
 /**
  * Server-side helper that batches the three PDF-only loaders behind a single
@@ -122,16 +122,6 @@ export function periodFromIso(iso: string): string {
     year: "numeric",
     timeZone: "UTC",
   });
-}
-
-/**
- * Short YYYY-MM filename slug.
- */
-export function filenameSlugFromIso(iso: string): string {
-  const d = new Date(iso);
-  const y = d.getUTCFullYear();
-  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
-  return `${y}-${m}`;
 }
 
 /**

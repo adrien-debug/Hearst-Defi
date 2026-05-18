@@ -15,7 +15,6 @@ import { loadAdvancedMetrics } from "@/lib/data/advanced-metrics";
 import { loadDashboardData } from "@/lib/data/dashboard";
 import { loadRiskFramework } from "@/lib/data/risk-framework";
 import { fetchHashprice } from "@/lib/data/hashprice";
-import { projectionFor } from "@/lib/data/ptai-projections";
 import type {
   AllocationBucket,
   BtcTactical,
@@ -43,22 +42,30 @@ export default async function DashboardPage() {
 
   return (
     <AdvancedProvider>
-      <div className="space-y-8">
-        <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="eyebrow">Hearst Yield Vault</p>
-            <h1 className="h1">Dashboard</h1>
+      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 ease-out fill-mode-both">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between px-2">
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <div className="h-2 w-2 rounded-full bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)] animate-pulse" />
+              <p className="eyebrow tracking-widest text-white/50">Hearst Yield Vault</p>
+            </div>
+            <h1 className="text-6xl font-semibold tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 drop-shadow-sm">
+              Dashboard
+            </h1>
           </div>
-          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4">
-            <span className="mono tabular text-xs text-[--color-text-dim]">
-              as of{" "}
-              {asOf.toLocaleString("en-US", {
-                dateStyle: "medium",
-                timeStyle: "short",
-                timeZone: "UTC",
-              })}{" "}
-              UTC
-            </span>
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-6">
+            <div className="glass-panel-subtle px-4 py-2 rounded-full flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
+              <span className="mono tabular text-xs text-white/60">
+                Live sync · {" "}
+                {asOf.toLocaleString("en-US", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                  timeZone: "UTC",
+                })}{" "}
+                UTC
+              </span>
+            </div>
             <AdvancedTrigger />
           </div>
         </header>
@@ -71,7 +78,7 @@ export default async function DashboardPage() {
 
         <TimeseriesSection data={data.timeseries} />
 
-        <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
+        <div className="grid gap-8 lg:grid-cols-3 lg:items-start">
           <div className="lg:col-span-2">
             <AllocationSection
               allocations={snapshot.allocations}
@@ -87,7 +94,7 @@ export default async function DashboardPage() {
           />
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
+        <div className="grid gap-8 lg:grid-cols-3 lg:items-start">
           <div className="lg:col-span-2">
             <BtcTacticalSection btcTactical={snapshot.btcTactical} />
           </div>
@@ -96,8 +103,8 @@ export default async function DashboardPage() {
 
         <ActivityFeed events={snapshot.recentEvents} />
 
-        <footer className="border-t border-[--color-border-subtle] pt-6">
-          <p className="body-xs">
+        <footer className="border-t border-white/10 pt-8 pb-12 text-center">
+          <p className="body-xs text-white/30 max-w-2xl mx-auto leading-relaxed">
             Projections are conditional on the assumptions stated in
             Methodology v1.0. APY ranges are not guaranteed; past performance
             does not predict future returns. Mining cashflow is paper at
@@ -111,11 +118,6 @@ export default async function DashboardPage() {
 
 // ---------------------------------------------------------------------------
 // Projection: DashboardData (Prisma + live) -> DashboardSnapshot (UI shape).
-//
-// Lives inside the page so it stays close to its single consumer. Anything
-// that has no DB analog (BTC tactical position details, hard-coded next
-// triggers) is derived from sensible defaults consistent with the legacy
-// mock so the visual rendering does not regress.
 // ---------------------------------------------------------------------------
 
 const ALLOCATION_LABEL: Record<DashboardAllocation["bucket"], AllocationBucket["label"]> = {
@@ -170,9 +172,6 @@ function toDashboardSnapshot(data: DashboardData): DashboardSnapshot {
   const btcSleeveUsd = btcAlloc?.valueUsdc ?? 0;
   const btcSleevePct = btcAlloc?.pct ?? 0;
   const btcPriceUsd = data.btcPrice.usd === 0 ? 94_180 : data.btcPrice.usd;
-  // Use a stable synthetic entry — `Distribution`/`Allocation` rows do not
-  // carry a BTC cost basis, so the avg entry remains an estimated number.
-  // The mock anchored at 58,420; we keep that to preserve visual parity.
   const avgEntry = 58_420;
   const btcHeld = btcPriceUsd > 0 ? btcSleeveUsd / btcPriceUsd : 0;
   const costBasis = btcHeld * avgEntry;
@@ -301,7 +300,6 @@ function formatDistributionDate(d: {
   status: string;
 }): string {
   if (d.paid_at) return monthDayFmt.format(d.paid_at);
-  // "YYYY-MM" -> last day of that month.
   const parts = d.period.split("-");
   const y = Number(parts[0]);
   const m = Number(parts[1]);

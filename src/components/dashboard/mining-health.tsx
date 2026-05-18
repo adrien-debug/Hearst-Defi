@@ -4,11 +4,6 @@ import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
 import type { MiningHealth } from "@/lib/mock/dashboard";
 
-/**
- * Optional live hashprice context. Shape kept structurally identical to
- * `HashpriceData` (in `@/lib/data/hashprice`) but redeclared here so the
- * component never imports `server-only` modules.
- */
 export interface MiningHealthHashprice {
   usd_per_th_day: number;
   stale: boolean;
@@ -34,21 +29,21 @@ function trendTone(pct: number): Tone {
 }
 
 const TONE_TEXT: Record<Tone, string> = {
-  good: "text-[--color-success]",
-  warn: "text-[--color-warning]",
-  bad: "text-[--color-danger]",
+  good: "text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]",
+  warn: "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]",
+  bad: "text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.5)]",
 };
 
 const TONE_BAR: Record<Tone, string> = {
-  good: "bg-[--color-success]",
-  warn: "bg-[--color-warning]",
-  bad: "bg-[--color-danger]",
+  good: "bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)]",
+  warn: "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.8)]",
+  bad: "bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.8)]",
 };
 
 const TONE_DOT_COLOR: Record<Tone, string> = {
-  good: "var(--color-success)",
-  warn: "var(--color-warning)",
-  bad: "var(--color-danger)",
+  good: "rgb(74, 222, 128)",
+  warn: "rgb(251, 191, 36)",
+  bad: "rgb(248, 113, 113)",
 };
 
 interface ScoreRowProps {
@@ -61,20 +56,20 @@ interface ScoreRowProps {
 
 function ScoreRow({ label, hint, value, tone, bar }: ScoreRowProps) {
   return (
-    <div className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0">
+    <div className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 group">
       <div className="flex items-baseline justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
             <span
               aria-hidden
-              className="inline-block h-2 w-2 rounded-full"
-              style={{ background: TONE_DOT_COLOR[tone] }}
+              className="inline-block h-2 w-2 rounded-full shadow-[0_0_8px_currentColor]"
+              style={{ background: TONE_DOT_COLOR[tone], color: TONE_DOT_COLOR[tone] }}
             />
-            <span className="text-sm font-medium text-[--color-text]">{label}</span>
+            <span className="text-sm font-medium text-white group-hover:text-white/90 transition-colors">{label}</span>
           </div>
-          <p className="mt-0.5 text-xs text-[--color-text-dim]">{hint}</p>
+          <p className="mt-1 text-xs text-white/40">{hint}</p>
         </div>
-        <span className={cn("stat-value leading-tight", TONE_TEXT[tone])}>
+        <span className={cn("text-xl font-semibold leading-tight tabular-nums", TONE_TEXT[tone])}>
           {value}
         </span>
       </div>
@@ -82,7 +77,7 @@ function ScoreRow({ label, hint, value, tone, bar }: ScoreRowProps) {
         <Progress
           value={bar}
           fillClassName={TONE_BAR[tone]}
-          className="h-1"
+          className="h-1.5"
         />
       ) : null}
     </div>
@@ -105,7 +100,7 @@ export function MiningHealthSection({
         <CardTitle>Mining Health</CardTitle>
         <ProvenanceBadge kind={miningHealth.provenance} />
       </CardHeader>
-      <div className="divide-y divide-[--color-border-subtle]">
+      <div className="divide-y divide-white/10">
         <ScoreRow
           label="Mining Margin Score"
           hint="current margin / target margin"
@@ -142,21 +137,21 @@ interface HashpriceRowProps {
 function HashpriceRow({ hashprice }: HashpriceRowProps) {
   const provenance = hashprice.stale ? "stale" : "live";
   return (
-    <div className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0">
+    <div className="flex flex-col gap-2 py-4 first:pt-0 last:pb-0 group">
       <div className="flex items-baseline justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-[--color-text]">
+            <span className="text-sm font-medium text-white group-hover:text-white/90 transition-colors">
               Hashprice
             </span>
           </div>
-          <p className="mt-0.5 text-xs text-[--color-text-dim]">
+          <p className="mt-1 text-xs text-white/40">
             BTC subsidy / network difficulty
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="stat-value leading-tight text-[--color-text]">
-            ${hashprice.usd_per_th_day.toFixed(3)} /TH/day
+        <div className="flex items-center gap-3">
+          <span className="text-lg font-semibold leading-tight text-white/90 tabular-nums">
+            ${hashprice.usd_per_th_day.toFixed(3)} <span className="text-sm text-white/40 font-normal">/TH/day</span>
           </span>
           <ProvenanceBadge kind={provenance} />
         </div>

@@ -4,6 +4,8 @@ import { createPublicClient, http } from "viem";
 import { baseSepolia } from "viem/chains";
 
 const DEFAULT_RPC_URL = "https://sepolia.base.org";
+const RPC_TIMEOUT_MS = 10_000;
+const RPC_RETRY_COUNT = 3;
 
 function getRpcUrl(): string {
   const url = process.env.NEXT_PUBLIC_CHAIN_RPC_URL;
@@ -14,7 +16,10 @@ function getRpcUrl(): string {
 function build() {
   return createPublicClient({
     chain: baseSepolia,
-    transport: http(getRpcUrl()),
+    transport: http(getRpcUrl(), {
+      timeout: RPC_TIMEOUT_MS,
+      retryCount: RPC_RETRY_COUNT,
+    }),
   });
 }
 
@@ -47,10 +52,13 @@ export function getPoRRegistryAddress(): `0x${string}` | null {
   return parseAddress(process.env.NEXT_PUBLIC_POR_REGISTRY_ADDRESS);
 }
 
+export function getHearstPublisherAddress(): `0x${string}` | null {
+  return parseAddress(process.env.HEARST_PUBLISHER);
+}
+
 export function isChainConfigured(): boolean {
   return getEventLoggerAddress() !== null && getPoRRegistryAddress() !== null;
 }
 
-export const CHAIN_ID = baseSepolia.id; // 84532
 export const EXPLORER_TX_BASE = "https://sepolia.basescan.org/tx/";
 export const EXPLORER_ADDRESS_BASE = "https://sepolia.basescan.org/address/";

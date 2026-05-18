@@ -6,7 +6,6 @@ import {
   type MiningOpsSnapshot,
 } from "@/lib/agents/loaders/mining";
 import {
-  loadDistributionHistory,
   loadLatestDistribution,
   type DistributionSnapshot,
 } from "@/lib/agents/loaders/distribution";
@@ -437,9 +436,3 @@ export type {
   BtcPriceData,
 };
 
-/**
- * Lightweight history slice consumed by `loadDistributionHistory` callers
- * (currently only the investor memo). Re-exported here so dashboard
- * surfaces can pull it through a single barrel.
- */
-export const loadDashboardDistributionHistory = loadDistributionHistory;

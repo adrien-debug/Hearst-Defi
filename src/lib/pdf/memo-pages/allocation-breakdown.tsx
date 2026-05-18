@@ -33,21 +33,31 @@ export function AllocationBreakdownPage({
   const allocations = baseScenario?.allocations ?? [];
   const totalPct = allocations.reduce((sum, a) => sum + a.pct, 0) || 100;
 
-  // Pre-compute x offsets for the stacked bar.
-  let cursor = 0;
-  const segments = allocations.map((a) => {
+  // Pre-compute x offsets for the stacked bar using reduce to avoid mutation.
+  const segments = allocations.reduce<
+    Array<{
+      bucket: string;
+      pct: number;
+      yieldBps: number;
+      width: number;
+      x: number;
+      fill: string;
+    }>
+  >((acc, a) => {
     const width = (a.pct / totalPct) * CHART_WIDTH;
-    const x = cursor;
-    cursor += width;
-    return {
-      bucket: a.bucket,
-      pct: a.pct,
-      yieldBps: a.yield_contribution_bps,
-      width,
-      x,
-      fill: ALLOCATION_PALETTE[a.bucket] ?? COLORS.borderStrong,
-    };
-  });
+    const x = acc.reduce((sum, s) => sum + s.width, 0);
+    return [
+      ...acc,
+      {
+        bucket: a.bucket,
+        pct: a.pct,
+        yieldBps: a.yield_contribution_bps,
+        width,
+        x,
+        fill: ALLOCATION_PALETTE[a.bucket] ?? COLORS.borderStrong,
+      },
+    ];
+  }, []);
 
   return (
     <Page size="A4" style={styles.page}>

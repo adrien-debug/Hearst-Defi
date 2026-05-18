@@ -181,9 +181,16 @@ function assertNoForbiddenWords(
   for (const line of lines) {
     const lower = line.toLowerCase();
     for (const word of FORBIDDEN_WORDS) {
-      if (lower.includes(word)) {
-        throw new Error(`forbidden word "${word}" in btc tactical text: ${line}`);
+      const needlePattern = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`);
+      if (!needlePattern.test(lower)) continue;
+      const needleStartsWithNegation = /^(not|no|never|without)\b/.test(word);
+      if (!needleStartsWithNegation) {
+        const negatedPattern = new RegExp(
+          `\\b(not|no|never|without)\\s+(\\w+\\s+){0,3}${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+        );
+        if (negatedPattern.test(lower)) continue;
       }
+      throw new Error(`forbidden word "${word}" in btc tactical text: ${line}`);
     }
   }
 }

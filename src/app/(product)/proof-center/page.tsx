@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { ChainStatusBadge } from "@/components/proof/chain-status-badge";
 import { ProofFilter } from "@/components/proof/proof-filter";
 import { parseFilter } from "@/components/proof/proof-filter-types";
@@ -10,10 +12,6 @@ import { isChainConfigured } from "@/lib/chain/client";
 import { fetchOnChainEvents } from "@/lib/chain/event-logger";
 import { fetchOnChainAttestations } from "@/lib/chain/por-registry";
 import { getProofs } from "@/lib/mock/proof-center";
-
-// Re-fetch on-chain data every 60 seconds — keeps the page fresh without
-// sacrificing the RSC model. Falls back gracefully if the RPC is unreachable.
-export const revalidate = 60;
 
 interface ProofCenterPageProps {
   searchParams: Promise<{ type?: string | string[] }>;
@@ -119,8 +117,7 @@ export default async function ProofCenterPage({
           PoRRegistry (<span className="mono">0x2B72…28D</span>) contracts.
           Off-chain entries are pinned to IPFS or signed HTTPS endpoints; Phase
           2 mirrors each new entry on-chain and surfaces the tx hash here.
-          Page data refreshes every 60 s via{" "}
-          <code className="mono">revalidate = 60</code>.
+          On-chain data and vault state are fetched fresh on every request.
         </p>
       </footer>
     </div>

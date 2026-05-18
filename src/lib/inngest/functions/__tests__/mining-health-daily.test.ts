@@ -61,11 +61,21 @@ const miningMetricCreateMock = vi.fn(
   }),
 );
 
+const llmRunFindFirstMock = vi.fn(async () => null);
+const llmRunCreateMock = vi.fn(async (args: { data: Record<string, unknown> }) => ({
+  id: "mock-llm-run-id",
+  ...args.data,
+}));
+
 vi.mock("@/lib/db", () => ({
   prisma: {
     miningMetric: {
       findFirst: miningMetricFindFirstMock,
       create: miningMetricCreateMock,
+    },
+    llmRun: {
+      findFirst: llmRunFindFirstMock,
+      create: llmRunCreateMock,
     },
   },
 }));
@@ -127,12 +137,29 @@ describe("miningHealthDaily Inngest function", () => {
     expect(loadLatestMiningMetricsMock).toHaveBeenCalledTimes(1);
     expect(runMiningHealthMock).toHaveBeenCalledTimes(1);
     expect(runMiningHealthMock).toHaveBeenCalledWith(loaderFake);
-    expect(out.alert_level).toBe("green");
+    expect("alert_level" in out ? out.alert_level : null).toBe("green");
   });
 
   it("persists agent output to a new MiningMetric row", async () => {
     miningMetricFindFirstMock.mockClear();
     miningMetricCreateMock.mockClear();
+
+    // First call: idempotency guard — no existing agent row for today
+    // Second call: raw-metrics lookup — returns the latest snapshot row
+    miningMetricFindFirstMock
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .mockResolvedValueOnce(null as any)
+      .mockResolvedValueOnce({
+        hashprice: 0.085,
+        difficulty: 100,
+        btcPrice: 65_000,
+        energyCost: 0.05,
+        uptimePct: 98.4,
+        deployedHashrate: 182_000,
+        miningMarginScore: 64,
+        hashpriceTrendPct: 3.2,
+        operationalConfidence: 80,
+      });
 
     const { miningHealthDailyHandler } = await import(
       "@/lib/inngest/functions/mining-health-daily"
@@ -145,7 +172,8 @@ describe("miningHealthDaily Inngest function", () => {
 
     await miningHealthDailyHandler({ step: stepShim });
 
-    expect(miningMetricFindFirstMock).toHaveBeenCalledTimes(1);
+    // findFirst is now called twice: once for the idempotency guard, once for raw-metrics copy
+    expect(miningMetricFindFirstMock).toHaveBeenCalledTimes(2);
     expect(miningMetricCreateMock).toHaveBeenCalledTimes(1);
 
     const createCall = miningMetricCreateMock.mock.calls[0];

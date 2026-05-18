@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { MemoShell } from "@/components/memo/memo-shell";
 
 export default function InvestorMemoPage() {
@@ -19,8 +21,9 @@ export default function InvestorMemoPage() {
 
       <footer className="border-t border-[--color-border-subtle] pt-6">
         <p className="body-xs">
-          Mock memo input is in use pending the Phase 1 loader. Every export is
-          logged with its methodology version once the DB writer ships.
+          Generated on demand from live vault data. Every export is logged with
+          its methodology version. Projections are not a guarantee of future
+          results.
         </p>
       </footer>
     </div>

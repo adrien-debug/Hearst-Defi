@@ -4,6 +4,8 @@ import { inngest } from "@/lib/inngest/client";
 import { runMiningHealth } from "@/lib/agents/mining-health";
 import { loadLatestMiningMetrics } from "@/lib/agents/loaders/mining";
 import { prisma } from "@/lib/db";
+import { logger } from "@/lib/logger";
+import { isDuplicate, markComplete } from "@/lib/idempotency";
 
 /**
  * Mining Health Agent — daily cron (08:00 UTC).
@@ -30,23 +32,46 @@ export async function miningHealthDailyHandler({
   step,
 }: {
   step: MiningHealthDailyStep;
-}): Promise<{ alert_level: "green" | "amber" | "red" }> {
+}): Promise<
+  { alert_level: "green" | "amber" | "red" } | { skipped: true; reason: string }
+> {
+  const today = new Date();
+
+  if (await isDuplicate(MINING_HEALTH_DAILY_ID, today)) {
+    return { skipped: true, reason: "already_run_today" };
+  }
+
   const metrics = await step.run("load-metrics", () =>
     loadLatestMiningMetrics(),
   );
   const result = await step.run("run-agent", () => runMiningHealth(metrics));
 
   await step.run("persist", async () => {
+    // Idempotency guard: if we already created an agent-generated row today, skip
+    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const existingAgentRow = await prisma.miningMetric.findFirst({
+      where: {
+        takenAt: { gte: startOfToday },
+        summary: { not: null }, // agent-generated rows always have a summary
+        alertLevel: { not: null },
+      },
+      orderBy: { takenAt: "desc" },
+    });
+    if (existingAgentRow) {
+      logger.info("[mining-health-daily] agent row already exists for today, skipping persist");
+      return;
+    }
+
     try {
       const latestRow = await prisma.miningMetric.findFirst({
         orderBy: { takenAt: "desc" },
       });
 
       if (!latestRow) {
-        console.error(
+        logger.error(
           "[mining-health-daily] No MiningMetric row found to copy raw metrics from.",
         );
-        return;
+        throw new Error("No MiningMetric row found");
       }
 
       await prisma.miningMetric.create({
@@ -66,18 +91,20 @@ export async function miningHealthDailyHandler({
         },
       });
 
-      console.info(
-        "[mining-health-daily] persisted alert=%s",
-        result.alert_level,
-      );
+      logger.info("[mining-health-daily] persisted alert=%s", {
+        alertLevel: result.alert_level,
+      });
     } catch (err) {
-      console.error(
-        "[mining-health-daily] DB persist failed:",
-        err instanceof Error ? err.message : String(err),
+      logger.error(
+        "[mining-health-daily] DB persist failed",
+        {},
+        err instanceof Error ? err : new Error(String(err)),
       );
+      throw err; // Let Inngest retry
     }
   });
 
+  await markComplete(MINING_HEALTH_DAILY_ID, today);
   return { alert_level: result.alert_level };
 }
 

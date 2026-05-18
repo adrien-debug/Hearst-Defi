@@ -1,8 +1,22 @@
 "use client";
 
-import { useLogin, useLogout, usePrivy } from "@privy-io/react-auth";
+import dynamic from "next/dynamic";
 
 import { Button } from "@/components/ui/button";
+
+// Privy (via styled-components) evaluates React hooks at module level,
+// crashing Next.js 16 SSR prerender. The inner button is loaded client-only.
+const LoginButtonInner = dynamic(
+  () => import("./login-button-inner").then((m) => ({ default: m.LoginButtonInner })),
+  {
+    ssr: false,
+    loading: () => (
+      <Button variant="ghost" size="sm" disabled>
+        Loading…
+      </Button>
+    ),
+  }
+);
 
 const HAS_PRIVY_APP_ID =
   (process.env.NEXT_PUBLIC_PRIVY_APP_ID ?? "").length > 0;
@@ -26,40 +40,4 @@ export function LoginButton() {
     );
   }
   return <LoginButtonInner />;
-}
-
-function LoginButtonInner() {
-  const { ready, authenticated, user } = usePrivy();
-  const { login } = useLogin();
-  const { logout } = useLogout();
-
-  if (!ready) {
-    return (
-      <Button variant="ghost" size="sm" disabled>
-        Loading…
-      </Button>
-    );
-  }
-
-  if (authenticated && user) {
-    const emailAddress = user.email?.address;
-    const walletAddress = user.wallet?.address;
-    const label = emailAddress
-      ? emailAddress
-      : walletAddress
-        ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}`
-        : "Account";
-
-    return (
-      <Button variant="ghost" size="sm" onClick={() => logout()}>
-        {label} · Log out
-      </Button>
-    );
-  }
-
-  return (
-    <Button variant="primary" size="sm" onClick={() => login()}>
-      Log in
-    </Button>
-  );
 }

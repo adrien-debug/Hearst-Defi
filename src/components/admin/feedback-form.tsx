@@ -17,24 +17,26 @@ export function FeedbackForm() {
   }
 
   return (
-    <form ref={formRef} action={onSubmit} className="space-y-3">
+    <form ref={formRef} action={onSubmit} className="space-y-3" aria-label="Feedback form">
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block text-xs">
+        <label className="block text-xs" htmlFor="feedback-itemId">
           <span className="mb-1 block text-[--color-text-dim] uppercase tracking-wide">
             Roadmap item ID (optional)
           </span>
           <input
+            id="feedback-itemId"
             name="itemId"
             type="text"
             placeholder="e.g. dash-hero"
             className="w-full rounded border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm font-mono"
           />
         </label>
-        <label className="block text-xs">
+        <label className="block text-xs" htmlFor="feedback-author">
           <span className="mb-1 block text-[--color-text-dim] uppercase tracking-wide">
             Your name (optional)
           </span>
           <input
+            id="feedback-author"
             name="author"
             type="text"
             placeholder="Adrien"
@@ -43,11 +45,12 @@ export function FeedbackForm() {
         </label>
       </div>
 
-      <label className="block text-xs">
+      <label className="block text-xs" htmlFor="feedback-pathname">
         <span className="mb-1 block text-[--color-text-dim] uppercase tracking-wide">
           Pathname or context (optional)
         </span>
         <input
+          id="feedback-pathname"
           name="pathname"
           type="text"
           placeholder="/admin/roadmap"
@@ -55,22 +58,27 @@ export function FeedbackForm() {
         />
       </label>
 
-      <label className="block text-xs">
+      <label className="block text-xs" htmlFor="feedback-message">
         <span className="mb-1 block text-[--color-text-dim] uppercase tracking-wide">
           Feedback
         </span>
         <textarea
+          id="feedback-message"
           name="message"
           rows={4}
           required
           minLength={2}
           placeholder="What works? What doesn't? What's confusing?"
           className="w-full rounded border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm"
+          aria-describedby="feedback-hint"
         />
+        <span id="feedback-hint" className="mt-1 block text-[--color-text-dim]">
+          Your feedback helps us improve the platform.
+        </span>
       </label>
 
       <div className="flex justify-end">
-        <Button type="submit" variant="primary" disabled={isPending} size="sm">
+        <Button type="submit" variant="primary" disabled={isPending} size="sm" aria-busy={isPending}>
           {isPending ? "Sending…" : "Post feedback"}
         </Button>
       </div>

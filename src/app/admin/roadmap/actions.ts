@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/db";
 import type { RoadmapStatus } from "@/lib/roadmap-types";
 
@@ -27,6 +28,8 @@ function asString(value: FormDataEntryValue | null): string | null {
 }
 
 export async function updateRoadmapItem(formData: FormData): Promise<void> {
+  await requireAdmin();
+
   const itemId = asString(formData.get("itemId"));
   if (!itemId) return;
 
@@ -73,6 +76,8 @@ export async function quickSetStatus(
   itemId: string,
   status: RoadmapStatus,
 ): Promise<void> {
+  await requireAdmin();
+
   await prisma.roadmapValidation.upsert({
     where: { itemId },
     create: {

@@ -31,9 +31,8 @@ export const COLORS = {
  * carried by the brand-green accent rules, the eyebrow grammar, and the
  * spacing rhythm, not the typeface itself.
  */
-export const FONT_FAMILY = "Helvetica" as const;
-export const FONT_FAMILY_BOLD = "Helvetica-Bold" as const;
-export const FONT_FAMILY_OBLIQUE = "Helvetica-Oblique" as const;
+const FONT_FAMILY = "Helvetica" as const;
+const FONT_FAMILY_BOLD = "Helvetica-Bold" as const;
 
 export const styles = StyleSheet.create({
   page: {

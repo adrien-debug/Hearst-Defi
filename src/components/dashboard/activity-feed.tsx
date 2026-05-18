@@ -37,28 +37,32 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
     <Card>
       <CardHeader>
         <CardTitle>Activity</CardTitle>
-        <span className="text-xs text-[--color-text-dim]">last 5 events</span>
+        <span className="text-xs font-medium uppercase tracking-widest text-white/40">last 5 events</span>
       </CardHeader>
-      <ol className="divide-y divide-[--color-border-subtle]">
-        {last5.map((event) => (
-          <li key={event.id} className="py-3 first:pt-0 last:pb-0">
-            <div className="mb-3 flex items-center gap-2">
-              <Badge variant={KIND_VARIANT[event.kind]}>
-                {KIND_LABEL[event.kind]}
-              </Badge>
-              <span className="font-mono text-xs text-[--color-text-muted] tabular-nums">
-                {dateFmt.format(new Date(event.timestamp))} UTC
-              </span>
-            </div>
-            <Ptai
-              projection={event.projection}
-              trigger={event.trigger}
-              action={event.action}
-              impact={event.impact}
-            />
-          </li>
-        ))}
-      </ol>
+      <div className="relative">
+        <div className="absolute left-[15px] top-4 bottom-4 w-px bg-gradient-to-b from-white/20 via-white/10 to-transparent" />
+        <ol className="space-y-6">
+          {last5.map((event) => (
+            <li key={event.id} className="relative pl-10 group">
+              <div className="absolute left-[11px] top-1.5 h-2.5 w-2.5 rounded-full bg-black border border-white/30 group-hover:border-white/80 group-hover:shadow-[0_0_10px_rgba(255,255,255,0.5)] transition-all duration-300 z-10" />
+              <div className="mb-4 flex items-center gap-3">
+                <Badge variant={KIND_VARIANT[event.kind]}>
+                  {KIND_LABEL[event.kind]}
+                </Badge>
+                <span className="font-mono text-xs text-white/40 group-hover:text-white/60 transition-colors tabular-nums">
+                  {dateFmt.format(new Date(event.timestamp))} UTC
+                </span>
+              </div>
+              <Ptai
+                projection={event.projection}
+                trigger={event.trigger}
+                action={event.action}
+                impact={event.impact}
+              />
+            </li>
+          ))}
+        </ol>
+      </div>
     </Card>
   );
 }

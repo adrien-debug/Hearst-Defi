@@ -26,36 +26,43 @@ export function Metric({
   return (
     <div
       className={cn(
-        "flex flex-col gap-2 rounded-[--radius-card] border border-[--color-border] bg-[--color-bg-card] p-4",
+        "glass-panel flex flex-col gap-3 p-5 relative overflow-hidden group",
         className,
       )}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span className="stat-label" title={tooltip}>
+      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      
+      <div className="flex items-center justify-between gap-2 relative z-10">
+        <span className="stat-label text-[--color-text-dim] group-hover:text-[--color-text-muted] transition-colors" title={tooltip}>
           {label}
         </span>
         {provenance ? <ProvenanceBadge kind={provenance} /> : null}
       </div>
-      <span className="stat-value leading-tight">{value}</span>
+      
+      <span className="stat-value text-3xl tracking-tight leading-none relative z-10 text-white drop-shadow-md">
+        {value}
+      </span>
+      
       {(sublabel || trend) && (
-        <div className="flex items-center gap-2 text-xs text-[--color-text-muted]">
+        <div className="flex items-center gap-2 text-xs text-[--color-text-dim] relative z-10 mt-auto pt-1">
           {trend ? (
             <span
               className={cn(
-                "font-medium",
-                trend.direction === "up" && "text-[--color-success]",
-                trend.direction === "down" && "text-[--color-danger]",
+                "font-medium px-1.5 py-0.5 rounded-md backdrop-blur-md",
+                trend.direction === "up" && "bg-green-500/10 text-green-400 border border-green-500/20",
+                trend.direction === "down" && "bg-red-500/10 text-red-400 border border-red-500/20",
+                trend.direction === "flat" && "bg-white/5 text-white/60 border border-white/10"
               )}
             >
               {trend.direction === "up"
-                ? "▲ "
+                ? "↑ "
                 : trend.direction === "down"
-                  ? "▼ "
+                  ? "↓ "
                   : "→ "}
               {trend.text}
             </span>
           ) : null}
-          {sublabel ? <span>{sublabel}</span> : null}
+          {sublabel ? <span className="truncate">{sublabel}</span> : null}
         </div>
       )}
     </div>

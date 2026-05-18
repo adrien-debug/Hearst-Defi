@@ -72,7 +72,7 @@ interface RiskDelta {
   value: number;
 }
 
-export function computeApyDelta(
+function computeApyDelta(
   a: ScenarioOutput,
   b: ScenarioOutput,
 ): ApyDelta {
@@ -81,7 +81,7 @@ export function computeApyDelta(
   return { value: midB - midA };
 }
 
-export function computeRiskDelta(
+function computeRiskDelta(
   a: ScenarioOutput,
   b: ScenarioOutput,
 ): RiskDelta {

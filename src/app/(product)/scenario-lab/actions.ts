@@ -1,5 +1,6 @@
 "use server";
 
+import { z } from "zod";
 import { getPresetInputs, runScenario } from "@/lib/engine/scenario";
 import type {
   BacktestKey,
@@ -8,6 +9,22 @@ import type {
   ScenarioInputs,
   ScenarioOutput,
 } from "@/lib/engine/types";
+import { requireAuth } from "@/lib/auth/require-auth";
+import { assertRateLimit } from "@/lib/rate-limit";
+
+const PresetSchema = z.enum([
+  "base",
+  "btc_bear",
+  "btc_bull",
+  "mining_compression",
+  "extreme_stress",
+] as const);
+
+const BacktestKeySchema = z.enum([
+  "bear_2022",
+  "etf_halving_2024",
+  "mining_crunch_2024",
+] as const);
 
 const BOUNDS: Record<keyof ScenarioInputs, { min: number; max: number }> = {
   btc_price_change_pct: { min: -100, max: 300 },
@@ -30,9 +47,16 @@ function assertBounds(inputs: ScenarioInputs): void {
   }
 }
 
+/**
+ * Runs a single scenario through the deterministic engine.
+ *
+ * Rate limited to 30 calls per minute per user.
+ */
 export async function runScenarioAction(
   inputs: ScenarioInputs,
 ): Promise<ScenarioOutput> {
+  const { userId } = await requireAuth();
+  await assertRateLimit(`run-scenario:${userId}`, 30, 60_000);
   assertBounds(inputs);
   return runScenario(inputs, { now: new Date() });
 }
@@ -40,12 +64,18 @@ export async function runScenarioAction(
 export async function getPresetInputsAction(
   preset: Preset,
 ): Promise<ScenarioInputs> {
+  await requireAuth();
+  PresetSchema.parse(preset);
   return getPresetInputs(preset);
 }
 
 export async function runComparisonAction(
   presets: [Preset, Preset],
 ): Promise<[ScenarioOutput, ScenarioOutput]> {
+  const { userId } = await requireAuth();
+  await assertRateLimit(`run-comparison:${userId}`, 15, 60_000);
+  PresetSchema.parse(presets[0]);
+  PresetSchema.parse(presets[1]);
   const now = new Date();
   const [a, b] = await Promise.all([
     Promise.resolve(runScenario(getPresetInputs(presets[0]), { now, preset: presets[0] })),
@@ -57,6 +87,9 @@ export async function runComparisonAction(
 export async function runBacktestAction(
   key: BacktestKey,
 ): Promise<BacktestOutput> {
+  const { userId } = await requireAuth();
+  await assertRateLimit(`run-backtest:${userId}`, 10, 60_000);
+  BacktestKeySchema.parse(key);
   const { runBacktest } = await import("@/lib/engine/backtest");
   return runBacktest(key, { now: new Date() });
 }

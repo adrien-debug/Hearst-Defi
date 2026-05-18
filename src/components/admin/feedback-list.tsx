@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
 import { toggleResolved } from "@/app/admin/feedback/actions";
 
-export interface FeedbackItem {
+interface FeedbackItem {
   id: string;
   createdAt: Date;
   itemId: string | null;

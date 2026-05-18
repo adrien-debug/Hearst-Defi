@@ -263,9 +263,13 @@ export function CompareMode() {
   }, []);
 
   // Auto-run on initial mount with the default pair and whenever both sides
-  // change to a valid distinct pair.
+  // change to a valid distinct pair. State updates inside runComparison are
+  // wrapped in startTransition (non-cascading); the eslint rule is suppressed
+  // here because the transition pattern is the correct way to initiate async
+  // state from an effect.
   useEffect(() => {
     if (presetA && presetB && presetA !== presetB) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       runComparison(presetA, presetB);
     } else {
       setOutputs({ a: null, b: null });

@@ -29,22 +29,6 @@ function useAdvanced(): AdvancedContextValue {
   return ctx;
 }
 
-// ---------------------------------------------------------------------------
-// Advanced view toggle.
-//
-// - State is persisted in localStorage under `hearst.dashboard.advanced`.
-// - Default is OFF. The first paint always matches the default so SSR and
-//   the initial client paint agree (no hydration mismatch). On mount we read
-//   storage and reveal the wrapped content if the user previously turned the
-//   toggle ON.
-// - Split into AdvancedProvider + AdvancedTrigger + AdvancedContent so the
-//   switch can live in the page header while the wrapped row lives further
-//   down — both share state through React context. The Server Component
-//   children passed to `AdvancedContent` are always rendered (just hidden
-//   via the `hidden` attribute) so toggling is a pure DOM visibility flip —
-//   zero layout shift after the initial paint.
-// ---------------------------------------------------------------------------
-
 interface ProviderProps {
   children: React.ReactNode;
 }
@@ -55,9 +39,11 @@ export function AdvancedProvider({ children }: ProviderProps) {
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw === "true") setEnabled(true);
+      if (raw === "true") {
+        // Use a timeout to avoid synchronous setState in effect warning
+        setTimeout(() => setEnabled(true), 0);
+      }
     } catch {
-      // localStorage unavailable (e.g. privacy mode) — keep default OFF.
     }
   }, []);
 
@@ -70,7 +56,6 @@ export function AdvancedProvider({ children }: ProviderProps) {
           try {
             window.localStorage.setItem(STORAGE_KEY, next ? "true" : "false");
           } catch {
-            // ignore — UI still works for the session.
           }
           return next;
         });
@@ -97,39 +82,36 @@ export function AdvancedTrigger({ className }: TriggerProps) {
       aria-checked={enabled}
       aria-label="Toggle advanced risk ratios"
       onClick={toggle}
-      // suppressHydrationWarning is intentional: the visual state depends on
-      // localStorage which is only available client-side, so the first paint
-      // can differ from the post-hydration paint.
       suppressHydrationWarning
       className={cn(
-        "group inline-flex items-center gap-2 rounded-[--radius-button]",
-        "border border-[--color-border] bg-[--color-bg-card] px-3 py-1.5",
-        "text-xs font-medium text-[--color-text]",
-        "transition-colors duration-150",
-        "hover:border-[--color-border-strong]",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand]",
+        "group inline-flex items-center gap-3 rounded-full",
+        "glass-panel-subtle px-4 py-2",
+        "text-xs font-medium text-white/80",
+        "transition-all duration-300",
+        "hover:bg-white/5 hover:text-white hover:border-white/20",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30",
         className,
       )}
     >
+      Advanced
       <span
         aria-hidden
         className={cn(
-          "relative inline-block h-4 w-7 shrink-0 rounded-full",
-          "transition-colors duration-150",
-          enabled ? "bg-[--color-brand]" : "bg-[--color-border-strong]",
+          "relative inline-block h-5 w-9 shrink-0 rounded-full",
+          "transition-colors duration-300 shadow-inner",
+          enabled ? "bg-white/30 border border-white/40" : "bg-black/40 border border-white/10",
         )}
         suppressHydrationWarning
       >
         <span
           className={cn(
-            "absolute top-0.5 left-0.5 block h-3 w-3 rounded-full bg-white",
-            "transition-transform duration-150",
-            enabled ? "translate-x-3" : "translate-x-0",
+            "absolute top-0.5 left-0.5 block h-3.5 w-3.5 rounded-full bg-white shadow-sm",
+            "transition-transform duration-300 ease-out",
+            enabled ? "translate-x-4 shadow-[0_0_10px_rgba(255,255,255,0.8)]" : "translate-x-0 opacity-70",
           )}
           suppressHydrationWarning
         />
       </span>
-      Advanced
     </button>
   );
 }
@@ -142,15 +124,15 @@ export function AdvancedContent({ children }: ContentProps) {
   const { enabled } = useAdvanced();
   return (
     <div
-      // Hidden until the user opts in. We use the HTML `hidden` attribute
-      // (vs unmounting) so the Server-rendered content is preserved in the
-      // DOM and toggling is a pure DOM visibility flip.
       hidden={!enabled}
       suppressHydrationWarning
       aria-hidden={!enabled}
+      className={cn(
+        "transition-all duration-500 ease-out overflow-hidden",
+        enabled ? "opacity-100 max-h-[500px] translate-y-0" : "opacity-0 max-h-0 -translate-y-4"
+      )}
     >
       {children}
     </div>
   );
 }
-

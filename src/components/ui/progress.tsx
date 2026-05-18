@@ -18,7 +18,7 @@ export function Progress({
   return (
     <div
       className={cn(
-        "h-2 w-full overflow-hidden rounded-full bg-[--color-bg-elevated]",
+        "h-1.5 w-full overflow-hidden rounded-full bg-white/10 shadow-inner backdrop-blur-sm",
         className,
       )}
       role="progressbar"
@@ -28,11 +28,13 @@ export function Progress({
     >
       <div
         className={cn(
-          "h-full transition-[width] duration-300",
-          fillClassName ?? "bg-[--color-brand]",
+          "h-full transition-[width] duration-700 ease-out relative",
+          fillClassName ?? "bg-white",
         )}
         style={{ width: `${pct}%` }}
-      />
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full h-full animate-[shimmer_2s_infinite]" />
+      </div>
     </div>
   );
 }

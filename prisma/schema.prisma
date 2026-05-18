@@ -194,3 +194,26 @@ model Feedback {
   @@index([createdAt])
   @@index([itemId])
 }
+
+// =============================================================================
+// LLM OBSERVABILITY — every agent call is traced here
+// =============================================================================
+
+model LlmRun {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  agentName     String
+  model         String
+  promptHash    String?
+  inputTokens   Int?
+  outputTokens  Int?
+  latencyMs     Int?
+  status        String   // queued | success | failed | timeout
+  errorType     String?
+  errorMessage  String?
+  costUsd       Float?
+
+  @@index([createdAt])
+  @@index([agentName])
+  @@index([status])
+}

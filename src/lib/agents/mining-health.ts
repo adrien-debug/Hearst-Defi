@@ -1,11 +1,10 @@
 import "server-only";
 
-import Anthropic from "@anthropic-ai/sdk";
-
 import {
   MiningHealthOutputSchema,
   type MiningHealthOutput,
 } from "@/lib/agents/schemas";
+import { callLlm, type LlmClientLike } from "@/lib/llm/client";
 import { METHODOLOGY_MD, METHODOLOGY_VERSION } from "@/lib/agents/system-prompts/methodology";
 import {
   DISCLAIMER_NOT_GUARANTEED,
@@ -42,7 +41,7 @@ export interface MiningHealthInput {
 }
 
 export interface RunMiningHealthOptions {
-  client?: Anthropic;
+  client?: LlmClientLike;
   model?: string;
 }
 
@@ -100,26 +99,29 @@ export async function runMiningHealth(
   input: MiningHealthInput,
   opts: RunMiningHealthOptions = {},
 ): Promise<MiningHealthOutput> {
-  const client = opts.client ?? new Anthropic({ apiKey: process.env["ANTHROPIC_API_KEY"] });
   const model = opts.model ?? MINING_HEALTH_MODEL;
 
-  const response = await client.messages.create({
-    model,
-    max_tokens: 1024,
-    system: [
-      {
-        type: "text",
-        text: SYSTEM_INSTRUCTIONS,
-        cache_control: { type: "ephemeral" },
-      },
-    ],
-    messages: [
-      {
-        role: "user",
-        content: buildUserPrompt(input),
-      },
-    ],
-  });
+  const { response } = await callLlm(
+    "mining-health",
+    {
+      model,
+      max_tokens: 1024,
+      system: [
+        {
+          type: "text",
+          text: SYSTEM_INSTRUCTIONS,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [
+        {
+          role: "user",
+          content: buildUserPrompt(input),
+        },
+      ],
+    },
+    { client: opts.client },
+  );
 
   const textBlock = response.content.find((b) => b.type === "text");
   if (!textBlock || textBlock.type !== "text") {

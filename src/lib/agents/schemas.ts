@@ -50,7 +50,7 @@ export const RiskExplanationOutputSchema = z
       .array(
         z
           .object({
-            risk_id: z.string().min(1),
+            risk_id: z.enum(["market", "mining", "liquidity", "smart_contract", "counterparty"]),
             name: z.string().min(1),
             explanation: z.string().min(1),
             suggested_guardrail: z.string().min(1),

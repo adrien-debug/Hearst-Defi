@@ -111,14 +111,24 @@ const SPECS: Record<BacktestKey, BacktestSpec> = {
 };
 
 function monthsBetween(start: string, end: string): number {
-  const [sy, sm] = start.split("-").map(Number) as [number, number];
-  const [ey, em] = end.split("-").map(Number) as [number, number];
+  const sParts = start.split("-");
+  const eParts = end.split("-");
+  const sy = Number(sParts[0]);
+  const sm = Number(sParts[1]);
+  const ey = Number(eParts[0]);
+  const em = Number(eParts[1]);
+  if (isNaN(sy) || isNaN(sm) || isNaN(ey) || isNaN(em)) {
+    throw new Error(`Invalid date format in monthsBetween: "${start}" or "${end}"`);
+  }
   return (ey - sy) * 12 + (em - sm);
 }
 
 function addMonths(base: string, count: number): string {
-  const [y, m] = base.split("-").map(Number) as [number, number];
-  const total = (y * 12 + (m - 1)) + count;
+  const parts = base.split("-");
+  const y = Number(parts[0]);
+  const m = Number(parts[1]);
+  if (isNaN(y) || isNaN(m)) throw new Error(`Invalid date format in addMonths: "${base}"`);
+  const total = y * 12 + (m - 1) + count;
   const ny = Math.floor(total / 12);
   const nm = (total % 12) + 1;
   return `${ny}-${String(nm).padStart(2, "0")}`;
@@ -174,7 +184,7 @@ export function runBacktest(key: BacktestKey, opts?: { now?: Date }): BacktestOu
   let numRebalances = 0;
   let prevMode: VaultMode | null = null;
 
-  for (let i = 0; i <= totalMonths; i++) {
+  for (let i = 0; i < totalMonths; i++) {
     const t = totalMonths === 0 ? 0 : i / totalMonths;
     const month = addMonths(spec.startDate, i);
 
@@ -199,20 +209,16 @@ export function runBacktest(key: BacktestKey, opts?: { now?: Date }): BacktestOu
     }
     prevMode = mode;
 
-    // Monthly return using apy_range.low (conservative)
     const monthlyReturnRate = out.apy_range.low / 100 / 12;
     const distributionUsdc = round(currentValue * monthlyReturnRate, 2);
 
-    // Apply return to value
     const prevValue = currentValue;
     currentValue = round(currentValue * (1 + monthlyReturnRate), 2);
 
-    // Track peak/drawdown
     if (currentValue > peakValue) peakValue = currentValue;
     const drawdown = peakValue > 0 ? ((peakValue - currentValue) / peakValue) * 100 : 0;
     if (drawdown > maxDrawdownPct) maxDrawdownPct = drawdown;
 
-    // Track worst month
     const monthReturnPct = prevValue > 0 ? ((currentValue - prevValue) / prevValue) * 100 : 0;
     if (monthReturnPct < worstMonthPct) worstMonthPct = monthReturnPct;
 

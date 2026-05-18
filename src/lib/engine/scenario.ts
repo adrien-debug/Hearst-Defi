@@ -144,7 +144,7 @@ function buildApyRange(projected_apy_pct: number): {
   const low_raw = center * (1 - ASSUMPTION_RISK_FACTOR);
   const high_raw = center * (1 + ASSUMPTION_UPSIDE_FACTOR);
 
-  let low = round(low_raw, 2);
+  const low = round(low_raw, 2);
   let high = round(high_raw, 2);
 
   const min_spread_pct = MIN_APY_SPREAD_BPS / 100;
@@ -218,6 +218,9 @@ const BTC_MONTHLY_NEGATIVE_DRIFT = -0.005;
 // Stress multipliers applied to derive stressedApy (BTC -40%, hashprice -30%)
 const STRESS_BTC_MULTIPLIER = 0.6;
 const STRESS_HASHPRICE_MULTIPLIER = 0.7;
+
+// 50 bps minimum spread (annualized) — prevents degenerate zero-width APY bands
+const MIN_APY_SPREAD_V2 = 0.005;
 
 function validateWeights(weights: ScenarioParams["allocationWeights"]): void {
   const sum =
@@ -298,10 +301,13 @@ function apyBoundsFromReturns(
     : (sorted[sorted.length - 1] ?? 0);
   const median = percentile(sorted, 0.5);
 
+  const annualLow = low * 12;
+  const annualHigh = high * 12;
+  const annualMedian = median * 12;
   return {
-    low: Math.max(0, low) * 12,
-    high: Math.max(0, high) * 12,
-    median: Math.max(0, median) * 12,
+    low: annualLow,
+    high: Math.max(annualHigh, annualLow + MIN_APY_SPREAD_V2),
+    median: annualMedian,
   };
 }
 
@@ -321,6 +327,9 @@ function buildAssumptionsV2(params: ScenarioParams): string[] {
 }
 
 function runScenarioV2(params: ScenarioParams): ScenarioResult {
+  if (params.durationMonths <= 0) {
+    throw new Error(`durationMonths must be >= 1, got ${params.durationMonths}`);
+  }
   validateWeights(params.allocationWeights);
 
   const monthly = buildMonthlySeriesV2(params, params.hashpricePer100Th);
@@ -364,7 +373,7 @@ function runScenarioV2(params: ScenarioParams): ScenarioResult {
     sortino: round(sortino, 6),
     maxDrawdown: round(maxDrawdown, 6),
     var95: round(var95, 6),
-    stressedApy: round(stressedMedian, 6),
+    stressedApy: round(Math.min(stressedMedian, median >= 0 ? median * 0.95 : median * 1.05), 6),
     assumptions,
     disclaimer,
   };

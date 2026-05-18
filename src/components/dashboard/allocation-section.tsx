@@ -5,10 +5,10 @@ import { cn } from "@/lib/cn";
 import type { AllocationBucket, ApyRange as ApyRangeT } from "@/lib/mock/dashboard";
 
 const BUCKET_TONES: Record<AllocationBucket["id"], string> = {
-  mining: "var(--color-brand)",
-  "usdc-base": "rgba(var(--brand-accent-rgb), 0.55)",
-  "btc-tactical": "rgba(var(--color-warning-rgb), 0.85)",
-  "stable-reserve": "rgba(255, 255, 255, 0.35)",
+  mining: "rgb(255, 255, 255)",
+  "usdc-base": "rgba(255, 255, 255, 0.6)",
+  "btc-tactical": "rgba(251, 191, 36, 0.9)",
+  "stable-reserve": "rgba(255, 255, 255, 0.2)",
 };
 
 interface AllocationSectionProps {
@@ -16,8 +16,8 @@ interface AllocationSectionProps {
   blendedYieldRange: ApyRangeT;
 }
 
-const RADIUS = 64;
-const STROKE = 18;
+const RADIUS = 70;
+const STROKE = 20;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 const SIZE = (RADIUS + STROKE) * 2;
 
@@ -26,50 +26,51 @@ export function AllocationSection({
   blendedYieldRange,
 }: AllocationSectionProps) {
   const total = allocations.reduce((sum, b) => sum + b.pctAum, 0);
-  let cursor = 0;
-  const segments = allocations.map((bucket) => {
+  const segments = allocations.reduce((acc, bucket) => {
     const frac = total > 0 ? bucket.pctAum / total : 0;
     const dash = frac * CIRCUMFERENCE;
-    const offset = -cursor;
-    cursor += dash;
-    return {
+    const offset = -acc.cursor;
+    acc.items.push({
       bucket,
       dash,
       gap: CIRCUMFERENCE - dash,
       offset,
-    };
-  });
+    });
+    acc.cursor += dash;
+    return acc;
+  }, { cursor: 0, items: [] as Array<{ bucket: AllocationBucket; dash: number; gap: number; offset: number }> }).items;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Allocation</CardTitle>
-        <div className="flex items-center gap-2 text-xs text-[--color-text-muted]">
-          <span>Blended target</span>
+        <div className="flex items-center gap-3 text-xs text-white/50 glass-panel-subtle px-3 py-1.5 rounded-full">
+          <span className="uppercase tracking-widest font-medium">Blended target</span>
           <ApyRange
-            className="text-[--color-text]"
+            className="text-white drop-shadow-sm"
             low={blendedYieldRange.low}
             high={blendedYieldRange.high}
           />
         </div>
       </CardHeader>
 
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
-        <div className="flex justify-center lg:w-[200px]">
+      <div className="flex flex-col gap-8 lg:flex-row lg:items-center">
+        <div className="flex justify-center lg:w-[220px] relative group">
+          <div className="absolute inset-0 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-colors duration-500" />
           <svg
             viewBox={`0 0 ${SIZE} ${SIZE}`}
             width={SIZE}
             height={SIZE}
             role="img"
             aria-label="Allocation breakdown"
-            className="-rotate-90"
+            className="-rotate-90 relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]"
           >
             <circle
               cx={SIZE / 2}
               cy={SIZE / 2}
               r={RADIUS}
               fill="none"
-              stroke="var(--color-bg-elevated)"
+              stroke="rgba(255,255,255,0.05)"
               strokeWidth={STROKE}
             />
             {segments.map(({ bucket, dash, gap, offset }) => (
@@ -83,41 +84,42 @@ export function AllocationSection({
                 strokeWidth={STROKE}
                 strokeDasharray={`${dash} ${gap}`}
                 strokeDashoffset={offset}
-                strokeLinecap="butt"
+                strokeLinecap="round"
+                className="transition-all duration-1000 ease-out hover:stroke-white cursor-pointer"
               />
             ))}
           </svg>
         </div>
 
-        <ul className="flex-1 divide-y divide-[--color-border-subtle]">
+        <ul className="flex-1 divide-y divide-white/10">
           {allocations.map((bucket) => (
             <li
               key={bucket.id}
-              className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
+              className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0 group hover:bg-white/[0.02] px-2 -mx-2 rounded-xl transition-colors"
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-4">
                 <span
                   aria-hidden
                   className={cn(
-                    "mt-1 h-2.5 w-2.5 shrink-0 rounded-full",
+                    "mt-1.5 h-3 w-3 shrink-0 rounded-full shadow-[0_0_8px_currentColor]",
                   )}
-                  style={{ background: BUCKET_TONES[bucket.id] }}
+                  style={{ background: BUCKET_TONES[bucket.id], color: BUCKET_TONES[bucket.id] }}
                 />
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{bucket.label}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-white group-hover:text-white/90 transition-colors">{bucket.label}</span>
                     <ProvenanceBadge kind={bucket.provenance} />
                   </div>
-                  <p className="mt-0.5 text-xs text-[--color-text-dim]">
+                  <p className="mt-1 text-xs text-white/40 group-hover:text-white/60 transition-colors">
                     {bucket.yieldNote}
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <div className="font-mono text-sm tabular-nums">
+                <div className="font-mono text-lg font-semibold tabular-nums text-white/90">
                   {bucket.pctAum.toFixed(0)}%
                 </div>
-                <div className="font-mono text-xs text-[--color-text-muted] tabular-nums">
+                <div className="font-mono text-xs text-white/40 tabular-nums">
                   {bucket.yieldBps > 0
                     ? `+${bucket.yieldBps} bps`
                     : "P&L variable"}

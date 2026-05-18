@@ -1,3 +1,5 @@
+import "server-only";
+
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -48,11 +50,14 @@ export async function getSpecIndex(): Promise<SpecIndexEntry[]> {
 }
 
 export async function getSpecDoc(slug: string): Promise<SpecDoc | null> {
+  const specDirPrefix = SPEC_DIR.endsWith(path.sep) ? SPEC_DIR : SPEC_DIR + path.sep;
   const candidates = [
     path.join(SPEC_DIR, `${slug}.mdx`),
     path.join(SPEC_DIR, `${slug}.md`),
   ];
   for (const filepath of candidates) {
+    // Path traversal guard: resolved path must stay within SPEC_DIR
+    if (!filepath.startsWith(specDirPrefix)) continue;
     try {
       const raw = await fs.readFile(filepath, "utf8");
       const parsed = matter(raw);
