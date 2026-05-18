@@ -18,6 +18,7 @@
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@hearst/hub-sdk": "file:/Users/adrienbeyondcrypto/Dev/Hearst Corporation /packages/hub-sdk",
     "@anthropic-ai/sdk": "^0.96.0",
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",

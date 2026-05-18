@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 
 import { LoginButton } from "@/components/auth/login-button";
+import { HubModeStyles } from "@/components/hub-mode-styles";
 import { MobileNav } from "@/components/navigation/mobile-nav";
 import { cn } from "@/lib/cn";
 
@@ -21,6 +22,7 @@ export default function ProductLayout({
 }) {
   return (
     <div className="min-h-dvh relative overflow-hidden selection:bg-white/20 selection:text-white">
+      <HubModeStyles />
       {/* Ambient Background Orbs */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-white/[0.03] blur-[120px]" />

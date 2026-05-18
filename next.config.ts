@@ -15,10 +15,11 @@ const nextConfig: NextConfig = {
             key: "X-Content-Type-Options",
             value: "nosniff",
           },
-          {
-            key: "X-Frame-Options",
-            value: "DENY",
-          },
+          // X-Frame-Options is superseded by CSP frame-ancestors below (hub embed)
+          // {
+          //   key: "X-Frame-Options",
+          //   value: "DENY",
+          // },
           {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
@@ -37,6 +38,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: https:",
               "connect-src 'self' https: wss:",
               "frame-src https://auth.privy.io",
+              "frame-ancestors 'self' http://localhost:4200 http://localhost:4201",
               "font-src 'self' data:",
             ].join("; "),
           },
