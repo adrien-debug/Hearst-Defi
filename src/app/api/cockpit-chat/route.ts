@@ -4,6 +4,7 @@ import { kimi, KIMI_MODEL } from "@/lib/llm/kimi";
 import { requireAuth } from "@/lib/auth/require-auth";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const handler = createCockpitChatHandler({
   llmClient: kimi,
