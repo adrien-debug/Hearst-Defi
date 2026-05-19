@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@hearst/cockpit-shell"],
   output: "standalone",
   reactStrictMode: true,
+  devIndicators: false,
   typescript: {
     ignoreBuildErrors: false,
   },
