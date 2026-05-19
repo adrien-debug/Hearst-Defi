@@ -3,7 +3,6 @@ export const dynamic = "force-dynamic";
 
 import { HubModeStyles } from "@/components/hub-mode-styles";
 import { ProductRailIntra } from "@/components/nav/product-rail-intra";
-import { ConnectBottomBar } from "@/components/nav/connect-bottom-bar";
 
 export default function ProductLayout({
   children,
@@ -15,7 +14,6 @@ export default function ProductLayout({
       <HubModeStyles />
       <ProductRailIntra />
       {children}
-      <ConnectBottomBar />
     </div>
   );
 }
