@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { ChainStatusBadge } from "@/components/proof/chain-status-badge";
+import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { ProofFilter } from "@/components/proof/proof-filter";
 import { parseFilter } from "@/components/proof/proof-filter-types";
 import { ProofGrid } from "@/components/proof/proof-grid";
@@ -11,7 +12,7 @@ import { PorSummary } from "@/components/proof-center/por-summary";
 import { isChainConfigured } from "@/lib/chain/client";
 import { fetchOnChainEvents } from "@/lib/chain/event-logger";
 import { fetchOnChainAttestations } from "@/lib/chain/por-registry";
-import { getProofs } from "@/lib/mock/proof-center";
+import { getProofs } from "@/lib/data/proofs";
 
 interface ProofCenterPageProps {
   searchParams: Promise<{ type?: string | string[] }>;
@@ -25,11 +26,11 @@ export default async function ProofCenterPage({
   const filter = parseFilter(raw);
 
   const chainConfigured = isChainConfigured();
-  const [onChainEvents, onChainAttestations] = await Promise.all([
+  const [onChainEvents, onChainAttestations, paper] = await Promise.all([
     fetchOnChainEvents({ limit: 20 }),
     fetchOnChainAttestations({ limit: 12 }),
+    getProofs(),
   ]);
-  const paper = getProofs();
 
   // Latest PoR attestation for the summary panel (most recent = index 0,
   // because fetchOnChainAttestations returns descending order).
@@ -98,7 +99,23 @@ export default async function ProofCenterPage({
           </h2>
           <ProofFilter />
         </div>
-        <ProofGrid proofs={proofs} filter={filter} />
+        {proofs.length === 0 ? (
+          <div className="flex flex-col items-center gap-4 rounded-[--ct-radius-lg] border border-[--ct-border-soft] bg-[--ct-surface-1] py-16 text-center">
+            <ProvenanceBadge kind="stale" />
+            <div className="space-y-1">
+              <p className="body-sm font-medium text-[--ct-text-strong]">
+                No proofs published yet
+              </p>
+              <p className="body-xs max-w-md">
+                Off-chain attestations, custody snapshots, and audits will
+                appear here once posted. On-chain entries are read live from
+                Base Sepolia.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <ProofGrid proofs={proofs} filter={filter} />
+        )}
       </section>
 
       {/* ── Deployed contracts + audit trail ───────────────── */}

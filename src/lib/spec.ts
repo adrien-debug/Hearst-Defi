@@ -4,8 +4,24 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 import matter from "gray-matter";
+import { z } from "zod";
 
 const SPEC_DIR = path.join(process.cwd(), "docs", "spec");
+
+/**
+ * Frontmatter is author-controlled MDX; both fields are optional so an
+ * incomplete or malformed block degrades gracefully (slug-based title,
+ * order 999) instead of crashing the page build.
+ */
+const specFrontmatterSchema = z.object({
+  title: z.string().optional(),
+  order: z.number().optional(),
+});
+
+function parseFrontmatter(data: unknown): { title?: string; order?: number } {
+  const result = specFrontmatterSchema.safeParse(data);
+  return result.success ? result.data : {};
+}
 
 export interface SpecFrontmatter {
   title: string;
@@ -37,7 +53,7 @@ export async function getSpecIndex(): Promise<SpecIndexEntry[]> {
     if (!file.endsWith(".mdx") && !file.endsWith(".md")) continue;
     const slug = slugFromFilename(file);
     const raw = await fs.readFile(path.join(SPEC_DIR, file), "utf8");
-    const fm = matter(raw).data as Partial<SpecFrontmatter>;
+    const fm = parseFrontmatter(matter(raw).data);
     entries.push({
       slug,
       title: fm.title ?? slug,
@@ -61,7 +77,7 @@ export async function getSpecDoc(slug: string): Promise<SpecDoc | null> {
     try {
       const raw = await fs.readFile(filepath, "utf8");
       const parsed = matter(raw);
-      const fm = parsed.data as Partial<SpecFrontmatter>;
+      const fm = parseFrontmatter(parsed.data);
       return {
         slug,
         title: fm.title ?? slug,

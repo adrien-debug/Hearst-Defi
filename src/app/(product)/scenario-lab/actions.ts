@@ -10,6 +10,7 @@ import type {
   ScenarioOutput,
 } from "@/lib/engine/types";
 import { requireAuth } from "@/lib/auth/require-auth";
+import { logger } from "@/lib/logger";
 import { assertRateLimit } from "@/lib/rate-limit";
 
 const PresetSchema = z.enum([
@@ -56,40 +57,60 @@ export async function runScenarioAction(
   inputs: ScenarioInputs,
 ): Promise<ScenarioOutput> {
   const { userId } = await requireAuth();
-  await assertRateLimit(`run-scenario:${userId}`, 30, 60_000);
-  assertBounds(inputs);
-  return runScenario(inputs, { now: new Date() });
+  try {
+    await assertRateLimit(`run-scenario:${userId}`, 30, 60_000);
+    assertBounds(inputs);
+    return runScenario(inputs, { now: new Date() });
+  } catch (err) {
+    logger.error("runScenarioAction failed", { userId }, err);
+    throw err;
+  }
 }
 
 export async function getPresetInputsAction(
   preset: Preset,
 ): Promise<ScenarioInputs> {
-  await requireAuth();
-  PresetSchema.parse(preset);
-  return getPresetInputs(preset);
+  const { userId } = await requireAuth();
+  try {
+    PresetSchema.parse(preset);
+    return getPresetInputs(preset);
+  } catch (err) {
+    logger.error("getPresetInputsAction failed", { userId }, err);
+    throw err;
+  }
 }
 
 export async function runComparisonAction(
   presets: [Preset, Preset],
 ): Promise<[ScenarioOutput, ScenarioOutput]> {
   const { userId } = await requireAuth();
-  await assertRateLimit(`run-comparison:${userId}`, 15, 60_000);
-  PresetSchema.parse(presets[0]);
-  PresetSchema.parse(presets[1]);
-  const now = new Date();
-  const [a, b] = await Promise.all([
-    Promise.resolve(runScenario(getPresetInputs(presets[0]), { now, preset: presets[0] })),
-    Promise.resolve(runScenario(getPresetInputs(presets[1]), { now, preset: presets[1] })),
-  ]);
-  return [a, b];
+  try {
+    await assertRateLimit(`run-comparison:${userId}`, 15, 60_000);
+    PresetSchema.parse(presets[0]);
+    PresetSchema.parse(presets[1]);
+    const now = new Date();
+    const [a, b] = await Promise.all([
+      Promise.resolve(runScenario(getPresetInputs(presets[0]), { now, preset: presets[0] })),
+      Promise.resolve(runScenario(getPresetInputs(presets[1]), { now, preset: presets[1] })),
+    ]);
+    return [a, b];
+  } catch (err) {
+    logger.error("runComparisonAction failed", { userId }, err);
+    throw err;
+  }
 }
 
 export async function runBacktestAction(
   key: BacktestKey,
 ): Promise<BacktestOutput> {
   const { userId } = await requireAuth();
-  await assertRateLimit(`run-backtest:${userId}`, 10, 60_000);
-  BacktestKeySchema.parse(key);
-  const { runBacktest } = await import("@/lib/engine/backtest");
-  return runBacktest(key, { now: new Date() });
+  try {
+    await assertRateLimit(`run-backtest:${userId}`, 10, 60_000);
+    BacktestKeySchema.parse(key);
+    const { runBacktest } = await import("@/lib/engine/backtest");
+    return runBacktest(key, { now: new Date() });
+  } catch (err) {
+    logger.error("runBacktestAction failed", { userId }, err);
+    throw err;
+  }
 }

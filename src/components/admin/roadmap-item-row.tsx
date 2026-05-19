@@ -45,7 +45,8 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
     <div className="rounded-xl border border-[--ct-border] bg-[--ct-surface-1]">
       <div className="flex items-center gap-4 px-5 py-4">
         <span
-          aria-hidden
+          role="img"
+          aria-label={statusLabel(item.status)}
           className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
           style={{ background: statusDotColor(item.status) }}
           title={statusLabel(item.status)}

@@ -1,5 +1,9 @@
 import "./dashboard.css";
 
+import {
+  ProvenanceBadge,
+  type Provenance,
+} from "@/components/ui/provenance-badge";
 import { loadDashboardData } from "@/lib/data/dashboard";
 import { fetchHashprice } from "@/lib/data/hashprice";
 import { loadRiskFramework } from "@/lib/data/risk-framework";
@@ -47,6 +51,18 @@ function formatDistributionDate(d: {
 
 function round1(n: number): number {
   return Math.round(n * 10) / 10;
+}
+
+/**
+ * Resolve the provenance badge for a metric: returns its intrinsic provenance
+ * when the loader served real DB/oracle data, and downgrades to `stale` when
+ * the loader reported a synthesised fallback for that subtree.
+ */
+function provenanceFor(
+  intrinsic: Provenance,
+  loaderSource: "db" | "partial" | "fallback",
+): Provenance {
+  return loaderSource === "fallback" ? "stale" : intrinsic;
 }
 
 const ALLOCATION_TONES: Record<string, "primary" | "accent" | "maroon" | "muted"> = {
@@ -151,6 +167,25 @@ export default async function DashboardPage() {
   })();
 
   const aumValue = usdCompact.format(data.vault.aumUsdc);
+
+  // ── Provenance per metric (CLAUDE.md non-negotiable #2) ──────────────────
+  // Intrinsic source, downgraded to `stale` when its loader synthesised data.
+  // - AUM / Allocation / Activity / Distributions → DB snapshot rows → "live"
+  // - APY range / Risk / Op confidence → engine-derived figures → "estimated"
+  // - BTC sleeve → CoinGecko spot × DB allocation → "oracle"
+  // - Mining health → daily-attested MiningMetric rows → "attested"
+  const aumProvenance = provenanceFor("live", data.source);
+  const apyProvenance = provenanceFor("estimated", data.source);
+  const btcSleeveProvenance: Provenance = data.btcPrice.stale
+    ? "stale"
+    : provenanceFor("oracle", data.source);
+  const allocationProvenance = provenanceFor("live", data.source);
+  const riskProvenance = provenanceFor("estimated", riskFramework.source);
+  const miningProvenance = provenanceFor("attested", data.source);
+  const opConfProvenance = provenanceFor("estimated", data.source);
+  const activityProvenance: Provenance =
+    data.recentEvents.length === 0 ? "stale" : provenanceFor("live", data.source);
+  const distributionProvenance = provenanceFor("live", data.source);
 
   /** Mining sub-metrics as depth chart bars. */
   const miningBars = [
@@ -273,7 +308,13 @@ export default async function DashboardPage() {
           <article className="dash-cell col-4" aria-label="Assets under management">
             <div className="dash-label">
               <span>Assets under management</span>
-              <span className={`dash-trend ${aumTrendSign}`}>{aumTrendText}</span>
+              <span
+                className="dash-label-meta"
+                style={{ display: "flex", alignItems: "center", gap: 8 }}
+              >
+                <ProvenanceBadge kind={aumProvenance} />
+                <span className={`dash-trend ${aumTrendSign}`}>{aumTrendText}</span>
+              </span>
             </div>
             <div className="dash-value-group">
               <span className="dash-value">{aumValue}</span>
@@ -299,7 +340,7 @@ export default async function DashboardPage() {
           <article className="dash-cell col-4" aria-label="APY range">
             <div className="dash-label">
               <span>APY range (annualized)</span>
-              <span className="dash-trend flat">Estimated</span>
+              <ProvenanceBadge kind={apyProvenance} />
             </div>
             <div className="gauge-container">
               <svg
@@ -344,9 +385,15 @@ export default async function DashboardPage() {
           <article className="dash-cell col-4" aria-label="BTC tactical sleeve">
             <div className="dash-label">
               <span>BTC tactical sleeve</span>
-              <span className={`dash-trend ${pnlTrend}`}>
-                {pnlPct >= 0 ? "+" : ""}
-                {pnlPct.toFixed(1)}%
+              <span
+                className="dash-label-meta"
+                style={{ display: "flex", alignItems: "center", gap: 8 }}
+              >
+                <ProvenanceBadge kind={btcSleeveProvenance} />
+                <span className={`dash-trend ${pnlTrend}`}>
+                  {pnlPct >= 0 ? "+" : ""}
+                  {pnlPct.toFixed(1)}%
+                </span>
               </span>
             </div>
             <div className="dash-value-group">
@@ -382,7 +429,7 @@ export default async function DashboardPage() {
           <article className="dash-cell col-8" aria-label="Allocation breakdown">
             <div className="dash-label">
               <span>Allocation breakdown</span>
-              <span className="dash-trend flat">Live sync</span>
+              <ProvenanceBadge kind={allocationProvenance} />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: 24, alignItems: "center", marginTop: 8 }}>
@@ -447,8 +494,14 @@ export default async function DashboardPage() {
           <article className="dash-cell col-4" aria-label="Risk framework">
             <div className="dash-label">
               <span>Risk framework</span>
-              <span className={`dash-trend ${riskFramework.composite <= 50 ? "up" : riskFramework.composite <= 66 ? "flat" : "down"}`}>
-                {riskFramework.bandLabel}
+              <span
+                className="dash-label-meta"
+                style={{ display: "flex", alignItems: "center", gap: 8 }}
+              >
+                <ProvenanceBadge kind={riskProvenance} />
+                <span className={`dash-trend ${riskFramework.composite <= 50 ? "up" : riskFramework.composite <= 66 ? "flat" : "down"}`}>
+                  {riskFramework.bandLabel}
+                </span>
               </span>
             </div>
             <div className="dash-value-group">
@@ -520,7 +573,7 @@ export default async function DashboardPage() {
           <article className="dash-cell col-8" aria-label="Mining health metrics">
             <div className="dash-label">
               <span>Mining health metrics</span>
-              <span className="dash-trend flat">Daily attested</span>
+              <ProvenanceBadge kind={miningProvenance} />
             </div>
             <div className="depth-chart">
               {miningBars.map((bar) => (
@@ -542,7 +595,7 @@ export default async function DashboardPage() {
           <article className="dash-cell col-4" aria-label="Operational confidence">
             <div className="dash-label">
               <span>Operational confidence</span>
-              <span className="dash-trend flat">Estimated</span>
+              <ProvenanceBadge kind={opConfProvenance} />
             </div>
             <div className="gauge-container">
               <svg
@@ -591,7 +644,13 @@ export default async function DashboardPage() {
           <article className="dash-cell col-8" aria-label="Vault activity last 120 days">
             <div className="dash-label">
               <span>Vault activity · last 120 days</span>
-              <span className="dash-trend flat">{data.recentEvents.length} events</span>
+              <span
+                className="dash-label-meta"
+                style={{ display: "flex", alignItems: "center", gap: 8 }}
+              >
+                <ProvenanceBadge kind={activityProvenance} />
+                <span className="dash-trend flat">{data.recentEvents.length} events</span>
+              </span>
             </div>
             <div className="density-matrix" aria-hidden="true">
               {densityCells.map((c) => (
@@ -622,8 +681,14 @@ export default async function DashboardPage() {
           <article className="dash-cell col-4" aria-label="Distributions">
             <div className="dash-label">
               <span>Distributions</span>
-              <span className={`dash-trend ${latestDist.status === "paid" ? "up" : "flat"}`}>
-                {latestDist.status === "paid" ? "Paid" : "Scheduled"}
+              <span
+                className="dash-label-meta"
+                style={{ display: "flex", alignItems: "center", gap: 8 }}
+              >
+                <ProvenanceBadge kind={distributionProvenance} />
+                <span className={`dash-trend ${latestDist.status === "paid" ? "up" : "flat"}`}>
+                  {latestDist.status === "paid" ? "Paid" : "Scheduled"}
+                </span>
               </span>
             </div>
             <div className="dist-big">

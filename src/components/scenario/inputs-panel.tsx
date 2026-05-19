@@ -131,6 +131,12 @@ export function InputsPanel({ inputs, onChange, disabled }: InputsPanelProps) {
               step={field.step}
               value={value}
               disabled={disabled}
+              aria-label={
+                isVolIndex
+                  ? `${field.label}: ${field.format(value)}`
+                  : `${field.label}: ${field.format(value)} ${field.unit}`
+              }
+              aria-valuetext={field.format(value)}
               onChange={(e) => handleChange(field.key, e.target.value)}
               className="slider-track w-full cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
               style={{ "--slider-pct": `${pct}%` } as React.CSSProperties}

@@ -166,10 +166,13 @@ export async function runRiskExplanation(
   const parsed = extractJson(textBlock.text);
   const validated = RiskExplanationOutputSchema.parse(parsed);
 
-  // Post-validation: forbidden-words linter on all text fields
+  // Post-validation: forbidden-words linter on all text fields.
+  // Each risk explanation must also cite >=1 assumption (spec/09-agents.mdx:
+  // "Each explanation MUST reference at least one assumption").
   for (const risk of validated.top_risks) {
     assertNoForbiddenWords(risk.explanation);
     assertNoForbiddenWords(risk.suggested_guardrail);
+    assertCitesAssumption(risk.explanation);
   }
   assertNoForbiddenWords(validated.overall_summary);
 

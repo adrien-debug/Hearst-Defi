@@ -263,9 +263,17 @@
 .ct-input:focus,
 .ct-select:focus,
 .ct-textarea:focus {
-  outline: none;
+  outline: 2px solid var(--ct-border-accent);
+  outline-offset: 2px;
   border-color: var(--ct-border-accent);
   background: var(--ct-surface-2);
+}
+
+.ct-input:focus-visible,
+.ct-select:focus-visible,
+.ct-textarea:focus-visible {
+  outline: 2px solid var(--ct-border-accent);
+  outline-offset: 2px;
 }
 
 .ct-input::placeholder,

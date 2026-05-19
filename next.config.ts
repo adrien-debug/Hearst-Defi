@@ -17,6 +17,14 @@ const nextConfig: NextConfig = {
       "@solana/transaction-confirmation": { browser: "./src/lib/empty-module.ts", default: "./src/lib/empty-module.ts" },
     },
   },
+  experimental: {
+    optimizePackageImports: [
+      "@anthropic-ai/sdk",
+      "openai",
+      "@react-pdf/renderer",
+      "lucide-react",
+    ],
+  },
   output: "standalone",
   reactStrictMode: true,
   devIndicators: false,

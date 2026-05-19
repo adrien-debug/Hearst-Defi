@@ -226,10 +226,19 @@ export async function runInvestorMemo(
   assertNoForbiddenWords(validated.methodology_note);
   assertNoForbiddenWords(validated.disclaimer);
 
-  // Assumption citation checks (every section must cite ≥1 assumption)
+  // Assumption citation checks: every narrative section must cite >=1
+  // assumption (spec/09-agents.mdx: "Every section must reference at least
+  // one assumption explicitly"). `disclaimer` is EXEMPTED because it is a
+  // verbatim legal template (DISCLAIMER_NOT_GUARANTEED + DISCLAIMER_PROJECTION),
+  // appended unchanged and not generated — it must not be rewritten to inject
+  // an assumption.
   assertCitesAssumption(validated.executive_summary);
+  assertCitesAssumption(validated.vault_structure);
   assertCitesAssumption(validated.scenario_analysis);
+  assertCitesAssumption(validated.risk_section);
   assertCitesAssumption(validated.mining_section);
+  assertCitesAssumption(validated.performance_section);
+  assertCitesAssumption(validated.methodology_note);
 
   return validated;
 }

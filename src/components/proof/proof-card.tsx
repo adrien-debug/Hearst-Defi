@@ -152,6 +152,7 @@ function PaperProofCard({
           <button
             type="button"
             disabled
+            aria-label="On-chain mirror not yet available — Phase 2 will publish this proof via the EventLogger contract."
             className="rounded-[--radius-button] border border-dashed border-[--ct-border-soft] px-3 py-1.5 text-xs text-[--ct-text-muted]"
             title="Phase 2 will mirror this proof on-chain via the EventLogger contract."
           >

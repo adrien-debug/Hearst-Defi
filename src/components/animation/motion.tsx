@@ -1,6 +1,20 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { LazyMotion, m } from "framer-motion";
+
+/**
+ * Animation primitives.
+ *
+ * Perf: the heavy framer-motion feature set (`domAnimation`) is loaded via a
+ * dynamic import wrapped in `LazyMotion`, so it is code-split out of the main
+ * client bundle and only fetched when these components mount. The lightweight
+ * `m` component keeps SSR markup and the public component API
+ * (`FadeIn` / `StaggerContainer` / `StaggerItem`) byte-for-byte identical to
+ * the previous synchronous `motion` implementation — no `ssr:false`, no
+ * layout-shift / blank-flash risk.
+ */
+const loadDomAnimation = () =>
+  import("framer-motion").then((mod) => mod.domAnimation);
 
 /**
  * Fade-in animation wrapper.
@@ -34,18 +48,20 @@ export function FadeIn({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, ...directions[direction] }}
-      animate={{ opacity: 1, x: 0, y: 0 }}
-      transition={{
-        duration,
-        delay,
-        ease: [0.25, 0.1, 0.25, 1],
-      }}
-      className={className}
-    >
-      {children}
-    </motion.div>
+    <LazyMotion features={loadDomAnimation} strict>
+      <m.div
+        initial={{ opacity: 0, ...directions[direction] }}
+        animate={{ opacity: 1, x: 0, y: 0 }}
+        transition={{
+          duration,
+          delay,
+          ease: [0.25, 0.1, 0.25, 1],
+        }}
+        className={className}
+      >
+        {children}
+      </m.div>
+    </LazyMotion>
   );
 }
 
@@ -71,21 +87,23 @@ export function StaggerContainer({
   className,
 }: StaggerContainerProps) {
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={{
-        hidden: {},
-        visible: {
-          transition: {
-            staggerChildren: staggerDelay,
+    <LazyMotion features={loadDomAnimation} strict>
+      <m.div
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: {},
+          visible: {
+            transition: {
+              staggerChildren: staggerDelay,
+            },
           },
-        },
-      }}
-      className={className}
-    >
-      {children}
-    </motion.div>
+        }}
+        className={className}
+      >
+        {children}
+      </m.div>
+    </LazyMotion>
   );
 }
 
@@ -99,7 +117,7 @@ interface StaggerItemProps {
 
 export function StaggerItem({ children, className }: StaggerItemProps) {
   return (
-    <motion.div
+    <m.div
       variants={{
         hidden: { opacity: 0, y: 20 },
         visible: {
@@ -114,6 +132,6 @@ export function StaggerItem({ children, className }: StaggerItemProps) {
       className={className}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }

@@ -1,6 +1,11 @@
 // Hearst Connect — Prisma schema
 // MVP tables. Postgres in production, SQLite for local dev.
 // Source of truth for data model: /docs/spec/* + plan section 15.
+//
+// RLS / multi-tenant isolation (P0):
+//   userId columns added to Feedback, ReportExport, LlmRun (+ ScenarioRun).
+//   No formal SQL migration here (sqlite local, db push workflow).
+//   Apply with: `pnpm db:push` then `pnpm db:generate`.
 
 generator client {
   provider = "prisma-client-js"
@@ -83,7 +88,9 @@ model ScenarioRun {
   confidence          String   // low | medium | high
   methodologyVersion  String   @default("v1.0")
 
+  /// TODO RLS: enforce non-null once backfilled
   @@index([ranAt])
+  @@index([userId, ranAt])
 }
 
 model BacktestRun {
@@ -160,8 +167,10 @@ model ReportExport {
   methodologyVersion  String
   pdfUrl              String?
   content             String?  // JSON: full InvestorMemoOutput
+  userId              String?  // RLS owner — nullable for legacy rows / background jobs
 
   @@index([generatedAt])
+  @@index([userId, generatedAt])
 }
 
 // =============================================================================
@@ -190,9 +199,11 @@ model Feedback {
   message     String
   author      String?  // optional name
   resolved    Boolean  @default(false)
+  userId      String?  // RLS owner — nullable for legacy rows / anon feedback
 
   @@index([createdAt])
   @@index([itemId])
+  @@index([userId, createdAt])
 }
 
 // =============================================================================
@@ -238,8 +249,10 @@ model LlmRun {
   errorType     String?
   errorMessage  String?
   costUsd       Float?
+  userId        String?  // RLS owner — nullable for system / background agent runs
 
   @@index([createdAt])
   @@index([agentName])
   @@index([status])
+  @@index([userId, createdAt])
 }

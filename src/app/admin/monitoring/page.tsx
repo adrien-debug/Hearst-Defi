@@ -1,10 +1,12 @@
 import Link from "next/link";
 
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { getMonitoringStats } from "@/lib/data/monitoring";
 
 export const dynamic = "force-dynamic";
 
 export default async function MonitoringPage() {
+  await requireAdmin();
   const stats = await getMonitoringStats();
 
   return (

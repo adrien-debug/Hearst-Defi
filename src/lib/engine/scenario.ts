@@ -17,13 +17,21 @@ import type {
 
 export const METHODOLOGY_VERSION = "v1.0";
 
+// keep in sync with src/lib/agents/validators.ts FORBIDDEN_WORDS
+// TECH DEBT: this list + assertNoForbiddenWords are duplicated in
+// btc-tactical.ts and backtest.ts (and the canonical impl lives in
+// src/lib/agents/validators.ts). They cannot be merged via import because the
+// engine layer must stay pure and must not depend on src/lib/agents/* — the
+// engine sits below agents in the layering. Consolidate into a pure
+// src/lib/engine/forbidden-words.ts module once that file is in scope.
 const FORBIDDEN_WORDS = [
   "guarantee",
   "promise",
-  "risk-free",
   "certain",
   "will deliver",
-];
+  "risk-free",
+  "no risk",
+] as const;
 
 const MIN_APY_SPREAD_BPS = 50;
 const BEAR_STRESS_FACTOR = 0.65;
@@ -184,14 +192,22 @@ function buildAssumptions(
   ];
 }
 
+// keep in sync with src/lib/agents/validators.ts assertNoForbiddenWords
 function assertNoForbiddenWords(assumptions: string[]): void {
   for (const line of assumptions) {
-    const lower = line.toLowerCase();
-    for (const word of FORBIDDEN_WORDS) {
-      if (word === "guarantee" && lower.includes("not guaranteed")) continue;
-      if (lower.includes(word)) {
-        throw new Error(`forbidden word "${word}" in assumption: ${line}`);
+    const haystack = line.toLowerCase();
+    for (const needle of FORBIDDEN_WORDS) {
+      const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const needlePattern = new RegExp(`\\b${escaped}\\w*`);
+      if (!needlePattern.test(haystack)) continue;
+      const needleStartsWithNegation = /^(not|no|never|without)\b/.test(needle);
+      if (!needleStartsWithNegation) {
+        const negatedPattern = new RegExp(
+          `\\b(not|no|never|without)\\s+(\\w+\\s+){0,3}${escaped}`,
+        );
+        if (negatedPattern.test(haystack)) continue;
       }
+      throw new Error(`forbidden word "${needle}" in assumption: ${line}`);
     }
   }
 }

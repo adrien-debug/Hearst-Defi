@@ -12,11 +12,11 @@ importers:
         specifier: ^0.96.0
         version: 0.96.0(zod@4.4.3)
       '@hearst/cockpit-shell':
-        specifier: file:/tmp/hearst-cockpit-shell
-        version: file:../../../../../tmp/hearst-cockpit-shell(next@16.2.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(openai@6.38.0(ws@8.18.3(bufferutil@4.1.0)(utf-8-validate@6.0.6))(zod@4.4.3))(react@19.2.6)
+        specifier: file:./hearst-cockpit-shell-0.2.0.tgz
+        version: file:hearst-cockpit-shell-0.2.0.tgz(next@16.2.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(openai@6.38.0(ws@8.18.3(bufferutil@4.1.0)(utf-8-validate@6.0.6))(zod@4.4.3))(react@19.2.6)
       '@hearst/hub-sdk':
-        specifier: file:/tmp/hearst-hub-sdk
-        version: file:../../../../../tmp/hearst-hub-sdk(react@19.2.6)
+        specifier: file:./hearst-hub-sdk-0.2.0.tgz
+        version: file:hearst-hub-sdk-0.2.0.tgz(react@19.2.6)
       '@mdx-js/loader':
         specifier: ^3.1.1
         version: 3.1.1(webpack@5.106.2(esbuild@0.27.7)(postcss@8.5.14))
@@ -546,15 +546,17 @@ packages:
       react: ^18 || ^19 || ^19.0.0-rc
       react-dom: ^18 || ^19 || ^19.0.0-rc
 
-  '@hearst/cockpit-shell@file:../../../../../tmp/hearst-cockpit-shell':
-    resolution: {directory: ../../../../../tmp/hearst-cockpit-shell, type: directory}
+  '@hearst/cockpit-shell@file:hearst-cockpit-shell-0.2.0.tgz':
+    resolution: {integrity: sha512-9RIoEJLxfjH8UBYWv6b0QeVpABekQAreyziqJdXDwjobaWRB/hUqvwny2MbFD/MaXanZriGaxxcWR3SJe7Zm/g==, tarball: file:hearst-cockpit-shell-0.2.0.tgz}
+    version: 0.2.0
     peerDependencies:
       next: '>=15'
       openai: '>=4'
       react: '>=18'
 
-  '@hearst/hub-sdk@file:../../../../../tmp/hearst-hub-sdk':
-    resolution: {directory: ../../../../../tmp/hearst-hub-sdk, type: directory}
+  '@hearst/hub-sdk@file:hearst-hub-sdk-0.2.0.tgz':
+    resolution: {integrity: sha512-i6AjjU5IzUu8dWlsvX5H1EA9SbONUxgs9scLMkppDRSuvfH3z/88xQkHTrfyuNgL4TfxP8dN6QwMflVl914fRQ==, tarball: file:hearst-hub-sdk-0.2.0.tgz}
+    version: 0.2.0
     peerDependencies:
       react: '>=18'
 
@@ -7822,7 +7824,7 @@ snapshots:
       react-dom: 19.2.6(react@19.2.6)
       use-sync-external-store: 1.6.0(react@19.2.6)
 
-  '@hearst/cockpit-shell@file:../../../../../tmp/hearst-cockpit-shell(next@16.2.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(openai@6.38.0(ws@8.18.3(bufferutil@4.1.0)(utf-8-validate@6.0.6))(zod@4.4.3))(react@19.2.6)':
+  '@hearst/cockpit-shell@file:hearst-cockpit-shell-0.2.0.tgz(next@16.2.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(openai@6.38.0(ws@8.18.3(bufferutil@4.1.0)(utf-8-validate@6.0.6))(zod@4.4.3))(react@19.2.6)':
     dependencies:
       dompurify: 3.4.4
       next: 16.2.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -7830,7 +7832,7 @@ snapshots:
       react: 19.2.6
       zod: 3.25.76
 
-  '@hearst/hub-sdk@file:../../../../../tmp/hearst-hub-sdk(react@19.2.6)':
+  '@hearst/hub-sdk@file:hearst-hub-sdk-0.2.0.tgz(react@19.2.6)':
     dependencies:
       react: 19.2.6
 

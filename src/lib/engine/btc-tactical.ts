@@ -7,13 +7,18 @@ import type {
   VaultMode,
 } from "./types";
 
+// keep in sync with src/lib/agents/validators.ts FORBIDDEN_WORDS
+// TECH DEBT: duplicated with scenario.ts / backtest.ts; canonical impl is
+// src/lib/agents/validators.ts. Not merged via import — the engine layer must
+// stay pure and must not depend on src/lib/agents/*.
 const FORBIDDEN_WORDS = [
   "guarantee",
   "promise",
-  "risk-free",
   "certain",
   "will deliver",
-];
+  "risk-free",
+  "no risk",
+] as const;
 
 const ACCUMULATE_DRAWDOWN_PCT = -20;
 const ACCUMULATE_VOL_MAX = 60;
@@ -178,19 +183,21 @@ function assertNoForbiddenWords(
   for (const g of guardrails) {
     lines.push(g.label, g.detail);
   }
+  // keep in sync with src/lib/agents/validators.ts assertNoForbiddenWords
   for (const line of lines) {
-    const lower = line.toLowerCase();
-    for (const word of FORBIDDEN_WORDS) {
-      const needlePattern = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`);
-      if (!needlePattern.test(lower)) continue;
-      const needleStartsWithNegation = /^(not|no|never|without)\b/.test(word);
+    const haystack = line.toLowerCase();
+    for (const needle of FORBIDDEN_WORDS) {
+      const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const needlePattern = new RegExp(`\\b${escaped}\\w*`);
+      if (!needlePattern.test(haystack)) continue;
+      const needleStartsWithNegation = /^(not|no|never|without)\b/.test(needle);
       if (!needleStartsWithNegation) {
         const negatedPattern = new RegExp(
-          `\\b(not|no|never|without)\\s+(\\w+\\s+){0,3}${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+          `\\b(not|no|never|without)\\s+(\\w+\\s+){0,3}${escaped}`,
         );
-        if (negatedPattern.test(lower)) continue;
+        if (negatedPattern.test(haystack)) continue;
       }
-      throw new Error(`forbidden word "${word}" in btc tactical text: ${line}`);
+      throw new Error(`forbidden word "${needle}" in btc tactical text: ${line}`);
     }
   }
 }

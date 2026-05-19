@@ -20,7 +20,6 @@ export default function Home() {
               height={268}
               className="mx-auto mb-10 h-14 w-auto md:h-16"
               priority
-              unoptimized
             />
           </FadeIn>
           

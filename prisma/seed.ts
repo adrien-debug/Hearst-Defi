@@ -224,6 +224,15 @@ function ipfsUriFor(hash: string): string {
 }
 
 async function resetTables(): Promise<void> {
+  // Production guard: never wipe a production database from the seed script.
+  if (process.env.NODE_ENV === "production") {
+    console.error(
+      "[seed] ABORT: resetTables() refuses to run with NODE_ENV=production. " +
+        "This would deleteMany() across every table. Unset NODE_ENV or run against a dev/test DB.",
+    );
+    process.exit(1);
+  }
+
   // Order matters: children before parents.
   await prisma.allocation.deleteMany();
   await prisma.vaultSnapshot.deleteMany();

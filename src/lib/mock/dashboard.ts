@@ -23,12 +23,23 @@ export interface MiningHealth {
   provenance: Provenance;
 }
 
-export interface BtcTrigger {
+/**
+ * Mock dashboard-card shape for a BTC trigger row.
+ *
+ * NOT the canonical engine type. The source of truth is
+ * `BtcTrigger` in `src/lib/engine/types.ts` (kind/condition/action/armed).
+ * This shape is intentionally distinct (label/ruleId for display) and lives
+ * only in the mock layer.
+ */
+export interface MockBtcTrigger {
   id: string;
   label: string;
   condition: string;
   ruleId: string;
 }
+
+/** @deprecated use the canonical `BtcTrigger` from `@/lib/engine/types`. */
+export type BtcTrigger = MockBtcTrigger;
 
 export interface BtcGuardrail {
   id: string;
@@ -45,7 +56,7 @@ export interface BtcTactical {
   currentPrice: number;
   pnlUsd: number;
   pnlPct: number;
-  nextTriggers: BtcTrigger[];
+  nextTriggers: MockBtcTrigger[];
   guardrails: BtcGuardrail[];
   provenance: Provenance;
 }

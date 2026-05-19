@@ -2,11 +2,13 @@ import { RoadmapItemRow } from "@/components/admin/roadmap-item-row";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { getRoadmap } from "@/lib/roadmap";
 
 export const dynamic = "force-dynamic";
 
 export default async function RoadmapPage() {
+  await requireAdmin();
   const { version, phases } = await getRoadmap();
 
   const mvpPhase = phases.find((p) => p.id === "mvp");

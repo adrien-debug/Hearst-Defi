@@ -35,6 +35,11 @@ export interface VerifiedUser {
   walletAddress?: string;
 }
 
+/** Narrows an unknown value to a plain string-keyed object. */
+function isRecord(x: unknown): x is Record<string, unknown> {
+  return typeof x === "object" && x !== null;
+}
+
 /**
  * Verifies a Privy auth token.
  *
@@ -57,8 +62,10 @@ export async function verifyAuthToken(
     }
     // Extract wallet address from custom claims if available.
     // Privy token claims vary by integration; we safely probe for a wallet.
-    const claims = verified as unknown as Record<string, unknown>;
-    const wallet = typeof claims.walletAddress === "string" ? claims.walletAddress : undefined;
+    const wallet =
+      isRecord(verified) && typeof verified.walletAddress === "string"
+        ? verified.walletAddress
+        : undefined;
 
     return { userId: verified.userId, walletAddress: wallet };
   } catch (err) {
