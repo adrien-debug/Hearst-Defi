@@ -1,0 +1,558 @@
+/*
+ * Dashboard widgets — Hearst Connect (Yield Vault)
+ * Classes copiées des atlas Cockpit :
+ *   - kpi-elegant.html (sparkline KPI, concentric rings, depth chart, density matrix, progress typographique)
+ *   - kpi-charts.html (donut, pie, gauge demi-cercle)
+ *   - cockpit-template.html (status badges, ct-card)
+ *
+ * Aucun nouveau token. Tout passe par var(--ct-*) du package @hearst/cockpit-shell.
+ * --ct-accent est injecté par <ThemeAccent /> selon le produit actif (#8A1538 pour Connect).
+ */
+
+/* === Bento grid 12-col gap-1px (style Bloomberg, source: kpi-elegant) === */
+.dash-bento {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1px;
+  background: var(--ct-border-soft);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.dash-cell {
+  background: var(--ct-bg-deep);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 200px;
+}
+
+.dash-cell.col-3 { grid-column: span 3; }
+.dash-cell.col-4 { grid-column: span 4; }
+.dash-cell.col-6 { grid-column: span 6; }
+.dash-cell.col-8 { grid-column: span 8; }
+.dash-cell.col-12 { grid-column: span 12; }
+
+/* === KPI label/value/trend (source: kpi-elegant) === */
+.dash-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ct-text-muted);
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-transform: uppercase;
+}
+
+.dash-value-group {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.dash-value {
+  font-size: 44px;
+  font-weight: 300;
+  color: var(--ct-text-strong);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-value-range {
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--ct-text-strong);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-unit {
+  font-size: 14px;
+  color: var(--ct-text-muted);
+  font-weight: 400;
+}
+
+.dash-trend {
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background: var(--ct-surface-1);
+}
+
+.dash-trend.up { color: var(--ct-status-success); }
+.dash-trend.down { color: var(--ct-accent-strong); }
+.dash-trend.flat { color: var(--ct-text-muted); }
+
+/* === Sparkline (source: kpi-elegant) === */
+.dash-sparkline {
+  width: 100%;
+  height: 36px;
+  margin-top: 16px;
+}
+
+.spark-path {
+  fill: none;
+  stroke: var(--ct-accent-strong);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.spark-fill {
+  fill: var(--ct-accent-soft);
+}
+
+/* === Concentric rings (source: kpi-elegant) === */
+.dash-rings-box {
+  position: absolute;
+  right: 24px;
+  top: 24px;
+  width: 80px;
+  height: 80px;
+}
+
+.ring-bg {
+  fill: none;
+  stroke: var(--ct-surface-2);
+  stroke-width: 2;
+}
+
+.ring-fg {
+  fill: none;
+  stroke: var(--ct-text-strong);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.ring-fg.accent { stroke: var(--ct-accent-strong); }
+.ring-fg.muted { stroke: var(--ct-text-muted); }
+.ring-fg.maroon { stroke: var(--ct-accent-maroon); }
+
+/* === Depth chart bars (source: kpi-elegant) === */
+.depth-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.depth-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 11px;
+}
+
+.depth-label {
+  width: 132px;
+  color: var(--ct-text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.depth-bar-container {
+  flex: 1;
+  height: 4px;
+  background: var(--ct-surface-1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.depth-bar {
+  height: 100%;
+  background: var(--ct-text-strong);
+  transition: width 0.3s var(--ct-ease, ease);
+}
+
+.depth-bar.accent { background: var(--ct-accent-strong); }
+.depth-bar.maroon { background: var(--ct-accent-maroon); }
+.depth-bar.muted { background: var(--ct-text-muted); }
+
+.depth-val {
+  width: 68px;
+  text-align: right;
+  color: var(--ct-text-primary);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* === Density matrix / heatmap (source: kpi-elegant) === */
+.density-matrix {
+  display: grid;
+  grid-template-columns: repeat(30, 1fr);
+  gap: 2px;
+  margin-top: 16px;
+}
+
+.density-cell {
+  aspect-ratio: 1;
+  border-radius: 1px;
+  background: var(--ct-surface-1);
+}
+
+.density-cell.lvl-1 { background: var(--ct-surface-3); }
+.density-cell.lvl-2 { background: var(--ct-accent-soft); }
+.density-cell.lvl-3 { background: var(--ct-accent); }
+.density-cell.lvl-4 { background: var(--ct-accent-strong); }
+
+/* === Donut chart (source: kpi-charts) === */
+.dash-chart-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  height: 200px;
+  margin-top: 8px;
+}
+
+.dash-chart-svg {
+  transform: rotate(-90deg);
+  overflow: visible;
+}
+
+.dash-chart-circle {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: butt;
+}
+
+.dash-chart-circle.color-primary { stroke: var(--ct-text-strong); }
+.dash-chart-circle.color-accent { stroke: var(--ct-accent-strong); }
+.dash-chart-circle.color-maroon { stroke: var(--ct-accent-maroon); }
+.dash-chart-circle.color-muted { stroke: var(--ct-surface-3); }
+
+.donut-center {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.donut-val {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--ct-text-strong);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.donut-lbl {
+  font-size: 10px;
+  color: var(--ct-text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 4px;
+}
+
+.dash-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.dash-legend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.dash-legend-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ct-text-body);
+}
+
+.dash-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.dash-legend-dot.dot-primary { background: var(--ct-text-strong); }
+.dash-legend-dot.dot-accent { background: var(--ct-accent-strong); }
+.dash-legend-dot.dot-maroon { background: var(--ct-accent-maroon); }
+.dash-legend-dot.dot-muted { background: var(--ct-surface-3); }
+
+.dash-legend-val {
+  color: var(--ct-text-primary);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* === Gauge demi-cercle (source: kpi-charts) === */
+.gauge-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  height: 140px;
+  margin-top: 12px;
+}
+
+.gauge-svg {
+  transform: rotate(-180deg);
+  overflow: visible;
+}
+
+.gauge-svg-circle {
+  fill: none;
+  stroke-linecap: butt;
+}
+
+.gauge-svg-circle.bg { stroke: var(--ct-surface-3); }
+.gauge-svg-circle.fg { stroke: var(--ct-accent-strong); }
+
+.gauge-center {
+  position: absolute;
+  bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gauge-val {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--ct-text-strong);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.gauge-lbl {
+  font-size: 10px;
+  color: var(--ct-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 4px;
+}
+
+.gauge-range {
+  display: flex;
+  justify-content: space-between;
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  color: var(--ct-text-muted);
+  margin-top: 8px;
+  letter-spacing: 0.04em;
+}
+
+/* === Distribution progress typographique (source: kpi-elegant) === */
+.dist-big {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.dist-big-val {
+  font-size: 48px;
+  font-weight: 200;
+  color: var(--ct-text-strong);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.dist-big-unit {
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--ct-text-muted);
+}
+
+.dist-bar {
+  width: 100%;
+  height: 1px;
+  background: var(--ct-border-strong);
+  margin-top: 20px;
+  position: relative;
+}
+
+.dist-bar-fill {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  height: 3px;
+  background: var(--ct-text-strong);
+}
+
+.dist-bar-fill.accent { background: var(--ct-accent-strong); }
+
+.dist-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 16px;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 11px;
+}
+
+.dist-rows-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--ct-border-soft);
+  color: var(--ct-text-body);
+}
+
+.dist-rows-item:last-child { border-bottom: none; }
+
+.dist-rows-item .due { color: var(--ct-accent-strong); }
+.dist-rows-item .scheduled { color: var(--ct-text-muted); }
+.dist-rows-item .paid { color: var(--ct-status-success); }
+
+/* === Status badges strip (source: cockpit-template + cyber-assets) === */
+.dash-status-strip {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dash-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, var(--ct-surface-3), var(--ct-surface-1));
+  border: 1px solid var(--ct-border-strong);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ct-text-body);
+}
+
+.dash-status-badge.accent {
+  color: var(--ct-accent-strong);
+  border-color: var(--ct-border-accent);
+}
+
+.dash-status-badge.success {
+  color: var(--ct-status-success);
+  border-color: var(--ct-status-success-border);
+}
+
+.dash-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--ct-text-strong);
+}
+
+.dash-status-dot.accent { background: var(--ct-accent-strong); }
+.dash-status-dot.success { background: var(--ct-status-success); }
+
+.dash-status-dot.live {
+  animation: dash-pulse 2s infinite;
+}
+
+@keyframes dash-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* === Section heading bento === */
+.dash-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dash-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ct-text-muted);
+}
+
+/* === Header & disclaimer === */
+.dash-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+
+.dash-header h1 {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ct-text-primary);
+  line-height: 1.15;
+  margin: 0;
+}
+
+.dash-header .eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ct-accent-strong);
+}
+
+.dash-header .sub {
+  font-size: 13px;
+  color: var(--ct-text-muted);
+  font-family: ui-monospace, monospace;
+}
+
+.dash-disclaimer {
+  font-size: 11px;
+  color: var(--ct-text-muted);
+  text-align: center;
+  padding: 24px 0;
+  border-top: 1px solid var(--ct-border-soft);
+  margin-top: 8px;
+  font-style: italic;
+}
+
+/* === Pile layout (rangées de bento) === */
+.dash-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* === Allocation row sous-section avec drapeaux === */
+.alloc-stat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.alloc-stat-pct {
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--ct-text-strong);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.alloc-stat-bucket {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ct-text-muted);
+  font-weight: 700;
+}
+
+.alloc-stat-value {
+  font-size: 11px;
+  color: var(--ct-text-body);
+  font-family: ui-monospace, monospace;
+}
