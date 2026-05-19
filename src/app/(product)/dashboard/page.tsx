@@ -1,292 +1,31 @@
-import { ActivityFeed } from "@/components/dashboard/activity-feed";
-import { AdvancedMetrics } from "@/components/dashboard/advanced-metrics";
-import {
-  AdvancedContent,
-  AdvancedProvider,
-  AdvancedTrigger,
-} from "@/components/dashboard/advanced-toggle";
-import { AllocationSection } from "@/components/dashboard/allocation-section";
-import { BtcTacticalSection } from "@/components/dashboard/btc-tactical";
-import { HeroMetrics } from "@/components/dashboard/hero-metrics";
-import { MiningHealthSection } from "@/components/dashboard/mining-health";
-import { RiskFrameworkSection } from "@/components/dashboard/risk-framework";
-import { TimeseriesSection } from "@/components/dashboard/timeseries-section";
-import { loadAdvancedMetrics } from "@/lib/data/advanced-metrics";
+import { Eyebrow, Title, Sub, KpiGrid, KpiCard, Card } from "@hearst/cockpit-shell";
 import { loadDashboardData } from "@/lib/data/dashboard";
-import { loadRiskFramework } from "@/lib/data/risk-framework";
 import { fetchHashprice } from "@/lib/data/hashprice";
-import type {
-  AllocationBucket,
-  BtcTactical,
-  DashboardSnapshot,
-  MiningHealth,
-  PtaiEvent,
-} from "@/lib/mock/dashboard";
-import type {
-  DashboardAllocation,
-  DashboardData,
-  DashboardRecentEvent,
-} from "@/lib/data/dashboard";
+import { loadRiskFramework } from "@/lib/data/risk-framework";
+import { loadAdvancedMetrics } from "@/lib/data/advanced-metrics";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
-  const [data, hashprice, riskFramework, advancedMetrics] = await Promise.all([
-    loadDashboardData(),
-    fetchHashprice(),
-    loadRiskFramework(),
-    loadAdvancedMetrics(),
-  ]);
-  const snapshot = toDashboardSnapshot(data);
-  const asOf = new Date(snapshot.asOf);
+const usdCompact = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
 
-  return (
-    <AdvancedProvider>
-      <section className="ct-section space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 ease-out fill-mode-both">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between px-2">
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <div className="h-2 w-2 rounded-full ct-status-dot-success animate-pulse" />
-              <p className="eyebrow tracking-widest" style={{ color: "var(--ct-text-muted)" }}>Hearst Yield Vault</p>
-            </div>
-            <h1 className="h1 ct-section-title" style={{ fontSize: "3.5rem", letterSpacing: "-0.03em" }}>
-              Dashboard
-            </h1>
-          </div>
-          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-6">
-            <div className="glass-panel-subtle px-4 py-2 rounded-full flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
-              <span className="mono tabular text-xs text-white/60">
-                Live sync · {" "}
-                {asOf.toLocaleString("en-US", {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                  timeZone: "UTC",
-                })}{" "}
-                UTC
-              </span>
-            </div>
-            <AdvancedTrigger />
-          </div>
-        </header>
+const usdShort = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  notation: "compact",
+  maximumFractionDigits: 0,
+});
 
-        <HeroMetrics snapshot={snapshot} btcPrice={data.btcPrice} />
-
-        <AdvancedContent>
-          <AdvancedMetrics data={advancedMetrics} />
-        </AdvancedContent>
-
-        <TimeseriesSection data={data.timeseries} />
-
-        <div className="grid gap-8 lg:grid-cols-3 lg:items-start">
-          <div className="lg:col-span-2">
-            <AllocationSection
-              allocations={snapshot.allocations}
-              blendedYieldRange={snapshot.blendedYieldRange}
-            />
-          </div>
-          <MiningHealthSection
-            miningHealth={snapshot.miningHealth}
-            hashprice={{
-              usd_per_th_day: hashprice.usd_per_th_day,
-              stale: hashprice.stale,
-            }}
-          />
-        </div>
-
-        <div className="grid gap-8 lg:grid-cols-3 lg:items-start">
-          <div className="lg:col-span-2">
-            <BtcTacticalSection btcTactical={snapshot.btcTactical} />
-          </div>
-          <RiskFrameworkSection data={riskFramework} />
-        </div>
-
-        <ActivityFeed events={snapshot.recentEvents} />
-
-        <footer className="border-t pb-12 text-center" style={{ borderColor: "var(--ct-border-soft)", paddingTop: "2rem" }}>
-          <p className="body-xs max-w-2xl mx-auto leading-relaxed">
-            Projections are conditional on the assumptions stated in
-            Methodology v1.0. APY ranges are not guaranteed; past performance
-            does not predict future returns. Mining cashflow is paper at
-            Phase 1, partner-attested from Phase 2.
-          </p>
-        </footer>
-      </section>
-    </AdvancedProvider>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Projection: DashboardData (Prisma + live) -> DashboardSnapshot (UI shape).
-// ---------------------------------------------------------------------------
-
-const ALLOCATION_LABEL: Record<DashboardAllocation["bucket"], AllocationBucket["label"]> = {
-  mining: "Mining cashflow",
-  usdc_base: "USDC base yield",
-  btc_tactical: "BTC tactical",
-  stable_reserve: "Stable reserve",
-};
-
-const ALLOCATION_ID: Record<DashboardAllocation["bucket"], AllocationBucket["id"]> = {
-  mining: "mining",
-  usdc_base: "usdc-base",
-  btc_tactical: "btc-tactical",
-  stable_reserve: "stable-reserve",
-};
-
-const ALLOCATION_NOTE: Record<DashboardAllocation["bucket"], string> = {
-  mining: "net of energy + hosting + pool fees",
-  usdc_base: "blended Aave / Morpho / Sky",
-  btc_tactical: "P&L variable, rule-driven entries",
-  stable_reserve: "T-bill-backed (sDAI, Sky USDS)",
-};
-
-const ALLOCATION_PROVENANCE: Record<
-  DashboardAllocation["bucket"],
-  AllocationBucket["provenance"]
-> = {
-  mining: "attested",
-  usdc_base: "oracle",
-  btc_tactical: "live",
-  stable_reserve: "oracle",
-};
-
-function toDashboardSnapshot(data: DashboardData): DashboardSnapshot {
-  const allocations: AllocationBucket[] = data.allocations.map((a) => ({
-    id: ALLOCATION_ID[a.bucket],
-    label: ALLOCATION_LABEL[a.bucket],
-    pctAum: a.pct,
-    yieldBps: Math.round(a.yieldContributionBps),
-    yieldNote: ALLOCATION_NOTE[a.bucket],
-    provenance: ALLOCATION_PROVENANCE[a.bucket],
-  }));
-
-  const miningHealth: MiningHealth = {
-    marginScore: data.vault.miningMarginScore,
-    hashpriceTrendPct: data.hashpriceTrendPct,
-    opConfidence: data.operationalConfidence,
-    provenance: "attested",
-  };
-
-  const btcAlloc = data.allocations.find((a) => a.bucket === "btc_tactical");
-  const btcSleeveUsd = btcAlloc?.valueUsdc ?? 0;
-  const btcSleevePct = btcAlloc?.pct ?? 0;
-  const btcPriceUsd = data.btcPrice.usd === 0 ? 94_180 : data.btcPrice.usd;
-  const avgEntry = 58_420;
-  const btcHeld = btcPriceUsd > 0 ? btcSleeveUsd / btcPriceUsd : 0;
-  const costBasis = btcHeld * avgEntry;
-  const pnlUsd = Math.round(btcSleeveUsd - costBasis);
-  const pnlPct = costBasis > 0 ? (pnlUsd / costBasis) * 100 : 0;
-
-  const btcTactical: BtcTactical = {
-    positionSizePctAum: btcSleevePct,
-    positionSizeUsd: btcSleeveUsd,
-    btcHeld: round2(btcHeld),
-    avgEntry,
-    currentPrice: Math.round(btcPriceUsd),
-    pnlUsd,
-    pnlPct: round1(pnlPct),
-    nextTriggers: [
-      {
-        id: "acc-t1",
-        label: "Next accumulate",
-        condition: `BTC < $${Math.round(btcPriceUsd * 0.8).toLocaleString("en-US")} (−20% from spot)`,
-        ruleId: "R-BTC-1",
-      },
-      {
-        id: "tp-t1",
-        label: "Next profit-take",
-        condition: `BTC > $${Math.round(avgEntry * 1.3).toLocaleString("en-US")} (entry × 1.30)`,
-        ruleId: "R-BTC-3",
-      },
-    ],
-    guardrails: [
-      {
-        id: "vol",
-        label: "Volatility guardrail",
-        status: "normal",
-        detail: "30d realised vol within band (threshold 90%)",
-      },
-      {
-        id: "margin",
-        label: "Mining margin guardrail",
-        status: data.vault.miningMarginScore >= 70 ? "healthy" : "normal",
-        detail: `Margin score ${data.vault.miningMarginScore} — ${
-          data.vault.miningMarginScore >= 70 ? "accumulation enabled" : "within tolerance"
-        }`,
-      },
-    ],
-    provenance: "partial",
-  };
-
-  const blendedBps = data.allocations.reduce(
-    (acc, a) => acc + (a.pct / 100) * a.yieldContributionBps,
-    0,
-  );
-  const blendedPct = blendedBps / 100;
-  const blendedRange = {
-    low: round1(Math.max(0, blendedPct * 0.85)),
-    high: round1(Math.max(blendedPct * 0.85 + 0.5, blendedPct * 1.18)),
-  };
-
-  return {
-    asOf: data.vault.asOf.toISOString(),
-    aum: {
-      valueUsd: data.vault.aumUsdc,
-      delta30dUsd: data.vault.delta30dUsdc,
-      provenance: data.source === "fallback" ? "estimated" : "live",
-    },
-    currentApyRange: data.vault.apyRange,
-    apyProvenance: "live",
-    stressedApy: data.vault.stressedApy,
-    stressedProvenance: "estimated",
-    stressedScenarioLabel: "Bear + Mining Compression",
-    riskScore: {
-      value: data.vault.riskScore,
-      bandLabel: riskBand(data.vault.riskScore),
-      provenance: "partial",
-    },
-    nextDistribution: {
-      dateLabel: formatDistributionDate(data.latestDistribution),
-      estimateUsd: data.latestDistribution.amount_usdc,
-      provenance: data.latestDistribution.status === "paid" ? "live" : "estimated",
-    },
-    allocations,
-    blendedYieldRange: blendedRange,
-    miningHealth,
-    btcTactical,
-    recentEvents:
-      data.recentEvents.length > 0 ? data.recentEvents.map(toPtaiEvent) : [],
-  };
-}
-
-function toPtaiEvent(e: DashboardRecentEvent): PtaiEvent {
-  return {
-    id: e.id,
-    timestamp: e.takenAt.toISOString(),
-    ruleId: e.ruleId,
-    kind: classifyEvent(e.ruleId),
-    projection: e.impactText,
-    trigger: `${e.ruleId} — ${e.triggerText}`,
-    action: e.actionText,
-    impact: e.impactText,
-  };
-}
-
-function classifyEvent(ruleId: string): PtaiEvent["kind"] {
-  if (ruleId.startsWith("R-DIST")) return "distribution";
-  if (ruleId.startsWith("R-BTC")) return "alert";
-  if (/^R-(WARN|ALERT)/.test(ruleId)) return "alert";
-  return "rebalance";
-}
-
-function riskBand(score: number): string {
-  if (score <= 33) return "Low";
-  if (score <= 50) return "Low–Moderate";
-  if (score <= 66) return "Moderate";
-  if (score <= 80) return "Elevated";
-  return "High";
-}
+const btcUsdFormat = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
 
 const monthDayFmt = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -308,10 +47,270 @@ function formatDistributionDate(d: {
   return monthDayFmt.format(lastDay);
 }
 
+function riskBand(score: number): string {
+  if (score <= 33) return "Low";
+  if (score <= 50) return "Low–Moderate";
+  if (score <= 66) return "Moderate";
+  if (score <= 80) return "Elevated";
+  return "High";
+}
+
 function round1(n: number): number {
   return Math.round(n * 10) / 10;
 }
 
-function round2(n: number): number {
-  return Math.round(n * 100) / 100;
+export default async function DashboardPage() {
+  const [data, hashprice, riskFramework] = await Promise.all([
+    loadDashboardData(),
+    fetchHashprice(),
+    loadRiskFramework(),
+  ]);
+
+  const asOf = new Date(data.vault.asOf);
+  const delta30d = data.vault.delta30dUsdc;
+  const aumTrend = delta30d >= 0 ? "+" : "−";
+
+  const btcPriceUsd = data.btcPrice.usd === 0 ? 94_180 : data.btcPrice.usd;
+  const btcValue = data.btcPrice.usd === 0 ? "Unavailable" : btcUsdFormat.format(btcPriceUsd);
+  const change24h = data.btcPrice.usd_24h_change;
+
+  const blendedBps = data.allocations.reduce(
+    (acc, a) => acc + (a.pct / 100) * a.yieldContributionBps,
+    0,
+  );
+  const blendedPct = blendedBps / 100;
+  const blendedLow = round1(Math.max(0, blendedPct * 0.85));
+  const blendedHigh = round1(Math.max(blendedPct * 0.85 + 0.5, blendedPct * 1.18));
+
+  const btcAlloc = data.allocations.find((a) => a.bucket === "btc_tactical");
+  const btcSleeveUsd = btcAlloc?.valueUsdc ?? 0;
+  const btcSleevePct = btcAlloc?.pct ?? 0;
+  const avgEntry = 58_420;
+  const btcHeld = btcPriceUsd > 0 ? btcSleeveUsd / btcPriceUsd : 0;
+  const costBasis = btcHeld * avgEntry;
+  const pnlUsd = Math.round(btcSleeveUsd - costBasis);
+  const pnlPct = costBasis > 0 ? (pnlUsd / costBasis) * 100 : 0;
+
+  const latestDist = data.latestDistribution;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div>
+        <Eyebrow>Hearst Yield Vault</Eyebrow>
+        <Title>Dashboard</Title>
+        <Sub>
+          Live sync ·{" "}
+          {asOf.toLocaleString("en-US", {
+            dateStyle: "medium",
+            timeStyle: "short",
+            timeZone: "UTC",
+          })}{" "}
+          UTC
+        </Sub>
+      </div>
+
+      <KpiGrid>
+        <KpiCard
+          label="AUM"
+          value={usdCompact.format(data.vault.aumUsdc)}
+          accent
+        />
+        <KpiCard
+          label="APY"
+          value={`${data.vault.apyRange.low}-${data.vault.apyRange.high}%`}
+        />
+        <KpiCard
+          label="Risk"
+          value={`${data.vault.riskScore}/100`}
+        />
+        <KpiCard
+          label="BTC"
+          value={btcValue}
+        />
+        <KpiCard
+          label="30d Δ"
+          value={`${aumTrend}${usdShort.format(Math.abs(delta30d))}`}
+        />
+        <KpiCard
+          label="Next dist"
+          value={formatDistributionDate(latestDist)}
+        />
+      </KpiGrid>
+
+      <Card title="Allocation">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+          {data.allocations.map((a) => (
+            <div
+              key={a.bucket}
+              style={{
+                padding: 12,
+                borderRadius: 8,
+                border: "1px solid var(--ct-border)",
+                background: "var(--ct-surface-1)",
+              }}
+            >
+              <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--ct-text-secondary)" }}>
+                {a.bucket === "mining" ? "Mining" : a.bucket === "usdc_base" ? "USDC Base" : a.bucket === "btc_tactical" ? "BTC Tactical" : "Stable Reserve"}
+              </div>
+              <div style={{ fontSize: 20, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: "var(--ct-text-primary)", marginTop: 4 }}>
+                {a.pct.toFixed(0)}%
+              </div>
+              <div style={{ fontSize: 11, color: "var(--ct-text-secondary)", marginTop: 4 }}>
+                {usdCompact.format(a.valueUsdc)}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 12, fontSize: 11, color: "var(--ct-text-secondary)" }}>
+          Blended target: {blendedLow}% - {blendedHigh}%
+        </div>
+      </Card>
+
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
+        <Card title="BTC Tactical">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+            <MiniStat label="Position" value={`${btcSleevePct.toFixed(0)}%`} />
+            <MiniStat label="BTC held" value={`${btcHeld.toFixed(2)}`} />
+            <MiniStat label="Avg entry" value={usd0.format(avgEntry)} />
+            <MiniStat label="Current" value={usd0.format(btcPriceUsd)} />
+            <MiniStat label="P&L" value={`${pnlUsd >= 0 ? "+" : ""}${usdCompact.format(Math.abs(pnlUsd))}`} />
+            <MiniStat label="P&L %" value={`${pnlPct >= 0 ? "+" : ""}${pnlPct.toFixed(1)}%`} />
+          </div>
+        </Card>
+
+        <Card title="Mining Health">
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <MiniStat label="Margin Score" value={`${data.vault.miningMarginScore}/100`} />
+            <MiniStat label="Hashprice" value={`$${hashprice.usd_per_th_day.toFixed(3)}`} />
+            <MiniStat label="Op Confidence" value={`${data.operationalConfidence}%`} />
+            <MiniStat label="Hash Trend" value={`${data.hashpriceTrendPct >= 0 ? "+" : ""}${data.hashpriceTrendPct.toFixed(1)}%`} />
+          </div>
+        </Card>
+      </div>
+
+      <Card title="Risk Framework">
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 16 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ct-text-primary)" }}>
+            Composite
+          </span>
+          <span style={{ fontSize: 28, fontWeight: 700, color: "var(--ct-accent)", fontVariantNumeric: "tabular-nums" }}>
+            {riskFramework.composite}
+          </span>
+          <span style={{ fontSize: 12, color: "var(--ct-text-secondary)" }}>/ 100</span>
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              textTransform: "uppercase",
+              padding: "2px 8px",
+              borderRadius: 999,
+              border: `1px solid var(--ct-accent)`,
+              color: "var(--ct-accent)",
+              marginLeft: "auto",
+            }}
+          >
+            {riskFramework.bandLabel}
+          </span>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {riskFramework.dimensions.map((d) => (
+            <div
+              key={d.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "8px 0",
+                borderBottom: "1px solid var(--ct-border)",
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ct-text-primary)" }}>
+                  {d.label}
+                </div>
+                <div style={{ fontSize: 10, color: "var(--ct-text-secondary)" }}>
+                  {d.detail}
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 14, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: "var(--ct-text-primary)" }}>
+                  {d.score}
+                </span>
+                <span
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    padding: "2px 6px",
+                    borderRadius: 999,
+                    border: `1px solid ${d.severity === "low" ? "var(--ct-success)" : d.severity === "medium" ? "var(--ct-warning)" : "var(--ct-danger)"}`,
+                    color: d.severity === "low" ? "var(--ct-success)" : d.severity === "medium" ? "var(--ct-warning)" : "var(--ct-danger)",
+                  }}
+                >
+                  {d.status}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card title="Recent Events">
+        {data.recentEvents.length === 0 ? (
+          <p style={{ fontSize: 12, color: "var(--ct-text-secondary)" }}>No recent events.</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {data.recentEvents.slice(0, 5).map((e) => (
+              <div
+                key={e.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "8px 0",
+                  borderBottom: "1px solid var(--ct-border)",
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ct-text-primary)" }}>
+                    {e.ruleId}
+                  </div>
+                  <div style={{ fontSize: 10, color: "var(--ct-text-secondary)" }}>
+                    {e.actionText}
+                  </div>
+                </div>
+                <span style={{ fontSize: 10, color: "var(--ct-text-secondary)", whiteSpace: "nowrap" }}>
+                  {e.takenAt.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      <div style={{ textAlign: "center", fontSize: 10, color: "var(--ct-text-secondary)", paddingTop: 8 }}>
+        Projections are conditional on the assumptions stated in Methodology v1.0.
+        APY ranges are not guaranteed; past performance does not predict future returns.
+      </div>
+    </div>
+  );
 }
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ textAlign: "center", padding: "8px 0" }}>
+      <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--ct-text-secondary)" }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 16, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: "var(--ct-text-primary)", marginTop: 4 }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+const usd0 = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
