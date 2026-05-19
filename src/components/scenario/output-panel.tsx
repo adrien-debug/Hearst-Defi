@@ -202,7 +202,7 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
       aria-busy={isPending}
     >
       {isPending && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[--radius-card] bg-[--ct-surface-2]/60 backdrop-blur-sm">
+        <div className="pointer-events-none absolute inset-0 z-[--ct-z-overlay] flex items-center justify-center rounded-[--radius-card] bg-[--ct-surface-2]/60 backdrop-blur-sm">
           <span className="text-sm text-[--ct-text-body]">Computing…</span>
         </div>
       )}

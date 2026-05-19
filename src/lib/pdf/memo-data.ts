@@ -2,7 +2,6 @@ import "server-only";
 
 import type { InvestorMemoInput } from "@/lib/agents/investor-memo";
 import {
-  loadDistributionHistory,
   loadLatestDistribution,
   type DistributionSnapshot,
 } from "@/lib/agents/loaders/distribution";
@@ -84,13 +83,6 @@ export async function loadMemoPdfExtras(): Promise<{
   return { miningOps, distribution, monthlyHistory };
 }
 
-/** Re-export so callers don't need to know the loader file paths. */
-export {
-  loadDistributionHistory,
-  loadLatestDistribution,
-  loadMiningOpsSnapshot,
-  loadVaultMonthlyHistory,
-};
 export type { DistributionSnapshot, MiningOpsSnapshot, VaultMonthlyRow };
 
 /** Stable label for an APY range field. */

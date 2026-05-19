@@ -143,7 +143,7 @@ function RiskRow({ dimension }: RiskRowProps) {
       <div className="flex min-w-0 flex-1 items-start gap-3">
         <span
           aria-hidden
-          className="mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full shadow-[0_0_8px_currentColor]"
+          className="mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full shadow-[--ct-glow-dot]"
           style={{ background: SEVERITY_DOT[severity], color: SEVERITY_DOT[severity] }}
         />
         <div className="min-w-0 flex-1">

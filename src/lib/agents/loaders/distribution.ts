@@ -61,59 +61,6 @@ export async function loadLatestDistribution(): Promise<DistributionSnapshot> {
   };
 }
 
-/**
- * Returns the last `months` distributions, ordered oldest → newest.
- * When the DB has fewer rows than requested, the response is padded with
- * synthesised entries sized off the latest known AUM so the PDF table never
- * shows holes.
- */
-export async function loadDistributionHistory(
-  months: number,
-): Promise<DistributionSnapshot[]> {
-  if (!Number.isFinite(months) || months <= 0) {
-    return [];
-  }
-  const safeMonths = Math.floor(months);
-
-  const rows = await prisma.distribution.findMany({
-    orderBy: { distributedAt: "desc" },
-    take: safeMonths,
-  });
-
-  const real = rows.map(rowToSnapshot).reverse(); // oldest → newest
-  if (real.length >= safeMonths) {
-    return real.slice(-safeMonths);
-  }
-
-  // Backfill with synthesised "paid" rows for past months and a "scheduled"
-  // row for the current month, so the PDF table is always fully populated.
-  const missing = safeMonths - real.length;
-  const snapshot = await prisma.vaultSnapshot.findFirst({
-    orderBy: { takenAt: "desc" },
-    select: { aumUsdc: true },
-  });
-  const aum = snapshot?.aumUsdc ?? 25_000_000;
-  const synthesised: DistributionSnapshot[] = [];
-  // Build oldest → newest. The newest synthesised entry lands on the current
-  // month; older entries step backwards. Amounts taper slightly into the
-  // past (0.4% relative drift per month) so the table reads as plausible.
-  for (let i = missing - 1; i >= 0; i -= 1) {
-    const monthsBack = i;
-    const date = monthsAgo(new Date(), monthsBack);
-    const drift = 1 - monthsBack * 0.004;
-    const amount = Math.round(aum * DEFAULT_MONTHLY_RATE * drift);
-    const isCurrent = monthsBack === 0;
-    synthesised.push({
-      period: periodOf(date),
-      amount_usdc: amount,
-      paid_at: isCurrent ? null : date,
-      status: isCurrent ? "scheduled" : "paid",
-    });
-  }
-
-  return [...synthesised, ...real];
-}
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -138,10 +85,4 @@ function periodOf(d: Date): string {
   const y = d.getUTCFullYear();
   const m = String(d.getUTCMonth() + 1).padStart(2, "0");
   return `${y}-${m}`;
-}
-
-function monthsAgo(reference: Date, n: number): Date {
-  const d = new Date(reference.getTime());
-  d.setUTCMonth(d.getUTCMonth() - n);
-  return d;
 }

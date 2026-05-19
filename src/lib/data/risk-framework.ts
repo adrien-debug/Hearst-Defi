@@ -173,7 +173,7 @@ function counterpartyDetail(score: number): string {
 }
 
 // ---------------------------------------------------------------------------
-// Composite band (matches dashboard hero `riskBand()` semantics).
+// Composite band (matches dashboard hero `riskBandVariant()` semantics).
 // ---------------------------------------------------------------------------
 
 function compositeBand(score: number): { band: RiskBand; label: string } {

@@ -8,17 +8,17 @@ export function Markdown({ content }: { content: string }) {
         remarkPlugins={[remarkGfm]}
         components={{
           h1: ({ children }) => (
-            <h1 className="mt-8 mb-4 text-2xl font-medium first:mt-0">
+            <h1 className="mt-8 mb-4 h1 first:mt-0">
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="mt-7 mb-3 text-lg font-medium text-[--ct-text-primary]">
+            <h2 className="mt-7 mb-3 h2">
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="mt-5 mb-2 text-base font-medium text-[--ct-text-body]">
+            <h3 className="mt-5 mb-2 h3">
               {children}
             </h3>
           ),

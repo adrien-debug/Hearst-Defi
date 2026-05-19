@@ -2,11 +2,6 @@ import { Text, View } from "@react-pdf/renderer";
 
 import { styles } from "./memo-styles";
 
-export interface MemoMeta {
-  period: string;
-  totalPages: number;
-}
-
 export function PageHeader({ period }: { period: string }) {
   return (
     <View>

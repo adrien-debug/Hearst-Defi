@@ -62,7 +62,7 @@ function ScoreRow({ label, hint, value, tone, bar }: ScoreRowProps) {
           <div className="flex items-center gap-2">
             <span
               aria-hidden
-              className="inline-block h-2 w-2 rounded-full shadow-[0_0_8px_currentColor]"
+              className="inline-block h-2 w-2 rounded-full shadow-[--ct-glow-dot]"
               style={{ background: TONE_DOT_COLOR[tone], color: TONE_DOT_COLOR[tone] }}
             />
             <span className="text-sm font-medium text-white group-hover:text-white/90 transition-colors">{label}</span>

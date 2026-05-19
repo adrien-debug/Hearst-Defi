@@ -44,6 +44,10 @@
   --ct-z-raised: 10;
   --ct-z-overlay: 100;
   --ct-z-modal: 1000;
+  --ct-z-rail: 50;
+  --ct-z-bottom-bar: 30;
+  --ct-z-dropdown: 40;
+  --ct-z-rail-tooltip: 100;
 
   /* Shadows */
   --ct-shadow-soft: 0 4px 24px -4px rgba(0, 0, 0, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.10);
@@ -51,6 +55,8 @@
   --ct-glow-subtle: 0 0 15px rgba(255, 255, 255, 0.10);
   --ct-glow-soft:   0 0 10px rgba(255, 255, 255, 0.50);
   --ct-glow-strong: 0 0 10px rgba(255, 255, 255, 0.80);
+  --ct-glow-dot: 0 0 8px currentColor;
+  --ct-scrollbar-size: 6px;
 }
 
 /* ── HELPERS sémantiques status (utilitaires Cockpit) ── */
@@ -285,7 +291,7 @@
   align-items: center;
   gap: 0.25rem;
   padding: 0.5rem 0;
-  z-index: 50;
+  z-index: var(--ct-z-rail);
 }
 
 .ct-rail-item {
@@ -342,7 +348,7 @@
   transition: opacity var(--ct-dur-base) var(--ct-ease);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  z-index: 100;
+  z-index: var(--ct-z-rail-tooltip);
 }
 
 .ct-rail-item:hover .ct-rail-item-tooltip {
@@ -363,7 +369,7 @@
   bottom: 1.5rem;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 30;
+  z-index: var(--ct-z-bottom-bar);
   width: max-content;
   max-width: calc(100% - 3rem);
   padding: 0.75rem 1.75rem;
@@ -386,7 +392,7 @@
 
 .ct-bottom-bar-inner {
   position: relative;
-  z-index: 1;
+  z-index: var(--ct-z-base);
   display: flex;
   align-items: center;
   gap: 1.25rem;

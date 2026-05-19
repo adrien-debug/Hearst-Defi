@@ -44,7 +44,7 @@ export function Metric({
       </span>
 
       {(sublabel || trend) && (
-        <div className="flex items-center gap-2 text-xs text-[--ct-text-muted] relative z-10 mt-auto pt-1">
+        <div className="flex min-w-0 items-center gap-2 text-xs text-[--ct-text-muted] relative z-10 mt-auto pt-1">
           {trend ? (
             <span
               className={cn(

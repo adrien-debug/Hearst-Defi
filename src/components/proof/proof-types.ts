@@ -2,8 +2,6 @@ import type { ProofItem, ProofType } from "@/lib/mock/proof-center";
 import type { OnChainEvent } from "@/lib/chain/event-logger";
 import type { OnChainAttestation } from "@/lib/chain/por-registry";
 
-export type ProofSource = "on-chain" | "paper";
-
 /**
  * Discriminated union covering on-chain events, on-chain PoR attestations,
  * and the off-chain "paper" proofs from `src/lib/mock/proof-center`.

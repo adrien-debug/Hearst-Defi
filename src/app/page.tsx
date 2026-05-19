@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -12,11 +13,14 @@ export default function Home() {
       <section className="flex items-center justify-center px-6 py-24 md:py-32">
         <div className="max-w-4xl text-center">
           <FadeIn delay={0}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src="/logos/hearst-connect.svg"
               alt="Hearst Connect"
+              width={791}
+              height={268}
               className="mx-auto mb-10 h-14 w-auto md:h-16"
+              priority
+              unoptimized
             />
           </FadeIn>
           

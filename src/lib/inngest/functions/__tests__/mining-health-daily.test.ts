@@ -42,17 +42,31 @@ vi.mock("@/lib/agents/mining-health", () => ({
 /**
  * Mock Prisma so the persist step does not hit the real database.
  */
-const miningMetricFindFirstMock = vi.fn(async () => ({
-  hashprice: 0.085,
-  difficulty: 100,
-  btcPrice: 65_000,
-  energyCost: 0.05,
-  uptimePct: 98.4,
-  deployedHashrate: 182_000,
-  miningMarginScore: 64,
-  hashpriceTrendPct: 3.2,
-  operationalConfidence: 80,
-}));
+type MiningMetricRow = {
+  hashprice: number;
+  difficulty: number;
+  btcPrice: number;
+  energyCost: number;
+  uptimePct: number;
+  deployedHashrate: number;
+  miningMarginScore: number;
+  hashpriceTrendPct: number;
+  operationalConfidence: number;
+};
+
+const miningMetricFindFirstMock = vi.fn<() => Promise<MiningMetricRow | null>>(
+  async () => ({
+    hashprice: 0.085,
+    difficulty: 100,
+    btcPrice: 65_000,
+    energyCost: 0.05,
+    uptimePct: 98.4,
+    deployedHashrate: 182_000,
+    miningMarginScore: 64,
+    hashpriceTrendPct: 3.2,
+    operationalConfidence: 80,
+  }),
+);
 
 const miningMetricCreateMock = vi.fn(
   async (args: { data: Record<string, unknown> }) => ({
@@ -147,8 +161,7 @@ describe("miningHealthDaily Inngest function", () => {
     // First call: idempotency guard — no existing agent row for today
     // Second call: raw-metrics lookup — returns the latest snapshot row
     miningMetricFindFirstMock
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .mockResolvedValueOnce(null as any)
+      .mockResolvedValueOnce(null)
       .mockResolvedValueOnce({
         hashprice: 0.085,
         difficulty: 100,

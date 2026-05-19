@@ -17,14 +17,14 @@ import { isDuplicate, markComplete } from "@/lib/idempotency";
  *
  * Cron: every hour at minute 0.
  */
-export const MARKET_DATA_HOURLY_ID = "market-data-hourly" as const;
-export const MARKET_DATA_HOURLY_CRON = "0 * * * *" as const;
+const MARKET_DATA_HOURLY_ID = "market-data-hourly" as const;
+const MARKET_DATA_HOURLY_CRON = "0 * * * *" as const;
 
 export interface MarketDataHourlyStep {
   run<T>(name: string, fn: () => T | Promise<T>): Promise<T>;
 }
 
-export async function marketDataHourlyHandler({
+async function marketDataHourlyHandler({
   step,
 }: {
   step: MarketDataHourlyStep;
@@ -81,7 +81,7 @@ export async function marketDataHourlyHandler({
           hashprice: hp.usd_per_th_day,
           difficulty: hp.difficulty,
           btcPrice: btc.usd,
-          energyCost: 0.05,
+          energyCost: 0.05, // industry average, no public real-time feed
           uptimePct: 98.5, // placeholder until real uptime feed
           deployedHashrate: 182_000, // TH/s placeholder
           miningMarginScore: marginScore,

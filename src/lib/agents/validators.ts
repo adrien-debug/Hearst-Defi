@@ -17,8 +17,6 @@ export const FORBIDDEN_WORDS = [
   "no risk",
 ] as const;
 
-export type ForbiddenWord = (typeof FORBIDDEN_WORDS)[number];
-
 /**
  * Throws if `text` contains any of `FORBIDDEN_WORDS` (case-insensitive).
  *

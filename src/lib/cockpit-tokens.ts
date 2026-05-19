@@ -74,6 +74,3 @@ export const CT_ALLOCATION = {
   stable_reserve: CT_PDF.borderStrong,
 } as const;
 
-// ── Type exports ───────────────────────────────────────────────────────────
-export type CtPdfPalette = typeof CT_PDF;
-export type CtAllocationKey = keyof typeof CT_ALLOCATION;

@@ -2,7 +2,7 @@ import { Eyebrow, Title, Sub, KpiGrid, KpiCard, Card } from "@hearst/cockpit-she
 import { loadDashboardData } from "@/lib/data/dashboard";
 import { fetchHashprice } from "@/lib/data/hashprice";
 import { loadRiskFramework } from "@/lib/data/risk-framework";
-import { loadAdvancedMetrics } from "@/lib/data/advanced-metrics";
+import { Badge } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
 
@@ -47,16 +47,21 @@ function formatDistributionDate(d: {
   return monthDayFmt.format(lastDay);
 }
 
-function riskBand(score: number): string {
-  if (score <= 33) return "Low";
-  if (score <= 50) return "Low–Moderate";
-  if (score <= 66) return "Moderate";
-  if (score <= 80) return "Elevated";
-  return "High";
-}
-
 function round1(n: number): number {
   return Math.round(n * 10) / 10;
+}
+
+function riskBandVariant(score: number): "success" | "warning" | "danger" | "default" {
+  if (score <= 50) return "success";
+  if (score <= 66) return "warning";
+  return "danger";
+}
+
+function severityVariant(severity: string): "success" | "warning" | "danger" | "default" {
+  if (severity === "low") return "success";
+  if (severity === "medium") return "warning";
+  if (severity === "high") return "danger";
+  return "default";
 }
 
 export default async function DashboardPage() {
@@ -72,7 +77,6 @@ export default async function DashboardPage() {
 
   const btcPriceUsd = data.btcPrice.usd === 0 ? 94_180 : data.btcPrice.usd;
   const btcValue = data.btcPrice.usd === 0 ? "Unavailable" : btcUsdFormat.format(btcPriceUsd);
-  const change24h = data.btcPrice.usd_24h_change;
 
   const blendedBps = data.allocations.reduce(
     (acc, a) => acc + (a.pct / 100) * a.yieldContributionBps,
@@ -94,7 +98,7 @@ export default async function DashboardPage() {
   const latestDist = data.latestDistribution;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+    <div className="flex flex-col gap-6">
       <div>
         <Eyebrow>Hearst Yield Vault</Eyebrow>
         <Title>Dashboard</Title>
@@ -138,37 +142,32 @@ export default async function DashboardPage() {
       </KpiGrid>
 
       <Card title="Allocation">
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           {data.allocations.map((a) => (
             <div
               key={a.bucket}
-              style={{
-                padding: 12,
-                borderRadius: 8,
-                border: "1px solid var(--ct-border)",
-                background: "var(--ct-surface-1)",
-              }}
+              className="p-3 rounded-[--ct-radius-md] border border-[--ct-border] bg-[--ct-surface-1]"
             >
-              <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--ct-text-secondary)" }}>
+              <div className="text-[length:var(--text-micro)] uppercase tracking-[--tracking-loose] text-[--ct-text-muted]">
                 {a.bucket === "mining" ? "Mining" : a.bucket === "usdc_base" ? "USDC Base" : a.bucket === "btc_tactical" ? "BTC Tactical" : "Stable Reserve"}
               </div>
-              <div style={{ fontSize: 20, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: "var(--ct-text-primary)", marginTop: 4 }}>
+              <div className="text-[length:var(--text-lg)] font-bold tabular-nums text-[--ct-text-primary] mt-1">
                 {a.pct.toFixed(0)}%
               </div>
-              <div style={{ fontSize: 11, color: "var(--ct-text-secondary)", marginTop: 4 }}>
+              <div className="text-[length:var(--text-micro)] text-[--ct-text-muted] mt-1">
                 {usdCompact.format(a.valueUsdc)}
               </div>
             </div>
           ))}
         </div>
-        <div style={{ marginTop: 12, fontSize: 11, color: "var(--ct-text-secondary)" }}>
+        <div className="mt-3 text-[length:var(--text-micro)] text-[--ct-text-muted]">
           Blended target: {blendedLow}% - {blendedHigh}%
         </div>
       </Card>
 
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
+      <div className="grid grid-cols-[2fr_1fr] gap-4">
         <Card title="BTC Tactical">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+          <div className="grid grid-cols-2 gap-3">
             <MiniStat label="Position" value={`${btcSleevePct.toFixed(0)}%`} />
             <MiniStat label="BTC held" value={`${btcHeld.toFixed(2)}`} />
             <MiniStat label="Avg entry" value={usd0.format(avgEntry)} />
@@ -179,7 +178,7 @@ export default async function DashboardPage() {
         </Card>
 
         <Card title="Mining Health">
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div className="flex flex-col gap-3">
             <MiniStat label="Margin Score" value={`${data.vault.miningMarginScore}/100`} />
             <MiniStat label="Hashprice" value={`$${hashprice.usd_per_th_day.toFixed(3)}`} />
             <MiniStat label="Op Confidence" value={`${data.operationalConfidence}%`} />
@@ -189,106 +188,69 @@ export default async function DashboardPage() {
       </div>
 
       <Card title="Risk Framework">
-        <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 16 }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ct-text-primary)" }}>
+        <div className="flex items-baseline gap-3 mb-4">
+          <span className="text-[length:var(--text-xs)] font-semibold text-[--ct-text-primary]">
             Composite
           </span>
-          <span style={{ fontSize: 28, fontWeight: 700, color: "var(--ct-accent)", fontVariantNumeric: "tabular-nums" }}>
+          <span className="text-[length:var(--text-2xl)] font-bold text-[--ct-accent] tabular-nums">
             {riskFramework.composite}
           </span>
-          <span style={{ fontSize: 12, color: "var(--ct-text-secondary)" }}>/ 100</span>
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              textTransform: "uppercase",
-              padding: "2px 8px",
-              borderRadius: 999,
-              border: `1px solid var(--ct-accent)`,
-              color: "var(--ct-accent)",
-              marginLeft: "auto",
-            }}
-          >
-            {riskFramework.bandLabel}
+          <span className="text-[length:var(--text-xs)] text-[--ct-text-muted]">/ 100</span>
+          <span className="ml-auto">
+            <Badge variant={riskBandVariant(riskFramework.composite)}>
+              {riskFramework.bandLabel}
+            </Badge>
           </span>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="flex flex-col gap-2">
           {riskFramework.dimensions.map((d) => (
-            <div
-              key={d.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "8px 0",
-                borderBottom: "1px solid var(--ct-border)",
-              }}
-            >
+            <ListRow key={d.id}>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ct-text-primary)" }}>
+                <div className="text-[length:var(--text-xs)] font-semibold text-[--ct-text-primary]">
                   {d.label}
                 </div>
-                <div style={{ fontSize: 10, color: "var(--ct-text-secondary)" }}>
+                <div className="text-[length:var(--text-micro)] text-[--ct-text-muted]">
                   {d.detail}
                 </div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: "var(--ct-text-primary)" }}>
+              <div className="flex items-center gap-2">
+                <span className="text-[length:var(--text-sm)] font-bold tabular-nums text-[--ct-text-primary]">
                   {d.score}
                 </span>
-                <span
-                  style={{
-                    fontSize: 9,
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    padding: "2px 6px",
-                    borderRadius: 999,
-                    border: `1px solid ${d.severity === "low" ? "var(--ct-success)" : d.severity === "medium" ? "var(--ct-warning)" : "var(--ct-danger)"}`,
-                    color: d.severity === "low" ? "var(--ct-success)" : d.severity === "medium" ? "var(--ct-warning)" : "var(--ct-danger)",
-                  }}
-                >
+                <Badge variant={severityVariant(d.severity)}>
                   {d.status}
-                </span>
+                </Badge>
               </div>
-            </div>
+            </ListRow>
           ))}
         </div>
       </Card>
 
       <Card title="Recent Events">
         {data.recentEvents.length === 0 ? (
-          <p style={{ fontSize: 12, color: "var(--ct-text-secondary)" }}>No recent events.</p>
+          <p className="text-[length:var(--text-xs)] text-[--ct-text-muted]">No recent events.</p>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className="flex flex-col gap-2">
             {data.recentEvents.slice(0, 5).map((e) => (
-              <div
-                key={e.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "8px 0",
-                  borderBottom: "1px solid var(--ct-border)",
-                }}
-              >
+              <ListRow key={e.id}>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ct-text-primary)" }}>
+                  <div className="text-[length:var(--text-xs)] font-semibold text-[--ct-text-primary]">
                     {e.ruleId}
                   </div>
-                  <div style={{ fontSize: 10, color: "var(--ct-text-secondary)" }}>
+                  <div className="text-[length:var(--text-micro)] text-[--ct-text-muted]">
                     {e.actionText}
                   </div>
                 </div>
-                <span style={{ fontSize: 10, color: "var(--ct-text-secondary)", whiteSpace: "nowrap" }}>
+                <span className="text-[length:var(--text-micro)] text-[--ct-text-muted] whitespace-nowrap">
                   {e.takenAt.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                 </span>
-              </div>
+              </ListRow>
             ))}
           </div>
         )}
       </Card>
 
-      <div style={{ textAlign: "center", fontSize: 10, color: "var(--ct-text-secondary)", paddingTop: 8 }}>
+      <div className="text-center text-[length:var(--text-micro)] text-[--ct-text-muted] pt-2">
         Projections are conditional on the assumptions stated in Methodology v1.0.
         APY ranges are not guaranteed; past performance does not predict future returns.
       </div>
@@ -296,13 +258,21 @@ export default async function DashboardPage() {
   );
 }
 
+function ListRow({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between border-b border-[--ct-border] py-2">
+      {children}
+    </div>
+  );
+}
+
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ textAlign: "center", padding: "8px 0" }}>
-      <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--ct-text-secondary)" }}>
+    <div className="text-center py-2">
+      <div className="text-[length:var(--text-micro)] uppercase tracking-[--tracking-loose] text-[--ct-text-muted]">
         {label}
       </div>
-      <div style={{ fontSize: 16, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: "var(--ct-text-primary)", marginTop: 4 }}>
+      <div className="text-[length:var(--text-md)] font-bold tabular-nums text-[--ct-text-primary] mt-1">
         {value}
       </div>
     </div>

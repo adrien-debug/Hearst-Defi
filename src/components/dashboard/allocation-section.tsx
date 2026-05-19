@@ -102,7 +102,7 @@ export function AllocationSection({
                 <span
                   aria-hidden
                   className={cn(
-                    "mt-1.5 h-3 w-3 shrink-0 rounded-full shadow-[0_0_8px_currentColor]",
+                    "mt-1.5 h-3 w-3 shrink-0 rounded-full shadow-[--ct-glow-dot]",
                   )}
                   style={{ background: BUCKET_TONES[bucket.id], color: BUCKET_TONES[bucket.id] }}
                 />

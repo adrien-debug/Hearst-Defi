@@ -320,14 +320,18 @@ describe("InvestorMemoOutputSchema", () => {
   });
 
   it("rejects a payload missing one field", () => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { disclaimer, ...withoutDisclaimer } = validMemo;
+    const withoutDisclaimer = Object.fromEntries(
+      Object.entries(validMemo).filter(([k]) => k !== "disclaimer"),
+    );
     expect(() => InvestorMemoOutputSchema.parse(withoutDisclaimer)).toThrow();
   });
 
   it("rejects a payload missing multiple fields", () => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { executive_summary, vault_structure, ...rest } = validMemo;
+    const rest = Object.fromEntries(
+      Object.entries(validMemo).filter(
+        ([k]) => k !== "executive_summary" && k !== "vault_structure",
+      ),
+    );
     expect(() => InvestorMemoOutputSchema.parse(rest)).toThrow();
   });
 

@@ -17,7 +17,7 @@ import { assertCitesAssumption, assertNoForbiddenWords } from "@/lib/agents/vali
  *
  * Pinned to Sonnet 4.6 per CLAUDE.md. Daily cron 08:00 UTC.
  */
-export const MINING_HEALTH_MODEL = "claude-sonnet-4-6" as const;
+const MINING_HEALTH_MODEL = "claude-sonnet-4-6" as const;
 
 /**
  * Local input type. Re-declared here for the same reason as

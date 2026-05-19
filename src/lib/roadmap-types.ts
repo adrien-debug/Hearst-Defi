@@ -85,19 +85,3 @@ export function statusDotColor(status: RoadmapStatus): string {
   }
 }
 
-export function statusBadgeVariant(
-  status: RoadmapStatus,
-): "default" | "success" | "warning" | "danger" | "brand" {
-  switch (status) {
-    case "todo":
-      return "default";
-    case "in_progress":
-      return "warning";
-    case "done":
-      return "success";
-    case "validated":
-      return "brand";
-    case "blocked":
-      return "danger";
-  }
-}

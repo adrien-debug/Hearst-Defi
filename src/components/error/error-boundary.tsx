@@ -2,6 +2,8 @@
 
 import React from "react";
 
+import { Button } from "@/components/ui/button";
+
 interface Props {
   children: React.ReactNode;
   fallback?: React.ReactNode;
@@ -71,12 +73,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
                 try again later.
               </p>
             </div>
-            <button
-              onClick={() => window.location.reload()}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors"
-            >
+            <Button variant="ghost" size="sm" onClick={() => window.location.reload()}>
               Refresh page
-            </button>
+            </Button>
             {process.env.NODE_ENV === "development" && this.state.error && (
               <pre className="mt-4 p-4 rounded-lg ct-status-danger-bg text-left text-xs overflow-auto" style={{ color: "var(--ct-status-danger)" }}>
                 {this.state.error.message}

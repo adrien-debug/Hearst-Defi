@@ -262,33 +262,42 @@ export function CompareMode() {
     });
   }, []);
 
-  // Auto-run on initial mount with the default pair and whenever both sides
-  // change to a valid distinct pair. State updates inside runComparison are
-  // wrapped in startTransition (non-cascading); the eslint rule is suppressed
-  // here because the transition pattern is the correct way to initiate async
-  // state from an effect.
+  // Auto-run on initial mount with the default pair. The refs capture the
+  // initial preset values so the effect can be declared with a stable deps
+  // array while still reading the correct starting state.
+  const initialA = useRef(presetA);
+  const initialB = useRef(presetB);
+  const didRunInitial = useRef(false);
   useEffect(() => {
-    if (presetA && presetB && presetA !== presetB) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      runComparison(presetA, presetB);
-    } else {
-      setOutputs({ a: null, b: null });
+    const a = initialA.current;
+    const b = initialB.current;
+    if (!didRunInitial.current && a && b && a !== b) {
+      didRunInitial.current = true;
+      runComparison(a, b);
     }
-  }, [presetA, presetB, runComparison]);
+  }, [runComparison]);
 
   function handleSelectA(p: Preset) {
     // If the user picks the same preset that's on B, swap.
-    if (p === presetB) {
-      setPresetB(presetA);
-    }
+    const nextB = p === presetB ? presetA : presetB;
     setPresetA(p);
+    setPresetB(nextB);
+    if (nextB && p !== nextB) {
+      runComparison(p, nextB);
+    } else {
+      setOutputs({ a: null, b: null });
+    }
   }
 
   function handleSelectB(p: Preset) {
-    if (p === presetA) {
-      setPresetA(presetB);
-    }
+    const nextA = p === presetA ? presetB : presetA;
     setPresetB(p);
+    setPresetA(nextA);
+    if (nextA && p !== nextA) {
+      runComparison(nextA, p);
+    } else {
+      setOutputs({ a: null, b: null });
+    }
   }
 
   const showOutputs = outputs.a !== null && outputs.b !== null;
