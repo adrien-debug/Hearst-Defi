@@ -17,6 +17,7 @@ import type {
 } from "@/lib/data/risk-framework";
 import type { AdvancedMetricsData } from "@/lib/data/advanced-metrics";
 import type { ProofItem } from "@/lib/mock/proof-center";
+import type { PositionDetail } from "@/lib/data/portfolio";
 import type { DistributionSnapshot } from "@/lib/agents/loaders/distribution";
 import type { MiningOpsSnapshot } from "@/lib/agents/loaders/mining";
 import type { VaultMonthlyRow } from "@/lib/agents/loaders/vault";
@@ -401,6 +402,74 @@ export const DEMO_RISK_FRAMEWORK: RiskFrameworkData = {
 export { DEMO_HASHPRICE, DEMO_BTC_PRICE };
 
 // ---------------------------------------------------------------------------
+// Portfolio position constants — declared here so DEMO_POSITION_DETAIL and
+// DEMO_PORTFOLIO_DATA can both reference them without temporal dead zone.
+// ---------------------------------------------------------------------------
+
+const DEMO_POSITION_PRINCIPAL = 500_000;
+const DEMO_POSITION_ACCRUED = 19_250;   // ~11.1% annualised × 5.5 months
+const DEMO_POSITION_DISTRIBUTED = 27_300; // 3 monthly distributions paid
+
+// ---------------------------------------------------------------------------
+// PositionDetail — for /portfolio/[positionId]
+// APY range non-negotiable #1 — always as a range, never a single point.
+// No forbidden words (#5): no "guarantee", "promise", "certain", "risk-free".
+// ---------------------------------------------------------------------------
+
+export const DEMO_POSITION_DETAIL: PositionDetail = {
+  id: "demo-pos-001",
+  vaultName: "Hearst Yield Vault",
+  vaultTicker: "HYV-A",
+  status: "active",
+  principalUsdc: DEMO_POSITION_PRINCIPAL,
+  accruedYieldUsdc: DEMO_POSITION_ACCRUED,
+  distributedUsdc: DEMO_POSITION_DISTRIBUTED,
+  realizedApyLow: DEMO_APY_LOW,
+  realizedApyHigh: DEMO_APY_HIGH,
+  subscribedAt: daysBefore(168),
+  maturedAt: null,
+  txHashOpen: "0xdemo01ab23cd45ef6789ab12cd34ef5678901234567890abcdef1234567890ab",
+  transactions: [
+    {
+      id: "demo-tx-05",
+      type: "distribution",
+      amountUsdc: 9_200,
+      occurredAt: daysBefore(19),
+      txHash: null,
+    },
+    {
+      id: "demo-tx-04",
+      type: "distribution",
+      amountUsdc: 9_100,
+      occurredAt: daysBefore(49),
+      txHash: null,
+    },
+    {
+      id: "demo-tx-03",
+      type: "distribution",
+      amountUsdc: 9_000,
+      occurredAt: daysBefore(80),
+      txHash: null,
+    },
+    {
+      id: "demo-tx-02",
+      type: "claim",
+      amountUsdc: 4_800,
+      occurredAt: daysBefore(112),
+      txHash: null,
+    },
+    {
+      id: "demo-tx-01",
+      type: "deposit",
+      amountUsdc: DEMO_POSITION_PRINCIPAL,
+      occurredAt: daysBefore(168),
+      txHash: "0xdemo01ab23cd45ef6789ab12cd34ef5678901234567890abcdef1234567890ab",
+    },
+  ],
+  source: "live",
+};
+
+// ---------------------------------------------------------------------------
 // Proofs — 8 entries across all four ProofType variants, spread across the
 // last six months so the Proof Center grid and filters render meaningfully.
 // ---------------------------------------------------------------------------
@@ -517,18 +586,6 @@ export const DEMO_ADVANCED_METRICS: AdvancedMetricsData = {
   calmar: 1.7,
   calmarFinite: true,
 };
-
-// ---------------------------------------------------------------------------
-// Portfolio — demo investor position
-// ---------------------------------------------------------------------------
-// Single active position representing a $500k institutional subscription.
-// APY range: 9.4–12.8% (non-negotiable #1 — never a single point).
-// Transactions span 6 months to exercise the recent-activity feed.
-// ---------------------------------------------------------------------------
-
-const DEMO_POSITION_PRINCIPAL = 500_000;
-const DEMO_POSITION_ACCRUED = 19_250;   // ~11.1% annualised × 5.5 months
-const DEMO_POSITION_DISTRIBUTED = 27_300; // 3 monthly distributions paid
 
 // ---------------------------------------------------------------------------
 // Vault product — single MVP vault fixture (CLAUDE.md non-negotiable #9).
