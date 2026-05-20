@@ -9,6 +9,22 @@ import { FadeIn, StaggerContainer, StaggerItem } from "@/components/animation/mo
 export default function Home() {
   return (
     <main className="min-h-dvh">
+      {/* Top nav */}
+      <header className="sticky top-0 z-[var(--ct-z-overlay)] border-b border-[--ct-border-soft] bg-[--ct-bg-deep]/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <Link href="/" className="eyebrow text-[--ct-text-strong] no-underline">
+            Hearst Connect
+          </Link>
+          <nav aria-label="Primary" className="flex items-center gap-1">
+            <NavLink href="/dashboard" label="Dashboard" />
+            <NavLink href="/portfolio" label="Portfolio" />
+            <NavLink href="/vaults" label="Vaults" />
+            <NavLink href="/proof-center" label="Proof" />
+            <NavLink href="/admin/vaults" label="Admin" />
+          </nav>
+        </div>
+      </header>
+
       {/* Hero */}
       <section className="flex items-center justify-center px-6 py-24 md:py-32">
         <div className="max-w-4xl text-center">
@@ -133,6 +149,17 @@ export default function Home() {
         </div>
       </footer>
     </main>
+  );
+}
+
+function NavLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="body-sm rounded-md px-3 py-2 text-[--ct-text-body] transition-colors hover:bg-[--ct-surface-1] hover:text-[--ct-text-strong] no-underline"
+    >
+      {label}
+    </Link>
   );
 }
 
