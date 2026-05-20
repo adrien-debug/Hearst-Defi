@@ -56,6 +56,7 @@
   --ct-glow-soft:   0 0 10px rgba(255, 255, 255, 0.50);
   --ct-glow-strong: 0 0 10px rgba(255, 255, 255, 0.80);
   --ct-glow-dot: 0 0 8px currentColor;
+  --ct-shadow-focus-ring: 0 0 0 3px var(--ct-glow-soft);
   --ct-scrollbar-size: 6px;
 
   /* Transitions — déclarées explicitement ici car le package tokens.css

@@ -218,7 +218,7 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
                 isActive
                   ? [
                       "border-[--ct-text-strong] bg-[--ct-text-strong] text-[--ct-bg-deep]",
-                      "shadow-[0_0_0_3px_var(--ct-glow-soft)]",
+                      "shadow-[var(--ct-shadow-focus-ring)]",
                     ]
                   : [
                       "border-[--ct-border-strong] bg-[--ct-surface-1]",

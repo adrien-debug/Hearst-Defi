@@ -75,7 +75,9 @@ Utilisables comme `bg-bg`, `bg-bg-card`, `text-text`, `border-border`, etc. Aucu
 
 ### Shadows / glows
 
-`--ct-shadow-soft · --ct-shadow-elevated · --ct-shadow-depth · --ct-glow-subtle · --ct-glow-soft · --ct-glow-strong · --ct-glow-dot`.
+`--ct-shadow-soft · --ct-shadow-elevated · --ct-shadow-depth · --ct-glow-subtle · --ct-glow-soft · --ct-glow-strong · --ct-glow-dot · --ct-shadow-focus-ring`.
+
+`--ct-shadow-focus-ring` (`0 0 0 3px var(--ct-glow-soft)`) — focus-ring composite shadow utilisé sur les éléments cliquables actifs (preset buttons, sliders). Ajouté 2026-05-20 (process §7) suite à 2 usages dupliqués en arbitrary value.
 
 ---
 
