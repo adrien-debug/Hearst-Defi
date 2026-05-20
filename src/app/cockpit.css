@@ -491,10 +491,7 @@
 .ct-rail-intra {
   position: fixed;
   left: 0;
-  /* Sous le launcher inter-apps du shell (~48px header + 32px offset).
-     Si le shell promeut --ct-shell-header-h un jour, on l'utilise ; sinon
-     fallback 5rem (80px) — zéro régression. */
-  top: var(--ct-shell-header-h, 5rem);
+  top: var(--ct-shell-header-h);
   width: var(--ct-rail-left, 5.5rem);
   display: flex;
   flex-direction: column;
