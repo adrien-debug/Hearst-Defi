@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Hearst Connect</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body {
+        width: 100%;
+        height: 100%;
+        background: rgba(26, 5, 11, 0.92);
+        backdrop-filter: blur(40px) saturate(110%);
+        -webkit-backdrop-filter: blur(40px) saturate(110%);
+        color: rgba(245, 245, 245, 0.92);
+        font-family: -apple-system, BlinkMacSystemFont, "Inter", ui-sans-serif, system-ui, sans-serif;
+        overflow: hidden;
+        -webkit-app-region: drag;
+      }
+      .wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        padding: 32px;
+      }
+      .eyebrow {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(245, 245, 245, 0.48);
+        margin-bottom: 12px;
+      }
+      h1 {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 8px;
+        color: #ffffff;
+      }
+      p {
+        font-size: 13px;
+        color: rgba(245, 245, 245, 0.72);
+        margin-bottom: 32px;
+      }
+      .options {
+        display: flex;
+        gap: 12px;
+        -webkit-app-region: no-drag;
+      }
+      button {
+        flex: 1;
+        min-width: 180px;
+        padding: 20px 24px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        border-radius: 12px;
+        color: rgba(245, 245, 245, 0.92);
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        text-align: left;
+        transition:
+          background 180ms cubic-bezier(0.2, 0.7, 0.2, 1),
+          border-color 180ms cubic-bezier(0.2, 0.7, 0.2, 1),
+          transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+      button:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(138, 21, 56, 0.55);
+        transform: translateY(-1px);
+      }
+      button .label {
+        display: block;
+        font-weight: 700;
+        font-size: 15px;
+        margin-bottom: 4px;
+      }
+      button .url {
+        display: block;
+        font-size: 11px;
+        color: rgba(245, 245, 245, 0.48);
+        font-family: ui-monospace, "SF Mono", Menlo, Monaco, monospace;
+      }
+      .footer {
+        margin-top: 32px;
+        font-size: 11px;
+        color: rgba(245, 245, 245, 0.40);
+        -webkit-app-region: no-drag;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <span class="eyebrow">Hearst Connect</span>
+      <h1>Select environment</h1>
+      <p>Choose which build to launch.</p>
+      <div class="options">
+        <button class="local" onclick="window.electron.selectEnv('local')">
+          <span class="label">Local</span>
+          <span class="url">localhost:4105</span>
+        </button>
+        <button class="prod" onclick="window.electron.selectEnv('prod')">
+          <span class="label">Production</span>
+          <span class="url">app.hearst.connect</span>
+        </button>
+      </div>
+      <div class="footer">⌘Q to quit · Menu → Switch environment to return here</div>
+    </div>
+    <script>
+      window.electron.getLastEnv().then((env) => {
+        const btn = document.querySelector("." + env);
+        if (btn) btn.style.borderColor = "rgba(138, 21, 56, 0.55)";
+      });
+    </script>
+  </body>
+</html>

@@ -53,3 +53,15 @@ docs/audit/
 .playwright-mcp/
 advanced-metrics-fixed.png
 .vercel
+
+# Electron build artifacts
+dist-electron/
+out/
+electron/__tests__/screenshots/
+electron/__tests__/results/
+*.dmg
+*.exe
+*.AppImage
+*.deb
+*.zip
+
