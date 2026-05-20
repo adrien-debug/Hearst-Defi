@@ -12,7 +12,7 @@ import { PorSummary } from "@/components/proof-center/por-summary";
 import { isChainConfigured } from "@/lib/chain/client";
 import { fetchOnChainEvents } from "@/lib/chain/event-logger";
 import { fetchOnChainAttestations } from "@/lib/chain/por-registry";
-import { getProofs } from "@/lib/data/proofs";
+import { getProofs } from "@/lib/demo/loaders";
 
 interface ProofCenterPageProps {
   searchParams: Promise<{ type?: string | string[] }>;

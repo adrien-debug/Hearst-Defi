@@ -7,6 +7,7 @@ import { ConnectShell } from "@/components/ConnectShell";
 import { Analytics } from "@/components/analytics";
 import { PrivyProvider } from "@/components/auth/privy-provider";
 import { ClientToaster } from "@/components/ui/client-toaster";
+import { DemoBanner } from "@/components/demo/demo-banner";
 import { PRIVY_APP_ID } from "@/lib/auth/privy-config";
 
 export const metadata: Metadata = {
@@ -46,6 +47,7 @@ export default function RootLayout({
             Skip to main content
           </a>
           <PrivyProvider appId={PRIVY_APP_ID}>
+            <DemoBanner />
             <main id="main-content">{children}</main>
             <ClientToaster />
           </PrivyProvider>

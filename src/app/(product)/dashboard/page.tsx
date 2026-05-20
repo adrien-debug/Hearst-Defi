@@ -4,9 +4,11 @@ import {
   ProvenanceBadge,
   type Provenance,
 } from "@/components/ui/provenance-badge";
-import { loadDashboardData } from "@/lib/data/dashboard";
-import { fetchHashprice } from "@/lib/data/hashprice";
-import { loadRiskFramework } from "@/lib/data/risk-framework";
+import {
+  fetchHashprice,
+  loadDashboardData,
+  loadRiskFramework,
+} from "@/lib/demo/loaders";
 
 export const dynamic = "force-dynamic";
 
@@ -113,13 +115,14 @@ export default async function DashboardPage() {
   const aumTrendSign = delta30d >= 0 ? "up" : "down";
   const aumTrendText = `${delta30d >= 0 ? "+" : "−"}${usdShort.format(Math.abs(delta30d))} 30d`;
 
-  const btcPriceUsd = data.btcPrice.usd === 0 ? 94_180 : data.btcPrice.usd;
+  const btcPriceUsd = data.btcPrice.usd;
+  const btcPriceAvailable = btcPriceUsd > 0;
   const btcAlloc = data.allocations.find((a) => a.bucket === "btc_tactical");
   const btcSleeveUsd = btcAlloc?.valueUsdc ?? 0;
   const btcSleevePct = btcAlloc?.pct ?? 0;
-  const avgEntry = 58_420;
-  const btcHeld = btcPriceUsd > 0 ? btcSleeveUsd / btcPriceUsd : 0;
-  const costBasis = btcHeld * avgEntry;
+  const BTC_AVG_ENTRY_USD = 58_420;
+  const btcHeld = btcPriceAvailable ? btcSleeveUsd / btcPriceUsd : 0;
+  const costBasis = btcHeld * BTC_AVG_ENTRY_USD;
   const pnlUsd = Math.round(btcSleeveUsd - costBasis);
   const pnlPct = costBasis > 0 ? (pnlUsd / costBasis) * 100 : 0;
   const pnlTrend = pnlUsd >= 0 ? "up" : "down";
@@ -177,9 +180,10 @@ export default async function DashboardPage() {
   // - Mining health → daily-attested MiningMetric rows → "attested"
   const aumProvenance = provenanceFor("live", data.source);
   const apyProvenance = provenanceFor("estimated", data.source);
-  const btcSleeveProvenance: Provenance = data.btcPrice.stale
-    ? "stale"
-    : provenanceFor("oracle", data.source);
+  const btcSleeveProvenance: Provenance =
+    data.btcPrice.stale || !btcPriceAvailable
+      ? "stale"
+      : provenanceFor("oracle", data.source);
   const allocationProvenance = provenanceFor("live", data.source);
   const riskProvenance = provenanceFor("estimated", riskFramework.source);
   const miningProvenance = provenanceFor("attested", data.source);
@@ -399,17 +403,18 @@ export default async function DashboardPage() {
             <div className="dash-legend" style={{ marginTop: "var(--ct-space-3)" }}>
               <div className="dash-legend-row">
                 <span className="dash-legend-left">BTC held</span>
-                <span className="dash-legend-val">{btcHeld.toFixed(2)} BTC</span>
+                <span className="dash-legend-val">{btcPriceAvailable ? `${btcHeld.toFixed(2)} BTC` : "—"}</span>
               </div>
               <div className="dash-legend-row">
                 <span className="dash-legend-left">Spot</span>
-                <span className="dash-legend-val">{btcUsdFormat.format(btcPriceUsd)}</span>
+                <span className="dash-legend-val">{btcPriceAvailable ? btcUsdFormat.format(btcPriceUsd) : "—"}</span>
               </div>
               <div className="dash-legend-row">
                 <span className="dash-legend-left">P&amp;L</span>
                 <span className="dash-legend-val">
-                  {pnlUsd >= 0 ? "+" : "−"}
-                  {usdShort.format(Math.abs(pnlUsd))}
+                  {btcPriceAvailable
+                    ? `${pnlUsd >= 0 ? "+" : "−"}${usdShort.format(Math.abs(pnlUsd))}`
+                    : "—"}
                 </span>
               </div>
             </div>

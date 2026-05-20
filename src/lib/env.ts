@@ -43,6 +43,9 @@ const serverEnvSchema = z.object({
   SENTRY_AUTH_TOKEN: z.string().optional(),
   SENTRY_ORG: z.string().optional(),
   SENTRY_PROJECT: z.string().optional(),
+  // Demo mode — when "1", every demo-aware loader returns deterministic
+  // fixtures regardless of the per-browser cookie. Keep "0" in production.
+  DEMO_MODE_DEFAULT: z.enum(["0", "1"]).optional().default("0"),
 });
 
 type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -129,6 +132,7 @@ function resolveEnv(): ServerEnv {
         ...lenient.data,
         DATABASE_URL: lenient.data.DATABASE_URL ?? "",
         HYPERCLI_DEFAULT_MODEL: lenient.data.HYPERCLI_DEFAULT_MODEL ?? "kimi-k2.6",
+        DEMO_MODE_DEFAULT: lenient.data.DEMO_MODE_DEFAULT ?? "0",
       };
       return data;
     }
