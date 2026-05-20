@@ -460,15 +460,7 @@ export function ProjectionStudio() {
                 key={m.id}
                 type="button"
                 onClick={() => setBatchMode(m.id)}
-                className={cn(
-                  "ct-pill text-xs",
-                  batchMode === m.id ? "accent" : "",
-                )}
-                style={
-                  batchMode === m.id
-                    ? { backgroundColor: "var(--ct-accent-soft)", color: "var(--ct-accent)", border: "1px solid var(--ct-border-accent)" }
-                    : {}
-                }
+                className={cn("ct-pill text-xs", batchMode === m.id && "accent")}
               >
                 {m.label}
               </button>
