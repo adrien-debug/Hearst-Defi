@@ -128,8 +128,8 @@ function KpiCard({ title, value }: { title: string; value: string }) {
   return (
     <div className="glass-panel p-6 relative overflow-hidden">
       <div className="relative z-10">
-        <p className="text-sm text-[--ct-text-muted] mb-1">{title}</p>
-        <p className="text-3xl font-semibold text-[--ct-text-strong]">{value}</p>
+        <p className="stat-label mb-1">{title}</p>
+        <p className="stat-value text-[--ct-text-strong]">{value}</p>
       </div>
     </div>
   );

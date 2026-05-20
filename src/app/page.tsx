@@ -139,7 +139,7 @@ export default function Home() {
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div className="text-center">
-      <p className="text-3xl md:text-4xl font-semibold text-[--ct-text-primary]">{value}</p>
+      <p className="stat-value">{value}</p>
       <p className="mt-2 text-sm text-[--ct-text-muted]">{label}</p>
     </div>
   );
@@ -148,7 +148,7 @@ function Stat({ value, label }: { value: string; label: string }) {
 function Feature({ title, description }: { title: string; description: string }) {
   return (
     <div className="rounded-2xl border border-[--ct-border-soft] bg-[--ct-surface-0] p-8">
-      <h3 className="text-xl font-semibold text-[--ct-text-primary] mb-3">{title}</h3>
+      <h3 className="h3 mb-3">{title}</h3>
       <p className="text-[--ct-text-body] leading-relaxed">{description}</p>
     </div>
   );

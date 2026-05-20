@@ -101,9 +101,7 @@ export function BtcTacticalSection({ btcTactical }: BtcTacticalSectionProps) {
 
         <div className="space-y-6">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-[--ct-text-muted] mb-3">
-              Next triggers
-            </p>
+            <p className="stat-label mb-3">Next triggers</p>
             {btcTactical.nextTriggers.length > 0 ? (
               <ul className="space-y-3">
                 {btcTactical.nextTriggers.map((t) => (
@@ -127,9 +125,7 @@ export function BtcTacticalSection({ btcTactical }: BtcTacticalSectionProps) {
           </div>
 
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-[--ct-text-muted] mb-3">
-              Guardrails
-            </p>
+            <p className="stat-label mb-3">Guardrails</p>
             {btcTactical.guardrails.length > 0 ? (
               <ul className="space-y-3">
                 {btcTactical.guardrails.map((g) => (
