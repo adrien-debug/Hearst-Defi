@@ -327,7 +327,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
                     <td className="py-2 pr-4 body-xs text-[--ct-text-muted]">
                       {approval.reason ?? "—"}
                     </td>
-                    <td className="py-2 body-xs text-[--ct-text-faint] tabular mono">
+                    <td className="py-2 pr-4 body-xs text-[--ct-text-faint] tabular mono">
                       {approval.signedAt.toISOString().slice(0, 10)}
                     </td>
                   </tr>

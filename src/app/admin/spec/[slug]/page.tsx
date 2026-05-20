@@ -46,7 +46,7 @@ export default async function SpecPage({
                   color: active ? "var(--ct-text-primary)" : "var(--ct-text-muted)",
                 }}
               >
-                <span className="mono tabular mr-2 text-xs" style={{ color: "var(--ct-text-faint)" }}>
+                <span className="mono tabular mr-2 text-xs text-[--ct-text-faint]">
                   {String(entry.order).padStart(2, "0")}
                 </span>
                 {entry.title}

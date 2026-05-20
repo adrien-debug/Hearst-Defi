@@ -148,7 +148,7 @@ export function ErrorShellLayout({
     >
       <header className="flex flex-col gap-2">
         <span className={cn("eyebrow", eyebrowColor)}>{scope}</span>
-        <h1 className="h2 m-0">{title}</h1>
+        <h1 className="h1 m-0">{title}</h1>
       </header>
 
       {message ? (

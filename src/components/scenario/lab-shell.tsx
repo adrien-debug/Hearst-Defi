@@ -514,7 +514,7 @@ function SingleMode({
         {/* Left: Inputs panel */}
         <div className="flex flex-col gap-0 rounded-[--radius-card] border border-[--ct-border] bg-[--ct-surface-2]">
           <div className="border-b border-[--ct-border-soft] px-6 py-4">
-            <h2 className="h4">Inputs</h2>
+            <h3 className="h4">Inputs</h3>
             <p className="mt-0.5 text-xs text-[--ct-text-muted]">
               Adjust sliders or select a preset above
             </p>

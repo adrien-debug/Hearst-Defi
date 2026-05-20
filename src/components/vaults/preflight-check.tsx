@@ -85,7 +85,7 @@ export function PreFlightCheck({
 
   return (
     <div className="ct-card divide-y divide-[--ct-border-soft]">
-      <p className="eyebrow pb-3 pt-1">Pre-flight check</p>
+      <p className="eyebrow py-3">Pre-flight check</p>
 
       {/* 1 — Wallet */}
       <CheckRow

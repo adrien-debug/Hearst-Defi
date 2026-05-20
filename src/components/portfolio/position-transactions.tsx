@@ -128,22 +128,11 @@ export function PositionTransactions({
             }}
           >
             <thead>
-              <tr
-                className="stat-label ct-text-muted"
-                style={{ borderBottom: "1px solid var(--ct-border-soft)" }}
-              >
-                <th style={{ textAlign: "left", paddingBottom: "var(--ct-space-2)", fontWeight: "inherit" }}>
-                  Date
-                </th>
-                <th style={{ textAlign: "left", paddingBottom: "var(--ct-space-2)", fontWeight: "inherit" }}>
-                  Type
-                </th>
-                <th style={{ textAlign: "right", paddingBottom: "var(--ct-space-2)", fontWeight: "inherit" }}>
-                  Amount
-                </th>
-                <th style={{ textAlign: "right", paddingBottom: "var(--ct-space-2)", fontWeight: "inherit" }}>
-                  Tx
-                </th>
+              <tr className="stat-label ct-text-muted border-b border-[--ct-border-soft]">
+                <th className="text-left pb-[var(--ct-space-2)] font-[inherit]">Date</th>
+                <th className="text-left pb-[var(--ct-space-2)] font-[inherit]">Type</th>
+                <th className="text-right pb-[var(--ct-space-2)] font-[inherit]">Amount</th>
+                <th className="text-right pb-[var(--ct-space-2)] font-[inherit]">Tx</th>
               </tr>
             </thead>
             <tbody>

@@ -115,11 +115,11 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
           </svg>
         </span>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-2)" }}>
-          <h1 className="h2" style={{ color: "var(--ct-text-strong)" }}>
+        <div className="flex flex-col gap-[var(--ct-space-2)]">
+          <h1 className="h1 text-[--ct-text-strong]">
             Deposit confirmed
           </h1>
-          <p className="body-md" style={{ color: "var(--ct-text-body)" }}>
+          <p className="body-md text-[--ct-text-body]">
             {amount !== "—"
               ? `${amount} USDC deposited into Hearst Yield Vault.`
               : "Your USDC has been deposited into Hearst Yield Vault."}

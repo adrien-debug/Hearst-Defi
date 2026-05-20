@@ -21,7 +21,7 @@ export default async function ProofsPage() {
       </header>
 
       <section className="space-y-3">
-        <h2 className="stat-label">Attestations ({items.length})</h2>
+        <h3 className="stat-label">Attestations ({items.length})</h3>
         <ProofList items={items} />
       </section>
 

@@ -85,10 +85,7 @@ export function PortfolioKpiRow({ data }: KpiRowProps) {
             {monthDayFmt.format(data.nextDistributionAt)}
           </span>
         </div>
-        <p
-          className="body-xs ct-text-muted"
-          style={{ marginTop: "var(--ct-space-2)" }}
-        >
+        <p className="body-xs ct-text-muted mt-[var(--ct-space-2)]">
           Monthly cadence · Day 1, T+5
         </p>
       </article>

@@ -33,7 +33,7 @@ export default async function FeedbackPage() {
       </Card>
 
       <section className="space-y-3">
-        <h2 className="stat-label">Latest ({items.length})</h2>
+        <h3 className="stat-label">Latest ({items.length})</h3>
         <FeedbackList items={items} />
       </section>
     </div>

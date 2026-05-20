@@ -1,23 +1,42 @@
 import { app, BrowserWindow, ipcMain, Menu, shell } from "electron";
-// CommonJS-friendly imports (tsc → dist-electron uses --module NodeNext output);
-// electron-updater + electron-store both expose CJS default exports.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { autoUpdater } = require("electron-updater") as typeof import("electron-updater");
-// electron-store types are gnarly with require() — use a minimal interface.
-interface KvStore<T> {
-  get<K extends keyof T>(key: K, defaultValue?: T[K]): T[K];
-  set<K extends keyof T>(key: K, value: T[K]): void;
-}
-type StoreConstructor = new <T>(opts: { defaults: T }) => KvStore<T>;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const Store = require("electron-store") as StoreConstructor;
+// CommonJS-friendly imports (tsc → dist-electron uses --module CommonJS output).
+// electron-updater is loaded LAZILY inside app.whenReady() because its
+// top-level instantiation calls app.getVersion() before Electron's `app` is
+// initialized otherwise.
+// electron-store@11 is ESM-only — incompatible with our CJS bundle — so we
+// roll a tiny JSON-file state instead (zero deps, zero gnarly require()).
 import path from "node:path";
+import fs from "node:fs";
 
 interface AppState {
   env: "local" | "prod";
 }
 
-const store = new Store<AppState>({ defaults: { env: "local" } });
+const STATE_DEFAULTS: AppState = { env: "local" };
+
+function statePath(): string {
+  return path.join(app.getPath("userData"), "state.json");
+}
+
+function readState(): AppState {
+  try {
+    const raw = fs.readFileSync(statePath(), "utf-8");
+    const parsed = JSON.parse(raw) as Partial<AppState>;
+    return { ...STATE_DEFAULTS, ...parsed };
+  } catch {
+    return STATE_DEFAULTS;
+  }
+}
+
+function writeState(next: Partial<AppState>): void {
+  const merged = { ...readState(), ...next };
+  try {
+    fs.mkdirSync(path.dirname(statePath()), { recursive: true });
+    fs.writeFileSync(statePath(), JSON.stringify(merged), "utf-8");
+  } catch {
+    /* best-effort persistence; not fatal */
+  }
+}
 
 const ENV_URLS: Record<"local" | "prod", string> = {
   local: "http://localhost:4105",
@@ -52,7 +71,7 @@ function createSplash(): void {
 }
 
 function createMainWindow(env: "local" | "prod"): void {
-  store.set("env", env);
+  writeState({ env });
   const url = ENV_URLS[env];
 
   mainWindow = new BrowserWindow({
@@ -129,12 +148,19 @@ ipcMain.handle("select-env", (_event, env: "local" | "prod") => {
   createMainWindow(env);
 });
 
-ipcMain.handle("get-last-env", () => store.get("env", "local"));
+ipcMain.handle("get-last-env", () => readState().env);
 
 app.whenReady().then(() => {
   createSplash();
   if (app.isPackaged) {
+    // Lazy-load electron-updater AFTER app is ready (its constructor calls
+    // app.getVersion()).
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { autoUpdater } = require("electron-updater") as typeof import("electron-updater");
     autoUpdater.checkForUpdatesAndNotify();
+    autoUpdater.on("update-downloaded", () => {
+      autoUpdater.quitAndInstall();
+    });
   }
 });
 
@@ -144,8 +170,4 @@ app.on("window-all-closed", () => {
 
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) createSplash();
-});
-
-autoUpdater.on("update-downloaded", () => {
-  autoUpdater.quitAndInstall();
 });

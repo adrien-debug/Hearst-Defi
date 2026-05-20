@@ -33,7 +33,7 @@ export default async function InvestPage({ params }: PageProps) {
       {/* Eyebrow + step indicator */}
       <header className="flex flex-col gap-3">
         <span className="eyebrow">Deposit</span>
-        <h1 className="h2">{vault.name}</h1>
+        <h1 className="h1">{vault.name}</h1>
         <StepProgress active="deposit" />
       </header>
 
