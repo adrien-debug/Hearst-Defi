@@ -12,7 +12,7 @@ export default async function VaultsPage() {
   const vaults = await listVaults();
 
   return (
-    <div className="ct-section flex flex-col gap-8 max-w-5xl mx-auto w-full">
+    <>
       {/* Page header */}
       <header className="flex flex-col gap-4">
         <span className="eyebrow">Invest</span>
@@ -55,6 +55,6 @@ export default async function VaultsPage() {
           subscription, jurisdictional restrictions, and soft lock-up terms.
         </p>
       </footer>
-    </div>
+    </>
   );
 }
