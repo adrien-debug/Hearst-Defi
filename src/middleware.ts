@@ -1,17 +1,20 @@
 /**
- * src/middleware.ts — Edge middleware guarding /admin/* routes.
+ * src/middleware.ts — Edge middleware guarding /admin/* and customer routes.
  *
  * Runs in the Edge runtime (no Node.js APIs). Uses `jose` for JWT
  * verification against Privy's public JWKS endpoint so we never need
  * the PRIVY_APP_SECRET or any Node crypto module here.
  *
- * Flow:
+ * Flow — /admin/* :
  *  1. Request matches /admin/* → read `privy-token` cookie.
- *  2. No cookie → redirect to `/` (unauthenticated).
- *  3. JWT invalid / expired → redirect to `/` (bad session).
- *  4. JWT valid but wallet not in ADMIN_ADDRESSES → rewrite to `/not-found`
+ *  2. No cookie / invalid JWT → redirect to `/` (unauthenticated).
+ *  3. JWT valid but wallet not in ADMIN_ADDRESSES → rewrite to `/not-found`
  *     (Next.js serves its global 404 page — returns 404 to the client).
- *  5. JWT valid + admin → let the request through.
+ *  4. JWT valid + admin → let the request through.
+ *
+ * Flow — /portfolio/* | /vaults/* | /activity/* :
+ *  1. No cookie / invalid JWT → redirect to `/?login=true&from=<path>`.
+ *  2. JWT valid (any authenticated Privy user) → let the request through.
  */
 
 import { type NextRequest, NextResponse } from "next/server";
@@ -70,7 +73,39 @@ function isAdmin(address: string | undefined): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Middleware
+// Core JWT verification — shared by both branches
+// ---------------------------------------------------------------------------
+
+interface VerifyResult {
+  ok: boolean;
+  wallet?: string;
+}
+
+/**
+ * Verify a Privy JWT from the request cookie.
+ *
+ * Returns `{ ok: true, wallet }` on success, `{ ok: false }` otherwise.
+ * Pure edge-safe: only `jose` + `process.env`, no Node APIs.
+ */
+async function verifyPrivyToken(req: NextRequest): Promise<VerifyResult> {
+  const token = req.cookies.get("privy-token")?.value;
+  if (!token) return { ok: false };
+
+  try {
+    const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+    const { payload } = await jwtVerify(token, getPrivyJWKS, {
+      issuer: "privy.io",
+      ...(appId ? { audience: appId } : {}),
+    });
+    return { ok: true, wallet: extractWallet(payload) };
+  } catch {
+    // Invalid signature, expired token, wrong issuer/audience.
+    return { ok: false };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Redirect helpers
 // ---------------------------------------------------------------------------
 
 /**
@@ -90,43 +125,54 @@ function loginRedirect(req: NextRequest): NextResponse {
   return NextResponse.redirect(target);
 }
 
+// ---------------------------------------------------------------------------
+// Middleware
+// ---------------------------------------------------------------------------
+
 export async function middleware(req: NextRequest): Promise<NextResponse> {
-  const token = req.cookies.get("privy-token")?.value;
+  const { pathname } = req.nextUrl;
 
-  // 1. No token → unauthenticated, redirect home with returnTo.
-  if (!token) {
+  // ------------------------------------------------------------------
+  // Branch A — /admin/*
+  // Requires a valid Privy JWT whose wallet is in ADMIN_ADDRESSES.
+  // ------------------------------------------------------------------
+  if (pathname.startsWith("/admin")) {
+    const { ok, wallet } = await verifyPrivyToken(req);
+
+    if (!ok) {
+      return loginRedirect(req);
+    }
+
+    if (!isAdmin(wallet)) {
+      // Rewrite to /not-found so Next.js renders its global 404 page (status 404)
+      // without exposing the fact that the admin area exists.
+      return NextResponse.rewrite(new URL("/not-found", req.url));
+    }
+
+    return NextResponse.next();
+  }
+
+  // ------------------------------------------------------------------
+  // Branch B — /portfolio/* | /vaults/* | /activity/*
+  // Requires any valid Privy JWT (authenticated investor).
+  // ------------------------------------------------------------------
+  const { ok } = await verifyPrivyToken(req);
+
+  if (!ok) {
     return loginRedirect(req);
   }
 
-  // 2. Verify the JWT signature against Privy's JWKS.
-  let payload: JWTPayload;
-  try {
-    const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
-    const { payload: verified } = await jwtVerify(token, getPrivyJWKS, {
-      issuer: "privy.io",
-      ...(appId ? { audience: appId } : {}),
-    });
-    payload = verified;
-  } catch {
-    // Invalid signature, expired token, wrong issuer/audience.
-    return loginRedirect(req);
-  }
-
-  // 3. Check admin role.
-  const wallet = extractWallet(payload);
-  if (!isAdmin(wallet)) {
-    // Rewrite to /not-found so Next.js renders its global 404 page (status 404)
-    // without exposing the fact that the admin area exists.
-    return NextResponse.rewrite(new URL("/not-found", req.url));
-  }
-
-  // 4. Authenticated admin — pass through.
   return NextResponse.next();
 }
 
 // ---------------------------------------------------------------------------
-// Route matcher — only /admin/* paths, nothing else.
+// Route matcher — /admin/* and customer-facing authenticated routes.
 // ---------------------------------------------------------------------------
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/portfolio/:path*",
+    "/vaults/:path*",
+    "/activity/:path*",
+  ],
 };
