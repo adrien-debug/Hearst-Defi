@@ -11,7 +11,7 @@ interface SegmentErrorProps {
   error: Error & { digest?: string };
   /** Resets the error boundary and re-renders the segment. */
   reset: () => void;
-  /** Short eyebrow label, e.g. "Dashboard · Erreur". */
+  /** Short eyebrow label, e.g. "Dashboard · Error". */
   scope: string;
   /** Optional "back" link target (defaults to product home). */
   homeHref?: string;
@@ -29,7 +29,7 @@ export function SegmentError({
   reset,
   scope,
   homeHref = "/",
-  homeLabel = "Retour à l'accueil",
+  homeLabel = "Return to home",
 }: SegmentErrorProps) {
   useEffect(() => {
     // Local diagnostics only; production capture handled upstream (Sentry).
@@ -40,13 +40,13 @@ export function SegmentError({
     <ErrorShellLayout
       tone="danger"
       scope={scope}
-      title="Une erreur est survenue"
-      message="Un incident inattendu a interrompu cette page. Vous pouvez réessayer ; si le problème persiste, contactez le support."
+      title="Something went wrong"
+      message="An unexpected error interrupted this page. You may try again; if the issue persists, please contact support."
       digest={error.digest}
       actions={
         <>
           <Button variant="primary" size="sm" onClick={() => reset()}>
-            Réessayer
+            Try again
           </Button>
           <Button variant="secondary" size="sm" asChild>
             <Link href={homeHref}>{homeLabel}</Link>

@@ -9,9 +9,9 @@ export default function ScenarioLabError(props: {
   return (
     <SegmentError
       {...props}
-      scope="Scenario Lab · Erreur"
+      scope="Scenario Lab · Error"
       homeHref="/scenario-lab"
-      homeLabel="Recharger le Scenario Lab"
+      homeLabel="Reload Scenario Lab"
     />
   );
 }

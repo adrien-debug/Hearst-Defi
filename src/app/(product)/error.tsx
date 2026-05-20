@@ -6,5 +6,5 @@ export default function ProductError(props: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  return <SegmentError {...props} scope="Produit · Erreur" />;
+  return <SegmentError {...props} scope="Product · Error" />;
 }
