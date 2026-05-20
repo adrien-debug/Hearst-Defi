@@ -137,7 +137,7 @@ interface HashpriceRowProps {
 function HashpriceRow({ hashprice }: HashpriceRowProps) {
   const provenance = hashprice.stale ? "stale" : "live";
   return (
-    <div className="flex flex-col gap-2 py-4 first:pt-0 last:pb-0 group">
+    <div className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 group">
       <div className="flex items-baseline justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">

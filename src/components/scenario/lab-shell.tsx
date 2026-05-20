@@ -548,7 +548,7 @@ function SingleMode({
               ) : (
                 <>
                   <svg
-                    className="h-8 w-8 text-[--ct-text-muted]"
+                    className="h-10 w-10 text-[--ct-text-muted]"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"

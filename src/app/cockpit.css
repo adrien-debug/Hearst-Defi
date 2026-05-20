@@ -169,7 +169,7 @@
   -webkit-backdrop-filter: blur(40px) saturate(110%);
   border: 1px solid var(--ct-border);
   box-shadow: var(--ct-shadow-depth);
-  border-radius: 0.75rem;
+  border-radius: var(--ct-radius-lg);
   transition:
     background var(--ct-dur-base) var(--ct-ease),
     border-color var(--ct-dur-base) var(--ct-ease);
@@ -185,7 +185,7 @@
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--ct-border-soft);
-  border-radius: 0.75rem;
+  border-radius: var(--ct-radius-lg);
 }
 
 /* .h1 → ct-title style */
@@ -377,7 +377,7 @@
   z-index: var(--ct-z-base);
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: var(--ct-space-5);
 }
 
 .ct-seg-track {
@@ -485,7 +485,10 @@
 .ct-rail-intra {
   position: fixed;
   left: 0;
-  top: 5rem; /* 80px — sous le launcher inter-apps du shell (~48px header + 32px offset) */
+  /* Sous le launcher inter-apps du shell (~48px header + 32px offset).
+     Si le shell promeut --ct-shell-header-h un jour, on l'utilise ; sinon
+     fallback 5rem (80px) — zéro régression. */
+  top: var(--ct-shell-header-h, 5rem);
   width: var(--ct-rail-left, 5.5rem);
   display: flex;
   flex-direction: column;

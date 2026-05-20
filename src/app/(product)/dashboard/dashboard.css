@@ -128,6 +128,8 @@
   top: var(--ct-space-6);
   width: 5rem; /* hors scale DS — taille de rings concentriques */
   height: 5rem;
+  /* Behind the content layer so KPI text overlays remain readable. */
+  z-index: 0;
 }
 
 .ring-bg {
@@ -255,6 +257,8 @@
   flex-direction: column;
   align-items: center;
   pointer-events: none;
+  /* Above the SVG donut arcs (z=0 by default). */
+  z-index: 1;
 }
 
 .donut-val {
@@ -344,6 +348,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* Above the SVG gauge arc (z=0 by default). */
+  z-index: 1;
 }
 
 .gauge-val {
