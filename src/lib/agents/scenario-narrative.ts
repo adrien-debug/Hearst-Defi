@@ -158,7 +158,15 @@ export async function runScenarioNarrative(
   }
 
   const parsed = extractJson(textBlock.text);
-  const validated = ScenarioNarrativeOutputSchema.parse(parsed);
+  const result = ScenarioNarrativeOutputSchema.safeParse(parsed);
+  if (!result.success) {
+    throw new Error(
+      `Scenario Narrative agent output failed schema validation: ${JSON.stringify(
+        result.error.issues,
+      )}`,
+    );
+  }
+  const validated = result.data;
 
   assertNoForbiddenWords(validated.narrative_md);
   assertNoForbiddenWords(validated.risk_warning);

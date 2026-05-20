@@ -1,4 +1,4 @@
-import { SkeletonCard } from "@/components/ui/skeleton";
+import { SkeletonCard, Skeleton } from "@/components/ui/skeleton";
 
 export default function ScenarioLabLoading() {
   return (
@@ -14,14 +14,5 @@ export default function ScenarioLabLoading() {
         <SkeletonCard />
       </div>
     </div>
-  );
-}
-
-function Skeleton({ className }: { className?: string }) {
-  return (
-    <div
-      className={`animate-pulse bg-white/[0.06] rounded-md ${className}`}
-      aria-hidden="true"
-    />
   );
 }

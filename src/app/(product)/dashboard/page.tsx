@@ -129,7 +129,8 @@ export default async function DashboardPage() {
   const apyMid = (apyLow + apyHigh) / 2;
   const apyMaxAxis = 20;
   const apyPct = Math.min(100, (apyMid / apyMaxAxis) * 100);
-  const apyGaugeDash = `${(apyPct / 100) * 50} 50`;
+  const apyGaugeArc = (apyPct / 100) * 50;
+  const apyGaugeDash = `${apyGaugeArc} ${100 - apyGaugeArc}`;
 
   const blendedBps = data.allocations.reduce(
     (acc, a) => acc + (a.pct / 100) * a.yieldContributionBps,
@@ -228,7 +229,8 @@ export default async function DashboardPage() {
 
   /** Operational confidence gauge */
   const opConf = data.operationalConfidence;
-  const opConfDash = `${(opConf / 100) * 50} 50`;
+  const opConfArc = (opConf / 100) * 50;
+  const opConfDash = `${opConfArc} ${100 - opConfArc}`;
 
   /** Density matrix: 30 cols x 4 rows = 120 cells, last 120 days before asOf. */
   const eventsByDay = new Map<number, number>();
@@ -269,7 +271,7 @@ export default async function DashboardPage() {
     <div className="dash-page">
       <header className="dash-header">
         <span className="eyebrow">Hearst Yield Vault</span>
-        <h1>Dashboard</h1>
+        <h1 className="h1">Dashboard</h1>
         <span className="sub">
           Live sync ·{" "}
           {asOf.toLocaleString("en-US", {
@@ -347,7 +349,7 @@ export default async function DashboardPage() {
                 className="gauge-svg"
                 viewBox="0 0 42 42"
                 width="160"
-                height="80"
+                height="160"
                 aria-hidden="true"
               >
                 <circle
@@ -516,7 +518,7 @@ export default async function DashboardPage() {
                   cx="40"
                   cy="40"
                   r="36"
-                  strokeDasharray={`${(riskFramework.composite / 100) * 226} 226`}
+                  strokeDasharray={`${(riskFramework.composite / 100) * 226} ${226 - (riskFramework.composite / 100) * 226}`}
                   strokeDashoffset="0"
                   transform="rotate(-90 40 40)"
                 />
@@ -528,7 +530,7 @@ export default async function DashboardPage() {
                       cx="40"
                       cy="40"
                       r="28"
-                      strokeDasharray={`${(riskFramework.dimensions[0].score / 100) * 175} 175`}
+                      strokeDasharray={`${(riskFramework.dimensions[0].score / 100) * 175} ${175 - (riskFramework.dimensions[0].score / 100) * 175}`}
                       strokeDashoffset="0"
                       transform="rotate(-90 40 40)"
                     />
@@ -542,7 +544,7 @@ export default async function DashboardPage() {
                       cx="40"
                       cy="40"
                       r="20"
-                      strokeDasharray={`${(riskFramework.dimensions[1].score / 100) * 125} 125`}
+                      strokeDasharray={`${(riskFramework.dimensions[1].score / 100) * 125} ${125 - (riskFramework.dimensions[1].score / 100) * 125}`}
                       strokeDashoffset="0"
                       transform="rotate(-90 40 40)"
                     />
@@ -602,7 +604,7 @@ export default async function DashboardPage() {
                 className="gauge-svg"
                 viewBox="0 0 42 42"
                 width="160"
-                height="80"
+                height="160"
                 aria-hidden="true"
               >
                 <circle
@@ -660,17 +662,7 @@ export default async function DashboardPage() {
                 />
               ))}
             </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: 10,
-                color: "var(--ct-text-muted)",
-                marginTop: 8,
-                fontFamily: "ui-monospace, monospace",
-                letterSpacing: "0.04em",
-              }}
-            >
+            <div className="mt-2 flex justify-between font-mono text-[length:var(--ct-text-micro)] text-[--ct-text-muted] tracking-[0.04em]">
               <span>120d ago</span>
               <span>60d ago</span>
               <span>Today</span>

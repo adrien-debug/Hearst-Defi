@@ -129,7 +129,15 @@ export async function runMiningHealth(
   }
 
   const parsed = extractJson(textBlock.text);
-  const validated = MiningHealthOutputSchema.parse(parsed);
+  const result = MiningHealthOutputSchema.safeParse(parsed);
+  if (!result.success) {
+    throw new Error(
+      `Mining Health agent output failed schema validation: ${JSON.stringify(
+        result.error.issues,
+      )}`,
+    );
+  }
+  const validated = result.data;
 
   assertNoForbiddenWords(validated.summary);
   assertNoForbiddenWords(validated.recommendation);

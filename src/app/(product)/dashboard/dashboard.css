@@ -9,23 +9,25 @@
  * --ct-accent est injecté par <ThemeAccent /> selon le produit actif (#8A1538 pour Connect).
  */
 
-/* === Bento grid 12-col gap-1px (style Bloomberg, source: kpi-elegant) === */
+/* === Bento grid 12-col — cartes Cockpit (.ct-card canonique) === */
 .dash-bento {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  gap: 1px;
-  background: var(--ct-border-soft);
-  border-radius: var(--ct-radius-lg, 12px);
-  overflow: hidden;
+  gap: var(--ct-space-4);
+  background: transparent;
 }
 
+/* Aligné sur .ct-card du package : verre dépoli, pas de fond noir plat. */
 .dash-cell {
-  background: var(--ct-bg-deep);
-  padding: 24px;
+  background: var(--ct-surface-1);
+  border: 1px solid var(--ct-border);
+  border-radius: var(--ct-radius-lg, 12px);
+  box-shadow: var(--ct-shadow-depth);
+  padding: var(--ct-space-6);
   display: flex;
   flex-direction: column;
   position: relative;
-  min-height: 200px;
+  min-height: var(--ct-cell-min-h, 200px);
 }
 
 .dash-cell.col-3 { grid-column: span 3; }
@@ -36,11 +38,11 @@
 
 /* === KPI label/value/trend (source: kpi-elegant) === */
 .dash-label {
-  font-size: 11px;
-  font-weight: 500;
+  font-size: var(--ct-text-xs);
+  font-weight: var(--ct-font-medium);
   color: var(--ct-text-muted);
-  letter-spacing: 0.05em;
-  margin-bottom: 16px;
+  letter-spacing: var(--ct-tracking-wider);
+  margin-bottom: var(--ct-space-4);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -50,22 +52,22 @@
 .dash-value-group {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--ct-space-2);
   margin-top: auto;
 }
 
 .dash-value {
-  font-size: 44px;
-  font-weight: 300;
+  font-size: var(--ct-text-5xl);
+  font-weight: var(--ct-font-light);
   color: var(--ct-text-strong);
-  letter-spacing: -0.03em;
+  letter-spacing: var(--ct-tracking-tight);
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
 .dash-value-range {
-  font-size: 28px;
-  font-weight: 300;
+  font-size: var(--ct-text-2xl);
+  font-weight: var(--ct-font-light);
   color: var(--ct-text-strong);
   letter-spacing: -0.02em;
   line-height: 1;
@@ -73,15 +75,15 @@
 }
 
 .dash-unit {
-  font-size: 14px;
+  font-size: var(--ct-text-sm);
   color: var(--ct-text-muted);
-  font-weight: 400;
+  font-weight: var(--ct-font-normal);
 }
 
 .dash-trend {
-  font-family: ui-monospace, "JetBrains Mono", monospace;
-  font-size: 11px;
-  padding: 2px 6px;
+  font-family: var(--font-mono);
+  font-size: var(--ct-text-xs);
+  padding: var(--ct-space-0_5) var(--ct-space-1_5);
   border-radius: 2px;
   background: var(--ct-surface-1);
 }
@@ -90,11 +92,21 @@
 .dash-trend.down { color: var(--ct-accent-strong); }
 .dash-trend.flat { color: var(--ct-text-muted); }
 
+/* Right-side meta cluster in .dash-label (provenance badge + trend).
+   Must stay a single compact row so the label header keeps its original
+   height — absolutely-positioned gauges/charts align to it. */
+.dash-label-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ct-space-1_5);
+  flex-shrink: 0;
+}
+
 /* === Sparkline (source: kpi-elegant) === */
 .dash-sparkline {
   width: 100%;
   height: 36px;
-  margin-top: 16px;
+  margin-top: var(--ct-space-4);
 }
 
 .spark-path {
@@ -111,8 +123,8 @@
 /* === Concentric rings (source: kpi-elegant) === */
 .dash-rings-box {
   position: absolute;
-  right: 24px;
-  top: 24px;
+  right: var(--ct-space-6);
+  top: var(--ct-space-6);
   width: 80px;
   height: 80px;
 }
@@ -138,23 +150,28 @@
 .depth-chart {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 16px;
+  gap: var(--ct-space-2);
+  margin-top: var(--ct-space-4);
 }
 
 .depth-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-family: ui-monospace, "JetBrains Mono", monospace;
-  font-size: 11px;
+  gap: var(--ct-space-3);
+  font-family: var(--font-mono);
+  font-size: var(--ct-text-xs);
+  min-width: 0;
 }
 
 .depth-label {
   width: 132px;
   color: var(--ct-text-muted);
-  letter-spacing: 0.04em;
+  letter-spacing: var(--ct-tracking-wide);
   text-transform: uppercase;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .depth-bar-container {
@@ -179,7 +196,7 @@
   width: 68px;
   text-align: right;
   color: var(--ct-text-primary);
-  font-weight: 600;
+  font-weight: var(--ct-font-semibold);
   font-variant-numeric: tabular-nums;
 }
 
@@ -187,8 +204,8 @@
 .density-matrix {
   display: grid;
   grid-template-columns: repeat(30, 1fr);
-  gap: 2px;
-  margin-top: 16px;
+  gap: var(--ct-space-0_5);
+  margin-top: var(--ct-space-4);
 }
 
 .density-cell {
@@ -209,7 +226,7 @@
   align-items: center;
   position: relative;
   height: 200px;
-  margin-top: 8px;
+  margin-top: var(--ct-space-2);
 }
 
 .dash-chart-svg {
@@ -230,6 +247,9 @@
 
 .donut-center {
   position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -237,8 +257,8 @@
 }
 
 .donut-val {
-  font-size: 32px;
-  font-weight: 800;
+  font-size: var(--ct-text-3xl);
+  font-weight: var(--ct-font-extrabold);
   color: var(--ct-text-strong);
   letter-spacing: -0.02em;
   line-height: 1;
@@ -246,19 +266,19 @@
 }
 
 .donut-lbl {
-  font-size: 10px;
+  font-size: var(--ct-text-micro);
   color: var(--ct-text-muted);
-  font-weight: 500;
+  font-weight: var(--ct-font-medium);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-top: 4px;
+  margin-top: var(--ct-space-1);
 }
 
 .dash-legend {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
+  gap: var(--ct-space-2);
+  margin-top: var(--ct-space-3);
 }
 
 .dash-legend-row {
@@ -271,7 +291,7 @@
 .dash-legend-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--ct-space-2);
   color: var(--ct-text-body);
 }
 
@@ -289,7 +309,7 @@
 .dash-legend-val {
   color: var(--ct-text-primary);
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
+  font-weight: var(--ct-font-semibold);
 }
 
 /* === Gauge demi-cercle (source: kpi-charts) === */
@@ -297,9 +317,9 @@
   position: relative;
   display: flex;
   justify-content: center;
-  align-items: flex-end;
-  height: 140px;
-  margin-top: 12px;
+  align-items: center;
+  height: 160px;
+  margin-top: var(--ct-space-3);
 }
 
 .gauge-svg {
@@ -317,7 +337,9 @@
 
 .gauge-center {
   position: absolute;
-  bottom: 8px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -325,7 +347,7 @@
 
 .gauge-val {
   font-size: 30px;
-  font-weight: 800;
+  font-weight: var(--ct-font-extrabold);
   color: var(--ct-text-strong);
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -333,43 +355,43 @@
 }
 
 .gauge-lbl {
-  font-size: 10px;
+  font-size: var(--ct-text-micro);
   color: var(--ct-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-top: 4px;
+  margin-top: var(--ct-space-1);
 }
 
 .gauge-range {
   display: flex;
   justify-content: space-between;
-  font-family: ui-monospace, monospace;
-  font-size: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--ct-text-micro);
   color: var(--ct-text-muted);
-  margin-top: 8px;
-  letter-spacing: 0.04em;
+  margin-top: var(--ct-space-2);
+  letter-spacing: var(--ct-tracking-wide);
 }
 
 /* === Distribution progress typographique (source: kpi-elegant) === */
 .dist-big {
   display: flex;
   align-items: baseline;
-  gap: 12px;
+  gap: var(--ct-space-3);
   margin-top: auto;
 }
 
 .dist-big-val {
-  font-size: 48px;
-  font-weight: 200;
+  font-size: var(--ct-text-display);
+  font-weight: var(--ct-font-normal);
   color: var(--ct-text-strong);
-  letter-spacing: -0.03em;
+  letter-spacing: var(--ct-tracking-tight);
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
 .dist-big-unit {
-  font-size: 18px;
-  font-weight: 300;
+  font-size: var(--ct-text-lg);
+  font-weight: var(--ct-font-light);
   color: var(--ct-text-muted);
 }
 
@@ -377,7 +399,7 @@
   width: 100%;
   height: 1px;
   background: var(--ct-border-strong);
-  margin-top: 20px;
+  margin-top: var(--ct-space-5);
   position: relative;
 }
 
@@ -394,16 +416,16 @@
 .dist-rows {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 16px;
-  font-family: ui-monospace, "JetBrains Mono", monospace;
-  font-size: 11px;
+  gap: var(--ct-space-1_5);
+  margin-top: var(--ct-space-4);
+  font-family: var(--font-mono);
+  font-size: var(--ct-text-xs);
 }
 
 .dist-rows-item {
   display: flex;
   justify-content: space-between;
-  padding: 4px 0;
+  padding: var(--ct-space-1) 0;
   border-bottom: 1px solid var(--ct-border-soft);
   color: var(--ct-text-body);
 }
@@ -417,20 +439,20 @@
 /* === Status badges strip (source: cockpit-template + cyber-assets) === */
 .dash-status-strip {
   display: flex;
-  gap: 8px;
+  gap: var(--ct-space-2);
   flex-wrap: wrap;
 }
 
 .dash-status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  gap: var(--ct-space-1_5);
+  padding: var(--ct-space-1) var(--ct-space-2_5);
   background: linear-gradient(135deg, var(--ct-surface-3), var(--ct-surface-1));
   border: 1px solid var(--ct-border-strong);
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 700;
+  border-radius: var(--ct-radius-full);
+  font-size: var(--ct-text-micro);
+  font-weight: var(--ct-font-bold);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ct-text-body);
@@ -449,7 +471,7 @@
 .dash-status-dot {
   width: 6px;
   height: 6px;
-  border-radius: 999px;
+  border-radius: var(--ct-radius-full);
   background: var(--ct-text-strong);
 }
 
@@ -469,12 +491,12 @@
 .dash-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--ct-space-2);
 }
 
 .dash-section-title {
   font-size: 10px;
-  font-weight: 700;
+  font-weight: var(--ct-font-bold);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--ct-text-muted);
@@ -484,13 +506,13 @@
 .dash-header {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding-bottom: 8px;
+  gap: var(--ct-space-3);
+  padding-bottom: var(--ct-space-2);
 }
 
 .dash-header h1 {
-  font-size: 28px;
-  font-weight: 800;
+  font-size: var(--ct-text-2xl);
+  font-weight: var(--ct-font-extrabold);
   letter-spacing: -0.02em;
   color: var(--ct-text-primary);
   line-height: 1.15;
@@ -499,7 +521,7 @@
 
 .dash-header .eyebrow {
   font-size: 10px;
-  font-weight: 700;
+  font-weight: var(--ct-font-bold);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--ct-accent-strong);
@@ -508,16 +530,16 @@
 .dash-header .sub {
   font-size: 13px;
   color: var(--ct-text-muted);
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
 }
 
 .dash-disclaimer {
-  font-size: 11px;
+  font-size: var(--ct-text-xs);
   color: var(--ct-text-muted);
   text-align: center;
-  padding: 24px 0;
+  padding: var(--ct-space-6) 0;
   border-top: 1px solid var(--ct-border-soft);
-  margin-top: 8px;
+  margin-top: var(--ct-space-2);
   font-style: italic;
 }
 
@@ -525,19 +547,19 @@
 .dash-page {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--ct-space-6);
 }
 
 /* === Allocation row sous-section avec drapeaux === */
 .alloc-stat-row {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--ct-space-1);
 }
 
 .alloc-stat-pct {
   font-size: 20px;
-  font-weight: 300;
+  font-weight: var(--ct-font-light);
   color: var(--ct-text-strong);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
@@ -548,11 +570,11 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--ct-text-muted);
-  font-weight: 700;
+  font-weight: var(--ct-font-bold);
 }
 
 .alloc-stat-value {
-  font-size: 11px;
+  font-size: var(--ct-text-xs);
   color: var(--ct-text-body);
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
 }

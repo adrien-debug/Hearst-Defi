@@ -44,10 +44,10 @@ export function AllocationSection({
     <Card>
       <CardHeader>
         <CardTitle>Allocation</CardTitle>
-        <div className="flex items-center gap-3 text-xs text-white/50 glass-panel-subtle px-3 py-1.5 rounded-full">
+        <div className="flex items-center gap-3 text-xs text-[--ct-text-muted] glass-panel-subtle px-3 py-1.5 rounded-full">
           <span className="uppercase tracking-widest font-medium">Blended target</span>
           <ApyRange
-            className="text-white drop-shadow-sm"
+            className="text-[--ct-text-strong] drop-shadow-sm"
             low={blendedYieldRange.low}
             high={blendedYieldRange.high}
           />
@@ -55,8 +55,9 @@ export function AllocationSection({
       </CardHeader>
 
       <div className="flex flex-col gap-8 lg:flex-row lg:items-center">
+        {/* lg:w-[13.75rem] conservé — 13.75rem = 220px, pas de step natif Tailwind (w-52=208px trop étroit, w-56=224px légèrement trop large pour ce donut) */}
         <div className="flex justify-center lg:w-[13.75rem] relative group">
-          <div className="absolute inset-0 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-colors duration-500" />
+          <div className="absolute inset-0 bg-[--ct-surface-1] rounded-full blur-3xl group-hover:bg-[--ct-surface-2] transition-colors duration-500" />
           <svg
             viewBox={`0 0 ${SIZE} ${SIZE}`}
             width={SIZE}
@@ -86,17 +87,17 @@ export function AllocationSection({
                 strokeDasharray={`${dash} ${gap}`}
                 strokeDashoffset={offset}
                 strokeLinecap="round"
-                className="transition-all duration-1000 ease-out hover:stroke-white cursor-pointer"
+                className="transition-all duration-1000 ease-out hover:stroke-[--ct-text-primary] cursor-pointer"
               />
             ))}
           </svg>
         </div>
 
-        <ul className="flex-1 divide-y divide-white/10">
+        <ul className="flex-1 divide-y divide-[--ct-border-soft]">
           {allocations.map((bucket) => (
             <li
               key={bucket.id}
-              className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0 group hover:bg-white/[0.02] px-2 -mx-2 rounded-xl transition-colors"
+              className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0 group hover:bg-[--ct-surface-0] px-2 -mx-2 rounded-[--ct-radius-lg] transition-colors"
             >
               <div className="flex items-start gap-4">
                 <span
@@ -108,19 +109,19 @@ export function AllocationSection({
                 />
                 <div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-white group-hover:text-white/90 transition-colors">{bucket.label}</span>
+                    <span className="text-sm font-medium text-[--ct-text-primary] group-hover:text-[--ct-text-body] transition-colors">{bucket.label}</span>
                     <ProvenanceBadge kind={bucket.provenance} />
                   </div>
-                  <p className="mt-1 text-xs text-white/40 group-hover:text-white/60 transition-colors">
+                  <p className="mt-1 text-xs text-[--ct-text-muted] group-hover:text-[--ct-text-body] transition-colors">
                     {bucket.yieldNote}
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <div className="font-mono text-lg font-semibold tabular-nums text-white/90">
+                <div className="font-mono text-lg font-semibold tabular-nums text-[--ct-text-primary]">
                   {bucket.pctAum.toFixed(0)}%
                 </div>
-                <div className="font-mono text-xs text-white/40 tabular-nums">
+                <div className="font-mono text-xs text-[--ct-text-muted] tabular-nums">
                   {bucket.yieldBps > 0
                     ? `+${bucket.yieldBps} bps`
                     : "P&L variable"}

@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audit Transversal — Hearst Connect — 2026-05-15</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e5e5e5; line-height: 1.5; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+    .header { border-bottom: 1px solid #2a2a2a; padding-bottom: 32px; margin-bottom: 40px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 40px; }
+    .kpi-card { background: #141414; border: 1px solid #2a2a2a; border-radius: 8px; padding: 20px; text-align: center; }
+    .sidebar { display: grid; grid-template-columns: 1fr 320px; gap: 40px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div style="color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Hearst Connect · Audit Transversal</div>
+          <h1 style="font-size:28px;font-weight:700;color:#f5f5f5;margin-bottom:6px;">Audit transversal — Hearst Connect</h1>
+          <div style="color:#6b7280;font-size:13px;">2026-05-15 · Sécurité · Performance · Architecture · Dépendances</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:12px;color:#6b7280;">Total findings</div>
+          <div style="font-size:36px;font-weight:700;color:#e5e5e5;">31</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="kpi-card" style="border-top:3px solid #ef4444;">
+        <div style="font-size:48px;font-weight:700;color:#ef4444;">4</div>
+        <div style="color:#888;font-size:13px;margin-top:4px;">P0 — Critiques</div>
+        <div style="color:#6b7280;font-size:11px;margin-top:4px;">Bloquer avant prod</div>
+      </div>
+      <div class="kpi-card" style="border-top:3px solid #f97316;">
+        <div style="font-size:48px;font-weight:700;color:#f97316;">11</div>
+        <div style="color:#888;font-size:13px;margin-top:4px;">P1 — Urgents</div>
+        <div style="color:#6b7280;font-size:11px;margin-top:4px;">Avant launch</div>
+      </div>
+      <div class="kpi-card" style="border-top:3px solid #eab308;">
+        <div style="font-size:48px;font-weight:700;color:#eab308;">16</div>
+        <div style="color:#888;font-size:13px;margin-top:4px;">P2 — Dettes</div>
+        <div style="color:#6b7280;font-size:11px;margin-top:4px;">Sprint suivant</div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div>
+        
+    <section style="margin-bottom:40px;">
+      <h2 style="color:#e5e5e5;border-bottom:1px solid #2a2a2a;padding-bottom:12px;margin-bottom:20px;font-size:18px;">
+        🔐 Sécurité
+        <span style="font-size:13px;font-weight:normal;color:#6b7280;margin-left:12px;">
+          <span style="color:#ef4444;">4 P0</span>   <span style="color:#f97316;">2 P1</span>   <span style="color:#eab308;">4 P2</span>
+        </span>
+      </h2>
+      
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #ef4444;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#450a0a;color:#ef4444;border:1px solid #ef4444;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P0</span>
+        <strong style="color:#e5e5e5;font-size:14px;">Routes /admin/* sans authentification</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/app/admin/layout.tsx</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> Aucun middleware d'auth sur /admin/*. Accessible par tout visiteur.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Créer middleware.ts protégeant /admin/* et /(product)/* avec Privy JWT côté serveur.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ OWASP A01 — Broken Access Control. Toute personne peut modifier le roadmap, lire specs et feedbacks.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #ef4444;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#450a0a;color:#ef4444;border:1px solid #ef4444;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P0</span>
+        <strong style="color:#e5e5e5;font-size:14px;">Server Actions sans validation Zod</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/app/admin/roadmap/actions.ts:23</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> Validation ad-hoc (asString) sans limite de longueur ni schéma.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Importer zod, créer RoadmapItemSchema + FeedbackSchema, valider avant mutation Prisma.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ OWASP A03 — XSS en base, injection de caractères, DoS par inputs géants.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #ef4444;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#450a0a;color:#ef4444;border:1px solid #ef4444;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P0</span>
+        <strong style="color:#e5e5e5;font-size:14px;">Aucune RLS Postgres sur les tables sensibles</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">prisma/schema.prisma</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> Tables Feedback, RoadmapValidation sans colonne user_id ni policy RLS.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Ajouter user_id, configurer RLS Supabase : CREATE POLICY ... USING (auth.uid() = user_id).</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ OWASP A01 — une session usurpée lit tous les feedbacks de tous les utilisateurs.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #ef4444;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#450a0a;color:#ef4444;border:1px solid #ef4444;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P0</span>
+        <strong style="color:#e5e5e5;font-size:14px;">Endpoint Inngest sans vérification de signature</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/app/api/inngest/route.ts:14</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> GET/POST/PUT exposés sans validation du header Inngest-Signature.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Vérifier signature Inngest via INNGEST_SIGNING_KEY. Documenter dans .env.example.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ OWASP A07 — Attaquant peut déclencher des jobs coûteux (AI, crypto) sans auth.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #f97316;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#431407;color:#f97316;border:1px solid #f97316;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P1</span>
+        <strong style="color:#e5e5e5;font-size:14px;">PRIVY_APP_SECRET potentiellement accessible</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/lib/auth/privy-config.ts:12</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> Exporté depuis un module server-only mais aucun garde lint contre import indirect client.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Ajouter ESLint rule interdisant l'import de fichiers server-only depuis composants client.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ OWASP A02 — fuite du secret dans le bundle JS si importé transitivement.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #f97316;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#431407;color:#f97316;border:1px solid #f97316;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P1</span>
+        <strong style="color:#e5e5e5;font-size:14px;">Données admin sensibles stockées en clair</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">prisma/schema.prisma:177</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> notes, blockers, evidenceUrl tous String? sans chiffrement.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Activer Database Encryption at Rest Supabase ou Postgres pgcrypto.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ OWASP A02 — fuite des détails internes si backup DB exposée.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #eab308;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#422006;color:#eab308;border:1px solid #eab308;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P2</span>
+        <strong style="color:#e5e5e5;font-size:14px;">Absence de Content Security Policy</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">next.config.ts</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> Aucun header CSP configuré.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Middleware ajoutant Content-Security-Policy, X-Frame-Options, X-Content-Type-Options.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ OWASP A03 — XSS peut voler tokens Privy. Clickjacking possible.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #eab308;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#422006;color:#eab308;border:1px solid #eab308;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P2</span>
+        <strong style="color:#e5e5e5;font-size:14px;">Aucun rate limiting sur Server Actions</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/app/admin/feedback/actions.ts:13</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> postFeedback et updateRoadmapItem sans throttle.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Upstash Redis (déjà dans .env.example) pour 10 req/min/IP.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ OWASP A05 — spam DoS ou pollution de données.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #eab308;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#422006;color:#eab308;border:1px solid #eab308;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P2</span>
+        <strong style="color:#e5e5e5;font-size:14px;">Stack traces Anthropic/Prisma propagées au client</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/lib/agents/investor-memo.ts:213</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> JSON.parse() sans try-catch retourne l'erreur brute au client.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> try-catch sur tous les appels SDK, message générique côté client, Sentry côté serveur.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ OWASP A02 — Information Disclosure : version lib, URLs internes.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #eab308;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#422006;color:#eab308;border:1px solid #eab308;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P2</span>
+        <strong style="color:#e5e5e5;font-size:14px;">Aucun audit trail sur mutations admin</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/app/admin/roadmap/actions.ts:48</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> Upsert sans log de qui a modifié quoi.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Table AuditLog avec userId/resource/oldValue/newValue/timestamp.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Compliance : impossible de forensiquer une modification malveillante.</div>
+    </div>
+    </section>
+    <section style="margin-bottom:40px;">
+      <h2 style="color:#e5e5e5;border-bottom:1px solid #2a2a2a;padding-bottom:12px;margin-bottom:20px;font-size:18px;">
+        ⚡ Performance
+        <span style="font-size:13px;font-weight:normal;color:#6b7280;margin-left:12px;">
+          <span style="color:#ef4444;">3 P0</span>   <span style="color:#f97316;">3 P1</span>   <span style="color:#eab308;">4 P2</span>
+        </span>
+      </h2>
+      
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #ef4444;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#450a0a;color:#ef4444;border:1px solid #ef4444;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P0</span>
+        <strong style="color:#e5e5e5;font-size:14px;">Composant client monolithe 582 lignes</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/components/scenario/lab-shell.tsx:1</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> 1 fichier : TabBar + ScenarioMode + CompareMode + BacktestTab + 8 useState + handlers.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Découper : <LabShellLayout/> serveur + <ScenarioPanel/> + <BacktestPanel/> + ContextProvider dédié.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Hydratation lourde, pas de codesplitting automatique Next.js, testabilité nulle.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #ef4444;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#450a0a;color:#ef4444;border:1px solid #ef4444;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P0</span>
+        <strong style="color:#e5e5e5;font-size:14px;">Intl.NumberFormat redéfini 7+ fois dans la codebase</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/components/dashboard/hero-metrics.tsx:11</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> usdCompact, usdShort, btcUsdFormat recréés dans hero-metrics, timeseries-section, btc-tactical, proof-card…</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Créer src/lib/formatters.ts centralisé, importer partout.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Intl.NumberFormat est coûteux à instancier ; 7+ instances inutiles, duplication ~500 lignes.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #ef4444;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#450a0a;color:#ef4444;border:1px solid #ef4444;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P0</span>
+        <strong style="color:#e5e5e5;font-size:14px;">OutputPanel 425 lignes sans sous-composants</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/components/scenario/output-panel.tsx:1</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> 6 sections (APY, Risk, Allocations, Guardrails, Assumptions, BTC) dans une seule fonction.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Extraire <ApyHeroCard/> <RiskMiningGrid/> <AllocationsSection/> <GuardrailsSection/> <AssumptionsSection/>.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Codesplitting impossible, testabilité nulle, re-render complet si 1 section change.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #f97316;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#431407;color:#f97316;border:1px solid #f97316;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P1</span>
+        <strong style="color:#e5e5e5;font-size:14px;">8 useState sans useReducer dans LabShell</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/components/scenario/lab-shell.tsx:303</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> activeTab, scenarioMode, scenarioState, scenarioPending, scenarioError, backtestState, backtestPending, backtestError.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Consolider en useReducer avec type LabShellAction union.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ State incohérent possible (pending=true + error défini). Debug difficile.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #f97316;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#431407;color:#f97316;border:1px solid #f97316;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P1</span>
+        <strong style="color:#e5e5e5;font-size:14px;">Loader monolithe 531 lignes (Scenario + Backtest + types)</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/lib/agents/loaders/vault.ts:1</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> narrowScenarioOutput(), parseScenarioOutput(), parseBacktestOutput() dans un seul fichier.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Séparer en loaders/scenario.ts + loaders/backtest.ts. vault.ts orchestre uniquement.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Chaque loader peut être versionné/testé indépendamment.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #f97316;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#431407;color:#f97316;border:1px solid #f97316;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P1</span>
+        <strong style="color:#e5e5e5;font-size:14px;">useEffect avec 6 dépendances instables (Privy login)</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/components/auth/home-cta.tsx:62</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> Deps: [ready, wantsLogin, authenticated, login, router, searchParams]. login() de Privy possiblement instable.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Isoler loginOnce = useCallback(...), useEffect(() => loginOnce(), [loginOnce]).</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Risque de boucle si login() redéfini à chaque rendu Privy.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #eab308;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#422006;color:#eab308;border:1px solid #eab308;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P2</span>
+        <strong style="color:#e5e5e5;font-size:14px;">ProofCard sans React.memo() dans liste</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/components/proof/proof-card.tsx:74</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> Re-render sur chaque changement parent même si props identiques.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> memo(ProofCard, (prev, next) => prev.proof.id === next.proof.id).</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Perf liste avec N cards, re-renders inutiles.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #eab308;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#422006;color:#eab308;border:1px solid #eab308;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P2</span>
+        <strong style="color:#e5e5e5;font-size:14px;">parseAssumption() en boucle .map() à chaque render</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/components/scenario/output-panel.tsx:98</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> visible.map(line => parseAssumption(line)) dans le render.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> useMemo(() => assumptions.map(parseAssumption), [assumptions]).</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Calcul inutile si assumptions n'a pas changé.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #eab308;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#422006;color:#eab308;border:1px solid #eab308;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P2</span>
+        <strong style="color:#e5e5e5;font-size:14px;">labelFor() O(n) lookup à chaque render</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/components/scenario/compare-mode.tsx:13</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> PRESETS.find(p => p.id === preset). Array search répété.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> const PRESET_MAP = new Map(PRESETS.map(p => [p.id, p.label])); O(1) lookup.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Pattern mauvais si PRESETS grossit.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #eab308;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#422006;color:#eab308;border:1px solid #eab308;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P2</span>
+        <strong style="color:#e5e5e5;font-size:14px;">Context Provider : toggle() recréé à chaque render</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/components/dashboard/advanced-toggle.tsx:52</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> useMemo(() => ({ enabled, toggle() {...} }), [enabled]). toggle recréé quand enabled change.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> useCallback pour toggle séparé des deps, puis useMemo({ enabled, toggle }).</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Consumers de toggle() se re-renderent inutilement.</div>
+    </div>
+    </section>
+    <section style="margin-bottom:40px;">
+      <h2 style="color:#e5e5e5;border-bottom:1px solid #2a2a2a;padding-bottom:12px;margin-bottom:20px;font-size:18px;">
+        🏗️ Architecture
+        <span style="font-size:13px;font-weight:normal;color:#6b7280;margin-left:12px;">
+           <span style="color:#f97316;">2 P1</span>   <span style="color:#eab308;">2 P2</span>
+        </span>
+      </h2>
+      
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #f97316;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#431407;color:#f97316;border:1px solid #f97316;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P1</span>
+        <strong style="color:#e5e5e5;font-size:14px;">Types partagés DashboardVault vs engine ScenarioOutput (duplication)</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/lib/data/dashboard.ts</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> apy_range, stressedApy, riskScore, mode redéfinis dans dashboard.ts avec une forme adaptée.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Créer un type VaultScenarioAdapter ou documenter explicitement le choix d'adaptation.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Risque d'erreur silencieuse lors d'une mise à jour du schema engine.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #f97316;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#431407;color:#f97316;border:1px solid #f97316;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P1</span>
+        <strong style="color:#e5e5e5;font-size:14px;">Rehydration JSON sans validation schema Zod</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/lib/agents/loaders/vault.ts</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> JSON.parse(row.outputs) coercé vers ScenarioOutput sans runtime check.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Ajouter ScenarioOutputSchema.parse(JSON.parse(row.outputs)) avec throw explicite.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Schema JSON divergent = rapport investisseur silencieusement faux.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #eab308;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#422006;color:#eab308;border:1px solid #eab308;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P2</span>
+        <strong style="color:#e5e5e5;font-size:14px;">VaultMode déclaré 3 fois (engine + data + loader)</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/lib/engine/types.ts</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> 'defensive' | 'balanced' | 'opportunistic' littéralement dans 3 fichiers.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Single source dans src/lib/engine/types.ts, importer partout.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Ajout d'un mode = 3 fichiers à modifier, 3 bugs potentiels.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #eab308;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#422006;color:#eab308;border:1px solid #eab308;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P2</span>
+        <strong style="color:#e5e5e5;font-size:14px;">NEXT_PUBLIC_ env check inline dans composant</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">src/components/auth/home-cta.tsx:11</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> (process.env.NEXT_PUBLIC_PRIVY_APP_ID ?? '').length > 0 inline.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Helper centralisé isPrivyConfigured() dans src/lib/env.ts.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Maintenabilité : si d'autres checks émergent, logique dispersée.</div>
+    </div>
+    </section>
+    <section style="margin-bottom:40px;">
+      <h2 style="color:#e5e5e5;border-bottom:1px solid #2a2a2a;padding-bottom:12px;margin-bottom:20px;font-size:18px;">
+        📦 Dépendances
+        <span style="font-size:13px;font-weight:normal;color:#6b7280;margin-left:12px;">
+           <span style="color:#f97316;">3 P1</span>   <span style="color:#eab308;">3 P2</span>
+        </span>
+      </h2>
+      
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #f97316;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#431407;color:#f97316;border:1px solid #f97316;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P1</span>
+        <strong style="color:#e5e5e5;font-size:14px;">CVE-2026-41305 — PostCSS XSS via </style></strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">package.json</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> postcss@8.4.31 (transitif via next@16.2.6). CVSS 6.1 MODERATE.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Mettre à jour next ou ajouter override postcss>=8.5.10 dans package.json.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ XSS si CSS soumis par utilisateur est parsé et re-injecté en HTML.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #f97316;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#431407;color:#f97316;border:1px solid #f97316;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P1</span>
+        <strong style="color:#e5e5e5;font-size:14px;">@privy-io/server-auth DEPRECATED</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">package.json:21</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> @privy-io/server-auth@1.32.5 — marqué DEPRECATED par le mainteneur.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Contacter équipe Privy pour migration path. Potentiellement supprimer si non utilisé (depcheck indique unused).</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Fin de support = 0 patch sécurité futur.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #f97316;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#431407;color:#f97316;border:1px solid #f97316;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P1</span>
+        <strong style="color:#e5e5e5;font-size:14px;">5 dépendances potentiellement inutilisées (depcheck)</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">package.json</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> @mdx-js/loader, @mdx-js/react, @next/mdx, @privy-io/server-auth, lucide-react signalés unused.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Audit manuel : lucide-react probablement utilisé indirectement. MDX peut-être utilisé pour docs/spec. @privy-io/server-auth à confirmer.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Dépendances inutiles = surface d'attaque + build time + bundle size.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #eab308;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#422006;color:#eab308;border:1px solid #eab308;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P2</span>
+        <strong style="color:#e5e5e5;font-size:14px;">Prisma 7 disponible (actuellement 6.19.3)</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">package.json</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> @prisma/client@6.19.3 / prisma@6.19.3</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Tester migration prisma@7.8.0 en branche feature, vérifier breaking changes schema + client API.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Prisma 7 = nouvelles features + support actif. Mieux de migrer tôt.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #eab308;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#422006;color:#eab308;border:1px solid #eab308;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P2</span>
+        <strong style="color:#e5e5e5;font-size:14px;">Conflits TypeScript multi-versions</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">package.json</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> typescript@^6.0.3 déclaré, mais transitives demandent ~5.5.3, 5.8.x, 5.9.x. npm ls retourne 'invalid'.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> Ajouter overrides dans package.json pour forcer une version unique ou résolution pnpm.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Build passe mais type conflicts possibles entre packages avec TS incompatibles.</div>
+    </div>
+    <div style="border:1px solid #2a2a2a;border-left:3px solid #eab308;background:#141414;border-radius:6px;padding:16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#422006;color:#eab308;border:1px solid #eab308;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">P2</span>
+        <strong style="color:#e5e5e5;font-size:14px;">6 packages outdated (minors/patches)</strong>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-family:monospace;">package.json</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:6px;"><strong style="color:#777;">Actuel :</strong> viem@2.48.11, lucide-react@1.14.0, @privy-io/react-auth@3.25.0, @types/node@25.7.0 retardés.</div>
+      <div style="font-size:13px;color:#86efac;margin-bottom:6px;"><strong style="color:#777;">Suggéré :</strong> pnpm update --latest après test de régression.</div>
+      <div style="font-size:12px;color:#6b7280;font-style:italic;">→ Patches peuvent contenir des correctifs de sécurité non-CVE.</div>
+    </div>
+    </section>
+      </div>
+      <div>
+        <div style="position:sticky;top:24px;">
+          <div style="background:#141414;border:1px solid #2a2a2a;border-radius:8px;padding:20px;margin-bottom:24px;">
+            <h3 style="color:#86efac;font-size:14px;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.05em;">⚡ Quick Wins</h3>
+            <div style="display:flex;align-items:center;gap:12px;padding:10px;background:#141414;border:1px solid #2a2a2a;border-radius:6px;margin-bottom:8px;">
+    <span style="background:#1a2e1a;color:#86efac;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;min-width:30px;text-align:center;">XS</span>
+    <div>
+      <div style="color:#e5e5e5;font-size:13px;">Centraliser src/lib/formatters.ts (7 Intl dupliquées)</div>
+      <div style="color:#6b7280;font-size:11px;font-family:monospace;">src/lib/formatters.ts</div>
+    </div>
+  </div><div style="display:flex;align-items:center;gap:12px;padding:10px;background:#141414;border:1px solid #2a2a2a;border-radius:6px;margin-bottom:8px;">
+    <span style="background:#1a2e1a;color:#67e8f9;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;min-width:30px;text-align:center;">S</span>
+    <div>
+      <div style="color:#e5e5e5;font-size:13px;">Middleware auth Privy sur /admin/* et /(product)/*</div>
+      <div style="color:#6b7280;font-size:11px;font-family:monospace;">src/middleware.ts</div>
+    </div>
+  </div><div style="display:flex;align-items:center;gap:12px;padding:10px;background:#141414;border:1px solid #2a2a2a;border-radius:6px;margin-bottom:8px;">
+    <span style="background:#1a2e1a;color:#67e8f9;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;min-width:30px;text-align:center;">S</span>
+    <div>
+      <div style="color:#e5e5e5;font-size:13px;">Validation Zod sur Server Actions admin</div>
+      <div style="color:#6b7280;font-size:11px;font-family:monospace;">src/app/admin/roadmap/actions.ts</div>
+    </div>
+  </div><div style="display:flex;align-items:center;gap:12px;padding:10px;background:#141414;border:1px solid #2a2a2a;border-radius:6px;margin-bottom:8px;">
+    <span style="background:#1a2e1a;color:#86efac;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;min-width:30px;text-align:center;">XS</span>
+    <div>
+      <div style="color:#e5e5e5;font-size:13px;">Override postcss>=8.5.10 dans package.json (CVE)</div>
+      <div style="color:#6b7280;font-size:11px;font-family:monospace;">package.json</div>
+    </div>
+  </div><div style="display:flex;align-items:center;gap:12px;padding:10px;background:#141414;border:1px solid #2a2a2a;border-radius:6px;margin-bottom:8px;">
+    <span style="background:#1a2e1a;color:#86efac;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;min-width:30px;text-align:center;">XS</span>
+    <div>
+      <div style="color:#e5e5e5;font-size:13px;">Single source VaultMode dans engine/types.ts</div>
+      <div style="color:#6b7280;font-size:11px;font-family:monospace;">src/lib/engine/types.ts</div>
+    </div>
+  </div><div style="display:flex;align-items:center;gap:12px;padding:10px;background:#141414;border:1px solid #2a2a2a;border-radius:6px;margin-bottom:8px;">
+    <span style="background:#1a2e1a;color:#86efac;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;min-width:30px;text-align:center;">XS</span>
+    <div>
+      <div style="color:#e5e5e5;font-size:13px;">PRESET_MAP pour O(1) lookup compare-mode</div>
+      <div style="color:#6b7280;font-size:11px;font-family:monospace;">src/components/scenario/compare-mode.tsx</div>
+    </div>
+  </div>
+          </div>
+          <div style="background:#141414;border:1px solid #2a2a2a;border-radius:8px;padding:20px;">
+            <h3 style="color:#e5e5e5;font-size:14px;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.05em;">Plan d'action</h3>
+            
+    <div style="margin-bottom:24px;">
+      <h3 style="color:#ef4444;font-size:14px;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;">P0 critiques (bloquer avant prod)</h3>
+      <ul style="list-style:none;padding:0;margin:0;">
+        <li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#ef4444;margin-right:8px;">▸</span>Créer middleware.ts : auth Privy sur /admin/* et /(product)/*
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#ef4444;margin-right:8px;">▸</span>Ajouter Zod sur tous les Server Actions (admin roadmap, feedback)
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#ef4444;margin-right:8px;">▸</span>Configurer RLS Postgres sur Feedback + RoadmapValidation
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#ef4444;margin-right:8px;">▸</span>Vérifier/ajouter signature Inngest sur /api/inngest
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#ef4444;margin-right:8px;">▸</span>Splitter lab-shell.tsx (582L) : LabShellLayout + ScenarioPanel + BacktestPanel
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#ef4444;margin-right:8px;">▸</span>Splitter output-panel.tsx (425L) : 6 sous-composants
+        </li>
+      </ul>
+    </div>
+    <div style="margin-bottom:24px;">
+      <h3 style="color:#f97316;font-size:14px;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;">P1 cohérence (avant launch)</h3>
+      <ul style="list-style:none;padding:0;margin:0;">
+        <li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#f97316;margin-right:8px;">▸</span>Patcher postcss CVE-2026-41305 (override dans package.json)
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#f97316;margin-right:8px;">▸</span>Auditer @privy-io/server-auth deprecated : migrer ou supprimer
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#f97316;margin-right:8px;">▸</span>Nettoyer dépendances inutilisées (MDX, lucide-react à confirmer)
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#f97316;margin-right:8px;">▸</span>Centraliser src/lib/formatters.ts (7 Intl dupliquées)
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#f97316;margin-right:8px;">▸</span>Consolider 8 useState de lab-shell en useReducer
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#f97316;margin-right:8px;">▸</span>Ajouter Zod parse sur rehydration JSON du vault loader
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#f97316;margin-right:8px;">▸</span>Créer type VaultScenarioAdapter ou documenter l'adaptation
+        </li>
+      </ul>
+    </div>
+    <div style="margin-bottom:24px;">
+      <h3 style="color:#eab308;font-size:14px;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;">P2 dettes (sprint suivant)</h3>
+      <ul style="list-style:none;padding:0;margin:0;">
+        <li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#eab308;margin-right:8px;">▸</span>Single source VaultMode dans engine/types.ts
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#eab308;margin-right:8px;">▸</span>PRESET_MAP O(1) dans compare-mode
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#eab308;margin-right:8px;">▸</span>React.memo() sur ProofCard + AssumptionsList
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#eab308;margin-right:8px;">▸</span>CSP headers dans middleware (X-Frame-Options, X-Content-Type-Options)
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#eab308;margin-right:8px;">▸</span>Rate limiting Upstash Redis sur Server Actions admin
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#eab308;margin-right:8px;">▸</span>Audit trail AuditLog table pour mutations admin
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#eab308;margin-right:8px;">▸</span>Test migration Prisma 6→7 en branche feature
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#eab308;margin-right:8px;">▸</span>Résoudre conflits TypeScript multi-versions via overrides
+        </li><li style="padding:6px 0;color:#aaa;font-size:13px;border-bottom:1px solid #1a1a1a;">
+          <span style="color:#eab308;margin-right:8px;">▸</span>isPrivyConfigured() helper centralisé dans src/lib/env.ts
+        </li>
+      </ul>
+    </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

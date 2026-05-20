@@ -5,11 +5,12 @@ import { env } from "@/lib/env";
 /**
  * Kimi client (OpenAI-compatible) routed through Hypercli.
  *
- * Configuration is sourced from the validated env. No silent placeholder
- * fallbacks: if the API key is absent at runtime, the client throws on first
- * use. During `next build` (NEXT_PHASE === "phase-production-build"), Next.js
- * statically analyses every route module, so we tolerate a stub client at
- * import time and only fail at runtime use.
+ * Configuration is sourced exclusively from the validated env (`@/lib/env`).
+ * There are NO silent placeholder fallbacks for the API key, base URL or
+ * model — a missing value either throws explicitly at import (normal runtime)
+ * or, only during `next build` (NEXT_PHASE === "phase-production-build"),
+ * yields a stub that throws on first use so route static analysis still
+ * succeeds.
  */
 
 const IS_BUILD_PHASE = process.env.NEXT_PHASE === "phase-production-build";
@@ -23,11 +24,8 @@ function buildPlaceholderClient(reason: string): OpenAI {
   const throwStub = (): never => {
     throw new Error(reason);
   };
-  // Single handler reused for both the object base and the nested callable
-  // proxies, so it must be typed against a callable object target.
   const handler: ProxyHandler<object> = {
     get(_target, prop): unknown {
-      // Allow Symbol-based introspection (e.g. inspect) to no-op
       if (typeof prop === "symbol") return undefined;
       return new Proxy(throwStub, handler);
     },
@@ -35,16 +33,10 @@ function buildPlaceholderClient(reason: string): OpenAI {
       return throwStub();
     },
   };
-  // The base of the proxy is irrelevant — every access is intercepted.
   return new Proxy({}, handler) as OpenAI;
 }
 
 function createKimi(): OpenAI {
-  // Treat empty / whitespace-only keys as unconfigured. The Zod schema marks
-  // HYPERCLI_API_KEY `.optional()` (so the build placeholder still parses),
-  // and the test-mode lenient env path can surface `""`. A truthiness check
-  // alone is not enough — guard on trimmed length so a blank key never
-  // produces a half-configured OpenAI client that 401s opaquely at runtime.
   const apiKey = env.HYPERCLI_API_KEY;
   if (!apiKey || apiKey.trim().length === 0) {
     const reason =
@@ -54,7 +46,9 @@ function createKimi(): OpenAI {
     }
     throw new Error(reason);
   }
-  if (!env.HYPERCLI_BASE_URL) {
+
+  const baseURL = env.HYPERCLI_BASE_URL;
+  if (!baseURL || baseURL.trim().length === 0) {
     const reason =
       "HYPERCLI_BASE_URL is not configured. Set it in the environment to use Kimi LLM features.";
     if (IS_BUILD_PHASE) {
@@ -65,7 +59,7 @@ function createKimi(): OpenAI {
 
   return new OpenAI({
     apiKey,
-    baseURL: env.HYPERCLI_BASE_URL,
+    baseURL,
     ...(env.HYPERCLI_ORG_ID ? { organization: env.HYPERCLI_ORG_ID } : {}),
   });
 }

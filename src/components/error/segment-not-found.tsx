@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ErrorShellLayout } from "@/components/error/error-shell";
 import { Button } from "@/components/ui/button";
 
 interface SegmentNotFoundProps {
@@ -24,35 +25,16 @@ export function SegmentNotFound({
   homeLabel = "Retour à l'accueil",
 }: SegmentNotFoundProps) {
   return (
-    <div
-      className="glass-panel"
-      style={{
-        margin: "2.5rem auto",
-        maxWidth: "42rem",
-        padding: "2rem",
-        display: "flex",
-        flexDirection: "column",
-        gap: "1.25rem",
-      }}
-    >
-      <header style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-        <span className="eyebrow" style={{ color: "var(--ct-status-warning)" }}>
-          {scope}
-        </span>
-        <h1 className="h2" style={{ margin: 0 }}>
-          Page introuvable
-        </h1>
-      </header>
-
-      <p className="body-md" style={{ margin: 0, color: "var(--ct-text-body)" }}>
-        {message}
-      </p>
-
-      <div>
+    <ErrorShellLayout
+      tone="warning"
+      scope={scope}
+      title="Page introuvable"
+      message={message}
+      actions={
         <Button variant="secondary" size="sm" asChild>
           <Link href={homeHref}>{homeLabel}</Link>
         </Button>
-      </div>
-    </div>
+      }
+    />
   );
 }

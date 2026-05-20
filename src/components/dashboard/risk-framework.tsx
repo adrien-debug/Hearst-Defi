@@ -94,7 +94,7 @@ export function RiskFrameworkSection({ data }: RiskFrameworkSectionProps) {
         ))}
       </ul>
 
-      <p className="mt-6 text-xs text-white/30 italic leading-relaxed">
+      <p className="mt-6 text-xs text-[--ct-text-faint] italic leading-relaxed">
         Composite score is the weighted sum of the five dimensions defined in
         Methodology v1.0. Conditional projection — not guaranteed.
       </p>
@@ -110,17 +110,17 @@ interface CompositeHeaderProps {
 
 function CompositeHeader({ composite, band, bandLabel }: CompositeHeaderProps) {
   return (
-    <div className="flex flex-col gap-4 rounded-2xl glass-panel-subtle px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-4 rounded-[--ct-radius-xl] glass-panel-subtle px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-baseline gap-3">
-        <span className="text-sm font-medium uppercase tracking-widest text-white/50">Composite</span>
+        <span className="text-sm font-medium uppercase tracking-widest text-[--ct-text-muted]">Composite</span>
         <span className={cn("text-4xl font-semibold tracking-tight tabular-nums", BAND_TEXT[band])}>
           {composite}
-          <span className="text-white/30 text-lg font-normal ml-1">
+          <span className="text-[--ct-text-faint] text-lg font-normal ml-1">
             / 100
           </span>
         </span>
       </div>
-      <div className="flex items-center gap-4 sm:min-w-[15rem]">
+      <div className="flex items-center gap-4 sm:min-w-60">
         <Progress
           value={composite}
           fillClassName={BAND_BAR[band]}
@@ -148,14 +148,15 @@ function RiskRow({ dimension }: RiskRowProps) {
         />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium text-white group-hover:text-white/90 transition-colors">
+            <span className="text-sm font-medium text-[--ct-text-primary] group-hover:text-[--ct-text-body] transition-colors">
               {label}
             </span>
             <Badge variant={SEVERITY_VARIANT[severity]}>{status}</Badge>
           </div>
-          <p className="mt-1 text-xs text-white/40 group-hover:text-white/60 transition-colors">{detail}</p>
+          <p className="mt-1 text-xs text-[--ct-text-muted] group-hover:text-[--ct-text-body] transition-colors">{detail}</p>
         </div>
       </div>
+      {/* sm:w-[11.25rem] conservé — 11.25rem = 180px, pas de step natif Tailwind (w-44=176px trop étroit, w-48=192px trop large) */}
       <div className="flex items-center gap-4 sm:w-[11.25rem] sm:justify-end">
         <span
           className={cn(
@@ -168,7 +169,8 @@ function RiskRow({ dimension }: RiskRowProps) {
         <Progress
           value={score}
           fillClassName={SEVERITY_BAR[severity]}
-          className="h-1.5 w-[5rem] sm:w-[6.25rem]"
+          /* 6.25rem = 100px ; pas de step 25 dans la spacing scale Tailwind v4 par défaut */
+          className="h-1.5 w-20 sm:w-[6.25rem]"
         />
       </div>
     </div>

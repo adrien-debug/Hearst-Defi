@@ -280,7 +280,7 @@ function OnChainAttestationCard({
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Source</dt>
           <dd className="body-xs">
-            <span className="rounded-[--radius-full] border border-[--ct-status-success-border] bg-[--ct-status-success-soft] px-1.5 py-0.5 text-[0.625rem] uppercase tracking-wider text-[--ct-status-success]">
+            <span className="rounded-[--radius-full] border border-[--ct-status-success-border] bg-[--ct-status-success-soft] px-1.5 py-0.5 text-[length:var(--ct-text-micro)] uppercase tracking-wider text-[--ct-status-success]">
               On-chain
             </span>
           </dd>

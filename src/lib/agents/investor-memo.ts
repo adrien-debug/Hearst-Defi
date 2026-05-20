@@ -186,6 +186,13 @@ export async function runInvestorMemo(
   opts: RunInvestorMemoOptions = {},
 ): Promise<InvestorMemoOutput> {
   const model = opts.model ?? INVESTOR_MEMO_MODEL;
+  if (process.env.NODE_ENV === "production" && model !== INVESTOR_MEMO_MODEL) {
+    throw new Error(
+      `Investor Memo model pinning violated: got "${model}", required "${INVESTOR_MEMO_MODEL}". ` +
+        "The Investor Memo is the highest-stakes output (8-page PDF to institutional LPs) and " +
+        "must never be downgraded from Opus 4.7 in production.",
+    );
+  }
 
   const { response } = await callLlm(
     "investor-memo",

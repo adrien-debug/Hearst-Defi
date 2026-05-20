@@ -392,7 +392,7 @@ async function seedScenarioRuns(): Promise<number> {
     await prisma.scenarioRun.create({
       data: {
         ranAt: SNAPSHOT_DATES[preset],
-        userId: null,
+        userId: "seed-user",
         preset,
         inputs: JSON.stringify(inputs),
         outputs: JSON.stringify(output),
@@ -415,6 +415,7 @@ async function seedBacktests(): Promise<number> {
       data: {
         backtestKey: key,
         ranAt: SEED_NOW,
+        userId: "seed-user",
         initialCapital: out.initialCapital,
         rulesMode: "hearst_rules",
         endingValue: out.endingValue,

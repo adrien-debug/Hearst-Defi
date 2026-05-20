@@ -3,6 +3,7 @@ import {
   type CockpitChatHandlerConfig,
 } from "@hearst/cockpit-shell/handler";
 import type { NextRequest } from "next/server";
+import { z } from "zod";
 import { kimi, KIMI_MODEL } from "@/lib/llm/kimi";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { assertRateLimit } from "@/lib/rate-limit";
@@ -20,6 +21,48 @@ const SYSTEM_PROMPT =
 // an IP bucket). Enforced here because we need the userId from requireAuth().
 const CHAT_RATE_MAX = 20;
 const CHAT_RATE_WINDOW_MS = 60_000;
+
+// Hard caps. NOTE: the @hearst/cockpit-shell handler does NOT accept
+// maxTokens/temperature (neither in CockpitChatHandlerConfig nor in its
+// body schema — it builds the LLM call internally), so these are enforced
+// on the inbound body to reject abusive payloads before they reach the
+// handler. They cannot be forwarded to the model call itself.
+const MAX_OUTPUT_TOKENS = 2048;
+const MAX_CONTENT_LEN = 8_000;
+const MAX_MESSAGES = 30;
+const MAX_SYSTEM_LEN = 4_000;
+
+const HTML_TAG_RE = /<[^>]*>/g;
+
+/** Strip HTML tags from untrusted user content (server-side, no DOMPurify). */
+function sanitizeContent(value: string): string {
+  return value.replace(HTML_TAG_RE, "").trim();
+}
+
+/**
+ * Inbound body validation.
+ *
+ * The cockpit-shell handler's own schema is
+ * `{ chatId?, message, messages?, productId?, system? }`. We validate the
+ * security-relevant fields here (BEFORE the handler re-parses the body) and
+ * keep the shape rétro-compatible: `message` stays required, `messages` is
+ * the optional history array the task asked us to constrain.
+ */
+const ChatMessageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string().min(1).max(MAX_CONTENT_LEN),
+});
+
+const ChatBodySchema = z.object({
+  chatId: z.string().max(200).nullish(),
+  message: z.string().min(1).max(MAX_CONTENT_LEN),
+  messages: z.array(ChatMessageSchema).max(MAX_MESSAGES).optional(),
+  productId: z.string().max(200).nullish(),
+  system: z.string().max(MAX_SYSTEM_LEN).optional(),
+  // Accepted but clamped (handler ignores these; we cap defensively).
+  maxTokens: z.number().int().positive().max(MAX_OUTPUT_TOKENS).optional(),
+  temperature: z.number().min(0).max(1).optional(),
+});
 
 type PersistedRole = "user" | "assistant" | "system";
 
@@ -134,7 +177,64 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
 
-  // 3. Build a per-request handler bound to this user (rate-limit key +
+  // 3. Validate + sanitize the body BEFORE the handler re-parses it.
+  //    The handler calls `req.json()` internally, so we reconstruct a
+  //    fresh Request carrying the sanitized payload.
+  let sanitizedReq: NextRequest;
+  try {
+    const raw: unknown = await req.json();
+    const parsed = ChatBodySchema.safeParse(raw);
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({
+          error: "Invalid request body",
+          issues: parsed.error.issues.map((i) => ({
+            path: i.path.join("."),
+            message: i.message,
+          })),
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    const body = parsed.data;
+    const cleanMessage = sanitizeContent(body.message);
+    if (!cleanMessage) {
+      return new Response(
+        JSON.stringify({ error: "Message is empty after sanitization" }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    const sanitizedBody = {
+      ...(body.chatId != null ? { chatId: body.chatId } : {}),
+      message: cleanMessage,
+      ...(body.messages
+        ? {
+            messages: body.messages.map((m) => ({
+              role: m.role,
+              content:
+                m.role === "user" ? sanitizeContent(m.content) : m.content,
+            })),
+          }
+        : {}),
+      ...(body.productId != null ? { productId: body.productId } : {}),
+      ...(body.system ? { system: body.system } : {}),
+    };
+
+    sanitizedReq = new Request(req.url, {
+      method: "POST",
+      headers: req.headers,
+      body: JSON.stringify(sanitizedBody),
+    }) as NextRequest;
+  } catch {
+    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // 4. Build a per-request handler bound to this user (rate-limit key +
   //    persistence are both userId-scoped).
   const handler = createCockpitChatHandler({
     llmClient: kimi,
@@ -146,14 +246,14 @@ export async function POST(req: NextRequest): Promise<Response> {
     rateLimitWindowMs: CHAT_RATE_WINDOW_MS,
   });
 
-  // 4. Trace the call as an LlmRun. The handler streams internally and does
+  // 5. Trace the call as an LlmRun. The handler streams internally and does
   //    not surface token usage or a completion hook, so we can only record
   //    wall-clock latency + terminal status here (inputTokens/outputTokens/
   //    costUsd stay null — capturing them would require forking the handler,
   //    which is out of scope and would duplicate its stream logic).
   const startedAt = Date.now();
   try {
-    const res = await handler.POST(req);
+    const res = await handler.POST(sanitizedReq);
     const latencyMs = Date.now() - startedAt;
     const ok = res.status < 400;
     try {

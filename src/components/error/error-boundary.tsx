@@ -65,10 +65,10 @@ export class ErrorBoundary extends React.Component<Props, State> {
               </svg>
             </div>
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold text-white">
+              <h2 className="text-xl font-semibold text-[--ct-text-primary]">
                 Something went wrong
               </h2>
-              <p className="text-sm text-white/60">
+              <p className="text-sm text-[--ct-text-muted]">
                 We encountered an unexpected error. Please refresh the page or
                 try again later.
               </p>

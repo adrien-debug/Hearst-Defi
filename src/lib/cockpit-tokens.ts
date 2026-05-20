@@ -54,8 +54,20 @@ export const CT_PDF = {
   border: "#e5e5e5",
   borderStrong: "#cfcfcf",
 
-  // Status (printable mirror of --ct-status-{success,warning,danger})
-  // PDF needs sRGB hex; we pick the closest tone that prints cleanly on white.
+  // Status — INTENTIONALLY DRIFTED from the web --ct-status-* tokens.
+  //
+  //  web (dark UI, glow over dark surface)   PDF (light print on white)
+  //  --ct-status-success: #4ade80    ←→     statusSuccess: #16a34a
+  //  --ct-status-warning: #fbbf24    ←→     statusWarning: #d97706
+  //  --ct-status-danger:  #f87171    ←→     statusDanger:  #dc2626
+  //
+  // The web values are Tailwind ~400 (light, glowing) for AA contrast on the
+  // dark Cockpit surface; the PDF values are Tailwind ~600/700 (saturated,
+  // dense ink) for AA contrast on white paper. They MUST stay different — if
+  // they're ever unified, web glows wash out OR PDF prints look anemic.
+  //
+  // `src/lib/__tests__/cockpit-tokens.test.ts` pins both sides to fail loudly
+  // if anyone "harmonizes" them silently.
   statusSuccess: "#16a34a",
   statusSuccessSoft: "#dcfce7",
   statusSuccessBrandTint: "#e9fde0",

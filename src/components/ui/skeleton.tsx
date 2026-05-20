@@ -10,9 +10,9 @@ interface SkeletonProps {
   variant?: "rect" | "circle" | "text";
 }
 
-function Skeleton({ className, variant = "rect" }: SkeletonProps) {
+export function Skeleton({ className, variant = "rect" }: SkeletonProps) {
   const baseClasses =
-    "animate-pulse bg-[--ct-surface-2] rounded-md relative overflow-hidden";
+    "animate-pulse bg-[--ct-surface-2] rounded-[--ct-radius-sm] relative overflow-hidden";
 
   const variantClasses = {
     rect: "",
@@ -35,7 +35,7 @@ function Skeleton({ className, variant = "rect" }: SkeletonProps) {
  */
 export function SkeletonCard() {
   return (
-    <div className="space-y-4 p-6 rounded-2xl border border-[--ct-border-soft] bg-[--ct-surface-0]">
+    <div className="space-y-4 p-6 rounded-[--ct-radius-xl] border border-[--ct-border-soft] bg-[--ct-surface-0]">
       <Skeleton className="h-6 w-1/3" />
       <Skeleton className="h-24 w-full" />
       <div className="flex gap-3">

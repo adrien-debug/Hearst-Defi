@@ -22,8 +22,9 @@ export default function InvestorMemoPage() {
       <footer className="border-t border-[--ct-border-soft] pt-6">
         <p className="body-xs">
           Generated on demand from live vault data. Every export is logged with
-          its methodology version. Projections are not a guarantee of future
-          results.
+          its methodology version. Projections are conditional on the stated
+          assumptions and not guaranteed. Past performance does not predict
+          future results.
         </p>
       </footer>
     </div>

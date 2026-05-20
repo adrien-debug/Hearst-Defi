@@ -42,7 +42,7 @@ export async function loadLatestDistribution(): Promise<DistributionSnapshot> {
   });
 
   if (row) {
-    return rowToSnapshot(row);
+    return rowToSnapshot({ ...row, amountUsdc: row.amountUsdc.toNumber() });
   }
 
   // Fallback: synthesise a scheduled distribution for the current month
@@ -52,7 +52,7 @@ export async function loadLatestDistribution(): Promise<DistributionSnapshot> {
     orderBy: { takenAt: "desc" },
     select: { aumUsdc: true },
   });
-  const aum = snapshot?.aumUsdc ?? 25_000_000;
+  const aum = snapshot?.aumUsdc?.toNumber() ?? 25_000_000;
   return {
     period: periodOf(new Date()),
     amount_usdc: Math.round(aum * DEFAULT_MONTHLY_RATE),

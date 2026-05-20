@@ -164,7 +164,15 @@ export async function runRiskExplanation(
   }
 
   const parsed = extractJson(textBlock.text);
-  const validated = RiskExplanationOutputSchema.parse(parsed);
+  const result = RiskExplanationOutputSchema.safeParse(parsed);
+  if (!result.success) {
+    throw new Error(
+      `Risk Explanation agent output failed schema validation: ${JSON.stringify(
+        result.error.issues,
+      )}`,
+    );
+  }
+  const validated = result.data;
 
   // Post-validation: forbidden-words linter on all text fields.
   // Each risk explanation must also cite >=1 assumption (spec/09-agents.mdx:

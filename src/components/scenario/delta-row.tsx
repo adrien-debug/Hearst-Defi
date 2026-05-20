@@ -97,7 +97,7 @@ export function DeltaRow({ a, b }: DeltaRowProps) {
             <span className="stat-label text-[--text-micro]">{m.label}</span>
             <span
               className={cn(
-                "font-mono text-2xl font-black tabular-nums",
+                "font-mono text-2xl font-extrabold tabular-nums",
                 toneClass(m),
               )}
             >

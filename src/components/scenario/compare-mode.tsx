@@ -115,7 +115,7 @@ function PresetPicker({
           className={cn(
             "absolute z-20 mt-2 w-full overflow-hidden rounded-[--radius-button]",
             "border border-[--ct-border-strong] bg-[--ct-surface-1]",
-            "shadow-[var(--shadow-card)]",
+            "shadow-[var(--ct-shadow-elevated)]",
           )}
         >
           {PRESETS.map((p) => {
@@ -169,6 +169,7 @@ function Placeholder({ side, pending }: PlaceholderProps) {
   return (
     <div
       className={cn(
+        // min-h-[28rem] conservé — 28rem = 448px (min-h-112 n'existe pas nativement en Tailwind v4, scale s'arrête à w-96=24rem)
         "flex min-h-[28rem] flex-col items-center justify-center gap-3",
         "rounded-[--radius-card] border border-dashed border-[--ct-border-soft]",
         "border-l-4",

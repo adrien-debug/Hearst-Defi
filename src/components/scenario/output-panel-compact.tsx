@@ -178,7 +178,7 @@ export function OutputPanelCompact({
             low={output.apy_range.low}
             high={output.apy_range.high}
             className={cn(
-              "font-mono text-[--text-4xl] font-black tabular-nums",
+              "font-mono text-[--text-4xl] font-extrabold tabular-nums",
               "text-[--ct-text-strong] leading-none",
             )}
           />
@@ -219,7 +219,7 @@ export function OutputPanelCompact({
             <ProvenanceBadge kind="estimated" />
           </div>
           <div className="mb-1 flex items-baseline gap-1">
-            <span className="font-mono text-xl font-black tabular-nums text-[--ct-text-primary]">
+            <span className="font-mono text-xl font-extrabold tabular-nums text-[--ct-text-primary]">
               {output.risk_score.toFixed(0)}
             </span>
             <span className="text-xs text-[--ct-text-muted]">/100</span>
@@ -255,7 +255,7 @@ export function OutputPanelCompact({
             <ProvenanceBadge kind="estimated" />
           </div>
           <div className="mb-1 flex items-baseline gap-1">
-            <span className="font-mono text-xl font-black tabular-nums text-[--ct-text-primary]">
+            <span className="font-mono text-xl font-extrabold tabular-nums text-[--ct-text-primary]">
               {output.mining_margin_score.toFixed(0)}
             </span>
             <span className="text-xs text-[--ct-text-muted]">/100</span>

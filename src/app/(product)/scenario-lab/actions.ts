@@ -12,6 +12,7 @@ import type {
 import { requireAuth } from "@/lib/auth/require-auth";
 import { logger } from "@/lib/logger";
 import { assertRateLimit } from "@/lib/rate-limit";
+import { prisma } from "@/lib/db";
 
 const PresetSchema = z.enum([
   "base",
@@ -55,12 +56,31 @@ function assertBounds(inputs: ScenarioInputs): void {
  */
 export async function runScenarioAction(
   inputs: ScenarioInputs,
-): Promise<ScenarioOutput> {
+): Promise<ScenarioOutput & { runId: string | null }> {
   const { userId } = await requireAuth();
   try {
     await assertRateLimit(`run-scenario:${userId}`, 30, 60_000);
     assertBounds(inputs);
-    return runScenario(inputs, { now: new Date() });
+    const outputs = runScenario(inputs, { now: new Date() });
+
+    let runId: string | null = null;
+    try {
+      const run = await prisma.scenarioRun.create({
+        data: {
+          userId,
+          inputs: JSON.stringify(inputs),
+          outputs: JSON.stringify(outputs),
+          status: "completed",
+        },
+        select: { id: true },
+      });
+      runId = run.id;
+    } catch (persistErr) {
+      // Persistence failure must not fail the response.
+      logger.warn("runScenarioAction persistence failed", { userId }, persistErr);
+    }
+
+    return { ...outputs, runId };
   } catch (err) {
     logger.error("runScenarioAction failed", { userId }, err);
     throw err;
@@ -102,13 +122,38 @@ export async function runComparisonAction(
 
 export async function runBacktestAction(
   key: BacktestKey,
-): Promise<BacktestOutput> {
+): Promise<BacktestOutput & { runId: string | null }> {
   const { userId } = await requireAuth();
   try {
     await assertRateLimit(`run-backtest:${userId}`, 10, 60_000);
     BacktestKeySchema.parse(key);
     const { runBacktest } = await import("@/lib/engine/backtest");
-    return runBacktest(key, { now: new Date() });
+    const outputs = runBacktest(key, { now: new Date() });
+
+    let runId: string | null = null;
+    try {
+      const run = await prisma.backtestRun.create({
+        data: {
+          userId,
+          backtestKey: key,
+          initialCapital: outputs.initialCapital,
+          rulesMode: outputs.hearstRulesMode ? "hearst_rules" : "without_rules",
+          endingValue: outputs.endingValue,
+          totalReturnPct: outputs.totalReturnPct,
+          maxDrawdownPct: outputs.maxDrawdownPct,
+          worstMonthPct: outputs.worstMonthPct,
+          numRebalances: outputs.numRebalances,
+          monthlySeries: JSON.stringify(outputs.monthlySeries),
+        },
+        select: { id: true },
+      });
+      runId = run.id;
+    } catch (persistErr) {
+      // Persistence failure must not fail the response.
+      logger.warn("runBacktestAction persistence failed", { userId }, persistErr);
+    }
+
+    return { ...outputs, runId };
   } catch (err) {
     logger.error("runBacktestAction failed", { userId }, err);
     throw err;

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { Prisma } from "@prisma/client";
+
 import {
   loadLatestMiningMetrics,
   loadMiningOpsSnapshot,
@@ -152,11 +154,19 @@ export async function loadDashboardData(): Promise<DashboardData> {
 
   let usedFallback = false;
 
-  const vault = await buildVault(latestSnapshot, () => {
+  // Decimal → number at the loader boundary: map raw Prisma rows onto the
+  // number-only internal shapes before they reach the engine/UI layer.
+  const mappedSnapshot = latestSnapshot
+    ? toVaultSnapshotWithAllocations(latestSnapshot)
+    : null;
+  const mappedAllocations = (latestSnapshot?.allocations ?? []).map(toAllocationRow);
+  const mappedTrailing = trailingSnapshots.map(toTrailingSnapshotRow);
+
+  const vault = await buildVault(mappedSnapshot, () => {
     usedFallback = true;
   });
 
-  const allocations = buildAllocations(latestSnapshot?.allocations ?? [], vault.aumUsdc, () => {
+  const allocations = buildAllocations(mappedAllocations, vault.aumUsdc, () => {
     usedFallback = true;
   });
 
@@ -174,7 +184,7 @@ export async function loadDashboardData(): Promise<DashboardData> {
   }));
   if (recentEvents.length === 0) usedFallback = true;
 
-  const timeseries = buildTimeseries(trailingSnapshots, vault, () => {
+  const timeseries = buildTimeseries(mappedTrailing, vault, () => {
     usedFallback = true;
   });
 
@@ -216,6 +226,35 @@ interface VaultSnapshotWithAllocations {
   mode: string;
 }
 
+/**
+ * Maps a raw Prisma `VaultSnapshot` (Decimal financial columns) onto the
+ * number-only internal `VaultSnapshotWithAllocations`. Decimal → number at the
+ * data boundary so the engine/UI never sees Decimal.
+ */
+function toVaultSnapshotWithAllocations(row: {
+  id: string;
+  takenAt: Date;
+  aumUsdc: Prisma.Decimal;
+  currentApyLow: Prisma.Decimal;
+  currentApyHigh: Prisma.Decimal;
+  stressedApy: Prisma.Decimal;
+  riskScore: number;
+  miningMarginScore: number;
+  mode: string;
+}): VaultSnapshotWithAllocations {
+  return {
+    id: row.id,
+    takenAt: row.takenAt,
+    aumUsdc: row.aumUsdc.toNumber(),
+    currentApyLow: row.currentApyLow.toNumber(),
+    currentApyHigh: row.currentApyHigh.toNumber(),
+    stressedApy: row.stressedApy.toNumber(),
+    riskScore: row.riskScore,
+    miningMarginScore: row.miningMarginScore,
+    mode: row.mode,
+  };
+}
+
 async function buildVault(
   snapshot: VaultSnapshotWithAllocations | null,
   markFallback: () => void,
@@ -250,9 +289,11 @@ async function buildVault(
         select: { aumUsdc: true },
       });
 
+  // Decimal → number at the read boundary before arithmetic.
+  const oldestAum = oldestFallback ? oldestFallback.aumUsdc.toNumber() : null;
   const delta30dUsdc =
-    oldestFallback && oldestFallback.aumUsdc !== snapshot.aumUsdc
-      ? Math.round(snapshot.aumUsdc - oldestFallback.aumUsdc)
+    oldestAum !== null && oldestAum !== snapshot.aumUsdc
+      ? Math.round(snapshot.aumUsdc - oldestAum)
       : 0;
 
   return {
@@ -272,6 +313,24 @@ interface AllocationRow {
   pct: number;
   valueUsdc: number;
   yieldContributionBps: number;
+}
+
+/**
+ * Maps a raw Prisma `Allocation` (Decimal pct/value/bps) onto the number-only
+ * `AllocationRow`. Decimal → number at the data boundary.
+ */
+function toAllocationRow(row: {
+  bucket: string;
+  pct: Prisma.Decimal;
+  valueUsdc: Prisma.Decimal;
+  yieldContributionBps: Prisma.Decimal;
+}): AllocationRow {
+  return {
+    bucket: row.bucket,
+    pct: row.pct.toNumber(),
+    valueUsdc: row.valueUsdc.toNumber(),
+    yieldContributionBps: row.yieldContributionBps.toNumber(),
+  };
 }
 
 function buildAllocations(
@@ -314,7 +373,8 @@ async function safeLoadLatestMining(): Promise<{
       return { hashpriceTrendPct: m.difficulty_change_pct, operationalConfidence: 81 };
     }
     return {
-      hashpriceTrendPct: row.hashpriceTrendPct,
+      // Decimal → number at the read boundary.
+      hashpriceTrendPct: row.hashpriceTrendPct.toNumber(),
       operationalConfidence: row.operationalConfidence,
     };
   } catch {
@@ -350,6 +410,24 @@ interface TrailingSnapshotRow {
   aumUsdc: number;
   currentApyLow: number;
   currentApyHigh: number;
+}
+
+/**
+ * Maps a raw Prisma `VaultSnapshot` slice (Decimal columns) onto the
+ * number-only `TrailingSnapshotRow`. Decimal → number at the data boundary.
+ */
+function toTrailingSnapshotRow(row: {
+  takenAt: Date;
+  aumUsdc: Prisma.Decimal;
+  currentApyLow: Prisma.Decimal;
+  currentApyHigh: Prisma.Decimal;
+}): TrailingSnapshotRow {
+  return {
+    takenAt: row.takenAt,
+    aumUsdc: row.aumUsdc.toNumber(),
+    currentApyLow: row.currentApyLow.toNumber(),
+    currentApyHigh: row.currentApyHigh.toNumber(),
+  };
 }
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;

@@ -55,4 +55,11 @@ if (
 export const { GET, POST, PUT } = serve({
   client: inngest,
   functions: [marketDataHourly, miningHealthDaily, investorMemoMonthly],
+  // Pass the validated signing key explicitly to `serve()`. inngest@4 would
+  // otherwise fall back to reading INNGEST_SIGNING_KEY itself, but wiring it
+  // here makes signature verification load-bearing and explicit for this
+  // route (the client at @/lib/inngest/client does NOT set it).
+  ...(SIGNATURE_VERIFICATION_KEY
+    ? { signingKey: SIGNATURE_VERIFICATION_KEY }
+    : {}),
 });

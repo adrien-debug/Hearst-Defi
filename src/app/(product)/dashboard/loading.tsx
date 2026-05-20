@@ -1,4 +1,4 @@
-import { SkeletonCard, SkeletonMetric } from "@/components/ui/skeleton";
+import { SkeletonCard, SkeletonMetric, Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardLoading() {
   return (
@@ -41,14 +41,5 @@ export default function DashboardLoading() {
       {/* Activity Feed */}
       <SkeletonCard />
     </div>
-  );
-}
-
-function Skeleton({ className }: { className?: string }) {
-  return (
-    <div
-      className={`animate-pulse bg-white/[0.06] rounded-md ${className}`}
-      aria-hidden="true"
-    />
   );
 }

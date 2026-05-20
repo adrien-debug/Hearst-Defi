@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 
+import { ErrorShellLayout } from "@/components/error/error-shell";
 import { Button } from "@/components/ui/button";
 
 interface SegmentErrorProps {
@@ -36,55 +37,22 @@ export function SegmentError({
   }, [error, scope]);
 
   return (
-    <div
-      className="glass-panel"
-      style={{
-        margin: "2.5rem auto",
-        maxWidth: "42rem",
-        padding: "2rem",
-        display: "flex",
-        flexDirection: "column",
-        gap: "1.25rem",
-      }}
-      role="alert"
-      aria-live="assertive"
-    >
-      <header style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-        <span className="eyebrow" style={{ color: "var(--ct-status-danger)" }}>
-          {scope}
-        </span>
-        <h1 className="h2" style={{ margin: 0 }}>
-          Une erreur est survenue
-        </h1>
-      </header>
-
-      <p className="body-md" style={{ margin: 0, color: "var(--ct-text-body)" }}>
-        Un incident inattendu a interrompu cette page. Vous pouvez réessayer ;
-        si le problème persiste, contactez le support.
-      </p>
-
-      {error.digest ? (
-        <p className="body-xs" style={{ margin: 0, color: "var(--ct-text-muted)" }}>
-          Référence&nbsp;: <span className="mono">{error.digest}</span>
-        </p>
-      ) : null}
-
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          gap: "0.75rem",
-          marginTop: "0.25rem",
-        }}
-      >
-        <Button variant="primary" size="sm" onClick={() => reset()}>
-          Réessayer
-        </Button>
-        <Button variant="secondary" size="sm" asChild>
-          <Link href={homeHref}>{homeLabel}</Link>
-        </Button>
-      </div>
-    </div>
+    <ErrorShellLayout
+      tone="danger"
+      scope={scope}
+      title="Une erreur est survenue"
+      message="Un incident inattendu a interrompu cette page. Vous pouvez réessayer ; si le problème persiste, contactez le support."
+      digest={error.digest}
+      actions={
+        <>
+          <Button variant="primary" size="sm" onClick={() => reset()}>
+            Réessayer
+          </Button>
+          <Button variant="secondary" size="sm" asChild>
+            <Link href={homeHref}>{homeLabel}</Link>
+          </Button>
+        </>
+      }
+    />
   );
 }

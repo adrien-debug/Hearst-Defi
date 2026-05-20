@@ -211,19 +211,22 @@ export async function loadRiskFramework(): Promise<RiskFrameworkData> {
   const usdcBaseAlloc = latestSnapshot?.allocations.find(
     (a) => a.bucket === "usdc_base",
   );
+  // Decimal → number at the read boundary before any arithmetic / engine call.
+  const usdcBasePct = usdcBaseAlloc?.pct.toNumber() ?? 0;
+  const usdcBaseBps = usdcBaseAlloc?.yieldContributionBps.toNumber() ?? 0;
   // Allocation stores `yieldContributionBps` as a contribution at the sleeve's
   // pct, not the sleeve's own APY. Recover the sleeve APY (%) by undoing the
   // weight; fall back to the proxy when bps or pct are missing.
   const stableApyPct =
-    usdcBaseAlloc && usdcBaseAlloc.pct > 0
-      ? (usdcBaseAlloc.yieldContributionBps / usdcBaseAlloc.pct) / 100
+    usdcBaseAlloc && usdcBasePct > 0
+      ? (usdcBaseBps / usdcBasePct) / 100
       : STABLE_APY_PROXY_PCT;
 
   const inputs: ScenarioInputs = latestMining
     ? {
         btc_price_change_pct: btcPrice.usd === 0 ? 0 : btcPrice.usd_24h_change,
-        hashprice_usd_th_day: latestMining.hashprice,
-        energy_cost_kwh: latestMining.energyCost,
+        hashprice_usd_th_day: latestMining.hashprice.toNumber(),
+        energy_cost_kwh: latestMining.energyCost.toNumber(),
         stable_apy_pct: stableApyPct,
         vol_index: VOL_INDEX_PROXY,
       }

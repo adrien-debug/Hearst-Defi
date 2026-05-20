@@ -1,6 +1,6 @@
 "use client";
 
-import { CT_CHROME, CT_PDF, CT_PRODUCT_CONNECT_HEX } from "@/lib/cockpit-tokens";
+import { STANDALONE_STYLES, StandaloneResetButton } from "@/components/error/error-shell";
 
 export const dynamic = "force-dynamic";
 
@@ -13,47 +13,15 @@ export default function GlobalError({
 }) {
   return (
     <html lang="en">
-      <body
-        style={{
-          margin: 0,
-          background: CT_CHROME.bgDeep,
-          color: CT_CHROME.textPrimary,
-          fontFamily: "system-ui, sans-serif",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-        }}
-      >
-        <div style={{ textAlign: "center", maxWidth: 480, padding: "2rem" }}>
-          <h1 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>
-            Something went wrong
-          </h1>
+      <body style={STANDALONE_STYLES.body_html}>
+        <div style={STANDALONE_STYLES.container}>
+          <h1 style={STANDALONE_STYLES.title}>Something went wrong</h1>
           {error.digest && (
-            <p
-              style={{
-                fontSize: "0.75rem",
-                color: CT_PDF.textDim,
-                marginBottom: "1.5rem",
-              }}
-            >
+            <p style={STANDALONE_STYLES.digest}>
               Error ID: {error.digest}
             </p>
           )}
-          <button
-            onClick={reset}
-            style={{
-              padding: "0.5rem 1.25rem",
-              background: CT_PRODUCT_CONNECT_HEX,
-              color: CT_PDF.textPrimary,
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontWeight: 600,
-            }}
-          >
-            Try again
-          </button>
+          <StandaloneResetButton onClick={reset} label="Try again" />
         </div>
       </body>
     </html>

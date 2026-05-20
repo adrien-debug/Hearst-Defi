@@ -27,7 +27,7 @@ export function ApyRange({
       aria-label={`APY range ${fmt(a)} to ${fmt(b)} ${suffix}`}
     >
       {fmt(a)}
-      <span aria-hidden className="mx-1 text-[--ct-text-muted] font-sans font-light">
+      <span aria-hidden className="mx-1 text-[--ct-text-muted] font-sans font-normal">
         —
       </span>
       {fmt(b)}

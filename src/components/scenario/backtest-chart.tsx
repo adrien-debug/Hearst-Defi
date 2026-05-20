@@ -4,6 +4,9 @@ interface BacktestChartProps {
   series: MonthlyPoint[];
 }
 
+// matches --ct-text-micro (Recharts ne lit pas les CSS vars runtime)
+const CHART_LABEL_SIZE = 9;
+
 /** Inline SVG bar chart — no external chart library. */
 export function BacktestChart({ series }: BacktestChartProps) {
   if (series.length === 0) return null;
@@ -74,7 +77,7 @@ export function BacktestChart({ series }: BacktestChartProps) {
                 x={i * 100 + 50}
                 y={CHART_HEIGHT + 15}
                 textAnchor="middle"
-                fontSize={9}
+                fontSize={CHART_LABEL_SIZE}
                 fill="var(--ct-text-muted)"
                 fontFamily="var(--font-sans)"
               >

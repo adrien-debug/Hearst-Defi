@@ -86,10 +86,10 @@ export function AdvancedTrigger({ className }: TriggerProps) {
       className={cn(
         "group inline-flex items-center gap-3 rounded-full",
         "glass-panel-subtle px-4 py-2",
-        "text-xs font-medium text-white/80",
+        "text-xs font-medium text-[--ct-text-body]",
         "transition-all duration-300",
-        "hover:bg-white/5 hover:text-white hover:border-white/20",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30",
+        "hover:bg-[--ct-surface-1] hover:text-[--ct-text-primary] hover:border-[--ct-border]",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-border-accent]",
         className,
       )}
     >
@@ -99,13 +99,13 @@ export function AdvancedTrigger({ className }: TriggerProps) {
         className={cn(
           "relative inline-block h-5 w-9 shrink-0 rounded-full",
           "transition-colors duration-300 shadow-inner",
-          enabled ? "bg-white/30 border border-white/40" : "bg-black/40 border border-white/10",
+          enabled ? "bg-[--ct-surface-3] border border-[--ct-border-strong]" : "bg-[--ct-surface-1] border border-[--ct-border-soft]",
         )}
         suppressHydrationWarning
       >
         <span
           className={cn(
-            "absolute top-0.5 left-0.5 block h-3.5 w-3.5 rounded-full bg-white shadow-sm",
+            "absolute top-0.5 left-0.5 block h-3.5 w-3.5 rounded-full bg-[--ct-text-primary] shadow-sm",
             "transition-transform duration-300 ease-out",
             enabled ? "translate-x-4" : "translate-x-0 opacity-70",
           )}
@@ -130,6 +130,7 @@ export function AdvancedContent({ children }: ContentProps) {
       aria-hidden={!enabled}
       className={cn(
         "transition-all duration-500 ease-out overflow-hidden",
+        // max-h-[31.25rem] conservé — 31.25rem = 500px, pas de step natif Tailwind (max-h-[500px] serait identique mais moins lisible) ; valeur contrainte design pour l'animation collapse
         enabled ? "opacity-100 max-h-[31.25rem] translate-y-0" : "opacity-0 max-h-0 -translate-y-4"
       )}
     >

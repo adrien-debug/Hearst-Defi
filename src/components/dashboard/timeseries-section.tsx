@@ -8,6 +8,9 @@ import type {
   NavPoint,
 } from "@/lib/data/dashboard";
 
+// matches --ct-text-xs (Recharts ne lit pas les CSS vars runtime)
+const CHART_LABEL_SIZE = 11;
+
 const VIEWBOX_WIDTH = 600;
 const CHART_HEIGHT = 140;
 const PAD_TOP = 10;
@@ -82,12 +85,12 @@ function NavChart({ points, provenance }: NavChartProps) {
       <CardHeader>
         <div className="flex flex-col gap-2">
           <CardTitle>Net Asset Value</CardTitle>
-          <p className="text-xs font-medium uppercase tracking-widest text-white/40">
+          <p className="text-xs font-medium uppercase tracking-widest text-[--ct-text-muted]">
             Trailing 30 days · USDC
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <span className="text-3xl font-semibold tabular-nums leading-tight text-white drop-shadow-sm">
+          <span className="text-3xl font-semibold tabular-nums leading-tight text-[--ct-text-primary] drop-shadow-sm">
             {usdCompact.format(last)}
           </span>
           <div className="flex items-center gap-3">
@@ -107,6 +110,7 @@ function NavChart({ points, provenance }: NavChartProps) {
         </div>
       </CardHeader>
 
+      {/* min-h-[8.75rem] conservé — 8.75rem = 140px, pas de step natif Tailwind (min-h-36=144px trop haut, min-h-32=128px trop bas) */}
       <div className="flex-1 min-h-[8.75rem] relative -mx-4 -mb-4 mt-4">
         <svg
           viewBox={`0 0 ${VIEWBOX_WIDTH} ${CHART_HEIGHT}`}
@@ -158,7 +162,7 @@ function NavChart({ points, provenance }: NavChartProps) {
                 textAnchor={
                   i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"
                 }
-                fontSize={11}
+                fontSize={CHART_LABEL_SIZE}
                 fill="var(--ct-text-faint)"
                 fontFamily="var(--font-sans)"
                 className="font-medium"
@@ -222,7 +226,7 @@ function ApyChart({ points, provenance }: ApyChartProps) {
       <CardHeader>
         <div className="flex flex-col gap-2">
           <CardTitle>APY Range</CardTitle>
-          <p className="text-xs font-medium uppercase tracking-widest text-white/40">
+          <p className="text-xs font-medium uppercase tracking-widest text-[--ct-text-muted]">
             Trailing 30d · Target {METHODOLOGY_TARGET_APY.toFixed(0)}%
           </p>
         </div>
@@ -238,6 +242,7 @@ function ApyChart({ points, provenance }: ApyChartProps) {
         </div>
       </CardHeader>
 
+      {/* min-h-[8.75rem] conservé — 8.75rem = 140px, pas de step natif Tailwind (min-h-36=144px trop haut, min-h-32=128px trop bas) */}
       <div className="flex-1 min-h-[8.75rem] relative -mx-4 -mb-4 mt-4">
         <svg
           viewBox={`0 0 ${VIEWBOX_WIDTH} ${CHART_HEIGHT}`}
@@ -301,7 +306,7 @@ function ApyChart({ points, provenance }: ApyChartProps) {
                 textAnchor={
                   i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"
                 }
-                fontSize={11}
+                fontSize={CHART_LABEL_SIZE}
                 fill="var(--ct-text-faint)"
                 fontFamily="var(--font-sans)"
                 className="font-medium"

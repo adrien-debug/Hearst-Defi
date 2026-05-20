@@ -72,9 +72,12 @@ async function marketDataHourlyHandler({
         select: { hashprice: true },
       });
 
-      const hashpriceTrendPct = previous?.hashprice
-        ? ((hp.usd_per_th_day - previous.hashprice) / previous.hashprice) * 100
-        : 0;
+      // Decimal → number at the read boundary before arithmetic.
+      const prevHashprice = previous?.hashprice?.toNumber() ?? null;
+      const hashpriceTrendPct =
+        prevHashprice && prevHashprice !== 0
+          ? ((hp.usd_per_th_day - prevHashprice) / prevHashprice) * 100
+          : 0;
 
       await prisma.miningMetric.create({
         data: {

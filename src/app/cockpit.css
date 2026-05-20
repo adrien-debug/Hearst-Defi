@@ -57,6 +57,66 @@
   --ct-glow-strong: 0 0 10px rgba(255, 255, 255, 0.80);
   --ct-glow-dot: 0 0 8px currentColor;
   --ct-scrollbar-size: 6px;
+
+  /* Transitions — déclarées explicitement ici car le package tokens.css
+     ne les expose pas (--ct-dur-base était référencé partout sans valeur).
+     Si une future version 0.3.0 du package les ajoute, retirer ce bloc. */
+  --ct-dur-fast: 150ms;
+  --ct-dur-base: 220ms;
+  --ct-dur-slow: 400ms;
+
+  /* Spacing scale (rem-based, mirrors Tailwind v4 — adopté comme source de
+     vérité Cockpit pour gaps/paddings/margins/positionnement). */
+  --ct-space-0: 0;
+  --ct-space-px: 1px;
+  --ct-space-0_5: 0.125rem; /* 2px */
+  --ct-space-1: 0.25rem;    /* 4px */
+  --ct-space-1_5: 0.375rem; /* 6px */
+  --ct-space-2: 0.5rem;     /* 8px */
+  --ct-space-2_5: 0.625rem; /* 10px */
+  --ct-space-3: 0.75rem;    /* 12px */
+  --ct-space-4: 1rem;       /* 16px */
+  --ct-space-5: 1.25rem;    /* 20px */
+  --ct-space-6: 1.5rem;     /* 24px */
+  --ct-space-8: 2rem;       /* 32px */
+  --ct-space-10: 2.5rem;    /* 40px */
+  --ct-space-12: 3rem;      /* 48px */
+  --ct-space-16: 4rem;      /* 64px */
+  --ct-space-24: 6rem;      /* 96px */
+
+  /* Text scale (mirrors Tailwind, + micro pour badges/légendes 10px). */
+  --ct-text-micro: 0.625rem;  /* 10px */
+  --ct-text-xs: 0.6875rem;    /* 11px — utilisé massivement dans dashboard */
+  --ct-text-sm: 0.875rem;     /* 14px */
+  --ct-text-base: 1rem;       /* 16px */
+  --ct-text-lg: 1.125rem;     /* 18px */
+  --ct-text-xl: 1.25rem;      /* 20px */
+  --ct-text-2xl: 1.75rem;     /* 28px */
+  --ct-text-3xl: 2rem;        /* 32px */
+  --ct-text-5xl: 2.75rem;     /* 44px */
+  --ct-text-display: 3rem;    /* 48px */
+
+  /* Font weight scale (mirrors Tailwind). */
+  --ct-font-light: 300;
+  --ct-font-normal: 400;
+  --ct-font-medium: 500;
+  --ct-font-semibold: 600;
+  --ct-font-bold: 700;
+  --ct-font-extrabold: 800;
+
+  /* Line height scale. */
+  --ct-leading-none: 1;
+  --ct-leading-tight: 1.25;
+  --ct-leading-snug: 1.375;
+  --ct-leading-normal: 1.5;
+  --ct-leading-relaxed: 1.65;
+
+  /* Letter spacing scale. */
+  --ct-tracking-tighter: -0.05em;
+  --ct-tracking-tight: -0.03em;
+  --ct-tracking-normal: 0;
+  --ct-tracking-wide: 0.04em;
+  --ct-tracking-wider: 0.05em;
 }
 
 /* ── HELPERS sémantiques status (utilitaires Cockpit) ── */
@@ -286,6 +346,141 @@
   color: var(--ct-text-primary);
 }
 
+/* ── BOTTOM BAR nav classes (déjà définies dans le template package — on
+   les ré-expose ici pour que ConnectBottomBar fonctionne sans import CSS
+   supplémentaire si le package ne les charge pas) ── */
+.ct-bottom-bar {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--ct-z-bottom-bar);
+  width: max-content;
+  max-width: calc(100% - 3rem);
+  padding: 0.75rem 1.75rem;
+  border-radius: 9999px;
+  background: var(--ct-surface-2);
+  border: 1px solid var(--ct-border-strong);
+  backdrop-filter: blur(60px) saturate(110%) brightness(105%);
+  -webkit-backdrop-filter: blur(60px) saturate(110%) brightness(105%);
+  box-shadow: var(--ct-shadow-elevated);
+}
+
+/* Hub-mode : masque la bottom bar */
+[data-hub-mode="true"] .ct-bottom-bar,
+.hub-active .ct-bottom-bar {
+  display: none !important;
+}
+
+.ct-bottom-bar-inner {
+  position: relative;
+  z-index: var(--ct-z-base);
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.ct-seg-track {
+  display: flex;
+  align-items: center;
+  padding: 0.25rem;
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+}
+
+.ct-seg-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--ct-text-primary);
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: inherit;
+  border-radius: 9999px;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition:
+    background var(--ct-dur-base) var(--ct-ease),
+    color var(--ct-dur-base) var(--ct-ease);
+}
+
+.ct-seg-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.ct-seg-btn.active {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 var(--ct-border-soft);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.ct-seg-btn.primary {
+  background: var(--ct-text-strong);
+  color: var(--ct-bg-deep);
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 var(--ct-border-soft),
+    0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ── SONNER TOAST — Cockpit dark theme ── */
+[data-sonner-toaster] [data-sonner-toast] {
+  background: var(--ct-surface-2) !important;
+  border: 1px solid var(--ct-border) !important;
+  color: var(--ct-text-primary) !important;
+  backdrop-filter: blur(40px) saturate(110%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(110%) !important;
+}
+
+[data-sonner-toaster] [data-sonner-toast] [data-description] {
+  color: var(--ct-text-body) !important;
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="success"] {
+  border-color: rgba(34, 197, 94, 0.3) !important;
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="error"] {
+  border-color: var(--ct-border-accent) !important;
+}
+
+/* ── SHELL — rails en deep plat (gauche + chat droit) ──
+   Le package met les rails sur --ct-surface-2 (plus clair). On les
+   aligne sur le fond deep #1A050B, bordures fines pour délimiter. */
+.ct-rail-left {
+  background: var(--ct-bg-deep) !important;
+  border-right: 1px solid var(--ct-border-soft);
+}
+
+.ct-rail-right,
+.ct-rail-right-header,
+.ct-rail-right-body {
+  background: var(--ct-bg-deep) !important;
+}
+
+.ct-rail-right {
+  border-left: 1px solid var(--ct-border-soft);
+}
+
+/* ── SECTION CENTRALE — halo lumineux centré, bords noirs ──
+   .ct-page-area est la zone de contenu (transparente par défaut).
+   Dégradé radial : teinté --ct-accent-maroon au centre → deep
+   #1A050B noir vers tous les bords (haut, bas, gauche, droite). */
+.ct-page-area {
+  background: radial-gradient(
+    ellipse 80% 70% at 50% 45%,
+    color-mix(in srgb, var(--ct-accent-maroon) 45%, var(--ct-bg-deep)) 0%,
+    var(--ct-bg-deep) 72%
+  );
+}
+
 /* ── RAIL INTRA-APP — nav verticale dans la zone .ct-rail-left ──
    Position fixed, superposée au rail du shell @hearst/cockpit-shell
    (qui ne supporte pas de slot nav intra-app en v0.1.0). */
@@ -369,110 +564,26 @@
   display: none !important;
 }
 
-/* ── BOTTOM BAR nav classes (déjà définies dans le template package — on
-   les ré-expose ici pour que ConnectBottomBar fonctionne sans import CSS
-   supplémentaire si le package ne les charge pas) ── */
-.ct-bottom-bar {
-  position: absolute;
-  bottom: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: var(--ct-z-bottom-bar);
-  width: max-content;
-  max-width: calc(100% - 3rem);
-  padding: 0.75rem 1.75rem;
-  border-radius: 9999px;
-  background: var(--ct-surface-2);
-  border: 1px solid var(--ct-border-strong);
-  backdrop-filter: blur(60px) saturate(110%) brightness(105%);
-  -webkit-backdrop-filter: blur(60px) saturate(110%) brightness(105%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
-    0 20px 60px -20px rgba(0, 0, 0, 0.6);
+/* ──────────────────────────────────────────────────────────────
+   Page wrappers (.ct-section utilisé par /admin/roadmap,
+   /admin/spec/[slug], /scenario-lab et leur loading.tsx).
+   Le shell Cockpit fournit déjà le padding horizontal du viewport ;
+   .ct-section ajoute uniquement l'espacement vertical de la page.
+   ────────────────────────────────────────────────────────────── */
+.ct-section {
+  display: block;
+  width: 100%;
+  padding-block: clamp(2rem, 4vw, 3rem);
 }
 
-/* Hub-mode : masque la bottom bar */
-[data-hub-mode="true"] .ct-bottom-bar,
-.hub-active .ct-bottom-bar {
-  display: none !important;
-}
-
-.ct-bottom-bar-inner {
-  position: relative;
-  z-index: var(--ct-z-base);
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-}
-
-.ct-seg-track {
-  display: flex;
-  align-items: center;
-  padding: 0.25rem;
-  background: rgba(0, 0, 0, 0.2);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-  border-radius: 9999px;
-}
-
-.ct-seg-btn {
-  appearance: none;
-  border: none;
-  background: transparent;
-  color: var(--ct-text-primary);
-  padding: 0.5rem 1rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  font-family: inherit;
-  border-radius: 9999px;
-  cursor: pointer;
-  text-decoration: none;
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition:
-    background var(--ct-dur-base) var(--ct-ease),
-    color var(--ct-dur-base) var(--ct-ease);
-}
-
-.ct-seg-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.ct-seg-btn.active {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.ct-seg-btn.primary {
-  background: var(--ct-text-strong);
-  color: var(--ct-bg-deep);
-  font-weight: 700;
-  box-shadow:
-    inset 0 1px 0 #fff,
-    0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* ── SONNER TOAST — Cockpit dark theme ── */
-[data-sonner-toaster] [data-sonner-toast] {
-  background: var(--ct-surface-2) !important;
-  border: 1px solid var(--ct-border) !important;
-  color: var(--ct-text-primary) !important;
-  backdrop-filter: blur(40px) saturate(110%) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(110%) !important;
-}
-
-[data-sonner-toaster] [data-sonner-toast] [data-description] {
-  color: var(--ct-text-body) !important;
-}
-
-[data-sonner-toaster] [data-sonner-toast][data-type="success"] {
-  border-color: rgba(34, 197, 94, 0.3) !important;
-}
-
-[data-sonner-toaster] [data-sonner-toast][data-type="error"] {
-  border-color: var(--ct-border-accent) !important;
+/* ──────────────────────────────────────────────────────────────
+   Prose container — wrapper pour le rendu Markdown des specs
+   (src/components/admin/markdown.tsx). Le composant style chaque
+   élément enfant explicitement ; .prose-spec ne fournit que la
+   largeur de lecture confortable et la couleur de base.
+   ────────────────────────────────────────────────────────────── */
+.prose-spec {
+  color: var(--ct-text-body);
+  max-width: 72ch;
+  line-height: 1.65;
 }

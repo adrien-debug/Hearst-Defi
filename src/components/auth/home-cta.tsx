@@ -27,7 +27,7 @@ function HomeCtaPassthrough() {
       </Button>
       <Link
         href="/admin/roadmap"
-        className="rounded-[--radius-button] border border-[--ct-border] px-5 py-3 text-base font-medium text-[--ct-text-body] hover:text-[--ct-text-primary]"
+        className="rounded-[--radius-button] border border-[--ct-border] px-5 py-3 text-base font-medium text-[--ct-text-body] hover:text-[--ct-text-primary] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-border-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]"
       >
         Admin
       </Link>

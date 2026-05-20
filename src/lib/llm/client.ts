@@ -6,6 +6,8 @@ import { createHash } from "node:crypto";
 import { CircuitBreaker } from "@/lib/circuit-breaker";
 import { prisma } from "@/lib/db";
 import { env } from "@/lib/env";
+import { kimi, KIMI_MODEL } from "@/lib/llm/kimi";
+import { logger } from "@/lib/logger";
 
 /**
  * Thin, auditable wrapper around the Anthropic SDK.
@@ -62,6 +64,14 @@ export async function callLlm(
     client?: LlmClientLike;
     timeoutMs?: number;
     maxRetries?: number;
+    /**
+     * Skip the Kimi (Hypercli) fallback that engages when Anthropic returns
+     * 429/503/529 after retries are exhausted. Tests set this so a mock
+     * client's failures surface directly instead of being masked by a
+     * fallback. The fallback is also skipped whenever a custom `client` is
+     * injected (only the real Anthropic SDK path can degrade to Kimi).
+     */
+    disableFallback?: boolean;
   },
 ): Promise<LlmCallResult> {
   const apiKey = env.ANTHROPIC_API_KEY;
@@ -154,6 +164,51 @@ export async function callLlm(
         ? String(effectiveError.status)
         : "unknown";
 
+    // Degrade to Kimi (Hypercli) when Anthropic is overloaded / rate-limited
+    // and retries are exhausted. Only on the real SDK path: an injected
+    // client (tests, canaries) or an explicit opt-out bypasses the fallback.
+    const isOverloaded =
+      effectiveError instanceof Anthropic.APIError &&
+      (effectiveError.status === 429 ||
+        effectiveError.status === 503 ||
+        effectiveError.status === 529);
+    const fallbackEligible =
+      isOverloaded && !opts?.client && opts?.disableFallback !== true;
+
+    if (fallbackEligible) {
+      try {
+        const fallbackResponse = await callKimiFallback(params, timeoutMs);
+        const latencyFb = Math.round(performance.now() - start);
+        logger.warn("anthropic overloaded — fell back to Kimi", {
+          agentName,
+          anthropicStatus: errorType,
+          fallbackModel: KIMI_MODEL,
+        });
+        await prisma.llmRun.update({
+          where: { id: run.id },
+          data: {
+            status: "fallback",
+            model: KIMI_MODEL,
+            latencyMs: latencyFb,
+            inputTokens: fallbackResponse.usage?.input_tokens ?? 0,
+            outputTokens: fallbackResponse.usage?.output_tokens ?? 0,
+          },
+        });
+        return {
+          response: fallbackResponse,
+          latencyMs: latencyFb,
+          runId: run.id,
+        };
+      } catch (fbErr) {
+        logger.error(
+          "Kimi fallback also failed",
+          { agentName, fallbackModel: KIMI_MODEL },
+          fbErr,
+        );
+        // fall through to mark the run failed with the original error
+      }
+    }
+
     await prisma.llmRun.update({
       where: { id: run.id },
       data: {
@@ -166,6 +221,91 @@ export async function callLlm(
 
     throw effectiveError;
   }
+}
+
+/**
+ * Flattens an Anthropic system prompt (string or content-block array) into a
+ * single plain-text string for the OpenAI-compatible Kimi endpoint.
+ */
+function flattenSystem(
+  system: Anthropic.MessageCreateParamsNonStreaming["system"],
+): string {
+  if (system === undefined) return "";
+  if (typeof system === "string") return system;
+  return system
+    .map((block) => (block.type === "text" ? block.text : ""))
+    .join("\n\n");
+}
+
+/**
+ * Flattens an Anthropic message content (string or content-block array) into a
+ * single plain-text string. Non-text blocks are dropped — Kimi fallback is a
+ * text-in/text-out degradation path only.
+ */
+function flattenContent(content: Anthropic.MessageParam["content"]): string {
+  if (typeof content === "string") return content;
+  return content
+    .map((block) => (block.type === "text" ? block.text : ""))
+    .filter((s) => s.length > 0)
+    .join("\n\n");
+}
+
+/**
+ * Calls Kimi via the OpenAI-compatible Hypercli endpoint and adapts the
+ * response back into the Anthropic `Message` shape the callers expect
+ * (they only read `content` text blocks + `usage`).
+ */
+async function callKimiFallback(
+  params: Anthropic.MessageCreateParamsNonStreaming,
+  timeoutMs: number,
+): Promise<Anthropic.Messages.Message> {
+  const systemText = flattenSystem(params.system);
+  const chatMessages: Array<{
+    role: "system" | "user" | "assistant";
+    content: string;
+  }> = [];
+  if (systemText.length > 0) {
+    chatMessages.push({ role: "system", content: systemText });
+  }
+  for (const m of params.messages) {
+    chatMessages.push({
+      role: m.role,
+      content: flattenContent(m.content),
+    });
+  }
+
+  const completion = await kimi.chat.completions.create(
+    {
+      model: KIMI_MODEL,
+      max_tokens: params.max_tokens,
+      messages: chatMessages,
+    },
+    { timeout: timeoutMs },
+  );
+
+  const text = completion.choices[0]?.message?.content ?? "";
+  const message: Anthropic.Messages.Message = {
+    id: completion.id,
+    type: "message",
+    role: "assistant",
+    model: KIMI_MODEL,
+    content: [{ type: "text", text, citations: null }],
+    container: null,
+    stop_reason: "end_turn",
+    stop_details: null,
+    stop_sequence: null,
+    usage: {
+      input_tokens: completion.usage?.prompt_tokens ?? 0,
+      output_tokens: completion.usage?.completion_tokens ?? 0,
+      cache_creation: null,
+      cache_creation_input_tokens: null,
+      cache_read_input_tokens: null,
+      inference_geo: null,
+      server_tool_use: null,
+      service_tier: null,
+    },
+  };
+  return message;
 }
 
 /**

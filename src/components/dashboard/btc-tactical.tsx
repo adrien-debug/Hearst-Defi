@@ -59,8 +59,8 @@ interface RowProps {
 function Row({ label, value, valueClass }: RowProps) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-3 text-sm group">
-      <span className="text-white/50 group-hover:text-white/70 transition-colors">{label}</span>
-      <span className={cn("font-mono tabular-nums text-white/90", valueClass)}>{value}</span>
+      <span className="text-[--ct-text-muted] group-hover:text-[--ct-text-body] transition-colors">{label}</span>
+      <span className={cn("font-mono tabular-nums text-[--ct-text-primary]", valueClass)}>{value}</span>
     </div>
   );
 }
@@ -71,7 +71,7 @@ export function BtcTacticalSection({ btcTactical }: BtcTacticalSectionProps) {
       ? "ct-status-glow-success"
       : btcTactical.pnlUsd < 0
         ? "ct-status-glow-danger"
-        : "text-white/90";
+        : "text-[--ct-text-primary]";
 
   return (
     <Card>
@@ -81,7 +81,7 @@ export function BtcTacticalSection({ btcTactical }: BtcTacticalSectionProps) {
       </CardHeader>
 
       <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
-        <div className="divide-y divide-white/10">
+        <div className="divide-y divide-[--ct-border-soft]">
           <Row
             label="Position size"
             value={`${btcTactical.positionSizePctAum.toFixed(0)}% AUM · ${usdCompact.format(btcTactical.positionSizeUsd)}`}
@@ -101,7 +101,7 @@ export function BtcTacticalSection({ btcTactical }: BtcTacticalSectionProps) {
 
         <div className="space-y-6">
           <div>
-            <p className="text-xs font-medium uppercase tracking-widest text-white/40 mb-3">
+            <p className="text-xs font-medium uppercase tracking-widest text-[--ct-text-muted] mb-3">
               Next triggers
             </p>
             {btcTactical.nextTriggers.length > 0 ? (
@@ -109,25 +109,25 @@ export function BtcTacticalSection({ btcTactical }: BtcTacticalSectionProps) {
                 {btcTactical.nextTriggers.map((t) => (
                   <li
                     key={t.id}
-                    className="glass-panel-subtle px-4 py-3 group hover:bg-white/[0.04] transition-colors"
+                    className="glass-panel-subtle px-4 py-3 group hover:bg-[--ct-surface-1] transition-colors"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-medium text-white/90">{t.label}</span>
+                      <span className="text-sm font-medium text-[--ct-text-primary]">{t.label}</span>
                       <Badge variant="default">{t.ruleId}</Badge>
                     </div>
-                    <p className="mt-2 font-mono text-xs text-white/50 tabular-nums">
+                    <p className="mt-2 font-mono text-xs text-[--ct-text-muted] tabular-nums">
                       {t.condition}
                     </p>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-white/40 italic">No triggers currently armed.</p>
+              <p className="text-sm text-[--ct-text-muted] italic">No triggers currently armed.</p>
             )}
           </div>
 
           <div>
-            <p className="text-xs font-medium uppercase tracking-widest text-white/40 mb-3">
+            <p className="text-xs font-medium uppercase tracking-widest text-[--ct-text-muted] mb-3">
               Guardrails
             </p>
             {btcTactical.guardrails.length > 0 ? (
@@ -135,11 +135,11 @@ export function BtcTacticalSection({ btcTactical }: BtcTacticalSectionProps) {
                 {btcTactical.guardrails.map((g) => (
                   <li
                     key={g.id}
-                    className="flex items-start justify-between gap-3 glass-panel-subtle px-4 py-3 group hover:bg-white/[0.04] transition-colors"
+                    className="flex items-start justify-between gap-3 glass-panel-subtle px-4 py-3 group hover:bg-[--ct-surface-1] transition-colors"
                   >
                     <div>
-                      <div className="text-sm font-medium text-white/90">{g.label}</div>
-                      <p className="mt-1 text-xs text-white/50">
+                      <div className="text-sm font-medium text-[--ct-text-primary]">{g.label}</div>
+                      <p className="mt-1 text-xs text-[--ct-text-muted]">
                         {g.detail}
                       </p>
                     </div>
@@ -150,7 +150,7 @@ export function BtcTacticalSection({ btcTactical }: BtcTacticalSectionProps) {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-white/40 italic">All guardrails within bounds.</p>
+              <p className="text-sm text-[--ct-text-muted] italic">All guardrails within bounds.</p>
             )}
           </div>
         </div>

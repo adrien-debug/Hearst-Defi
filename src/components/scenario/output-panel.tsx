@@ -218,7 +218,7 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
           <ApyRange
             low={output.apy_range.low}
             high={output.apy_range.high}
-            className="font-mono text-[--text-5xl] font-black tabular-nums text-[--ct-text-strong] leading-none"
+            className="font-mono text-[--text-5xl] font-extrabold tabular-nums text-[--ct-text-strong] leading-none"
           />
           <div className="flex flex-col items-end gap-1.5">
             <span className="stat-label">Confidence</span>
@@ -232,8 +232,11 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
         </div>
 
         <div className="mt-4 border-t border-[--ct-border-soft] pt-4">
-          <span className="stat-label mr-2">Stressed APY</span>
-          <span className="font-mono text-2xl font-black tabular-nums text-[--ct-text-primary]">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <span className="stat-label">Stressed APY</span>
+            <ProvenanceBadge kind="estimated" />
+          </div>
+          <span className="font-mono text-2xl font-extrabold tabular-nums text-[--ct-text-primary]">
             {output.stressed_apy.toFixed(1)}%
           </span>
           <span className="ml-2 text-xs text-[--ct-text-muted]">
@@ -257,7 +260,7 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
             <ProvenanceBadge kind="estimated" />
           </div>
           <div className="mb-1 flex items-baseline gap-1">
-            <span className="font-mono text-2xl font-black tabular-nums text-[--ct-text-primary]">
+            <span className="font-mono text-2xl font-extrabold tabular-nums text-[--ct-text-primary]">
               {output.risk_score.toFixed(0)}
             </span>
             <span className="text-sm text-[--ct-text-muted]">/100</span>
@@ -279,7 +282,7 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
             <ProvenanceBadge kind="estimated" />
           </div>
           <div className="mb-1 flex items-baseline gap-1">
-            <span className="font-mono text-2xl font-black tabular-nums text-[--ct-text-primary]">
+            <span className="font-mono text-2xl font-extrabold tabular-nums text-[--ct-text-primary]">
               {output.mining_margin_score.toFixed(0)}
             </span>
             <span className="text-sm text-[--ct-text-muted]">/100</span>
@@ -429,8 +432,8 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
           Not guaranteed.
         </span>{" "}
         Projections are conditional on stated assumptions. Methodology v1.0.
-        Past performance does not predict future returns. Forward projections
-        are not a promise or commitment to deliver any specific return.
+        Forward projections are conditional on the stated assumptions and are
+        not guaranteed. Past performance does not predict future results.
       </p>
     </div>
   );

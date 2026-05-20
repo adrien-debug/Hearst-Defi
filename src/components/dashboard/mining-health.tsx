@@ -65,9 +65,9 @@ function ScoreRow({ label, hint, value, tone, bar }: ScoreRowProps) {
               className="inline-block h-2 w-2 rounded-full shadow-[--ct-glow-dot]"
               style={{ background: TONE_DOT_COLOR[tone], color: TONE_DOT_COLOR[tone] }}
             />
-            <span className="text-sm font-medium text-white group-hover:text-white/90 transition-colors">{label}</span>
+            <span className="text-sm font-medium text-[--ct-text-primary] group-hover:text-[--ct-text-body] transition-colors">{label}</span>
           </div>
-          <p className="mt-1 text-xs text-white/40">{hint}</p>
+          <p className="mt-1 text-xs text-[--ct-text-muted]">{hint}</p>
         </div>
         <span className={cn("text-xl font-semibold leading-tight tabular-nums", TONE_TEXT[tone])}>
           {value}
@@ -100,7 +100,7 @@ export function MiningHealthSection({
         <CardTitle>Mining Health</CardTitle>
         <ProvenanceBadge kind={miningHealth.provenance} />
       </CardHeader>
-      <div className="divide-y divide-white/10">
+      <div className="divide-y divide-[--ct-border-soft]">
         <ScoreRow
           label="Mining Margin Score"
           hint="current margin / target margin"
@@ -141,16 +141,16 @@ function HashpriceRow({ hashprice }: HashpriceRowProps) {
       <div className="flex items-baseline justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-white group-hover:text-white/90 transition-colors">
+            <span className="text-sm font-medium text-[--ct-text-primary] group-hover:text-[--ct-text-body] transition-colors">
               Hashprice
             </span>
           </div>
-          <p className="mt-1 text-xs text-white/40">
+          <p className="mt-1 text-xs text-[--ct-text-muted]">
             BTC subsidy / network difficulty
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-lg font-semibold leading-tight text-white/90 tabular-nums">
+          <span className="text-lg font-semibold leading-tight text-[--ct-text-primary] tabular-nums">
             ${hashprice.usd_per_th_day.toFixed(3)} <span className="text-sm text-white/40 font-normal">/TH/day</span>
           </span>
           <ProvenanceBadge kind={provenance} />

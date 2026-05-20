@@ -10,10 +10,10 @@ export default function ProductLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="ct-page-area">
+    <>
       <HubModeStyles />
       <ProductRailIntra />
       {children}
-    </div>
+    </>
   );
 }

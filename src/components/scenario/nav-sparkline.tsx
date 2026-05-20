@@ -10,6 +10,8 @@ import type { ScenarioOutput } from "@/lib/engine/types";
 // compound interest layout for rendering only (no new business logic).
 
 const INITIAL_NAV = 1_000_000; // illustrative $1M notional
+// matches --ct-text-micro (Recharts ne lit pas les CSS vars runtime)
+const CHART_LABEL_SIZE = 9;
 const MONTHS = 12;
 
 interface NavPoint {
@@ -150,7 +152,7 @@ function Sparkline({ series }: SparklineProps) {
             x={xOf(idx)}
             y={H + 16}
             textAnchor="middle"
-            fontSize={9}
+            fontSize={CHART_LABEL_SIZE}
             fill="var(--ct-text-muted)"
             fontFamily="var(--font-sans)"
           >

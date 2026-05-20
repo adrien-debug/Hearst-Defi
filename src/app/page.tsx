@@ -28,7 +28,7 @@ export default function Home() {
           </FadeIn>
           
           <FadeIn delay={0.2}>
-            <h1 className="h1 text-balance text-4xl md:text-6xl lg:text-7xl">
+            <h1 className="h1 text-balance">
               Institutional USDC vault.
               <br />
               <span className="text-[--ct-text-body]">
@@ -38,7 +38,7 @@ export default function Home() {
           </FadeIn>
           
           <FadeIn delay={0.3}>
-            <p className="body-lg mx-auto mt-8 max-w-2xl text-pretty text-white/70">
+            <p className="body-lg mx-auto mt-8 max-w-2xl text-pretty text-[--ct-text-body]">
               Bitcoin mining cashflow, USDC base yield, and rule-based BTC tactical
               exposure in a single vault. Monthly USDC distributions. Target APY
               range 8–15%. Projection conditional on stated assumptions. Not
@@ -55,7 +55,7 @@ export default function Home() {
       </section>
 
       {/* Stats */}
-      <section className="border-y border-white/[0.06] bg-white/[0.02] px-6 py-16">
+      <section className="border-y border-[--ct-border-soft] bg-[--ct-surface-0] px-6 py-16">
         <StaggerContainer className="mx-auto grid max-w-5xl grid-cols-2 gap-8 md:grid-cols-4">
           <StaggerItem>
             <Stat value="8–15%" label="Target APY range" />
@@ -104,9 +104,9 @@ export default function Home() {
       {/* CTA */}
       <section className="px-6 py-24 md:py-32">
         <FadeIn>
-          <div className="mx-auto max-w-3xl rounded-3xl border border-white/[0.06] bg-white/[0.02] p-10 md:p-16 text-center">
+          <div className="mx-auto max-w-3xl rounded-3xl border border-[--ct-border-soft] bg-[--ct-surface-0] p-10 md:p-16 text-center">
             <h2 className="h2 mb-4">Ready to explore?</h2>
-            <p className="body-lg text-white/60 mb-10">
+            <p className="body-lg text-[--ct-text-body] mb-10">
               Access the dashboard, run scenarios, and generate your first investor memo.
             </p>
             <Button variant="primary" size="lg" asChild>
@@ -117,16 +117,16 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/[0.06] px-6 py-12">
+      <footer className="border-t border-[--ct-border-soft] px-6 py-12">
         <div className="mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-sm text-white/40">
+          <p className="text-sm text-[--ct-text-muted]">
             © {new Date().getFullYear()} Hearst Connect. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <Link href="/admin/roadmap" className="text-sm text-white/40 hover:text-white transition-colors">
+            <Link href="/admin/roadmap" className="text-sm text-[--ct-text-muted] hover:text-[--ct-text-primary] transition-colors">
               Roadmap
             </Link>
-            <Link href="/admin/feedback" className="text-sm text-white/40 hover:text-white transition-colors">
+            <Link href="/admin/feedback" className="text-sm text-[--ct-text-muted] hover:text-[--ct-text-primary] transition-colors">
               Feedback
             </Link>
           </div>
@@ -139,17 +139,17 @@ export default function Home() {
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div className="text-center">
-      <p className="text-3xl md:text-4xl font-semibold text-white">{value}</p>
-      <p className="mt-2 text-sm text-white/50">{label}</p>
+      <p className="text-3xl md:text-4xl font-semibold text-[--ct-text-primary]">{value}</p>
+      <p className="mt-2 text-sm text-[--ct-text-muted]">{label}</p>
     </div>
   );
 }
 
 function Feature({ title, description }: { title: string; description: string }) {
   return (
-    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8">
-      <h3 className="text-xl font-semibold text-white mb-3">{title}</h3>
-      <p className="text-white/60 leading-relaxed">{description}</p>
+    <div className="rounded-2xl border border-[--ct-border-soft] bg-[--ct-surface-0] p-8">
+      <h3 className="text-xl font-semibold text-[--ct-text-primary] mb-3">{title}</h3>
+      <p className="text-[--ct-text-body] leading-relaxed">{description}</p>
     </div>
   );
 }
