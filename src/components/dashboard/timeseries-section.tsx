@@ -60,8 +60,43 @@ interface NavChartProps {
   provenance: import("@/components/ui/provenance-badge").Provenance;
 }
 
+interface ChartEmptyProps {
+  title: string;
+  subtitle: string;
+  provenance: import("@/components/ui/provenance-badge").Provenance;
+}
+
+function ChartEmpty({ title, subtitle, provenance }: ChartEmptyProps) {
+  return (
+    <Card className="flex flex-col">
+      <CardHeader>
+        <div className="flex flex-col gap-2">
+          <CardTitle>{title}</CardTitle>
+          <p className="text-xs font-medium uppercase tracking-wide text-[--ct-text-muted]">
+            {subtitle}
+          </p>
+        </div>
+        <ProvenanceBadge kind={provenance === "live" ? "stale" : provenance} />
+      </CardHeader>
+      <div className="flex-1 min-h-[8.75rem] flex items-center justify-center text-center -mx-4 -mb-4 mt-4 rounded-b-[--radius-card] border border-dashed border-[--ct-border-soft] bg-[--ct-surface-1]">
+        <p className="text-xs text-[--ct-text-muted] px-6 py-8">
+          No historical data yet — first snapshot needed.
+        </p>
+      </div>
+    </Card>
+  );
+}
+
 function NavChart({ points, provenance }: NavChartProps) {
-  if (points.length === 0) return null;
+  if (points.length === 0) {
+    return (
+      <ChartEmpty
+        title="Net Asset Value"
+        subtitle="Trailing 30 days · USDC"
+        provenance={provenance}
+      />
+    );
+  }
 
   const values = points.map((p) => p.aum_usdc);
   const last = values[values.length - 1] ?? 0;
@@ -201,7 +236,15 @@ interface ApyChartProps {
 }
 
 function ApyChart({ points, provenance }: ApyChartProps) {
-  if (points.length === 0) return null;
+  if (points.length === 0) {
+    return (
+      <ChartEmpty
+        title="APY Range"
+        subtitle={`Trailing 30d · Target ${METHODOLOGY_TARGET_APY.toFixed(0)}%`}
+        provenance={provenance}
+      />
+    );
+  }
 
   const lastPoint = points[points.length - 1];
 

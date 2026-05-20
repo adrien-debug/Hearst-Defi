@@ -125,6 +125,7 @@ function CompositeHeader({ composite, band, bandLabel }: CompositeHeaderProps) {
           value={composite}
           fillClassName={BAND_BAR[band]}
           className="h-2 flex-1"
+          label={`Composite risk score ${composite} of 100, ${bandLabel}`}
         />
         <Badge variant={BAND_VARIANT[band]}>{bandLabel}</Badge>
       </div>
@@ -171,6 +172,7 @@ function RiskRow({ dimension }: RiskRowProps) {
           fillClassName={SEVERITY_BAR[severity]}
           /* 6.25rem = 100px ; pas de step 25 dans la spacing scale Tailwind v4 par défaut */
           className="h-1.5 w-20 sm:w-[6.25rem]"
+          label={`${label} risk score ${score} of 100, ${status}`}
         />
       </div>
     </div>

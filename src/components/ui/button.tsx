@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/cn";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-full text-sm font-medium transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-border-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep] active:scale-[0.98]",
+  "inline-flex items-center justify-center gap-2 rounded-full text-sm font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-border-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep] active:scale-[0.98]",
   {
     variants: {
       variant: {
@@ -41,10 +41,20 @@ export function Button({
   variant,
   size,
   asChild = false,
-  ...props
+  disabled,
+  "aria-disabled": ariaDisabledProp,
+  ...rest
 }: ButtonProps) {
   const Comp = asChild ? Slot : "button";
+  // Propagate aria-disabled so AT (NVDA/JAWS/VoiceOver) reliably announce the
+  // disabled state. An explicit aria-disabled from the caller takes precedence.
+  const ariaDisabled = ariaDisabledProp ?? (disabled ? true : undefined);
   return (
-    <Comp className={cn(buttonVariants({ variant, size }), className)} {...props} />
+    <Comp
+      className={cn(buttonVariants({ variant, size }), className)}
+      disabled={disabled}
+      aria-disabled={ariaDisabled}
+      {...rest}
+    />
   );
 }

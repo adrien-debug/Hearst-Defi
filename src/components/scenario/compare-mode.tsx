@@ -36,6 +36,8 @@ function PresetPicker({
 }: PresetPickerProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const listboxRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -43,7 +45,10 @@ function PresetPicker({
       if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
     }
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
     }
     document.addEventListener("mousedown", onDocClick);
     document.addEventListener("keydown", onKey);
@@ -53,6 +58,40 @@ function PresetPicker({
     };
   }, [open]);
 
+  // Move focus to the first selectable option when the listbox opens so the
+  // keyboard user can act on the menu they just summoned. Without this the
+  // focus stays on the trigger and Tab leaves the dropdown entirely.
+  useEffect(() => {
+    if (!open) return;
+    const first = listboxRef.current?.querySelector<HTMLButtonElement>(
+      'button[role="option"]:not([disabled])',
+    );
+    first?.focus();
+  }, [open]);
+
+  // Arrow key navigation within the listbox. Up/Down cycle through enabled
+  // options; Home/End jump to first/last.
+  function onListKeyDown(e: React.KeyboardEvent<HTMLUListElement>) {
+    if (!listboxRef.current) return;
+    const options = Array.from(
+      listboxRef.current.querySelectorAll<HTMLButtonElement>(
+        'button[role="option"]:not([disabled])',
+      ),
+    );
+    if (options.length === 0) return;
+    const active = document.activeElement as HTMLButtonElement | null;
+    const idx = active ? options.indexOf(active) : -1;
+    let next = idx;
+    if (e.key === "ArrowDown") next = idx < 0 ? 0 : (idx + 1) % options.length;
+    else if (e.key === "ArrowUp")
+      next = idx < 0 ? options.length - 1 : (idx - 1 + options.length) % options.length;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = options.length - 1;
+    else return;
+    e.preventDefault();
+    options[next]?.focus();
+  }
+
   const sideAccent =
     side === "A"
       ? "border-l-[--ct-border-strong]"
@@ -61,11 +100,13 @@ function PresetPicker({
   return (
     <div ref={rootRef} className="relative">
       <button
+        ref={triggerRef}
         type="button"
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-label={`Scenario ${side}: ${value ? labelFor(value) : "select a scenario"}`}
         className={cn(
           "flex w-full items-center justify-between gap-3 rounded-[--radius-button]",
           "border border-[--ct-border-strong] border-l-4",
@@ -110,8 +151,10 @@ function PresetPicker({
 
       {open && (
         <ul
+          ref={listboxRef}
           role="listbox"
           aria-label={`Pick a scenario for ${side}`}
+          onKeyDown={onListKeyDown}
           className={cn(
             "absolute z-20 mt-2 w-full overflow-hidden rounded-[--radius-button]",
             "border border-[--ct-border-strong] bg-[--ct-surface-1]",
@@ -131,12 +174,13 @@ function PresetPicker({
                   onClick={() => {
                     onChange(p.id);
                     setOpen(false);
+                    triggerRef.current?.focus();
                   }}
                   title={p.description}
                   className={cn(
                     "flex w-full flex-col items-start gap-0.5 px-4 py-3 text-left",
                     "transition-colors duration-150",
-                    "focus-visible:outline-none",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[--ct-text-strong]",
                     isSelected
                       ? "bg-[--ct-surface-1] text-[--ct-text-strong]"
                       : "text-[--ct-text-body] hover:bg-[--ct-surface-3] hover:text-[--ct-text-primary]",
@@ -244,7 +288,7 @@ interface ComparisonState {
   b: ScenarioOutput | null;
 }
 
-export function CompareMode() {
+export function CompareMode({ active = true }: { active?: boolean }) {
   const [presetA, setPresetA] = useState<Preset | null>("base");
   const [presetB, setPresetB] = useState<Preset | null>("extreme_stress");
   const [outputs, setOutputs] = useState<ComparisonState>({ a: null, b: null });
@@ -270,13 +314,14 @@ export function CompareMode() {
   const initialB = useRef(presetB);
   const didRunInitial = useRef(false);
   useEffect(() => {
+    if (!active) return;
     const a = initialA.current;
     const b = initialB.current;
     if (!didRunInitial.current && a && b && a !== b) {
       didRunInitial.current = true;
       runComparison(a, b);
     }
-  }, [runComparison]);
+  }, [active, runComparison]);
 
   function handleSelectA(p: Preset) {
     // If the user picks the same preset that's on B, swap.

@@ -5,13 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { CT_PRODUCT_CONNECT_HEX } from "@/lib/cockpit-tokens";
 import { cn } from "@/lib/cn";
-
-const NAV_ITEMS = [
-  { href: "/scenario-lab", label: "Scenario Lab" },
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/proof-center", label: "Proof Center" },
-  { href: "/investor-memo", label: "Investor Memo" },
-] as const;
+import { PRODUCT_NAV } from "@/components/nav/product-nav-items";
 
 export function ConnectBottomNav() {
   const pathname = usePathname();
@@ -29,11 +23,11 @@ export function ConnectBottomNav() {
         Hearst Connect
       </span>
       <div className="ct-hub-bar-track">
-        {NAV_ITEMS.map((item) => {
+        {PRODUCT_NAV.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
-              key={item.href}
+              key={item.id}
               href={item.href}
               className={cn("ct-hub-bar-seg", active && "active")}
               aria-current={active ? "page" : undefined}

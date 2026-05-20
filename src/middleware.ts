@@ -73,12 +73,29 @@ function isAdmin(address: string | undefined): boolean {
 // Middleware
 // ---------------------------------------------------------------------------
 
+/**
+ * Build a redirect URL to `/` that carries the original path in `?from=` so
+ * the home page can route the user back after successful login.
+ *
+ * The `from` value is whitelisted to absolute, same-origin paths to prevent
+ * open-redirect on third-party domains.
+ */
+function loginRedirect(req: NextRequest): NextResponse {
+  const target = new URL("/", req.url);
+  const from = `${req.nextUrl.pathname}${req.nextUrl.search}`;
+  if (from.startsWith("/") && !from.startsWith("//")) {
+    target.searchParams.set("login", "true");
+    target.searchParams.set("from", from);
+  }
+  return NextResponse.redirect(target);
+}
+
 export async function middleware(req: NextRequest): Promise<NextResponse> {
   const token = req.cookies.get("privy-token")?.value;
 
-  // 1. No token → unauthenticated, redirect home.
+  // 1. No token → unauthenticated, redirect home with returnTo.
   if (!token) {
-    return NextResponse.redirect(new URL("/", req.url));
+    return loginRedirect(req);
   }
 
   // 2. Verify the JWT signature against Privy's JWKS.
@@ -92,7 +109,7 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
     payload = verified;
   } catch {
     // Invalid signature, expired token, wrong issuer/audience.
-    return NextResponse.redirect(new URL("/", req.url));
+    return loginRedirect(req);
   }
 
   // 3. Check admin role.

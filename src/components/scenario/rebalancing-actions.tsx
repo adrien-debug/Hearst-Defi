@@ -109,7 +109,25 @@ interface RebalancingActionsProps {
 export function RebalancingActions({ output }: RebalancingActionsProps) {
   const actions = deriveActions(output);
 
-  if (actions.length === 0) return null;
+  if (actions.length === 0) {
+    return (
+      <Card>
+        <CardHeader className="mb-3">
+          <CardTitle>Rebalancing Actions</CardTitle>
+          <span className="eyebrow">Max 4 · Rule-based</span>
+        </CardHeader>
+        <div className="flex items-center gap-3 rounded-[--radius-sm] border border-[--ct-border-soft] bg-[--ct-surface-1] px-4 py-3">
+          <span
+            className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[--ct-status-success]"
+            aria-hidden
+          />
+          <p className="text-xs text-[--ct-text-muted]">
+            No rebalancing actions triggered — vault allocation is within target bands.
+          </p>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card>

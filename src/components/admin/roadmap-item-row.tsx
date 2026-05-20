@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,14 +31,26 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
 
   function setStatus(next: RoadmapStatus) {
     startTransition(async () => {
-      await quickSetStatus(item.id, next);
+      try {
+        await quickSetStatus(item.id, next);
+        toast.success(`Status → ${statusLabel(next)}`);
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        toast.error(`Failed to update status: ${message}`);
+      }
     });
   }
 
   function onSubmit(formData: FormData) {
     startTransition(async () => {
-      await updateRoadmapItem(formData);
-      setOpen(false);
+      try {
+        await updateRoadmapItem(formData);
+        setOpen(false);
+        toast.success("Roadmap item updated");
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        toast.error(`Failed to save: ${message}`);
+      }
     });
   }
 

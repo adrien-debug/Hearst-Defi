@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useTransition } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { postFeedback } from "@/app/admin/feedback/actions";
@@ -11,8 +12,14 @@ export function FeedbackForm() {
 
   function onSubmit(formData: FormData) {
     startTransition(async () => {
-      await postFeedback(formData);
-      formRef.current?.reset();
+      try {
+        await postFeedback(formData);
+        formRef.current?.reset();
+        toast.success("Feedback posted");
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        toast.error(`Failed to post feedback: ${message}`);
+      }
     });
   }
 

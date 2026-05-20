@@ -78,6 +78,7 @@ function ScoreRow({ label, hint, value, tone, bar }: ScoreRowProps) {
           value={bar}
           fillClassName={TONE_BAR[tone]}
           className="h-1.5"
+          label={`${label}: ${value}`}
         />
       ) : null}
     </div>

@@ -9,7 +9,16 @@ const CHART_LABEL_SIZE = 9;
 
 /** Inline SVG bar chart — no external chart library. */
 export function BacktestChart({ series }: BacktestChartProps) {
-  if (series.length === 0) return null;
+  if (series.length === 0) {
+    return (
+      <div
+        role="status"
+        className="flex min-h-[10rem] items-center justify-center rounded-[--radius-card] border border-dashed border-[--ct-border-soft] bg-[--ct-surface-1] px-6 py-8 text-center text-xs text-[--ct-text-muted]"
+      >
+        No backtest data available for this period.
+      </div>
+    );
+  }
 
   const CHART_HEIGHT = 140;
   const BAR_GAP = 2;

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import { requireAdmin } from "@/lib/auth/require-admin";
@@ -127,6 +128,15 @@ export async function deleteProof(id: string): Promise<{ ok: true }> {
     logger.info("proof deleted", { proofId: id });
     return { ok: true };
   } catch (err) {
+    // Race: another admin already deleted this proof. Surface a clean message
+    // instead of leaking Prisma's verbose error text.
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2025"
+    ) {
+      logger.warn("deleteProof: already deleted", { proofId: id });
+      throw new Error("Proof already deleted");
+    }
     logger.error("deleteProof failed", { proofId: id }, err);
     throw err;
   }

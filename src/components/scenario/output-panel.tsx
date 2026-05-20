@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { Markdown } from "@/components/admin/markdown";
 import { NavSparkline } from "@/components/scenario/nav-sparkline";
 import { PtaiBlock } from "@/components/scenario/ptai-block";
 import { RebalancingActions } from "@/components/scenario/rebalancing-actions";
@@ -12,6 +13,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
+import type { ScenarioNarrativeOutput } from "@/lib/agents/schemas";
 import type {
   AllocationBucket,
   BtcGuardrail,
@@ -22,6 +24,13 @@ import type {
 interface OutputPanelProps {
   output: ScenarioOutput;
   isPending: boolean;
+  /**
+   * AI-generated narrative from the Scenario Narrative agent (Sonnet 4.6).
+   * `null` means the agent failed (timeout, forbidden-words filter, schema fail)
+   * and we degrade gracefully by surfacing a discreet note instead of hiding
+   * the missing section.
+   */
+  narrative?: ScenarioNarrativeOutput | null;
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -187,7 +196,7 @@ function AllocationBar({
 
 // ── main ──────────────────────────────────────────────────────────────────────
 
-export function OutputPanel({ output, isPending }: OutputPanelProps) {
+export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) {
   const riskColorClass = scoreColorClass(output.risk_score, true);
   const miningColorClass = scoreColorClass(output.mining_margin_score, false);
 
@@ -247,6 +256,38 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
 
       {/* ── Section 2: PTAI block ────────────────────────────────────────── */}
       <PtaiBlock output={output} />
+
+      {/* ── Section 2.5: AI Narrative (Sonnet 4.6) ───────────────────────── */}
+      {narrative !== undefined ? (
+        narrative !== null ? (
+          <Card>
+            <CardHeader className="mb-3">
+              <CardTitle>Narrative</CardTitle>
+              <ProvenanceBadge kind="estimated" />
+            </CardHeader>
+            <Markdown content={narrative.narrative_md} />
+            {narrative.risk_warning ? (
+              <div className="mt-4 rounded-[--radius-button] border border-[--ct-status-warning] bg-[--ct-status-warning-soft] px-4 py-3">
+                <p className="stat-label mb-1 text-[--ct-status-warning]">
+                  Risk warning
+                </p>
+                <p className="text-sm text-[--ct-text-body]">
+                  {narrative.risk_warning}
+                </p>
+              </div>
+            ) : null}
+          </Card>
+        ) : (
+          <Card>
+            <div className="flex items-center gap-3">
+              <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[--ct-status-warning]" aria-hidden />
+              <p className="text-xs text-[--ct-text-muted]">
+                AI narrative unavailable — engine output shown above.
+              </p>
+            </div>
+          </Card>
+        )
+      ) : null}
 
       {/* ── Section 3: 12-Month NAV Projection ──────────────────────────── */}
       <NavSparkline output={output} />

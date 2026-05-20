@@ -6,6 +6,14 @@ interface ProgressProps {
   /** Optional class applied to the fill bar (e.g. "bg-[--ct-status-danger]"). */
   fillClassName?: string;
   className?: string;
+  /**
+   * Accessible name for the progressbar. Screen readers announce
+   * "<label>, X percent" instead of just the bare value. Pass the dimension
+   * (e.g. "Liquidity risk score") so the value lands with context.
+   */
+  label?: string;
+  /** Reference an existing visible label via id (alternative to `label`). */
+  labelledBy?: string;
 }
 
 export function Progress({
@@ -13,6 +21,8 @@ export function Progress({
   max = 100,
   fillClassName,
   className,
+  label,
+  labelledBy,
 }: ProgressProps) {
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
   return (
@@ -25,6 +35,8 @@ export function Progress({
       aria-valuenow={value}
       aria-valuemin={0}
       aria-valuemax={max}
+      aria-label={label}
+      aria-labelledby={labelledBy}
     >
       <div
         className={cn(

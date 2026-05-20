@@ -92,6 +92,15 @@ export function MemoShell() {
   const [isPdfPending, startPdfTransition] = useTransition();
 
   const handleGenerate = useCallback(() => {
+    // Guard against accidental destruction of a reviewed memo. There is no
+    // server-side draft persistence yet; once regenerated the previous copy
+    // is gone from this session unless it was downloaded.
+    if (memo !== null) {
+      const confirmed = window.confirm(
+        "This will replace the current memo. Continue?",
+      );
+      if (!confirmed) return;
+    }
     setError(null);
     const toastId = toast.loading("Generating investor memo with Claude Opus 4.7...");
     startTransition(async () => {
@@ -106,7 +115,7 @@ export function MemoShell() {
         toast.error(`Generation failed: ${message}`, { id: toastId });
       }
     });
-  }, []);
+  }, [memo]);
 
   const handleDownload = useCallback(() => {
     if (!memo) return;

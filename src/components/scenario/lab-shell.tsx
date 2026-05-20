@@ -14,6 +14,7 @@ import { OutputPanel } from "@/components/scenario/output-panel";
 import { PresetBar } from "@/components/scenario/preset-bar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
+import type { ScenarioNarrativeOutput } from "@/lib/agents/schemas";
 import type {
   BacktestKey,
   BacktestOutput,
@@ -73,6 +74,7 @@ interface LabShellState {
   selectedPreset: Preset | null;
   inputs: ScenarioInputs;
   output: ScenarioOutput | null;
+  narrative: ScenarioNarrativeOutput | null;
 }
 
 interface BacktestState {
@@ -88,10 +90,21 @@ interface TabBarProps {
 }
 
 function TabBar({ active, onChange }: TabBarProps) {
+  function handleKeyDown(e: React.KeyboardEvent<HTMLElement>) {
+    const tabs: Tab[] = ["scenario", "backtest"];
+    const idx = tabs.indexOf(active);
+    if (e.key === "ArrowRight") {
+      onChange(tabs[(idx + 1) % tabs.length]!);
+    } else if (e.key === "ArrowLeft") {
+      onChange(tabs[(idx - 1 + tabs.length) % tabs.length]!);
+    }
+  }
+
   return (
     <nav
       aria-label="Scenario Lab tabs"
       className="flex gap-1 rounded-[--radius-button] border border-[--ct-border] bg-[--ct-surface-1] p-1 w-fit"
+      onKeyDown={handleKeyDown}
     >
       {(["scenario", "backtest"] as Tab[]).map((tab) => {
         const isActive = active === tab;
@@ -100,7 +113,10 @@ function TabBar({ active, onChange }: TabBarProps) {
             key={tab}
             type="button"
             role="tab"
+            id={`tab-${tab}`}
+            aria-controls={`tabpanel-${tab}`}
             aria-selected={isActive}
+            tabIndex={isActive ? 0 : -1}
             onClick={() => onChange(tab)}
             className={cn(
               "rounded-[--radius-sm] px-5 py-2 text-sm font-semibold capitalize",
@@ -140,7 +156,10 @@ function ScenarioModeToggle({ active, onChange }: ScenarioModeToggleProps) {
             key={mode}
             type="button"
             role="tab"
+            id={`tab-mode-${mode}`}
+            aria-controls={`tabpanel-mode-${mode}`}
             aria-selected={isActive}
+            tabIndex={isActive ? 0 : -1}
             onClick={() => onChange(mode)}
             className={cn(
               "rounded-[--radius-sm] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide",
@@ -308,6 +327,7 @@ export function LabShell() {
     selectedPreset: null,
     inputs: BASE_INPUTS,
     output: null,
+    narrative: null,
   });
   const [scenarioPending, startScenarioTransition] = useTransition();
   const [scenarioError, setScenarioError] = useState<string | null>(null);
@@ -322,25 +342,38 @@ export function LabShell() {
 
   // ── Scenario handlers ───────────────────────────────────────────────────────
 
-  const submit = useCallback((inputs: ScenarioInputs) => {
-    setScenarioError(null);
-    startScenarioTransition(async () => {
-      try {
-        const output = await runScenarioAction(inputs);
-        setScenarioState((prev) => ({ ...prev, inputs, output }));
-      } catch (e) {
-        setScenarioError(e instanceof Error ? e.message : "Unknown error");
-      }
-    });
-  }, []);
+  const submit = useCallback(
+    (inputs: ScenarioInputs, presetId: string = "custom") => {
+      setScenarioError(null);
+      startScenarioTransition(async () => {
+        try {
+          const result = await runScenarioAction(inputs, presetId);
+          setScenarioState((prev) => ({
+            ...prev,
+            inputs,
+            output: result,
+            narrative: result.narrative,
+          }));
+        } catch (e) {
+          setScenarioError(e instanceof Error ? e.message : "Unknown error");
+        }
+      });
+    },
+    [],
+  );
 
   function handlePresetSelect(preset: Preset) {
     setScenarioError(null);
     startScenarioTransition(async () => {
       try {
         const inputs = await getPresetInputsAction(preset);
-        const output = await runScenarioAction(inputs);
-        setScenarioState({ selectedPreset: preset, inputs, output });
+        const result = await runScenarioAction(inputs, preset);
+        setScenarioState({
+          selectedPreset: preset,
+          inputs,
+          output: result,
+          narrative: result.narrative,
+        });
       } catch (e) {
         setScenarioError(e instanceof Error ? e.message : "Unknown error");
       }
@@ -374,7 +407,12 @@ export function LabShell() {
       <TabBar active={activeTab} onChange={setActiveTab} />
 
       {/* ── Scenario tab ──────────────────────────────────────────────── */}
-      {activeTab === "scenario" && (
+      <div
+        role="tabpanel"
+        id="tabpanel-scenario"
+        aria-labelledby="tab-scenario"
+        hidden={activeTab !== "scenario"}
+      >
         <div className="space-y-6">
           {/* Mode toggle: Single | Compare */}
           <div className="flex items-center justify-between gap-4">
@@ -389,30 +427,52 @@ export function LabShell() {
             />
           </div>
 
-          {scenarioMode === "compare" ? (
-            <CompareMode />
-          ) : (
-            <SingleMode
-              scenarioState={scenarioState}
-              scenarioPending={scenarioPending}
-              scenarioError={scenarioError}
-              onPresetSelect={handlePresetSelect}
-              onInputChange={handleInputChange}
-              onSubmit={() => submit(scenarioState.inputs)}
-            />
-          )}
+          {/* Single / Compare sub-panels */}
+          <div
+            role="tabpanel"
+            id="tabpanel-mode-single"
+            aria-labelledby="tab-mode-single"
+            hidden={scenarioMode !== "single"}
+            tabIndex={0}
+          >
+            {scenarioMode === "single" && (
+              <SingleMode
+                scenarioState={scenarioState}
+                scenarioPending={scenarioPending}
+                scenarioError={scenarioError}
+                onPresetSelect={handlePresetSelect}
+                onInputChange={handleInputChange}
+                onSubmit={() => submit(scenarioState.inputs)}
+              />
+            )}
+          </div>
+          <div
+            role="tabpanel"
+            id="tabpanel-mode-compare"
+            aria-labelledby="tab-mode-compare"
+            hidden={scenarioMode !== "compare"}
+            tabIndex={0}
+          >
+            <CompareMode active={scenarioMode === "compare"} />
+          </div>
         </div>
-      )}
+      </div>
 
       {/* ── Backtest tab ───────────────────────────────────────────────── */}
-      {activeTab === "backtest" && (
+      <div
+        role="tabpanel"
+        id="tabpanel-backtest"
+        aria-labelledby="tab-backtest"
+        hidden={activeTab !== "backtest"}
+        tabIndex={0}
+      >
         <BacktestTab
           state={backtestState}
           isPending={backtestPending}
           error={backtestError}
           onSelect={handleBacktestSelect}
         />
-      )}
+      </div>
     </div>
   );
 }
@@ -510,6 +570,7 @@ function SingleMode({
             <OutputPanel
               output={scenarioState.output}
               isPending={scenarioPending}
+              narrative={scenarioState.narrative}
             />
           ) : (
             <div

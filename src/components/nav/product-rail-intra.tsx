@@ -53,6 +53,7 @@ export function ProductRailIntra({ items = PRODUCT_NAV }: Props) {
             key={item.id}
             href={item.href}
             aria-label={item.label}
+            aria-current={isActive ? "page" : undefined}
             title={item.label}
             className={cn("ct-rail-item", isActive && "ct-rail-item-active")}
           >

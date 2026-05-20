@@ -58,7 +58,7 @@ export function MemoToolbar({
           type="button"
           variant="secondary"
           onClick={onDownloadPdf}
-          disabled={isPending || isPdfPending}
+          disabled={!hasMemo || isPending || isPdfPending}
         >
           {isPdfPending ? "Generating PDF…" : "Download PDF"}
         </Button>

@@ -53,9 +53,15 @@ export function HomeCtaWithPrivy() {
     <Button
       variant="primary"
       size="lg"
-      onClick={() => (ready ? login() : router.push("/dashboard"))}
+      onClick={() => login()}
+      disabled={!ready}
+      aria-busy={!ready}
     >
-      {wantsLogin ? "Log in to access dashboard" : "Open Dashboard"}
+      {!ready
+        ? "Loading…"
+        : wantsLogin
+          ? "Log in to access dashboard"
+          : "Open Dashboard"}
     </Button>
   );
 

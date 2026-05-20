@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,8 +41,15 @@ function FeedbackRow({ item }: { item: FeedbackItem }) {
   const [isPending, startTransition] = useTransition();
 
   function onToggle() {
+    const next = !item.resolved;
     startTransition(async () => {
-      await toggleResolved(item.id, !item.resolved);
+      try {
+        await toggleResolved(item.id, next);
+        toast.success(next ? "Feedback resolved" : "Feedback reopened");
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        toast.error(`Failed to update feedback: ${message}`);
+      }
     });
   }
 
