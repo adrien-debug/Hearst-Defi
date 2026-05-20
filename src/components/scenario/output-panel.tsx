@@ -21,7 +21,6 @@ import {
 } from "@/components/scenario/output-panel-shared";
 import type { ScenarioNarrativeOutput } from "@/lib/agents/schemas";
 import type {
-  AllocationBucket,
   BtcGuardrail,
   BtcGuardrailKind,
   ScenarioOutput,
