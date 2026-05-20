@@ -18,7 +18,7 @@ function SumRow({ label, children, className }: SumRowProps) {
   return (
     <div className={cn("flex items-baseline justify-between gap-3 py-2", className)}>
       <span className="stat-label ct-text-muted">{label}</span>
-      <span className="stat-label ct-text-primary font-semibold text-right">
+      <span className="stat-label ct-text-primary text-right">
         {children}
       </span>
     </div>

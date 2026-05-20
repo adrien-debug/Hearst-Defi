@@ -21,6 +21,8 @@ const TARGET_CUMULATIVE_PCT = 10; // 10% cumulative yield as "milestone"
 const W = 560;
 const H = 160;
 const PAD = { top: 12, right: 16, bottom: 32, left: 56 };
+// Named constant so magic-number lint and future DS token updates touch one place.
+const CHART_LABEL_SIZE = "var(--ct-text-micro)"; // 10px — matches .eyebrow / .stat-label micro scale
 
 export function TimeToTargetChart({ amount, vault }: TimeToTargetChartProps) {
   const series = useMemo(
@@ -73,7 +75,7 @@ export function TimeToTargetChart({ amount, vault }: TimeToTargetChartProps) {
         aria-label="Projected NAV growth chart"
         role="img"
         className="w-full h-auto"
-        style={{ maxHeight: "160px" }}
+        style={{ maxHeight: `${H}px` }}
       >
         <defs>
           {/* Accent gradient — vars only, no hex */}
@@ -101,7 +103,7 @@ export function TimeToTargetChart({ amount, vault }: TimeToTargetChartProps) {
               className="tabular"
               style={{
                 fill: "var(--ct-text-faint)",
-                fontSize: "9px",
+                fontSize: CHART_LABEL_SIZE,
                 fontVariantNumeric: "tabular-nums",
               }}
             >
@@ -117,7 +119,7 @@ export function TimeToTargetChart({ amount, vault }: TimeToTargetChartProps) {
             x={xOf(m)}
             y={H - 6}
             textAnchor="middle"
-            style={{ fill: "var(--ct-text-faint)", fontSize: "9px" }}
+            style={{ fill: "var(--ct-text-faint)", fontSize: CHART_LABEL_SIZE }}
           >
             m{m}
           </text>
@@ -175,7 +177,7 @@ export function TimeToTargetChart({ amount, vault }: TimeToTargetChartProps) {
               y={PAD.top + 12}
               style={{
                 fill: "var(--ct-status-success)",
-                fontSize: "9px",
+                fontSize: CHART_LABEL_SIZE,
               }}
             >
               +{TARGET_CUMULATIVE_PCT}% @m{months10pct}

@@ -5,6 +5,7 @@
 // Non-negotiable #5: no forbidden words in copy.
 
 import { cn } from "@/lib/cn";
+import { Button } from "@/components/ui/button";
 import { stubApprove, stubEpoch, abbreviateAddress, type EpochStatus } from "@/lib/onchain";
 
 interface CheckRowProps {
@@ -117,18 +118,16 @@ export function PreFlightCheck({
         }
         action={
           !allowanceOk && amount > 0 ? (
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               type="button"
               onClick={handleApprove}
               disabled={approving}
-              className={cn(
-                "body-xs font-semibold px-3 py-1 rounded-full border transition-colors",
-                "border-[--ct-border-accent] text-[--ct-accent] hover:bg-[--ct-accent-soft]",
-                "disabled:opacity-50 disabled:cursor-not-allowed",
-              )}
+              className="border border-[--ct-border-accent] text-[--ct-accent] hover:bg-[--ct-accent-soft]"
             >
               {approving ? "Approving…" : "Approve"}
-            </button>
+            </Button>
           ) : undefined
         }
       />

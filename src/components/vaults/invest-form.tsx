@@ -255,7 +255,7 @@ export function InvestForm({ vault }: InvestFormProps) {
                 >
                   <path
                     d="M1 4.5L4 7.5L10 1.5"
-                    stroke="white"
+                    stroke="var(--ct-text-strong)"
                     strokeWidth="1.8"
                     strokeLinecap="round"
                     strokeLinejoin="round"
