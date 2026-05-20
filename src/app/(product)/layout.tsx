@@ -1,6 +1,7 @@
 // All product routes require auth data and live vault state — disable static prerendering.
 export const dynamic = "force-dynamic";
 
+import { DemoBanner } from "@/components/demo/demo-banner";
 import { DemoModeToggleSlot } from "@/components/demo/demo-mode-toggle-slot";
 import { HubModeStyles } from "@/components/hub-mode-styles";
 import { ProductRailIntra } from "@/components/nav/product-rail-intra";
@@ -12,6 +13,7 @@ export default function ProductLayout({
 }) {
   return (
     <>
+      <DemoBanner />
       <HubModeStyles />
       <ProductRailIntra />
       {/* Floating slot — anchored top-right of the product area; hidden in prod

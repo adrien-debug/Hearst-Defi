@@ -20,6 +20,9 @@ import { DemoModeToggle } from "./demo-mode-toggle";
  * and prod cleanliness.
  */
 export async function DemoModeToggleSlot() {
+  // Env-locked dedicated /demo deployment — no exit expected from user.
+  if (process.env.DEMO_MODE_DEFAULT === "1") return null;
+
   const active = await isDemoMode();
   const isProduction = process.env.NODE_ENV === "production";
 
