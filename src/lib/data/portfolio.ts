@@ -4,6 +4,36 @@ import { prisma } from "@/lib/db";
 import { getInvestor } from "@/lib/auth/session";
 
 // ---------------------------------------------------------------------------
+// PositionDetail — extended view for the /portfolio/[positionId] page
+// ---------------------------------------------------------------------------
+
+export interface PositionDetailTransaction {
+  id: string;
+  type: "deposit" | "claim" | "withdraw" | "distribution";
+  amountUsdc: number;
+  occurredAt: Date;
+  txHash: string | null;
+}
+
+export interface PositionDetail {
+  id: string;
+  vaultName: string;
+  vaultTicker: string;
+  status: "active" | "matured" | "exited";
+  principalUsdc: number;
+  accruedYieldUsdc: number;
+  distributedUsdc: number;
+  realizedApyLow: number;  // pct, e.g. 9.4
+  realizedApyHigh: number; // pct, e.g. 12.8
+  subscribedAt: Date;
+  maturedAt: Date | null;
+  txHashOpen: string | null;
+  transactions: PositionDetailTransaction[];
+  /** "live" = real DB data, "fallback" = demo / unauthenticated */
+  source: "live" | "fallback";
+}
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
@@ -174,6 +204,66 @@ export async function loadPortfolio(): Promise<PortfolioData> {
     totalYieldYtdUsdc,
     nextDistributionAt: nextEndOfMonth(),
     recentTransactions,
+    source: "live",
+  };
+}
+
+// ---------------------------------------------------------------------------
+// loadPosition — single position detail for /portfolio/[positionId]
+// ---------------------------------------------------------------------------
+
+export async function loadPosition(
+  positionId: string,
+): Promise<PositionDetail | null> {
+  const investor = await getInvestor();
+  if (!investor) return null;
+
+  const raw = await prisma.position.findFirst({
+    where: { id: positionId, investorId: investor.id },
+    include: { vaultDeployment: true },
+  });
+  if (!raw) return null;
+
+  const principal = toNumber(raw.principalUsdc);
+  const accrued = toNumber(raw.accruedYieldUsdc);
+  const distributed = toNumber(raw.distributedUsdc);
+
+  const apyLowBps = raw.vaultDeployment?.targetApyLowBps ?? 940;
+  const apyHighBps = raw.vaultDeployment?.targetApyHighBps ?? 1280;
+  const vaultName = raw.vaultDeployment?.name ?? "Hearst Yield Vault";
+  const vaultTicker = "HYV-A";
+
+  // Load all transactions for this position
+  const rawTxs = await prisma.investorTransaction.findMany({
+    where: { investorId: investor.id, positionId },
+    orderBy: { occurredAt: "desc" },
+  });
+
+  const transactions: PositionDetailTransaction[] = rawTxs.map((t) => ({
+    id: t.id,
+    type: t.type as "deposit" | "claim" | "withdraw" | "distribution",
+    amountUsdc: toNumber(t.amountUsdc),
+    occurredAt: t.occurredAt,
+    txHash: t.txHash,
+  }));
+
+  // txHashOpen: find the opening deposit transaction hash
+  const openTx = rawTxs.find((t) => t.type === "deposit");
+
+  return {
+    id: raw.id,
+    vaultName,
+    vaultTicker,
+    status: raw.status as "active" | "matured" | "exited",
+    principalUsdc: principal,
+    accruedYieldUsdc: accrued,
+    distributedUsdc: distributed,
+    realizedApyLow: bpsToApyPct(apyLowBps),
+    realizedApyHigh: bpsToApyPct(apyHighBps),
+    subscribedAt: raw.subscribedAt,
+    maturedAt: null, // populated in Phase 2
+    txHashOpen: openTx?.txHash ?? null,
+    transactions,
     source: "live",
   };
 }

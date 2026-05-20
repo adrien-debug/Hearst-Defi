@@ -4,7 +4,10 @@ import { loadDashboardData as realLoadDashboardData } from "@/lib/data/dashboard
 import { fetchHashprice as realFetchHashprice } from "@/lib/data/hashprice";
 import { getProofs as realGetProofs } from "@/lib/data/proofs";
 import { loadRiskFramework as realLoadRiskFramework } from "@/lib/data/risk-framework";
-import { loadPortfolio as realLoadPortfolio } from "@/lib/data/portfolio";
+import {
+  loadPortfolio as realLoadPortfolio,
+  loadPosition as realLoadPosition,
+} from "@/lib/data/portfolio";
 import {
   listVaults as realListVaults,
   getVault as realGetVault,
@@ -17,6 +20,7 @@ import {
   DEMO_PROOFS,
   DEMO_RISK_FRAMEWORK,
   DEMO_PORTFOLIO_DATA,
+  DEMO_POSITION_DETAIL,
   DEMO_VAULT_LIST,
   DEMO_VAULT_PRODUCT,
 } from "./fixtures";
@@ -50,6 +54,14 @@ export function getProofs() {
 
 export function loadPortfolio() {
   return withDemoFallback(realLoadPortfolio, DEMO_PORTFOLIO_DATA);
+}
+
+export function loadPosition(positionId: string) {
+  return withDemoFallback(
+    () => realLoadPosition(positionId),
+    // In demo mode always return the single demo position regardless of id
+    DEMO_POSITION_DETAIL,
+  );
 }
 
 export function listVaults() {
