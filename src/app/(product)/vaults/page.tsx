@@ -12,7 +12,7 @@ export default async function VaultsPage() {
   const vaults = await listVaults();
 
   return (
-    <div className="ct-page-area flex flex-col gap-8 px-6 py-8 max-w-5xl mx-auto w-full">
+    <div className="ct-section flex flex-col gap-8 max-w-5xl mx-auto w-full">
       {/* Page header */}
       <header className="flex flex-col gap-4">
         <span className="eyebrow">Invest</span>
