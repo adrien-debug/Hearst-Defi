@@ -7,6 +7,8 @@ import type {
   DashboardVault,
   DashboardTimeseries,
 } from "@/lib/data/dashboard";
+import type { PortfolioData } from "@/lib/data/portfolio";
+import type { VaultProduct } from "@/lib/data/vaults";
 import type { BtcPriceData } from "@/lib/data/btc-price";
 import type { HashpriceData } from "@/lib/data/hashprice";
 import type {
@@ -514,4 +516,117 @@ export const DEMO_ADVANCED_METRICS: AdvancedMetricsData = {
   maxDrawdownDecimal: 0.068,
   calmar: 1.7,
   calmarFinite: true,
+};
+
+// ---------------------------------------------------------------------------
+// Portfolio — demo investor position
+// ---------------------------------------------------------------------------
+// Single active position representing a $500k institutional subscription.
+// APY range: 9.4–12.8% (non-negotiable #1 — never a single point).
+// Transactions span 6 months to exercise the recent-activity feed.
+// ---------------------------------------------------------------------------
+
+const DEMO_POSITION_PRINCIPAL = 500_000;
+const DEMO_POSITION_ACCRUED = 19_250;   // ~11.1% annualised × 5.5 months
+const DEMO_POSITION_DISTRIBUTED = 27_300; // 3 monthly distributions paid
+
+// ---------------------------------------------------------------------------
+// Vault product — single MVP vault fixture (CLAUDE.md non-negotiable #9).
+// APY as a range (#1). Disclaimers from methodology v1.0 (#10).
+// No forbidden words (#5): no "guarantee", "promise", "certain", "risk-free".
+// ---------------------------------------------------------------------------
+
+export const DEMO_VAULT_PRODUCT: VaultProduct = {
+  id: "hearst-yield-vault",
+  ticker: "HYV-A",
+  name: "Hearst Yield Vault",
+  description:
+    "Mining-backed structured yield with monthly USDC distributions. The vault allocates across four sleeves: Bitcoin mining operations, BTC tactical delta, USDC base lending, and stable reserve — dynamically rebalanced by rule-based triggers.",
+  strategy: "mining_yield",
+  status: "live",
+  apyLow: 9.4,
+  apyHigh: 12.8,
+  minTicketUsdc: 250_000,
+  softLockupDays: 60,
+  capacityUsdc: 100_000_000,
+  currentAumUsdc: 42_500_000,
+  fees: { mgmtBps: 200, perfBps: 1000, hurdleBps: 0 },
+  riskLevel: "low-moderate",
+  spvJurisdiction: "cayman",
+  shareClass: "A",
+  regExemption: "regS",
+  disclaimers:
+    "Projections are conditional on stated assumptions. Past performance does not guarantee future results. Hearst Yield Vault is offered exclusively to professional / qualified investors via a Cayman Exempted Limited Partnership. Subject to minimum subscription, soft lock-up, and jurisdictional restrictions. Not an offer or solicitation where prohibited.",
+  targetMiningBps: 6000,
+  targetBtcTacticalBps: 2500,
+  targetUsdcBaseBps: 1000,
+  targetStableReserveBps: 500,
+};
+
+export const DEMO_VAULT_LIST: VaultProduct[] = [DEMO_VAULT_PRODUCT];
+
+// ---------------------------------------------------------------------------
+// Portfolio — demo investor position
+// ---------------------------------------------------------------------------
+export const DEMO_PORTFOLIO_DATA: PortfolioData = {
+  positions: [
+    {
+      id: "demo-pos-001",
+      vaultName: "Hearst Yield Vault",
+      principalUsdc: DEMO_POSITION_PRINCIPAL,
+      accruedYieldUsdc: DEMO_POSITION_ACCRUED,
+      distributedUsdc: DEMO_POSITION_DISTRIBUTED,
+      valueUsdc: DEMO_POSITION_PRINCIPAL + DEMO_POSITION_ACCRUED,
+      status: "active",
+      apyLow: 9.4,
+      apyHigh: 12.8,
+      subscribedAt: daysBefore(168), // subscribed ~6 months ago
+    },
+  ],
+  totalValueUsdc: DEMO_POSITION_PRINCIPAL + DEMO_POSITION_ACCRUED,
+  totalYieldYtdUsdc: DEMO_POSITION_ACCRUED + DEMO_POSITION_DISTRIBUTED,
+  nextDistributionAt: new Date(Date.UTC(2026, 5, 1, 0, 0, 0)), // 2026-06-01
+  recentTransactions: [
+    {
+      id: "demo-tx-05",
+      type: "distribution",
+      amountUsdc: 9_200,
+      occurredAt: daysBefore(19),
+      txHash: null,
+      positionVaultName: "Hearst Yield Vault",
+    },
+    {
+      id: "demo-tx-04",
+      type: "distribution",
+      amountUsdc: 9_100,
+      occurredAt: daysBefore(49),
+      txHash: null,
+      positionVaultName: "Hearst Yield Vault",
+    },
+    {
+      id: "demo-tx-03",
+      type: "distribution",
+      amountUsdc: 9_000,
+      occurredAt: daysBefore(80),
+      txHash: null,
+      positionVaultName: "Hearst Yield Vault",
+    },
+    {
+      id: "demo-tx-02",
+      type: "claim",
+      amountUsdc: 4_800,
+      occurredAt: daysBefore(112),
+      txHash: null,
+      positionVaultName: "Hearst Yield Vault",
+    },
+    {
+      id: "demo-tx-01",
+      type: "deposit",
+      amountUsdc: DEMO_POSITION_PRINCIPAL,
+      occurredAt: daysBefore(168),
+      txHash: "0xdemo01ab23cd45ef6789ab12cd34ef5678901234567890abcdef1234567890ab",
+      positionVaultName: "Hearst Yield Vault",
+    },
+  ],
+  source: "live",
 };
