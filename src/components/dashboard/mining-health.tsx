@@ -151,7 +151,7 @@ function HashpriceRow({ hashprice }: HashpriceRowProps) {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-lg font-semibold leading-tight text-[--ct-text-primary] tabular-nums">
-            ${hashprice.usd_per_th_day.toFixed(3)} <span className="text-sm text-white/40 font-normal">/TH/day</span>
+            ${hashprice.usd_per_th_day.toFixed(3)} <span className="text-sm text-[--ct-text-muted] font-normal">/TH/day</span>
           </span>
           <ProvenanceBadge kind={provenance} />
         </div>

@@ -310,10 +310,7 @@ export default async function DashboardPage() {
           <article className="dash-cell col-4" aria-label="Assets under management">
             <div className="dash-label">
               <span>Assets under management</span>
-              <span
-                className="dash-label-meta"
-                style={{ display: "flex", alignItems: "center", gap: 8 }}
-              >
+              <span className="dash-label-meta">
                 <ProvenanceBadge kind={aumProvenance} />
                 <span className={`dash-trend ${aumTrendSign}`}>{aumTrendText}</span>
               </span>
@@ -387,10 +384,7 @@ export default async function DashboardPage() {
           <article className="dash-cell col-4" aria-label="BTC tactical sleeve">
             <div className="dash-label">
               <span>BTC tactical sleeve</span>
-              <span
-                className="dash-label-meta"
-                style={{ display: "flex", alignItems: "center", gap: 8 }}
-              >
+              <span className="dash-label-meta">
                 <ProvenanceBadge kind={btcSleeveProvenance} />
                 <span className={`dash-trend ${pnlTrend}`}>
                   {pnlPct >= 0 ? "+" : ""}
@@ -496,10 +490,7 @@ export default async function DashboardPage() {
           <article className="dash-cell col-4" aria-label="Risk framework">
             <div className="dash-label">
               <span>Risk framework</span>
-              <span
-                className="dash-label-meta"
-                style={{ display: "flex", alignItems: "center", gap: 8 }}
-              >
+              <span className="dash-label-meta">
                 <ProvenanceBadge kind={riskProvenance} />
                 <span className={`dash-trend ${riskFramework.composite <= 50 ? "up" : riskFramework.composite <= 66 ? "flat" : "down"}`}>
                   {riskFramework.bandLabel}
@@ -646,10 +637,7 @@ export default async function DashboardPage() {
           <article className="dash-cell col-8" aria-label="Vault activity last 120 days">
             <div className="dash-label">
               <span>Vault activity · last 120 days</span>
-              <span
-                className="dash-label-meta"
-                style={{ display: "flex", alignItems: "center", gap: 8 }}
-              >
+              <span className="dash-label-meta">
                 <ProvenanceBadge kind={activityProvenance} />
                 <span className="dash-trend flat">{data.recentEvents.length} events</span>
               </span>
@@ -673,10 +661,7 @@ export default async function DashboardPage() {
           <article className="dash-cell col-4" aria-label="Distributions">
             <div className="dash-label">
               <span>Distributions</span>
-              <span
-                className="dash-label-meta"
-                style={{ display: "flex", alignItems: "center", gap: 8 }}
-              >
+              <span className="dash-label-meta">
                 <ProvenanceBadge kind={distributionProvenance} />
                 <span className={`dash-trend ${latestDist.status === "paid" ? "up" : "flat"}`}>
                   {latestDist.status === "paid" ? "Paid" : "Scheduled"}

@@ -139,12 +139,12 @@ export function ErrorShellLayout({
         "mx-auto my-10 max-w-2xl p-8",
         "flex flex-col gap-5",
       )}
-      role="alert"
-      aria-live="assertive"
+      role={tone === "danger" ? "alert" : "status"}
+      aria-live={tone === "danger" ? "assertive" : "polite"}
     >
       <header className="flex flex-col gap-2">
         <span className={cn("eyebrow", eyebrowColor)}>{scope}</span>
-        <h1 className="h2 m-0 text-2xl font-semibold leading-tight">{title}</h1>
+        <h1 className="h2 m-0">{title}</h1>
       </header>
 
       {message ? (

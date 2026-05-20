@@ -98,7 +98,8 @@
 .dash-label-meta {
   display: inline-flex;
   align-items: center;
-  gap: var(--ct-space-1_5);
+  /* Aligné sur l'inline gap:8 d'origine (avant Fix-4 page.tsx) ; 8px est le canon DS pour ce cluster KPI. */
+  gap: var(--ct-space-2);
   flex-shrink: 0;
 }
 
@@ -285,7 +286,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 12px /* LÉGITIME — entre --ct-text-xs (11px) et --ct-text-sm (14px), pas de token DS au pas exact. Whitelisté par Stream A iter 1. */;
 }
 
 .dash-legend-left {
@@ -346,7 +347,7 @@
 }
 
 .gauge-val {
-  font-size: 30px;
+  font-size: 30px /* LÉGITIME — entre --ct-text-2xl (28px) et --ct-text-3xl (32px), pas de token DS au pas exact. Whitelisté par Stream A iter 1. */;
   font-weight: var(--ct-font-extrabold);
   color: var(--ct-text-strong);
   letter-spacing: -0.02em;
@@ -495,7 +496,7 @@
 }
 
 .dash-section-title {
-  font-size: 10px;
+  font-size: var(--ct-text-micro);
   font-weight: var(--ct-font-bold);
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -520,7 +521,7 @@
 }
 
 .dash-header .eyebrow {
-  font-size: 10px;
+  font-size: var(--ct-text-micro);
   font-weight: var(--ct-font-bold);
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -528,7 +529,8 @@
 }
 
 .dash-header .sub {
-  font-size: 13px;
+  /* Aligned to --ct-text-sm (14px) — +1px vs heritage 13px, accepted for design system consistency */
+  font-size: var(--ct-text-sm);
   color: var(--ct-text-muted);
   font-family: var(--font-mono);
 }
@@ -558,7 +560,7 @@
 }
 
 .alloc-stat-pct {
-  font-size: 20px;
+  font-size: var(--ct-text-xl);
   font-weight: var(--ct-font-light);
   color: var(--ct-text-strong);
   font-variant-numeric: tabular-nums;
@@ -566,7 +568,7 @@
 }
 
 .alloc-stat-bucket {
-  font-size: 10px;
+  font-size: var(--ct-text-micro);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--ct-text-muted);
