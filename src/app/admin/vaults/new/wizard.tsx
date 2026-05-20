@@ -334,7 +334,7 @@ export function VaultWizard() {
               </label>
             </div>
 
-            <div className="p-4 rounded-lg bg-[--ct-surface-1] border border-[--ct-border-soft]">
+            <div className="p-4 rounded-lg bg-bg-elevated border border-border-subtle">
               <span className="stat-label block mb-1">APY Range Preview</span>
               <ApyRange
                 low={form.targetApyLowBps / 100}
@@ -404,8 +404,7 @@ export function VaultWizard() {
                 placeholder="Required legal disclaimers. Must include 'not guaranteed' and assumptions..."
               />
               <span className="body-xs text-[--ct-text-faint]">
-                {form.disclaimers.length} chars — forbidden: guarantee, promise, certain, will
-                deliver, risk-free
+                {form.disclaimers.length} chars — restricted terms will be flagged on submit
               </span>
             </label>
           </div>
@@ -450,7 +449,7 @@ export function VaultWizard() {
                   step={50}
                   value={form[key]}
                   onChange={(e) => setAllocationBps(key, e.target.value)}
-                  className="w-full accent-[--ct-accent]"
+                  className="w-full accent-accent"
                   aria-label={`${label} allocation`}
                 />
                 <Progress value={form[key]} max={10000} label={`${label} allocation`} />
@@ -464,7 +463,7 @@ export function VaultWizard() {
           <div className="space-y-6">
             <CardTitle>Review &amp; Submit</CardTitle>
 
-            <div className="space-y-3 divide-y divide-[--ct-border-soft]">
+            <div className="space-y-3 divide-y divide-border-subtle">
               <div className="grid grid-cols-2 gap-2 pb-3">
                 <span className="stat-label">Ticker</span>
                 <span className="mono tabular text-sm text-[--ct-text-strong]">{form.ticker}</span>
@@ -567,7 +566,7 @@ export function VaultWizard() {
               )}
             </div>
 
-            <p className="body-xs text-[--ct-text-faint] border-t border-[--ct-border-soft] pt-3">
+            <p className="body-xs text-[--ct-text-faint] border-t border-border-subtle pt-3">
               Assumptions: mining yields, BTC price, network difficulty, energy costs are
               projected based on historical ranges. Target APY is not guaranteed and may vary.
               Past performance is not indicative of future results.
@@ -577,7 +576,7 @@ export function VaultWizard() {
 
         {/* Navigation */}
         {error && (
-          <div className="mt-4 p-3 rounded-lg bg-[--ct-status-danger-soft] border border-[--ct-status-danger-border]">
+          <div className="mt-4 p-3 rounded-lg bg-danger-bg border border-danger-border">
             <p className="body-sm text-[--ct-status-danger]">{error}</p>
           </div>
         )}

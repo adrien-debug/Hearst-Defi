@@ -34,8 +34,8 @@ export function HeaderConnect() {
           className="ct-status-dot-success"
           style={{
             display: "inline-block",
-            width: "6px",
-            height: "6px",
+            width: "var(--ct-space-1_5)",
+            height: "var(--ct-space-1_5)",
             borderRadius: "var(--ct-radius-full)",
             flexShrink: 0,
           }}

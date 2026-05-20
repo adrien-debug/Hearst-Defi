@@ -300,14 +300,14 @@ export default async function VaultDetailPage({ params }: PageProps) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[--ct-border-soft]">
+                <tr className="border-b border-border-subtle">
                   <th className="stat-label text-left pb-2">Signer</th>
                   <th className="stat-label text-left pb-2">Decision</th>
                   <th className="stat-label text-left pb-2">Reason</th>
                   <th className="stat-label text-left pb-2">Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[--ct-border-soft]">
+              <tbody className="divide-y divide-border-subtle">
                 {vault.approvals.map((approval) => (
                   <tr key={approval.id}>
                     <td className="py-2 pr-4 mono tabular text-xs text-[--ct-text-muted] truncate max-w-xs">

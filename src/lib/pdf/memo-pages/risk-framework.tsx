@@ -142,8 +142,8 @@ export function RiskFrameworkPage({
 
       <Text style={[styles.bodySmall, { marginTop: 14 }]}>
         The composite risk score weights each dimension under methodology
-        v1.0. It is a backward-looking and forward-looking blend, not a
-        guarantee of outcomes. A breach in any dimension triggers an explicit
+        v1.0. It is a backward-looking and forward-looking blend; outcomes are
+        not guaranteed. A breach in any dimension triggers an explicit
         rebalancing rule (R1-R8); none were triggered outside the published
         ruleset during the period.
       </Text>

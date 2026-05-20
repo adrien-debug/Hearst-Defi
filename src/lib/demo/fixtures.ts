@@ -613,7 +613,7 @@ export const DEMO_VAULT_PRODUCT: VaultProduct = {
   shareClass: "A",
   regExemption: "regS",
   disclaimers:
-    "Projections are conditional on stated assumptions. Past performance does not guarantee future results. Hearst Yield Vault is offered exclusively to professional / qualified investors via a Cayman Exempted Limited Partnership. Subject to minimum subscription, soft lock-up, and jurisdictional restrictions. Not an offer or solicitation where prohibited.",
+    "Projections are conditional on stated assumptions. Past performance does not indicate future results. Hearst Yield Vault is offered exclusively to professional / qualified investors via a Cayman Exempted Limited Partnership. Subject to minimum subscription, soft lock-up, and jurisdictional restrictions. Not an offer or solicitation where prohibited.",
   targetMiningBps: 6000,
   targetBtcTacticalBps: 2500,
   targetUsdcBaseBps: 1000,
