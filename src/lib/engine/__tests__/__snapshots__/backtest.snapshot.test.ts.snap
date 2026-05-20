@@ -9,7 +9,7 @@ exports[`runBacktest snapshots > matches snapshot for key=bear_2022 1`] = `
     "methodology_version=v1.0",
   ],
   "endDate": "2023-06",
-  "endingValue": 1075065.71,
+  "endingValue": 1070658.17,
   "hearstRulesMode": true,
   "initialCapital": 1000000,
   "key": "bear_2022",
@@ -75,15 +75,10 @@ exports[`runBacktest snapshots > matches snapshot for key=bear_2022 1`] = `
       "month": "2023-05",
       "valueUsdc": 1070658.17,
     },
-    {
-      "distributionUsdc": 4407.54,
-      "month": "2023-06",
-      "valueUsdc": 1075065.71,
-    },
   ],
   "numRebalances": 1,
   "startDate": "2022-06",
-  "totalReturnPct": 7.51,
+  "totalReturnPct": 7.07,
   "worstMonthPct": 0,
 }
 `;
@@ -98,7 +93,7 @@ exports[`runBacktest snapshots > matches snapshot for key=etf_halving_2024 1`] =
     "methodology_version=v1.0",
   ],
   "endDate": "2025-04",
-  "endingValue": 1207422.82,
+  "endingValue": 1193370.88,
   "hearstRulesMode": true,
   "initialCapital": 1000000,
   "key": "etf_halving_2024",
@@ -194,15 +189,10 @@ exports[`runBacktest snapshots > matches snapshot for key=etf_halving_2024 1`] =
       "month": "2025-03",
       "valueUsdc": 1193370.88,
     },
-    {
-      "distributionUsdc": 14051.94,
-      "month": "2025-04",
-      "valueUsdc": 1207422.82,
-    },
   ],
   "numRebalances": 0,
   "startDate": "2023-10",
-  "totalReturnPct": 20.74,
+  "totalReturnPct": 19.34,
   "worstMonthPct": 0,
 }
 `;
@@ -216,7 +206,7 @@ exports[`runBacktest snapshots > matches snapshot for key=mining_crunch_2024 1`]
     "methodology_version=v1.0",
   ],
   "endDate": "2024-12",
-  "endingValue": 1059567.42,
+  "endingValue": 1054103.65,
   "hearstRulesMode": true,
   "initialCapital": 1000000,
   "key": "mining_crunch_2024",
@@ -262,15 +252,10 @@ exports[`runBacktest snapshots > matches snapshot for key=mining_crunch_2024 1`]
       "month": "2024-11",
       "valueUsdc": 1054103.65,
     },
-    {
-      "distributionUsdc": 5463.77,
-      "month": "2024-12",
-      "valueUsdc": 1059567.42,
-    },
   ],
-  "numRebalances": 1,
+  "numRebalances": 0,
   "startDate": "2024-04",
-  "totalReturnPct": 5.96,
+  "totalReturnPct": 5.41,
   "worstMonthPct": 0,
 }
 `;

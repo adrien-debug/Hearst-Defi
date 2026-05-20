@@ -109,7 +109,25 @@ interface RebalancingActionsProps {
 export function RebalancingActions({ output }: RebalancingActionsProps) {
   const actions = deriveActions(output);
 
-  if (actions.length === 0) return null;
+  if (actions.length === 0) {
+    return (
+      <Card>
+        <CardHeader className="mb-3">
+          <CardTitle>Rebalancing Actions</CardTitle>
+          <span className="eyebrow">Max 4 · Rule-based</span>
+        </CardHeader>
+        <div className="flex items-center gap-3 rounded-[--radius-sm] border border-[--ct-border-soft] bg-[--ct-surface-1] px-4 py-3">
+          <span
+            className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[--ct-status-success]"
+            aria-hidden
+          />
+          <p className="text-xs text-[--ct-text-muted]">
+            No rebalancing actions triggered — vault allocation is within target bands.
+          </p>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -123,18 +141,18 @@ export function RebalancingActions({ output }: RebalancingActionsProps) {
           <li
             key={action.ruleId}
             className={cn(
-              "flex gap-4 rounded-[--radius-sm] border border-[--color-border-subtle]",
-              "bg-[--color-bg-elevated] px-4 py-3",
+              "flex gap-4 rounded-[--radius-sm] border border-[--ct-border-soft]",
+              "bg-[--ct-surface-1] px-4 py-3",
             )}
           >
             {/* Step number bubble */}
             <span
               className={cn(
                 "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center",
-                "rounded-full text-[--text-micro] font-bold tabular-nums",
+                "rounded-full text-micro font-bold tabular-nums",
                 action.armed
-                  ? "bg-[--color-brand] text-[--color-brand-fg]"
-                  : "bg-[--color-bg-tertiary] text-[--color-text-dim]",
+                  ? "bg-[--ct-text-strong] text-[--ct-bg-deep]"
+                  : "bg-[--ct-surface-3] text-[--ct-text-muted]",
               )}
               aria-hidden
             >
@@ -143,14 +161,14 @@ export function RebalancingActions({ output }: RebalancingActionsProps) {
 
             <div className="min-w-0 flex-1 space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-semibold text-[--color-text]">
+                <span className="text-sm font-semibold text-[--ct-text-primary]">
                   {action.label}
                 </span>
-                <Badge variant={action.variant} className="text-[--text-micro]">
+                <Badge variant={action.variant} className="text-micro">
                   {action.ruleId}
                 </Badge>
               </div>
-              <p className="text-xs text-[--color-text-muted]">
+              <p className="text-xs text-[--ct-text-body]">
                 {action.detail}
               </p>
             </div>

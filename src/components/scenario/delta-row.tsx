@@ -56,9 +56,9 @@ function toneClass(metric: DeltaMetric): string {
     ? metric.delta < -THRESHOLD
     : metric.delta > THRESHOLD;
 
-  if (isBetter) return "text-[--color-success]";
-  if (isWorse) return "text-[--color-danger]";
-  return "text-[--color-text-muted]";
+  if (isBetter) return "text-[--ct-status-success]";
+  if (isWorse) return "text-[--ct-status-danger]";
+  return "text-[--ct-text-body]";
 }
 
 function formatDelta(metric: DeltaMetric): string {
@@ -81,8 +81,8 @@ export function DeltaRow({ a, b }: DeltaRowProps) {
   return (
     <div
       className={cn(
-        "rounded-[--radius-card] border border-[--color-border]",
-        "bg-[--color-bg-card] px-6 py-4",
+        "rounded-[--radius-card] border border-[--ct-border]",
+        "bg-[--ct-surface-2] px-6 py-4",
       )}
       aria-label="Scenario B vs A delta metrics"
     >
@@ -94,25 +94,25 @@ export function DeltaRow({ a, b }: DeltaRowProps) {
       <div className="grid grid-cols-3 gap-4">
         {metrics.map((m) => (
           <div key={m.label} className="flex flex-col gap-1">
-            <span className="stat-label text-[--text-micro]">{m.label}</span>
+            <span className="stat-label text-micro">{m.label}</span>
             <span
               className={cn(
-                "font-mono text-2xl font-black tabular-nums",
+                "font-mono text-2xl font-extrabold tabular-nums",
                 toneClass(m),
               )}
             >
               {formatDelta(m)}
             </span>
-            <span className="text-[--text-micro] text-[--color-text-dim]">
+            <span className="text-micro text-[--ct-text-muted]">
               {m.unit} · midpoint
             </span>
           </div>
         ))}
       </div>
 
-      <p className="mt-3 text-[--text-micro] text-[--color-text-dim]">
+      <p className="mt-3 text-micro text-[--ct-text-muted]">
         Green = Scenario B is better. Red = Scenario B is worse. All deltas are midpoint estimates.
-        <span className="ml-1 font-semibold text-[--color-text-muted]">
+        <span className="ml-1 font-semibold text-[--ct-text-body]">
           Not guaranteed.
         </span>
       </p>

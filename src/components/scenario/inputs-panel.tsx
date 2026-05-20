@@ -83,7 +83,7 @@ export function InputsPanel({ inputs, onChange, disabled }: InputsPanelProps) {
   }
 
   return (
-    <div className="divide-y divide-[--color-border-subtle]">
+    <div className="divide-y divide-[--ct-border-soft]">
       {FIELDS.map((field) => {
         const value = inputs[field.key];
         const pct = ((value - field.min) / (field.max - field.min)) * 100;
@@ -108,14 +108,14 @@ export function InputsPanel({ inputs, onChange, disabled }: InputsPanelProps) {
               <div className="flex items-baseline gap-1.5">
                 <span
                   className={cn(
-                    "font-mono text-xl font-bold tabular-nums text-[--color-text]",
+                    "font-mono text-xl font-bold tabular-nums text-[--ct-text-primary]",
                     disabled && "opacity-50",
                   )}
                 >
                   {field.format(value)}
                 </span>
                 {!isVolIndex && (
-                  <span className="text-xs text-[--color-text-dim]">
+                  <span className="text-xs text-[--ct-text-muted]">
                     {field.unit}
                   </span>
                 )}
@@ -131,6 +131,12 @@ export function InputsPanel({ inputs, onChange, disabled }: InputsPanelProps) {
               step={field.step}
               value={value}
               disabled={disabled}
+              aria-label={
+                isVolIndex
+                  ? `${field.label}: ${field.format(value)}`
+                  : `${field.label}: ${field.format(value)} ${field.unit}`
+              }
+              aria-valuetext={field.format(value)}
               onChange={(e) => handleChange(field.key, e.target.value)}
               className="slider-track w-full cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
               style={{ "--slider-pct": `${pct}%` } as React.CSSProperties}
@@ -138,14 +144,14 @@ export function InputsPanel({ inputs, onChange, disabled }: InputsPanelProps) {
 
             {/* Min / max labels */}
             <div className="mt-1.5 flex justify-between">
-              <span className="text-[--text-micro] text-[--color-text-dim]">
+              <span className="text-micro text-[--ct-text-muted]">
                 {field.key === "btc_price_change_pct"
                   ? "−60%"
                   : field.key === "vol_index"
                     ? "Low"
                     : `${field.min} ${field.unit}`}
               </span>
-              <span className="text-[--text-micro] text-[--color-text-dim]">
+              <span className="text-micro text-[--ct-text-muted]">
                 {field.key === "btc_price_change_pct"
                   ? "+120%"
                   : field.key === "vol_index"

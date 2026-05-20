@@ -1,7 +1,41 @@
 "use client";
 
-import { PrivyProvider as Privy } from "@privy-io/react-auth";
+import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
+
+import { CT_PRODUCT_CONNECT_HEX } from "@/lib/cockpit-tokens";
+
+// Privy (via styled-components) evaluates React hooks at module level,
+// which crashes Next.js 16 SSR prerender of special pages (/_not-found, /_global-error).
+// Dynamic import with ssr:false ensures the Privy module only loads in the browser.
+const PrivyNoSSR = dynamic(
+  () =>
+    import("@privy-io/react-auth").then((mod) => ({
+      default: mod.PrivyProvider,
+    })),
+  { ssr: false }
+);
+
+/**
+ * Brand accent for the Privy login modal.
+ *
+ * Privy's `accentColor` prop only accepts a literal hex template-string, so
+ * we resolve through the shared `cockpit-tokens` mirror (which tracks the
+ * `--ct-product-connect` CSS token) rather than hard-coding a value here.
+ */
+const BRAND_ACCENT = CT_PRODUCT_CONNECT_HEX as `#${string}`;
+
+const PRIVY_CONFIG = {
+  appearance: {
+    theme: "dark" as const,
+    accentColor: BRAND_ACCENT,
+    logo: "/logos/hearst-connect.svg",
+  },
+  loginMethods: ["email", "wallet"] as ["email", "wallet"],
+  embeddedWallets: {
+    ethereum: { createOnLogin: "users-without-wallets" as const },
+  },
+};
 
 /**
  * Wraps the app in Privy's React context.
@@ -21,21 +55,8 @@ export function PrivyProvider({
   if (!appId) return <>{children}</>;
 
   return (
-    <Privy
-      appId={appId}
-      config={{
-        appearance: {
-          theme: "dark",
-          accentColor: "#a7fb90",
-          logo: "/logos/hearst-connect.svg",
-        },
-        loginMethods: ["email", "wallet"],
-        embeddedWallets: {
-          ethereum: { createOnLogin: "users-without-wallets" },
-        },
-      }}
-    >
+    <PrivyNoSSR appId={appId} config={PRIVY_CONFIG}>
       {children}
-    </Privy>
+    </PrivyNoSSR>
   );
 }

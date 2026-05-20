@@ -14,6 +14,7 @@ import { OutputPanel } from "@/components/scenario/output-panel";
 import { PresetBar } from "@/components/scenario/preset-bar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
+import type { ScenarioNarrativeOutput } from "@/lib/agents/schemas";
 import type {
   BacktestKey,
   BacktestOutput,
@@ -73,6 +74,7 @@ interface LabShellState {
   selectedPreset: Preset | null;
   inputs: ScenarioInputs;
   output: ScenarioOutput | null;
+  narrative: ScenarioNarrativeOutput | null;
 }
 
 interface BacktestState {
@@ -88,10 +90,21 @@ interface TabBarProps {
 }
 
 function TabBar({ active, onChange }: TabBarProps) {
+  function handleKeyDown(e: React.KeyboardEvent<HTMLElement>) {
+    const tabs: Tab[] = ["scenario", "backtest"];
+    const idx = tabs.indexOf(active);
+    if (e.key === "ArrowRight") {
+      onChange(tabs[(idx + 1) % tabs.length]!);
+    } else if (e.key === "ArrowLeft") {
+      onChange(tabs[(idx - 1 + tabs.length) % tabs.length]!);
+    }
+  }
+
   return (
     <nav
       aria-label="Scenario Lab tabs"
-      className="flex gap-1 rounded-[--radius-button] border border-[--color-border] bg-[--color-bg-elevated] p-1 w-fit"
+      className="flex gap-1 rounded-[--radius-button] border border-[--ct-border] bg-[--ct-surface-1] p-1 w-fit"
+      onKeyDown={handleKeyDown}
     >
       {(["scenario", "backtest"] as Tab[]).map((tab) => {
         const isActive = active === tab;
@@ -100,15 +113,18 @@ function TabBar({ active, onChange }: TabBarProps) {
             key={tab}
             type="button"
             role="tab"
+            id={`tab-${tab}`}
+            aria-controls={`tabpanel-${tab}`}
             aria-selected={isActive}
+            tabIndex={isActive ? 0 : -1}
             onClick={() => onChange(tab)}
             className={cn(
               "rounded-[--radius-sm] px-5 py-2 text-sm font-semibold capitalize",
               "transition-[background-color,color] duration-150",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg-elevated]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-surface-1]",
               isActive
-                ? "bg-[--color-brand] text-[--color-brand-fg]"
-                : "text-[--color-text-muted] hover:text-[--color-text]",
+                ? "bg-[--ct-text-strong] text-[--ct-bg-deep]"
+                : "text-[--ct-text-body] hover:text-[--ct-text-primary]",
             )}
           >
             {tab === "scenario" ? "Scenario" : "Backtest"}
@@ -131,7 +147,7 @@ function ScenarioModeToggle({ active, onChange }: ScenarioModeToggleProps) {
     <div
       role="tablist"
       aria-label="Scenario mode"
-      className="inline-flex gap-1 rounded-[--radius-button] border border-[--color-border] bg-[--color-bg-elevated] p-1"
+      className="inline-flex gap-1 rounded-[--radius-button] border border-[--ct-border] bg-[--ct-surface-1] p-1"
     >
       {(["single", "compare"] as ScenarioMode[]).map((mode) => {
         const isActive = active === mode;
@@ -140,15 +156,18 @@ function ScenarioModeToggle({ active, onChange }: ScenarioModeToggleProps) {
             key={mode}
             type="button"
             role="tab"
+            id={`tab-mode-${mode}`}
+            aria-controls={`tabpanel-mode-${mode}`}
             aria-selected={isActive}
+            tabIndex={isActive ? 0 : -1}
             onClick={() => onChange(mode)}
             className={cn(
-              "rounded-[--radius-sm] px-4 py-1.5 text-xs font-semibold uppercase tracking-wider",
+              "rounded-[--radius-sm] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide",
               "transition-[background-color,color] duration-150",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg-elevated]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-surface-1]",
               isActive
-                ? "bg-[--color-brand] text-[--color-brand-fg]"
-                : "text-[--color-text-muted] hover:text-[--color-text]",
+                ? "bg-[--ct-text-strong] text-[--ct-bg-deep]"
+                : "text-[--ct-text-body] hover:text-[--ct-text-primary]",
             )}
           >
             {mode}
@@ -214,16 +233,16 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
                 "flex flex-col items-start gap-0.5 rounded-[--radius-button] border px-4 py-3 text-left",
                 "transition-[background-color,color,border-color,box-shadow] duration-150",
                 "disabled:cursor-not-allowed disabled:opacity-40",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]",
                 isActive
                   ? [
-                      "border-[--color-brand] bg-[--color-brand] text-[--color-brand-fg]",
-                      "shadow-[0_0_0_3px_var(--color-accent-glow)]",
+                      "border-[--ct-text-strong] bg-[--ct-text-strong] text-[--ct-bg-deep]",
+                      "shadow-[var(--ct-shadow-focus-ring)]",
                     ]
                   : [
-                      "border-[--color-border-strong] bg-[--color-bg-elevated]",
-                      "text-[--color-text-muted]",
-                      "hover:border-[--color-border-strong] hover:bg-[--color-bg-tertiary] hover:text-[--color-text]",
+                      "border-[--ct-border-strong] bg-[--ct-surface-1]",
+                      "text-[--ct-text-body]",
+                      "hover:border-[--ct-border-strong] hover:bg-[--ct-surface-3] hover:text-[--ct-text-primary]",
                     ],
               )}
             >
@@ -234,8 +253,8 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
                 className={cn(
                   "text-xs leading-tight",
                   isActive
-                    ? "text-[--color-brand-fg] opacity-70"
-                    : "text-[--color-text-dim]",
+                    ? "text-[--ct-bg-deep] opacity-70"
+                    : "text-[--ct-text-muted]",
                 )}
               >
                 {p.subtitle}
@@ -251,15 +270,15 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
           {BACKTEST_PERIODS.map((p) => (
             <div
               key={p.key}
-              className="rounded-[--radius-card] border border-[--color-border-subtle] bg-[--color-bg-card] px-5 py-4"
+              className="rounded-[--radius-card] border border-[--ct-border-soft] bg-[--ct-surface-2] px-5 py-4"
             >
-              <p className="text-sm font-semibold text-[--color-text-muted]">
+              <p className="text-sm font-semibold text-[--ct-text-body]">
                 {p.label}
               </p>
-              <p className="mt-1 text-xs text-[--color-text-dim]">
+              <p className="mt-1 text-xs text-[--ct-text-muted]">
                 {p.subtitle}
               </p>
-              <p className="mt-2 text-sm text-[--color-text-muted]">
+              <p className="mt-2 text-sm text-[--ct-text-body]">
                 {p.description}
               </p>
             </div>
@@ -269,7 +288,7 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
 
       {/* Error banner */}
       {error && (
-        <p className="rounded-[--radius-button] border border-[--color-danger] bg-[--color-danger-bg] px-4 py-2.5 text-sm text-[--color-danger]">
+        <p className="rounded-[--radius-button] border border-[--ct-status-danger] bg-[--ct-status-danger-soft] px-4 py-2.5 text-sm text-[--ct-status-danger]">
           {error}
         </p>
       )}
@@ -279,11 +298,11 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
         <div
           className={cn(
             "flex min-h-64 flex-col items-center justify-center gap-3",
-            "rounded-[--radius-card] border border-dashed border-[--color-border-subtle]",
+            "rounded-[--radius-card] border border-dashed border-[--ct-border-soft]",
           )}
         >
           <Spinner />
-          <p className="stat-label text-[--color-text-muted]">
+          <p className="stat-label text-[--ct-text-body]">
             Computing backtest…
           </p>
         </div>
@@ -308,6 +327,7 @@ export function LabShell() {
     selectedPreset: null,
     inputs: BASE_INPUTS,
     output: null,
+    narrative: null,
   });
   const [scenarioPending, startScenarioTransition] = useTransition();
   const [scenarioError, setScenarioError] = useState<string | null>(null);
@@ -322,25 +342,38 @@ export function LabShell() {
 
   // ── Scenario handlers ───────────────────────────────────────────────────────
 
-  const submit = useCallback((inputs: ScenarioInputs) => {
-    setScenarioError(null);
-    startScenarioTransition(async () => {
-      try {
-        const output = await runScenarioAction(inputs);
-        setScenarioState((prev) => ({ ...prev, inputs, output }));
-      } catch (e) {
-        setScenarioError(e instanceof Error ? e.message : "Unknown error");
-      }
-    });
-  }, []);
+  const submit = useCallback(
+    (inputs: ScenarioInputs, presetId: string = "custom") => {
+      setScenarioError(null);
+      startScenarioTransition(async () => {
+        try {
+          const result = await runScenarioAction(inputs, presetId);
+          setScenarioState((prev) => ({
+            ...prev,
+            inputs,
+            output: result,
+            narrative: result.narrative,
+          }));
+        } catch (e) {
+          setScenarioError(e instanceof Error ? e.message : "Unknown error");
+        }
+      });
+    },
+    [],
+  );
 
   function handlePresetSelect(preset: Preset) {
     setScenarioError(null);
     startScenarioTransition(async () => {
       try {
         const inputs = await getPresetInputsAction(preset);
-        const output = await runScenarioAction(inputs);
-        setScenarioState({ selectedPreset: preset, inputs, output });
+        const result = await runScenarioAction(inputs, preset);
+        setScenarioState({
+          selectedPreset: preset,
+          inputs,
+          output: result,
+          narrative: result.narrative,
+        });
       } catch (e) {
         setScenarioError(e instanceof Error ? e.message : "Unknown error");
       }
@@ -374,7 +407,12 @@ export function LabShell() {
       <TabBar active={activeTab} onChange={setActiveTab} />
 
       {/* ── Scenario tab ──────────────────────────────────────────────── */}
-      {activeTab === "scenario" && (
+      <div
+        role="tabpanel"
+        id="tabpanel-scenario"
+        aria-labelledby="tab-scenario"
+        hidden={activeTab !== "scenario"}
+      >
         <div className="space-y-6">
           {/* Mode toggle: Single | Compare */}
           <div className="flex items-center justify-between gap-4">
@@ -389,30 +427,52 @@ export function LabShell() {
             />
           </div>
 
-          {scenarioMode === "compare" ? (
-            <CompareMode />
-          ) : (
-            <SingleMode
-              scenarioState={scenarioState}
-              scenarioPending={scenarioPending}
-              scenarioError={scenarioError}
-              onPresetSelect={handlePresetSelect}
-              onInputChange={handleInputChange}
-              onSubmit={() => submit(scenarioState.inputs)}
-            />
-          )}
+          {/* Single / Compare sub-panels */}
+          <div
+            role="tabpanel"
+            id="tabpanel-mode-single"
+            aria-labelledby="tab-mode-single"
+            hidden={scenarioMode !== "single"}
+            tabIndex={0}
+          >
+            {scenarioMode === "single" && (
+              <SingleMode
+                scenarioState={scenarioState}
+                scenarioPending={scenarioPending}
+                scenarioError={scenarioError}
+                onPresetSelect={handlePresetSelect}
+                onInputChange={handleInputChange}
+                onSubmit={() => submit(scenarioState.inputs)}
+              />
+            )}
+          </div>
+          <div
+            role="tabpanel"
+            id="tabpanel-mode-compare"
+            aria-labelledby="tab-mode-compare"
+            hidden={scenarioMode !== "compare"}
+            tabIndex={0}
+          >
+            <CompareMode active={scenarioMode === "compare"} />
+          </div>
         </div>
-      )}
+      </div>
 
       {/* ── Backtest tab ───────────────────────────────────────────────── */}
-      {activeTab === "backtest" && (
+      <div
+        role="tabpanel"
+        id="tabpanel-backtest"
+        aria-labelledby="tab-backtest"
+        hidden={activeTab !== "backtest"}
+        tabIndex={0}
+      >
         <BacktestTab
           state={backtestState}
           isPending={backtestPending}
           error={backtestError}
           onSelect={handleBacktestSelect}
         />
-      )}
+      </div>
     </div>
   );
 }
@@ -445,17 +505,17 @@ function SingleMode({
       />
 
       {scenarioError && (
-        <p className="rounded-[--radius-button] border border-[--color-danger] bg-[--color-danger-bg] px-4 py-2.5 text-sm text-[--color-danger]">
+        <p className="rounded-[--radius-button] border border-[--ct-status-danger] bg-[--ct-status-danger-soft] px-4 py-2.5 text-sm text-[--ct-status-danger]">
           {scenarioError}
         </p>
       )}
 
       <div className="grid gap-8 lg:grid-cols-[minmax(360px,420px)_1fr]">
         {/* Left: Inputs panel */}
-        <div className="flex flex-col gap-0 rounded-[--radius-card] border border-[--color-border] bg-[--color-bg-card]">
-          <div className="border-b border-[--color-border-subtle] px-6 py-4">
+        <div className="flex flex-col gap-0 rounded-[--radius-card] border border-[--ct-border] bg-[--ct-surface-2]">
+          <div className="border-b border-[--ct-border-soft] px-6 py-4">
             <h2 className="h4">Inputs</h2>
-            <p className="mt-0.5 text-xs text-[--color-text-dim]">
+            <p className="mt-0.5 text-xs text-[--ct-text-muted]">
               Adjust sliders or select a preset above
             </p>
           </div>
@@ -473,7 +533,7 @@ function SingleMode({
             />
           </div>
 
-          <div className="border-t border-[--color-border-subtle] px-6 py-5">
+          <div className="border-t border-[--ct-border-soft] px-6 py-5">
             <Button
               variant="primary"
               size="lg"
@@ -510,12 +570,13 @@ function SingleMode({
             <OutputPanel
               output={scenarioState.output}
               isPending={scenarioPending}
+              narrative={scenarioState.narrative}
             />
           ) : (
             <div
               className={cn(
                 "flex min-h-80 flex-col items-center justify-center gap-3",
-                "rounded-[--radius-card] border border-dashed border-[--color-border-subtle]",
+                "rounded-[--radius-card] border border-dashed border-[--ct-border-soft]",
                 "transition-opacity duration-150",
                 scenarioPending && "opacity-50",
               )}
@@ -523,7 +584,7 @@ function SingleMode({
               {scenarioPending ? (
                 <>
                   <svg
-                    className="h-5 w-5 animate-spin text-[--color-brand]"
+                    className="h-4 w-4 animate-spin text-[--ct-text-strong]"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -548,7 +609,7 @@ function SingleMode({
               ) : (
                 <>
                   <svg
-                    className="h-8 w-8 text-[--color-text-dim]"
+                    className="h-10 w-10 text-[--ct-text-muted]"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -562,11 +623,11 @@ function SingleMode({
                       d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
                     />
                   </svg>
-                  <p className="max-w-xs text-center text-sm text-[--color-text-dim]">
+                  <p className="max-w-xs text-center text-sm text-[--ct-text-muted]">
                     Select a preset above or adjust the sliders,{" "}
                     <br />
                     then press{" "}
-                    <span className="font-semibold text-[--color-text-muted]">
+                    <span className="font-semibold text-[--ct-text-body]">
                       Run scenario
                     </span>{" "}
                     to see projections.

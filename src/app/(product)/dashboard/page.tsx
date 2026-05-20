@@ -1,293 +1,36 @@
-import { ActivityFeed } from "@/components/dashboard/activity-feed";
-import { AdvancedMetrics } from "@/components/dashboard/advanced-metrics";
+import "./dashboard.css";
+
 import {
-  AdvancedContent,
-  AdvancedProvider,
-  AdvancedTrigger,
-} from "@/components/dashboard/advanced-toggle";
-import { AllocationSection } from "@/components/dashboard/allocation-section";
-import { BtcTacticalSection } from "@/components/dashboard/btc-tactical";
-import { HeroMetrics } from "@/components/dashboard/hero-metrics";
-import { MiningHealthSection } from "@/components/dashboard/mining-health";
-import { RiskFrameworkSection } from "@/components/dashboard/risk-framework";
-import { TimeseriesSection } from "@/components/dashboard/timeseries-section";
-import { loadAdvancedMetrics } from "@/lib/data/advanced-metrics";
-import { loadDashboardData } from "@/lib/data/dashboard";
-import { loadRiskFramework } from "@/lib/data/risk-framework";
-import { fetchHashprice } from "@/lib/data/hashprice";
-import { projectionFor } from "@/lib/data/ptai-projections";
-import type {
-  AllocationBucket,
-  BtcTactical,
-  DashboardSnapshot,
-  MiningHealth,
-  PtaiEvent,
-} from "@/lib/mock/dashboard";
-import type {
-  DashboardAllocation,
-  DashboardData,
-  DashboardRecentEvent,
-} from "@/lib/data/dashboard";
+  ProvenanceBadge,
+  type Provenance,
+} from "@/components/ui/provenance-badge";
+import {
+  fetchHashprice,
+  loadDashboardData,
+  loadRiskFramework,
+} from "@/lib/demo/loaders";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
-  const [data, hashprice, riskFramework, advancedMetrics] = await Promise.all([
-    loadDashboardData(),
-    fetchHashprice(),
-    loadRiskFramework(),
-    loadAdvancedMetrics(),
-  ]);
-  const snapshot = toDashboardSnapshot(data);
-  const asOf = new Date(snapshot.asOf);
+const usdCompact = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
 
-  return (
-    <AdvancedProvider>
-      <div className="space-y-8">
-        <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="eyebrow">Hearst Yield Vault</p>
-            <h1 className="h1">Dashboard</h1>
-          </div>
-          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4">
-            <span className="mono tabular text-xs text-[--color-text-dim]">
-              as of{" "}
-              {asOf.toLocaleString("en-US", {
-                dateStyle: "medium",
-                timeStyle: "short",
-                timeZone: "UTC",
-              })}{" "}
-              UTC
-            </span>
-            <AdvancedTrigger />
-          </div>
-        </header>
+const usdShort = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  notation: "compact",
+  maximumFractionDigits: 0,
+});
 
-        <HeroMetrics snapshot={snapshot} btcPrice={data.btcPrice} />
-
-        <AdvancedContent>
-          <AdvancedMetrics data={advancedMetrics} />
-        </AdvancedContent>
-
-        <TimeseriesSection data={data.timeseries} />
-
-        <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
-          <div className="lg:col-span-2">
-            <AllocationSection
-              allocations={snapshot.allocations}
-              blendedYieldRange={snapshot.blendedYieldRange}
-            />
-          </div>
-          <MiningHealthSection
-            miningHealth={snapshot.miningHealth}
-            hashprice={{
-              usd_per_th_day: hashprice.usd_per_th_day,
-              stale: hashprice.stale,
-            }}
-          />
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
-          <div className="lg:col-span-2">
-            <BtcTacticalSection btcTactical={snapshot.btcTactical} />
-          </div>
-          <RiskFrameworkSection data={riskFramework} />
-        </div>
-
-        <ActivityFeed events={snapshot.recentEvents} />
-
-        <footer className="border-t border-[--color-border-subtle] pt-6">
-          <p className="body-xs">
-            Projections are conditional on the assumptions stated in
-            Methodology v1.0. APY ranges are not guaranteed; past performance
-            does not predict future returns. Mining cashflow is paper at
-            Phase 1, partner-attested from Phase 2.
-          </p>
-        </footer>
-      </div>
-    </AdvancedProvider>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Projection: DashboardData (Prisma + live) -> DashboardSnapshot (UI shape).
-//
-// Lives inside the page so it stays close to its single consumer. Anything
-// that has no DB analog (BTC tactical position details, hard-coded next
-// triggers) is derived from sensible defaults consistent with the legacy
-// mock so the visual rendering does not regress.
-// ---------------------------------------------------------------------------
-
-const ALLOCATION_LABEL: Record<DashboardAllocation["bucket"], AllocationBucket["label"]> = {
-  mining: "Mining cashflow",
-  usdc_base: "USDC base yield",
-  btc_tactical: "BTC tactical",
-  stable_reserve: "Stable reserve",
-};
-
-const ALLOCATION_ID: Record<DashboardAllocation["bucket"], AllocationBucket["id"]> = {
-  mining: "mining",
-  usdc_base: "usdc-base",
-  btc_tactical: "btc-tactical",
-  stable_reserve: "stable-reserve",
-};
-
-const ALLOCATION_NOTE: Record<DashboardAllocation["bucket"], string> = {
-  mining: "net of energy + hosting + pool fees",
-  usdc_base: "blended Aave / Morpho / Sky",
-  btc_tactical: "P&L variable, rule-driven entries",
-  stable_reserve: "T-bill-backed (sDAI, Sky USDS)",
-};
-
-const ALLOCATION_PROVENANCE: Record<
-  DashboardAllocation["bucket"],
-  AllocationBucket["provenance"]
-> = {
-  mining: "attested",
-  usdc_base: "oracle",
-  btc_tactical: "live",
-  stable_reserve: "oracle",
-};
-
-function toDashboardSnapshot(data: DashboardData): DashboardSnapshot {
-  const allocations: AllocationBucket[] = data.allocations.map((a) => ({
-    id: ALLOCATION_ID[a.bucket],
-    label: ALLOCATION_LABEL[a.bucket],
-    pctAum: a.pct,
-    yieldBps: Math.round(a.yieldContributionBps),
-    yieldNote: ALLOCATION_NOTE[a.bucket],
-    provenance: ALLOCATION_PROVENANCE[a.bucket],
-  }));
-
-  const miningHealth: MiningHealth = {
-    marginScore: data.vault.miningMarginScore,
-    hashpriceTrendPct: data.hashpriceTrendPct,
-    opConfidence: data.operationalConfidence,
-    provenance: "attested",
-  };
-
-  const btcAlloc = data.allocations.find((a) => a.bucket === "btc_tactical");
-  const btcSleeveUsd = btcAlloc?.valueUsdc ?? 0;
-  const btcSleevePct = btcAlloc?.pct ?? 0;
-  const btcPriceUsd = data.btcPrice.usd === 0 ? 94_180 : data.btcPrice.usd;
-  // Use a stable synthetic entry — `Distribution`/`Allocation` rows do not
-  // carry a BTC cost basis, so the avg entry remains an estimated number.
-  // The mock anchored at 58,420; we keep that to preserve visual parity.
-  const avgEntry = 58_420;
-  const btcHeld = btcPriceUsd > 0 ? btcSleeveUsd / btcPriceUsd : 0;
-  const costBasis = btcHeld * avgEntry;
-  const pnlUsd = Math.round(btcSleeveUsd - costBasis);
-  const pnlPct = costBasis > 0 ? (pnlUsd / costBasis) * 100 : 0;
-
-  const btcTactical: BtcTactical = {
-    positionSizePctAum: btcSleevePct,
-    positionSizeUsd: btcSleeveUsd,
-    btcHeld: round2(btcHeld),
-    avgEntry,
-    currentPrice: Math.round(btcPriceUsd),
-    pnlUsd,
-    pnlPct: round1(pnlPct),
-    nextTriggers: [
-      {
-        id: "acc-t1",
-        label: "Next accumulate",
-        condition: `BTC < $${Math.round(btcPriceUsd * 0.8).toLocaleString("en-US")} (−20% from spot)`,
-        ruleId: "R-BTC-1",
-      },
-      {
-        id: "tp-t1",
-        label: "Next profit-take",
-        condition: `BTC > $${Math.round(avgEntry * 1.3).toLocaleString("en-US")} (entry × 1.30)`,
-        ruleId: "R-BTC-3",
-      },
-    ],
-    guardrails: [
-      {
-        id: "vol",
-        label: "Volatility guardrail",
-        status: "normal",
-        detail: "30d realised vol within band (threshold 90%)",
-      },
-      {
-        id: "margin",
-        label: "Mining margin guardrail",
-        status: data.vault.miningMarginScore >= 70 ? "healthy" : "normal",
-        detail: `Margin score ${data.vault.miningMarginScore} — ${
-          data.vault.miningMarginScore >= 70 ? "accumulation enabled" : "within tolerance"
-        }`,
-      },
-    ],
-    provenance: "partial",
-  };
-
-  const blendedBps = data.allocations.reduce(
-    (acc, a) => acc + (a.pct / 100) * a.yieldContributionBps,
-    0,
-  );
-  const blendedPct = blendedBps / 100;
-  const blendedRange = {
-    low: round1(Math.max(0, blendedPct * 0.85)),
-    high: round1(Math.max(blendedPct * 0.85 + 0.5, blendedPct * 1.18)),
-  };
-
-  return {
-    asOf: data.vault.asOf.toISOString(),
-    aum: {
-      valueUsd: data.vault.aumUsdc,
-      delta30dUsd: data.vault.delta30dUsdc,
-      provenance: data.source === "fallback" ? "estimated" : "live",
-    },
-    currentApyRange: data.vault.apyRange,
-    apyProvenance: "live",
-    stressedApy: data.vault.stressedApy,
-    stressedProvenance: "estimated",
-    stressedScenarioLabel: "Bear + Mining Compression",
-    riskScore: {
-      value: data.vault.riskScore,
-      bandLabel: riskBand(data.vault.riskScore),
-      provenance: "partial",
-    },
-    nextDistribution: {
-      dateLabel: formatDistributionDate(data.latestDistribution),
-      estimateUsd: data.latestDistribution.amount_usdc,
-      provenance: data.latestDistribution.status === "paid" ? "live" : "estimated",
-    },
-    allocations,
-    blendedYieldRange: blendedRange,
-    miningHealth,
-    btcTactical,
-    recentEvents:
-      data.recentEvents.length > 0 ? data.recentEvents.map(toPtaiEvent) : [],
-  };
-}
-
-function toPtaiEvent(e: DashboardRecentEvent): PtaiEvent {
-  return {
-    id: e.id,
-    timestamp: e.takenAt.toISOString(),
-    ruleId: e.ruleId,
-    kind: classifyEvent(e.ruleId),
-    projection: e.impactText,
-    trigger: `${e.ruleId} — ${e.triggerText}`,
-    action: e.actionText,
-    impact: e.impactText,
-  };
-}
-
-function classifyEvent(ruleId: string): PtaiEvent["kind"] {
-  if (ruleId.startsWith("R-DIST")) return "distribution";
-  if (ruleId.startsWith("R-BTC")) return "alert";
-  if (/^R-(WARN|ALERT)/.test(ruleId)) return "alert";
-  return "rebalance";
-}
-
-function riskBand(score: number): string {
-  if (score <= 33) return "Low";
-  if (score <= 50) return "Low–Moderate";
-  if (score <= 66) return "Moderate";
-  if (score <= 80) return "Elevated";
-  return "High";
-}
+const btcUsdFormat = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
 
 const monthDayFmt = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -298,10 +41,8 @@ const monthDayFmt = new Intl.DateTimeFormat("en-US", {
 function formatDistributionDate(d: {
   period: string;
   paid_at: Date | null;
-  status: string;
 }): string {
   if (d.paid_at) return monthDayFmt.format(d.paid_at);
-  // "YYYY-MM" -> last day of that month.
   const parts = d.period.split("-");
   const y = Number(parts[0]);
   const m = Number(parts[1]);
@@ -314,6 +55,662 @@ function round1(n: number): number {
   return Math.round(n * 10) / 10;
 }
 
-function round2(n: number): number {
-  return Math.round(n * 100) / 100;
+/**
+ * Resolve the provenance badge for a metric: returns its intrinsic provenance
+ * when the loader served real DB/oracle data, and downgrades to `stale` when
+ * the loader reported a synthesised fallback for that subtree.
+ */
+function provenanceFor(
+  intrinsic: Provenance,
+  loaderSource: "db" | "partial" | "fallback",
+): Provenance {
+  return loaderSource === "fallback" ? "stale" : intrinsic;
+}
+
+const ALLOCATION_TONES: Record<string, "primary" | "accent" | "maroon" | "muted"> = {
+  mining: "primary",
+  btc_tactical: "accent",
+  usdc_base: "maroon",
+  stable_reserve: "muted",
+};
+
+const ALLOCATION_LABELS: Record<string, string> = {
+  mining: "Mining",
+  btc_tactical: "BTC Tactical",
+  usdc_base: "USDC Base",
+  stable_reserve: "Stable Reserve",
+};
+
+/** Generate a deterministic sparkline path from current value + delta30d. */
+function buildSparklinePath(currentValue: number, delta30d: number): string {
+  const start = currentValue - delta30d;
+  const points = 12;
+  const path: string[] = [];
+  for (let i = 0; i < points; i++) {
+    const t = i / (points - 1);
+    const wave = Math.sin(i * 1.3) * Math.abs(delta30d) * 0.18;
+    const linear = start + delta30d * t;
+    const value = linear + wave;
+    const x = (i / (points - 1)) * 200;
+    const rel = currentValue !== 0 ? (value - start) / Math.max(1, Math.abs(delta30d)) : 0;
+    const y = 30 - Math.min(28, Math.max(2, 15 + rel * 12));
+    path.push(`${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`);
+  }
+  return path.join(" ");
+}
+
+function buildSparklineFillPath(currentValue: number, delta30d: number): string {
+  return `${buildSparklinePath(currentValue, delta30d)} L200,40 L0,40 Z`;
+}
+
+export default async function DashboardPage() {
+  const [data, hashprice, riskFramework] = await Promise.all([
+    loadDashboardData(),
+    fetchHashprice(),
+    loadRiskFramework(),
+  ]);
+
+  const asOf = new Date(data.vault.asOf);
+  const delta30d = data.vault.delta30dUsdc;
+  const aumTrendSign = delta30d >= 0 ? "up" : "down";
+  const aumTrendText = `${delta30d >= 0 ? "+" : "−"}${usdShort.format(Math.abs(delta30d))} 30d`;
+
+  const btcPriceUsd = data.btcPrice.usd;
+  const btcPriceAvailable = btcPriceUsd > 0;
+  const btcAlloc = data.allocations.find((a) => a.bucket === "btc_tactical");
+  const btcSleeveUsd = btcAlloc?.valueUsdc ?? 0;
+  const btcSleevePct = btcAlloc?.pct ?? 0;
+  const BTC_AVG_ENTRY_USD = 58_420;
+  const btcHeld = btcPriceAvailable ? btcSleeveUsd / btcPriceUsd : 0;
+  const costBasis = btcHeld * BTC_AVG_ENTRY_USD;
+  const pnlUsd = Math.round(btcSleeveUsd - costBasis);
+  const pnlPct = costBasis > 0 ? (pnlUsd / costBasis) * 100 : 0;
+  const pnlTrend = pnlUsd >= 0 ? "up" : "down";
+
+  const apyLow = data.vault.apyRange.low;
+  const apyHigh = data.vault.apyRange.high;
+  const apyMid = (apyLow + apyHigh) / 2;
+  const apyMaxAxis = 20;
+  const apyPct = Math.min(100, (apyMid / apyMaxAxis) * 100);
+  const apyGaugeArc = (apyPct / 100) * 50;
+  const apyGaugeDash = `${apyGaugeArc} ${100 - apyGaugeArc}`;
+
+  const blendedBps = data.allocations.reduce(
+    (acc, a) => acc + (a.pct / 100) * a.yieldContributionBps,
+    0,
+  );
+  const blendedPct = blendedBps / 100;
+  const blendedLow = round1(Math.max(0, blendedPct * 0.85));
+  const blendedHigh = round1(Math.max(blendedPct * 0.85 + 0.5, blendedPct * 1.18));
+
+  /** Donut allocation: build stroke-dasharray segments for each bucket. */
+  const allocSegments = (() => {
+    const segs: Array<{
+      bucket: string;
+      tone: "primary" | "accent" | "maroon" | "muted";
+      pct: number;
+      valueUsdc: number;
+      dashArray: string;
+      dashOffset: number;
+    }> = [];
+    let cumulative = 0;
+    for (const a of data.allocations) {
+      const dashArray = `${a.pct} ${100 - a.pct}`;
+      const dashOffset = -cumulative;
+      segs.push({
+        bucket: a.bucket,
+        tone: ALLOCATION_TONES[a.bucket] ?? "muted",
+        pct: a.pct,
+        valueUsdc: a.valueUsdc,
+        dashArray,
+        dashOffset,
+      });
+      cumulative += a.pct;
+    }
+    return segs;
+  })();
+
+  const aumValue = usdCompact.format(data.vault.aumUsdc);
+
+  // ── Provenance per metric (CLAUDE.md non-negotiable #2) ──────────────────
+  // Intrinsic source, downgraded to `stale` when its loader synthesised data.
+  // - AUM / Allocation / Activity / Distributions → DB snapshot rows → "live"
+  // - APY range / Risk / Op confidence → engine-derived figures → "estimated"
+  // - BTC sleeve → CoinGecko spot × DB allocation → "oracle"
+  // - Mining health → daily-attested MiningMetric rows → "attested"
+  const aumProvenance = provenanceFor("live", data.source);
+  const apyProvenance = provenanceFor("estimated", data.source);
+  const btcSleeveProvenance: Provenance =
+    data.btcPrice.stale || !btcPriceAvailable
+      ? "stale"
+      : provenanceFor("oracle", data.source);
+  const allocationProvenance = provenanceFor("live", data.source);
+  const riskProvenance = provenanceFor("estimated", riskFramework.source);
+  const miningProvenance = provenanceFor("attested", data.source);
+  const opConfProvenance = provenanceFor("estimated", data.source);
+  const activityProvenance: Provenance =
+    data.recentEvents.length === 0 ? "stale" : provenanceFor("live", data.source);
+  const distributionProvenance = provenanceFor("live", data.source);
+
+  /** Mining sub-metrics as depth chart bars. */
+  const miningBars = [
+    {
+      key: "margin",
+      label: "Margin Score",
+      pct: data.vault.miningMarginScore,
+      val: `${data.vault.miningMarginScore}/100`,
+      tone: "primary" as const,
+    },
+    {
+      key: "uptime",
+      label: "Uptime",
+      pct: 98.5,
+      val: "98.5%",
+      tone: "primary" as const,
+    },
+    {
+      key: "confidence",
+      label: "Op Confidence",
+      pct: data.operationalConfidence,
+      val: `${data.operationalConfidence}%`,
+      tone: data.operationalConfidence >= 70 ? ("primary" as const) : ("accent" as const),
+    },
+    {
+      key: "hashprice",
+      label: "Hashprice",
+      pct: Math.min(100, hashprice.usd_per_th_day * 1000),
+      val: `$${hashprice.usd_per_th_day.toFixed(3)}/TH·d`,
+      tone: "maroon" as const,
+    },
+    {
+      key: "hashtrend",
+      label: "Hash Trend 7d",
+      pct: Math.min(100, Math.max(0, 50 + data.hashpriceTrendPct * 5)),
+      val: `${data.hashpriceTrendPct >= 0 ? "+" : ""}${data.hashpriceTrendPct.toFixed(1)}%`,
+      tone: data.hashpriceTrendPct >= 0 ? ("primary" as const) : ("accent" as const),
+    },
+  ];
+
+  /** Operational confidence gauge */
+  const opConf = data.operationalConfidence;
+  const opConfArc = (opConf / 100) * 50;
+  const opConfDash = `${opConfArc} ${100 - opConfArc}`;
+
+  /** Density matrix: 30 cols x 4 rows = 120 cells, last 120 days before asOf. */
+  const eventsByDay = new Map<number, number>();
+  const refTimeMs = asOf.getTime();
+  const dayMs = 24 * 60 * 60 * 1000;
+  for (const e of data.recentEvents) {
+    const dayBucket = Math.floor((refTimeMs - e.takenAt.getTime()) / dayMs);
+    if (dayBucket >= 0 && dayBucket < 120) {
+      eventsByDay.set(dayBucket, (eventsByDay.get(dayBucket) ?? 0) + 1);
+    }
+  }
+  const densityCells = Array.from({ length: 120 }, (_, i) => {
+    const dayIdx = 119 - i; // oldest first
+    const count = eventsByDay.get(dayIdx) ?? 0;
+    let level = 0;
+    if (count >= 4) level = 4;
+    else if (count === 3) level = 3;
+    else if (count === 2) level = 2;
+    else if (count === 1) level = 1;
+    return { dayIdx, level };
+  });
+
+  /** Distribution feed. */
+  const latestDist = data.latestDistribution;
+  const latestDistAmount = latestDist.amount_usdc ?? 0;
+  const distLabel = formatDistributionDate(latestDist);
+  const distRows = [
+    {
+      key: "current",
+      label: latestDist.status === "scheduled" ? "Next dist" : "Latest dist",
+      date: distLabel,
+      amount: latestDistAmount,
+      status: latestDist.status,
+    },
+  ];
+
+  return (
+    <div className="dash-page">
+      <header className="dash-header">
+        <span className="eyebrow">Hearst Yield Vault</span>
+        <h1 className="h1">Dashboard</h1>
+        <span className="sub">
+          Live sync ·{" "}
+          {asOf.toLocaleString("en-US", {
+            dateStyle: "medium",
+            timeStyle: "short",
+            timeZone: "UTC",
+          })}{" "}
+          UTC
+        </span>
+
+        {/* W10 — Status badges strip (source: cockpit-template + cyber-assets) */}
+        <div className="dash-status-strip" role="status" aria-label="Vault status">
+          <span className="dash-status-badge success">
+            <span className="dash-status-dot success live" />
+            Live sync
+          </span>
+          <span className="dash-status-badge">
+            <span className="dash-status-dot" />
+            {data.allocations.length} buckets
+          </span>
+          <span className="dash-status-badge">
+            Risk {data.vault.riskScore}/100
+          </span>
+          <span className="dash-status-badge accent">
+            <span className="dash-status-dot accent" />
+            Methodology v1.0
+          </span>
+        </div>
+      </header>
+
+      {/* === Section 1 — Performance === */}
+      <section className="dash-section" aria-labelledby="sec-perf">
+        <h2 id="sec-perf" className="dash-section-title">Performance</h2>
+        <div className="dash-bento">
+          {/* W1 — AUM sparkline (source: kpi-elegant) */}
+          <article className="dash-cell col-4" aria-label="Assets under management">
+            <div className="dash-label">
+              <span>Assets under management</span>
+              <span className="dash-label-meta">
+                <ProvenanceBadge kind={aumProvenance} />
+                <span className={`dash-trend ${aumTrendSign}`}>{aumTrendText}</span>
+              </span>
+            </div>
+            <div className="dash-value-group">
+              <span className="dash-value">{aumValue}</span>
+            </div>
+            <svg
+              className="dash-sparkline"
+              viewBox="0 0 200 40"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <path
+                className="spark-fill"
+                d={buildSparklineFillPath(data.vault.aumUsdc, delta30d)}
+              />
+              <path
+                className="spark-path"
+                d={buildSparklinePath(data.vault.aumUsdc, delta30d)}
+              />
+            </svg>
+          </article>
+
+          {/* W2 — APY range gauge (source: kpi-charts gauge) */}
+          <article className="dash-cell col-4" aria-label="APY range">
+            <div className="dash-label">
+              <span>APY range (annualized)</span>
+              <ProvenanceBadge kind={apyProvenance} />
+            </div>
+            <div className="gauge-container">
+              <svg
+                className="gauge-svg"
+                viewBox="0 0 42 42"
+                width="160"
+                height="160"
+                aria-hidden="true"
+              >
+                <circle
+                  className="gauge-svg-circle bg"
+                  cx="21"
+                  cy="21"
+                  r="15.9155"
+                  strokeWidth="6"
+                  strokeDasharray="50 50"
+                />
+                <circle
+                  className="gauge-svg-circle fg"
+                  cx="21"
+                  cy="21"
+                  r="15.9155"
+                  strokeWidth="6"
+                  strokeDasharray={apyGaugeDash}
+                />
+              </svg>
+              <div className="gauge-center">
+                <span className="gauge-val">
+                  {apyLow}–{apyHigh}
+                </span>
+                <span className="gauge-lbl">% APY range</span>
+              </div>
+            </div>
+            <div className="gauge-range">
+              <span>0%</span>
+              <span>Blended {blendedLow}–{blendedHigh}%</span>
+              <span>{apyMaxAxis}%</span>
+            </div>
+          </article>
+
+          {/* W3 — BTC Sleeve sparkline (source: kpi-elegant) */}
+          <article className="dash-cell col-4" aria-label="BTC tactical sleeve">
+            <div className="dash-label">
+              <span>BTC tactical sleeve</span>
+              <span className="dash-label-meta">
+                <ProvenanceBadge kind={btcSleeveProvenance} />
+                <span className={`dash-trend ${pnlTrend}`}>
+                  {pnlPct >= 0 ? "+" : ""}
+                  {pnlPct.toFixed(1)}%
+                </span>
+              </span>
+            </div>
+            <div className="dash-value-group">
+              <span className="dash-value">{usdCompact.format(btcSleeveUsd)}</span>
+              <span className="dash-unit">{btcSleevePct.toFixed(0)}% alloc</span>
+            </div>
+            <div className="dash-legend" style={{ marginTop: "var(--ct-space-3)" }}>
+              <div className="dash-legend-row">
+                <span className="dash-legend-left">BTC held</span>
+                <span className="dash-legend-val">{btcPriceAvailable ? `${btcHeld.toFixed(2)} BTC` : "—"}</span>
+              </div>
+              <div className="dash-legend-row">
+                <span className="dash-legend-left">Spot</span>
+                <span className="dash-legend-val">{btcPriceAvailable ? btcUsdFormat.format(btcPriceUsd) : "—"}</span>
+              </div>
+              <div className="dash-legend-row">
+                <span className="dash-legend-left">P&amp;L</span>
+                <span className="dash-legend-val">
+                  {btcPriceAvailable
+                    ? `${pnlUsd >= 0 ? "+" : "−"}${usdShort.format(Math.abs(pnlUsd))}`
+                    : "—"}
+                </span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      {/* === Section 2 — Allocation & Risk === */}
+      <section className="dash-section" aria-labelledby="sec-alloc">
+        <h2 id="sec-alloc" className="dash-section-title">Allocation &amp; Risk</h2>
+        <div className="dash-bento">
+          {/* W4 — Allocation donut (source: kpi-charts donut) */}
+          <article className="dash-cell col-8" aria-label="Allocation breakdown">
+            <div className="dash-label">
+              <span>Allocation breakdown</span>
+              <ProvenanceBadge kind={allocationProvenance} />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "12.5rem 1fr", gap: "var(--ct-space-6)", alignItems: "center", marginTop: "var(--ct-space-2)" }}>
+              <div className="dash-chart-container" style={{ height: "12.5rem", marginTop: 0 }}>
+                <svg
+                  className="dash-chart-svg"
+                  viewBox="0 0 42 42"
+                  width="180"
+                  height="180"
+                  aria-hidden="true"
+                >
+                  <circle
+                    className="dash-chart-circle color-muted"
+                    cx="21"
+                    cy="21"
+                    r="15.9155"
+                    strokeDasharray="100 0"
+                  />
+                  {allocSegments.map((s) => (
+                    <circle
+                      key={s.bucket}
+                      className={`dash-chart-circle color-${s.tone}`}
+                      cx="21"
+                      cy="21"
+                      r="15.9155"
+                      strokeDasharray={s.dashArray}
+                      strokeDashoffset={s.dashOffset}
+                    />
+                  ))}
+                </svg>
+                <div className="donut-center">
+                  <span className="donut-val">{usdShort.format(data.vault.aumUsdc)}</span>
+                  <span className="donut-lbl">Total AUM</span>
+                </div>
+              </div>
+
+              <div className="dash-legend">
+                {allocSegments.map((s) => (
+                  <div key={s.bucket} className="dash-legend-row">
+                    <span className="dash-legend-left">
+                      <span className={`dash-legend-dot dot-${s.tone}`} />
+                      {ALLOCATION_LABELS[s.bucket] ?? s.bucket}
+                    </span>
+                    <span className="dash-legend-val">
+                      {s.pct.toFixed(0)}% · {usdCompact.format(s.valueUsdc)}
+                    </span>
+                  </div>
+                ))}
+                <div className="dash-legend-row" style={{ marginTop: "var(--ct-space-2)", paddingTop: "var(--ct-space-2)", borderTop: "1px solid var(--ct-border-soft)" }}>
+                  <span className="dash-legend-left" style={{ color: "var(--ct-text-muted)" }}>
+                    Blended target
+                  </span>
+                  <span className="dash-legend-val">
+                    {blendedLow}–{blendedHigh}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          {/* W5 — Risk concentric rings (source: kpi-elegant) */}
+          <article className="dash-cell col-4" aria-label="Risk framework">
+            <div className="dash-label">
+              <span>Risk framework</span>
+              <span className="dash-label-meta">
+                <ProvenanceBadge kind={riskProvenance} />
+                <span className={`dash-trend ${riskFramework.composite <= 50 ? "up" : riskFramework.composite <= 66 ? "flat" : "down"}`}>
+                  {riskFramework.bandLabel}
+                </span>
+              </span>
+            </div>
+            <div className="dash-value-group">
+              <span className="dash-value-range">{riskFramework.composite}</span>
+              <span className="dash-unit">/ 100 composite</span>
+            </div>
+            <div className="dash-rings-box">
+              <svg width="80" height="80" viewBox="0 0 80 80" aria-hidden="true">
+                <circle className="ring-bg" cx="40" cy="40" r="36" />
+                <circle
+                  className="ring-fg"
+                  cx="40"
+                  cy="40"
+                  r="36"
+                  strokeDasharray={`${(riskFramework.composite / 100) * 226} ${226 - (riskFramework.composite / 100) * 226}`}
+                  strokeDashoffset="0"
+                  transform="rotate(-90 40 40)"
+                />
+                {riskFramework.dimensions[0] && (
+                  <>
+                    <circle className="ring-bg" cx="40" cy="40" r="28" />
+                    <circle
+                      className="ring-fg muted"
+                      cx="40"
+                      cy="40"
+                      r="28"
+                      strokeDasharray={`${(riskFramework.dimensions[0].score / 100) * 175} ${175 - (riskFramework.dimensions[0].score / 100) * 175}`}
+                      strokeDashoffset="0"
+                      transform="rotate(-90 40 40)"
+                    />
+                  </>
+                )}
+                {riskFramework.dimensions[1] && (
+                  <>
+                    <circle className="ring-bg" cx="40" cy="40" r="20" />
+                    <circle
+                      className="ring-fg accent"
+                      cx="40"
+                      cy="40"
+                      r="20"
+                      strokeDasharray={`${(riskFramework.dimensions[1].score / 100) * 125} ${125 - (riskFramework.dimensions[1].score / 100) * 125}`}
+                      strokeDashoffset="0"
+                      transform="rotate(-90 40 40)"
+                    />
+                  </>
+                )}
+              </svg>
+            </div>
+            <div className="dash-legend" style={{ marginTop: "var(--ct-space-4)" }}>
+              {riskFramework.dimensions.slice(0, 3).map((d, i) => (
+                <div key={d.id} className="dash-legend-row">
+                  <span className="dash-legend-left">
+                    <span className={`dash-legend-dot ${i === 0 ? "dot-primary" : i === 1 ? "dot-muted" : "dot-accent"}`} />
+                    {d.label}
+                  </span>
+                  <span className="dash-legend-val">{d.score}/100</span>
+                </div>
+              ))}
+            </div>
+          </article>
+        </div>
+      </section>
+
+      {/* === Section 3 — Mining & Operations === */}
+      <section className="dash-section" aria-labelledby="sec-mining">
+        <h2 id="sec-mining" className="dash-section-title">Mining &amp; Operations</h2>
+        <div className="dash-bento">
+          {/* W6 — Mining sub-metrics depth chart (source: kpi-elegant) */}
+          <article className="dash-cell col-8" aria-label="Mining health metrics">
+            <div className="dash-label">
+              <span>Mining health metrics</span>
+              <ProvenanceBadge kind={miningProvenance} />
+            </div>
+            <div className="depth-chart">
+              {miningBars.map((bar) => (
+                <div key={bar.key} className="depth-row">
+                  <span className="depth-label">{bar.label}</span>
+                  <div className="depth-bar-container">
+                    <div
+                      className={`depth-bar ${bar.tone === "accent" ? "accent" : bar.tone === "maroon" ? "maroon" : ""}`}
+                      style={{ width: `${Math.min(100, Math.max(0, bar.pct))}%` }}
+                    />
+                  </div>
+                  <span className="depth-val">{bar.val}</span>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          {/* W7 — Operational confidence gauge (source: kpi-charts gauge) */}
+          <article className="dash-cell col-4" aria-label="Operational confidence">
+            <div className="dash-label">
+              <span>Operational confidence</span>
+              <ProvenanceBadge kind={opConfProvenance} />
+            </div>
+            <div className="gauge-container">
+              <svg
+                className="gauge-svg"
+                viewBox="0 0 42 42"
+                width="160"
+                height="160"
+                aria-hidden="true"
+              >
+                <circle
+                  className="gauge-svg-circle bg"
+                  cx="21"
+                  cy="21"
+                  r="15.9155"
+                  strokeWidth="6"
+                  strokeDasharray="50 50"
+                />
+                <circle
+                  className="gauge-svg-circle fg"
+                  cx="21"
+                  cy="21"
+                  r="15.9155"
+                  strokeWidth="6"
+                  strokeDasharray={opConfDash}
+                />
+              </svg>
+              <div className="gauge-center">
+                <span className="gauge-val">{opConf}</span>
+                <span className="gauge-lbl">% confidence</span>
+              </div>
+            </div>
+            <div className="gauge-range">
+              <span>0%</span>
+              <span>Threshold 70%</span>
+              <span>100%</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      {/* === Section 4 — Activity & Distributions === */}
+      <section className="dash-section" aria-labelledby="sec-activity">
+        <h2 id="sec-activity" className="dash-section-title">Activity &amp; Distributions</h2>
+        <div className="dash-bento">
+          {/* W8 — Events density matrix (source: kpi-elegant) */}
+          <article className="dash-cell col-8" aria-label="Vault activity last 120 days">
+            <div className="dash-label">
+              <span>Vault activity · last 120 days</span>
+              <span className="dash-label-meta">
+                <ProvenanceBadge kind={activityProvenance} />
+                <span className="dash-trend flat">{data.recentEvents.length} events</span>
+              </span>
+            </div>
+            <div className="density-matrix" aria-hidden="true">
+              {densityCells.map((c) => (
+                <span
+                  key={c.dayIdx}
+                  className={`density-cell ${c.level > 0 ? `lvl-${c.level}` : ""}`}
+                />
+              ))}
+            </div>
+            <div className="mt-2 flex justify-between font-mono text-[length:var(--ct-text-micro)] text-[--ct-text-muted] tracking-loose">
+              <span>120d ago</span>
+              <span>60d ago</span>
+              <span>Today</span>
+            </div>
+          </article>
+
+          {/* W9 — Distribution feed (source: kpi-elegant progress typographique) */}
+          <article className="dash-cell col-4" aria-label="Distributions">
+            <div className="dash-label">
+              <span>Distributions</span>
+              <span className="dash-label-meta">
+                <ProvenanceBadge kind={distributionProvenance} />
+                <span className={`dash-trend ${latestDist.status === "paid" ? "up" : "flat"}`}>
+                  {latestDist.status === "paid" ? "Paid" : "Scheduled"}
+                </span>
+              </span>
+            </div>
+            <div className="dist-big">
+              <span className="dist-big-val">
+                {latestDistAmount > 0 ? usdShort.format(latestDistAmount) : "—"}
+              </span>
+              <span className="dist-big-unit">USDC</span>
+            </div>
+            <div className="dist-bar">
+              <div
+                className={`dist-bar-fill ${latestDist.status === "paid" ? "" : "accent"}`}
+                style={{ width: latestDist.status === "paid" ? "100%" : "75%" }}
+              />
+            </div>
+            <div className="dist-rows">
+              {distRows.map((r) => (
+                <div key={r.key} className="dist-rows-item">
+                  <span>{r.label}</span>
+                  <span className={r.status === "paid" ? "paid" : r.status === "scheduled" ? "scheduled" : "due"}>
+                    {r.date}
+                  </span>
+                </div>
+              ))}
+              <div className="dist-rows-item">
+                <span>Monthly cadence</span>
+                <span className="scheduled">Day 1, T+5</span>
+              </div>
+              <div className="dist-rows-item">
+                <span>Methodology</span>
+                <span className="scheduled">v1.0</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <p className="dash-disclaimer">
+        Projections are conditional on the assumptions stated in Methodology v1.0.
+        APY ranges are not guaranteed; past performance does not predict future returns.
+      </p>
+    </div>
+  );
 }

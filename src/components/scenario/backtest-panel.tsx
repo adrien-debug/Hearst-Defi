@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { BacktestChart } from "@/components/scenario/backtest-chart";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
@@ -43,41 +44,40 @@ function AssumptionsList({ assumptions }: { assumptions: string[] }) {
           return (
             <li key={i} className="flex items-start gap-2 text-sm">
               <span
-                className="mt-0.5 shrink-0 text-[--text-micro] text-[--color-brand]"
+                className="mt-0.5 shrink-0 text-micro text-[--ct-text-strong]"
                 aria-hidden
               >
                 ▸
               </span>
               {key !== null ? (
                 <span>
-                  <span className="font-semibold capitalize text-[--color-text-muted]">
+                  <span className="font-semibold capitalize text-[--ct-text-body]">
                     {key}
                   </span>
-                  <span className="text-[--color-text-dim]">: </span>
-                  <span className="font-mono text-[--color-text-muted]">
+                  <span className="text-[--ct-text-muted]">: </span>
+                  <span className="font-mono text-[--ct-text-body]">
                     {value}
                   </span>
                 </span>
               ) : (
-                <span className="text-[--color-text-muted]">{value}</span>
+                <span className="text-[--ct-text-body]">{value}</span>
               )}
             </li>
           );
         })}
       </ul>
       {shouldTruncate && (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={() => setExpanded((x) => !x)}
-          className={cn(
-            "mt-3 text-xs font-semibold text-[--color-brand]",
-            "transition-colors duration-150 hover:text-[--color-brand-strong]",
-          )}
+          className="mt-3 text-[--ct-text-strong] hover:text-[--ct-text-strong]"
         >
           {expanded
             ? "Show less"
             : `Show ${assumptions.length - THRESHOLD} more`}
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -97,8 +97,8 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
       aria-busy={isPending}
     >
       {isPending && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[--radius-card] bg-[--color-bg-card]/60 backdrop-blur-sm">
-          <span className="text-sm text-[--color-text-muted]">Computing backtest…</span>
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[--radius-card] bg-[--ct-surface-2]/60 backdrop-blur-sm">
+          <span className="text-sm text-[--ct-text-body]">Computing backtest…</span>
         </div>
       )}
 
@@ -113,13 +113,13 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
           <p
             className={cn(
               "stat-value",
-              isPositive ? "text-[--color-success]" : "text-[--color-danger]",
+              isPositive ? "text-[--ct-status-success]" : "text-[--ct-status-danger]",
             )}
           >
             {isPositive ? "+" : ""}
             {output.totalReturnPct.toFixed(1)}%
           </p>
-          <p className="mt-1 text-xs text-[--color-text-dim]">
+          <p className="mt-1 text-xs text-[--ct-text-muted]">
             {output.startDate} — {output.endDate}
           </p>
         </Card>
@@ -130,10 +130,10 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
             <p className="stat-label">Max Drawdown</p>
             <ProvenanceBadge kind="estimated" />
           </div>
-          <p className="stat-value text-[--color-danger]">
+          <p className="stat-value text-[--ct-status-danger]">
             -{output.maxDrawdownPct.toFixed(1)}%
           </p>
-          <p className="mt-1 text-xs text-[--color-text-dim]">peak-to-trough</p>
+          <p className="mt-1 text-xs text-[--ct-text-muted]">peak-to-trough</p>
         </Card>
 
         {/* Worst Month */}
@@ -142,10 +142,10 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
             <p className="stat-label">Worst Month</p>
             <ProvenanceBadge kind="estimated" />
           </div>
-          <p className="stat-value text-[--color-warning]">
+          <p className="stat-value text-[--ct-status-warning]">
             {output.worstMonthPct.toFixed(1)}%
           </p>
-          <p className="mt-1 text-xs text-[--color-text-dim]">
+          <p className="mt-1 text-xs text-[--ct-text-muted]">
             single-month floor
           </p>
         </Card>
@@ -156,10 +156,10 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
             <p className="stat-label">Rebalances</p>
             <ProvenanceBadge kind="estimated" />
           </div>
-          <p className="stat-value text-[--color-text]">
+          <p className="stat-value text-[--ct-text-primary]">
             {output.numRebalances}
           </p>
-          <p className="mt-1 text-xs text-[--color-text-dim]">
+          <p className="mt-1 text-xs text-[--ct-text-muted]">
             mode triggers
           </p>
         </Card>
@@ -179,7 +179,7 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="stat-label mb-1">Rule Engine</p>
-            <p className="text-xs text-[--color-text-dim]">
+            <p className="text-xs text-[--ct-text-muted]">
               Rule-based rebalancing enabled
             </p>
           </div>
@@ -198,8 +198,8 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
       </Card>
 
       {/* ── Disclaimer ───────────────────────────────────────────────────── */}
-      <p className="border-t border-[--color-border-subtle] pt-4 text-xs italic text-[--color-text-dim]">
-        <span className="font-semibold not-italic text-[--color-text-muted]">
+      <p className="border-t border-[--ct-border-soft] pt-4 text-xs italic text-[--ct-text-muted]">
+        <span className="font-semibold not-italic text-[--ct-text-body]">
           Not guaranteed.
         </span>{" "}
         Historical simulation based on stated assumptions. Past performance does

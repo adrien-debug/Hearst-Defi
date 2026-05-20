@@ -58,9 +58,9 @@ interface RowProps {
 
 function Row({ label, value, valueClass }: RowProps) {
   return (
-    <div className="flex items-baseline justify-between gap-3 py-2 text-sm">
-      <span className="text-[--color-text-muted]">{label}</span>
-      <span className={cn("font-mono tabular-nums", valueClass)}>{value}</span>
+    <div className="flex items-baseline justify-between gap-3 py-3 text-sm group">
+      <span className="text-[--ct-text-muted] group-hover:text-[--ct-text-body] transition-colors">{label}</span>
+      <span className={cn("font-mono tabular-nums text-[--ct-text-primary]", valueClass)}>{value}</span>
     </div>
   );
 }
@@ -68,10 +68,10 @@ function Row({ label, value, valueClass }: RowProps) {
 export function BtcTacticalSection({ btcTactical }: BtcTacticalSectionProps) {
   const pnlTone =
     btcTactical.pnlUsd > 0
-      ? "text-[--color-success]"
+      ? "ct-status-glow-success"
       : btcTactical.pnlUsd < 0
-        ? "text-[--color-danger]"
-        : "text-[--color-text]";
+        ? "ct-status-glow-danger"
+        : "text-[--ct-text-primary]";
 
   return (
     <Card>
@@ -80,8 +80,8 @@ export function BtcTacticalSection({ btcTactical }: BtcTacticalSectionProps) {
         <ProvenanceBadge kind={btcTactical.provenance} />
       </CardHeader>
 
-      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-        <div className="divide-y divide-[--color-border-subtle]">
+      <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
+        <div className="divide-y divide-[--ct-border-soft]">
           <Row
             label="Position size"
             value={`${btcTactical.positionSizePctAum.toFixed(0)}% AUM · ${usdCompact.format(btcTactical.positionSizeUsd)}`}
@@ -99,47 +99,43 @@ export function BtcTacticalSection({ btcTactical }: BtcTacticalSectionProps) {
           />
         </div>
 
-        <div className="space-y-5">
+        <div className="space-y-6">
           <div>
-            <p className="stat-label mb-2">
-              Next triggers
-            </p>
+            <p className="stat-label mb-3">Next triggers</p>
             {btcTactical.nextTriggers.length > 0 ? (
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 {btcTactical.nextTriggers.map((t) => (
                   <li
                     key={t.id}
-                    className="rounded-[--radius-button] border border-[--color-border-subtle] bg-[--color-bg-elevated] px-3 py-2"
+                    className="glass-panel-subtle px-4 py-3 group hover:bg-[--ct-surface-1] transition-colors"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-medium">{t.label}</span>
+                      <span className="text-sm font-medium text-[--ct-text-primary]">{t.label}</span>
                       <Badge variant="default">{t.ruleId}</Badge>
                     </div>
-                    <p className="mt-1 font-mono text-xs text-[--color-text-muted] tabular-nums">
+                    <p className="mt-2 font-mono text-xs text-[--ct-text-muted] tabular-nums">
                       {t.condition}
                     </p>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="body-sm">No triggers currently armed.</p>
+              <p className="text-sm text-[--ct-text-muted] italic">No triggers currently armed.</p>
             )}
           </div>
 
           <div>
-            <p className="stat-label mb-2">
-              Guardrails
-            </p>
+            <p className="stat-label mb-3">Guardrails</p>
             {btcTactical.guardrails.length > 0 ? (
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 {btcTactical.guardrails.map((g) => (
                   <li
                     key={g.id}
-                    className="flex items-start justify-between gap-3 rounded-[--radius-button] border border-[--color-border-subtle] bg-[--color-bg-elevated] px-3 py-2"
+                    className="flex items-start justify-between gap-3 glass-panel-subtle px-4 py-3 group hover:bg-[--ct-surface-1] transition-colors"
                   >
                     <div>
-                      <div className="text-sm font-medium">{g.label}</div>
-                      <p className="mt-0.5 text-xs text-[--color-text-dim]">
+                      <div className="text-sm font-medium text-[--ct-text-primary]">{g.label}</div>
+                      <p className="mt-1 text-xs text-[--ct-text-muted]">
                         {g.detail}
                       </p>
                     </div>
@@ -150,7 +146,7 @@ export function BtcTacticalSection({ btcTactical }: BtcTacticalSectionProps) {
                 ))}
               </ul>
             ) : (
-              <p className="body-sm">All guardrails within bounds.</p>
+              <p className="text-sm text-[--ct-text-muted] italic">All guardrails within bounds.</p>
             )}
           </div>
         </div>

@@ -26,36 +26,43 @@ export function Metric({
   return (
     <div
       className={cn(
-        "flex flex-col gap-2 rounded-[--radius-card] border border-[--color-border] bg-[--color-bg-card] p-4",
+        "glass-panel flex flex-col gap-3 p-5 relative overflow-hidden group",
         className,
       )}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span className="stat-label" title={tooltip}>
+      <div className="absolute inset-0 bg-gradient-to-br from-[--ct-surface-0] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+      <div className="flex items-center justify-between gap-2 relative z-10">
+        <span className="stat-label text-[--ct-text-muted] group-hover:text-[--ct-text-body] transition-colors" title={tooltip}>
           {label}
         </span>
         {provenance ? <ProvenanceBadge kind={provenance} /> : null}
       </div>
-      <span className="stat-value leading-tight">{value}</span>
+
+      <span className="stat-value text-3xl tracking-tight leading-none relative z-10 text-[--ct-text-strong] drop-shadow-md">
+        {value}
+      </span>
+
       {(sublabel || trend) && (
-        <div className="flex items-center gap-2 text-xs text-[--color-text-muted]">
+        <div className="flex min-w-0 items-center gap-2 text-xs text-[--ct-text-muted] relative z-10 mt-auto pt-1">
           {trend ? (
             <span
               className={cn(
-                "font-medium",
-                trend.direction === "up" && "text-[--color-success]",
-                trend.direction === "down" && "text-[--color-danger]",
+                "font-medium shrink-0 px-1.5 py-0.5 rounded-[--ct-radius-sm] backdrop-blur-md border",
+                trend.direction === "up" && "bg-[--ct-status-success-soft] text-[--ct-status-success] border-[--ct-status-success-border]",
+                trend.direction === "down" && "bg-[--ct-status-danger-soft] text-[--ct-status-danger] border-[--ct-status-danger-border]",
+                trend.direction === "flat" && "bg-[--ct-surface-1] text-[--ct-text-muted] border-[--ct-border]"
               )}
             >
               {trend.direction === "up"
-                ? "▲ "
+                ? "↑ "
                 : trend.direction === "down"
-                  ? "▼ "
+                  ? "↓ "
                   : "→ "}
               {trend.text}
             </span>
           ) : null}
-          {sublabel ? <span>{sublabel}</span> : null}
+          {sublabel ? <span className="truncate">{sublabel}</span> : null}
         </div>
       )}
     </div>

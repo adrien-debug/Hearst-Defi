@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useTransition } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { postFeedback } from "@/app/admin/feedback/actions";
@@ -11,66 +12,80 @@ export function FeedbackForm() {
 
   function onSubmit(formData: FormData) {
     startTransition(async () => {
-      await postFeedback(formData);
-      formRef.current?.reset();
+      try {
+        await postFeedback(formData);
+        formRef.current?.reset();
+        toast.success("Feedback posted");
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        toast.error(`Failed to post feedback: ${message}`);
+      }
     });
   }
 
   return (
-    <form ref={formRef} action={onSubmit} className="space-y-3">
+    <form ref={formRef} action={onSubmit} className="space-y-3" aria-label="Feedback form">
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block text-xs">
-          <span className="mb-1 block text-[--color-text-dim] uppercase tracking-wide">
+        <label className="block text-xs" htmlFor="feedback-itemId">
+          <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
             Roadmap item ID (optional)
           </span>
           <input
+            id="feedback-itemId"
             name="itemId"
             type="text"
             placeholder="e.g. dash-hero"
-            className="w-full rounded border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm font-mono"
+            className="ct-input font-mono"
           />
         </label>
-        <label className="block text-xs">
-          <span className="mb-1 block text-[--color-text-dim] uppercase tracking-wide">
+        <label className="block text-xs" htmlFor="feedback-author">
+          <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
             Your name (optional)
           </span>
           <input
+            id="feedback-author"
             name="author"
             type="text"
             placeholder="Adrien"
-            className="w-full rounded border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm"
+            className="ct-input"
           />
         </label>
       </div>
 
-      <label className="block text-xs">
-        <span className="mb-1 block text-[--color-text-dim] uppercase tracking-wide">
+      <label className="block text-xs" htmlFor="feedback-pathname">
+        <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
           Pathname or context (optional)
         </span>
         <input
+          id="feedback-pathname"
           name="pathname"
           type="text"
           placeholder="/admin/roadmap"
-          className="w-full rounded border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm font-mono"
+          className="ct-input font-mono"
         />
       </label>
 
-      <label className="block text-xs">
-        <span className="mb-1 block text-[--color-text-dim] uppercase tracking-wide">
+      <label className="block text-xs" htmlFor="feedback-message">
+        <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
           Feedback
         </span>
         <textarea
+          id="feedback-message"
           name="message"
           rows={4}
           required
           minLength={2}
           placeholder="What works? What doesn't? What's confusing?"
-          className="w-full rounded border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm"
+          className="ct-textarea"
+          aria-describedby="feedback-hint"
         />
+        <span id="feedback-hint" className="mt-1 block text-[--ct-text-muted]">
+          Your feedback helps us improve the platform.
+        </span>
       </label>
 
       <div className="flex justify-end">
-        <Button type="submit" variant="primary" disabled={isPending} size="sm">
+        <Button type="submit" variant="primary" disabled={isPending} size="sm" aria-busy={isPending}>
           {isPending ? "Sending…" : "Post feedback"}
         </Button>
       </div>

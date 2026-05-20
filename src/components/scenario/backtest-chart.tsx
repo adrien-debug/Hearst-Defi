@@ -4,9 +4,21 @@ interface BacktestChartProps {
   series: MonthlyPoint[];
 }
 
+// matches --ct-text-micro (Recharts ne lit pas les CSS vars runtime)
+const CHART_LABEL_SIZE = 9;
+
 /** Inline SVG bar chart — no external chart library. */
 export function BacktestChart({ series }: BacktestChartProps) {
-  if (series.length === 0) return null;
+  if (series.length === 0) {
+    return (
+      <div
+        role="status"
+        className="flex min-h-[10rem] items-center justify-center rounded-[--radius-card] border border-dashed border-[--ct-border-soft] bg-[--ct-surface-1] px-6 py-8 text-center text-xs text-[--ct-text-muted]"
+      >
+        No backtest data available for this period.
+      </div>
+    );
+  }
 
   const CHART_HEIGHT = 140;
   const BAR_GAP = 2;
@@ -61,7 +73,7 @@ export function BacktestChart({ series }: BacktestChartProps) {
               height={barHeight}
               rx={2}
               ry={2}
-              fill="var(--color-brand)"
+              fill="var(--ct-text-strong)"
               opacity={opacity}
             >
               <title>
@@ -74,8 +86,8 @@ export function BacktestChart({ series }: BacktestChartProps) {
                 x={i * 100 + 50}
                 y={CHART_HEIGHT + 15}
                 textAnchor="middle"
-                fontSize={9}
-                fill="var(--color-text-dim)"
+                fontSize={CHART_LABEL_SIZE}
+                fill="var(--ct-text-muted)"
                 fontFamily="var(--font-sans)"
               >
                 {monthLabel}

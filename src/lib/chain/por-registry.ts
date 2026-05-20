@@ -26,7 +26,6 @@ export interface FetchAttestationsOptions {
 }
 
 const USDC_DECIMALS = 6n;
-const SATS_PER_BTC = 100_000_000n;
 
 function fromBaseUnits(raw: bigint, decimals: bigint): number {
   // Safe for typical USD AUM values; PoR pinning is informational, not balance accounting.
@@ -113,4 +112,3 @@ export async function fetchOnChainAttestations(
   }
 }
 
-export { SATS_PER_BTC };

@@ -69,16 +69,16 @@ export function PresetBar({ selected, onSelect, disabled }: PresetBarProps) {
               "rounded-[--radius-full] border px-4 py-2 text-sm font-semibold",
               "transition-[background-color,color,border-color,box-shadow] duration-150",
               "disabled:cursor-not-allowed disabled:opacity-40",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]",
               isActive
                 ? [
-                    "border-[--color-brand] bg-[--color-brand] text-[--color-brand-fg]",
-                    "shadow-[0_0_0_3px_var(--color-accent-glow)]",
+                    "border-[--ct-text-strong] bg-[--ct-text-strong] text-[--ct-bg-deep]",
+                    "shadow-[var(--ct-shadow-focus-ring)]",
                   ]
                 : [
-                    "border-[--color-border-strong] bg-[--color-bg-elevated]",
-                    "text-[--color-text-muted]",
-                    "hover:border-[--color-border-strong] hover:bg-[--color-bg-tertiary] hover:text-[--color-text]",
+                    "border-[--ct-border-strong] bg-[--ct-surface-1]",
+                    "text-[--ct-text-body]",
+                    "hover:border-[--ct-border-strong] hover:bg-[--ct-surface-3] hover:text-[--ct-text-primary]",
                   ],
             )}
           >

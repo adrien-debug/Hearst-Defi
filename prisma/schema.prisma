@@ -1,6 +1,11 @@
 // Hearst Connect — Prisma schema
 // MVP tables. Postgres in production, SQLite for local dev.
 // Source of truth for data model: /docs/spec/* + plan section 15.
+//
+// RLS / multi-tenant isolation (P0):
+//   userId columns added to Feedback, ReportExport, LlmRun (+ ScenarioRun).
+//   No formal SQL migration here (sqlite local, db push workflow).
+//   Apply with: `pnpm db:push` then `pnpm db:generate`.
 
 generator client {
   provider = "prisma-client-js"
@@ -18,10 +23,10 @@ datasource db {
 model VaultSnapshot {
   id                   String   @id @default(cuid())
   takenAt              DateTime @default(now())
-  aumUsdc              Float
-  currentApyLow        Float
-  currentApyHigh       Float
-  stressedApy          Float
+  aumUsdc              Decimal
+  currentApyLow        Decimal
+  currentApyHigh       Decimal
+  stressedApy          Decimal
   riskScore            Int
   miningMarginScore    Int
   mode                 String   // defensive | balanced | opportunistic
@@ -37,9 +42,9 @@ model Allocation {
   snapshotId          String
   snapshot            VaultSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
   bucket              String        // mining | btc_tactical | usdc_base | stable_reserve
-  pct                 Float
-  valueUsdc           Float
-  yieldContributionBps Float
+  pct                 Decimal
+  valueUsdc           Decimal
+  yieldContributionBps Decimal
 
   @@index([snapshotId])
 }
@@ -51,14 +56,14 @@ model Allocation {
 model MiningMetric {
   id                      String   @id @default(cuid())
   takenAt                 DateTime @default(now())
-  hashprice               Float    // $/TH/day
-  difficulty              Float
-  btcPrice                Float
-  energyCost              Float    // $/kWh
-  uptimePct               Float
-  deployedHashrate        Float    // TH/s
+  hashprice               Decimal  // $/TH/day
+  difficulty              Decimal
+  btcPrice                Decimal
+  energyCost              Decimal  // $/kWh
+  uptimePct               Decimal
+  deployedHashrate        Decimal  // TH/s
   miningMarginScore       Int
-  hashpriceTrendPct       Float
+  hashpriceTrendPct       Decimal
   operationalConfidence   Int
   alertLevel              String?  // green | amber | red
   summary                 String?
@@ -74,33 +79,42 @@ model MiningMetric {
 model ScenarioRun {
   id                  String   @id @default(cuid())
   ranAt               DateTime @default(now())
-  userId              String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  userId              String
   preset              String?  // base | btc_bear | btc_bull | mining_compression | extreme_stress
   inputs              String   // JSON: { btc_price_change, hashprice, energy, stable_apy, vol }
   outputs             String   // JSON: ScenarioOutput
+  status              String   @default("completed") // completed | failed
   narrative           String?
   riskWarning         String?
-  confidence          String   // low | medium | high
+  confidence          String   @default("medium") // low | medium | high
   methodologyVersion  String   @default("v1.0")
 
   @@index([ranAt])
+  @@index([userId, ranAt])
+  @@index([userId, createdAt])
 }
 
 model BacktestRun {
   id                String   @id @default(cuid())
   backtestKey       String   // bear_2022 | etf_halving_2024 | mining_crunch_2024
   ranAt             DateTime @default(now())
-  initialCapital    Float
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  userId            String
+  initialCapital    Decimal
   rulesMode         String   // hearst_rules | without_rules
-  endingValue       Float
-  totalReturnPct    Float
-  maxDrawdownPct    Float
-  worstMonthPct     Float
+  endingValue       Decimal
+  totalReturnPct    Decimal
+  maxDrawdownPct    Decimal
+  worstMonthPct     Decimal
   numRebalances     Int
   monthlySeries     String   // JSON: [{ month, value, distribution }]
   narrative         String?
 
   @@index([backtestKey])
+  @@index([userId, createdAt])
 }
 
 // =============================================================================
@@ -108,24 +122,30 @@ model BacktestRun {
 // =============================================================================
 
 model RebalanceEvent {
-  id              String   @id @default(cuid())
-  executedAt      DateTime @default(now())
-  ruleId          String   // e.g. "R2", "R-BTC-3"
-  triggerText     String   // plain English
-  actionText      String
-  impactText      String
-  fromAllocation  String   // JSON
-  toAllocation    String   // JSON
-  txHash          String?  // Phase 2+
-  approvedBy      String   // JSON array of multisig signers
+  id               String   @id @default(cuid())
+  executedAt       DateTime @default(now())
+  ruleId           String   // e.g. "R2", "R-BTC-3"
+  triggerText      String   // plain English — PTAI Trigger
+  actionText       String   // PTAI Action
+  impactText       String   // PTAI Impact
+  projection       String   @default("")            // PTAI Projection (was previously embedded into triggerText)
+  status           String   @default("pending")     // pending | approved | executed | cancelled
+  triggeredAt      DateTime @default(now())         // when the signal fired (distinct from executedAt)
+  sourceEventName  String?                          // Inngest source event name (e.g. "risk.daily.completed")
+  sourceEventId    String?                          // Inngest event id for traceability
+  fromAllocation   String   // JSON
+  toAllocation     String   // JSON
+  txHash           String?  // Phase 2+
+  approvedBy       String   // JSON array of multisig signers
 
   @@index([executedAt])
+  @@index([status, triggeredAt])
 }
 
 model Distribution {
   id              String   @id @default(cuid())
   distributedAt   DateTime
-  amountUsdc      Float
+  amountUsdc      Decimal
   txHash          String?
   recipientsCount Int
   period          String   // "2026-04"
@@ -142,6 +162,7 @@ model Proof {
   postedAt    DateTime @default(now())
   postedBy    String
   txHash      String?
+  notes       String?  // free-form admin annotation (Zod-validated ≤ 500 chars at ingest)
 
   @@index([proofType, period])
 }
@@ -160,8 +181,11 @@ model ReportExport {
   methodologyVersion  String
   pdfUrl              String?
   content             String?  // JSON: full InvestorMemoOutput
+  userId              String?  // RLS owner — nullable for legacy rows / background jobs
+  updatedAt           DateTime @updatedAt
 
   @@index([generatedAt])
+  @@index([userId, generatedAt])
 }
 
 // =============================================================================
@@ -190,7 +214,68 @@ model Feedback {
   message     String
   author      String?  // optional name
   resolved    Boolean  @default(false)
+  userId      String?  // RLS owner — nullable for legacy rows / anon feedback
+  updatedAt   DateTime @updatedAt
 
   @@index([createdAt])
   @@index([itemId])
+  @@index([userId, createdAt])
+}
+
+// =============================================================================
+// COCKPIT CHAT — persistent chat threads (isolation by Privy userId at app layer)
+// =============================================================================
+
+model CockpitChat {
+  id        String           @id @default(cuid())
+  userId    String           // Privy DID
+  title     String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  messages  CockpitMessage[]
+
+  @@index([userId, updatedAt])
+}
+
+model CockpitMessage {
+  id        String      @id @default(cuid())
+  chatId    String
+  chat      CockpitChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  role      String      // 'user' | 'assistant' | 'system'
+  content   String
+  createdAt DateTime    @default(now())
+
+  @@index([chatId, createdAt])
+}
+
+// =============================================================================
+// LLM OBSERVABILITY — every agent call is traced here
+// =============================================================================
+
+model LlmRun {
+  id                       String   @id @default(cuid())
+  createdAt                DateTime @default(now())
+  agentName                String
+  model                    String
+  promptHash               String?
+  inputTokens              Int?
+  outputTokens             Int?
+  // Prompt caching observability (Anthropic ephemeral cache).
+  // Both nullable — legacy rows stay NULL, and providers without caching
+  // (e.g. Kimi fallback) also persist NULL here.
+  cacheCreationInputTokens Int?     // tokens written to cache (first occurrence)
+  cacheReadInputTokens     Int?     // tokens read from cache on subsequent hits
+  systemPromptHash         String?  // sha256(system blocks) — groups runs by prompt version
+  latencyMs                Int?
+  status                   String   // queued | success | failed | timeout | fallback
+  errorType                String?
+  errorMessage             String?
+  costUsd                  Float?
+  userId                   String?  // RLS owner — nullable for system / background agent runs
+
+  @@index([createdAt])
+  @@index([agentName])
+  @@index([status])
+  @@index([userId, createdAt])
+  @@index([systemPromptHash])
 }

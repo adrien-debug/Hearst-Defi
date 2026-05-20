@@ -1,17 +1,16 @@
 import "server-only";
 
-import Anthropic from "@anthropic-ai/sdk";
-
 import {
   InvestorMemoOutputSchema,
   type InvestorMemoOutput,
 } from "@/lib/agents/schemas";
+import { callLlm, type LlmClientLike } from "@/lib/llm/client";
 import { METHODOLOGY_MD, METHODOLOGY_VERSION } from "@/lib/agents/system-prompts/methodology";
 import {
   DISCLAIMER_NOT_GUARANTEED,
   DISCLAIMER_PROJECTION,
 } from "@/lib/agents/system-prompts/disclaimers";
-import { assertNoForbiddenWords } from "@/lib/agents/validators";
+import { assertNoForbiddenWords, assertCitesAssumption } from "@/lib/agents/validators";
 import type { BacktestOutput, ScenarioOutput } from "@/lib/engine/types";
 
 /**
@@ -36,18 +35,20 @@ export type InvestorMemoInput = {
 
 export interface RunInvestorMemoOptions {
   /**
-   * Injected Anthropic client. Tests pass a mock; production callers pass a
-   * shared client. If absent, we construct one inside the function (never at
-   * module load) so importing this file in a non-server context doesn't
-   * trigger SDK init.
+   * Injected LLM client. Tests pass a mock; production callers pass a shared
+   * client. If absent, we construct one inside the function (never at module
+   * load) so importing this file in a non-server context doesn't trigger SDK
+   * init.
    */
-  client?: Anthropic;
+  client?: LlmClientLike;
   /**
    * Override the default model. Default: claude-opus-4-7.
    * WARNING: Never set this to a Sonnet model for production use.
    * Investor Memo is the highest-stakes output and requires Opus-level quality.
    */
   model?: string;
+  /** Timeout in ms for the Anthropic API call. Default: 180_000 (3 min). Opus 4.7 needs 68–136s for 4096 tokens. */
+  timeoutMs?: number;
 }
 
 const SYSTEM_INSTRUCTIONS = `You are the Investor Memo Agent for Hearst Connect.
@@ -184,26 +185,36 @@ export async function runInvestorMemo(
   input: InvestorMemoInput,
   opts: RunInvestorMemoOptions = {},
 ): Promise<InvestorMemoOutput> {
-  const client = opts.client ?? new Anthropic({ apiKey: process.env["ANTHROPIC_API_KEY"] });
   const model = opts.model ?? INVESTOR_MEMO_MODEL;
+  if (process.env.NODE_ENV === "production" && model !== INVESTOR_MEMO_MODEL) {
+    throw new Error(
+      `Investor Memo model pinning violated: got "${model}", required "${INVESTOR_MEMO_MODEL}". ` +
+        "The Investor Memo is the highest-stakes output (8-page PDF to institutional LPs) and " +
+        "must never be downgraded from Opus 4.7 in production.",
+    );
+  }
 
-  const response = await client.messages.create({
-    model,
-    max_tokens: 4096,
-    system: [
-      {
-        type: "text",
-        text: SYSTEM_INSTRUCTIONS,
-        cache_control: { type: "ephemeral" },
-      },
-    ],
-    messages: [
-      {
-        role: "user",
-        content: buildUserPrompt(input),
-      },
-    ],
-  });
+  const { response } = await callLlm(
+    "investor-memo",
+    {
+      model,
+      max_tokens: 4096,
+      system: [
+        {
+          type: "text",
+          text: SYSTEM_INSTRUCTIONS,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [
+        {
+          role: "user",
+          content: buildUserPrompt(input),
+        },
+      ],
+    },
+    { client: opts.client, timeoutMs: opts.timeoutMs ?? 180_000 },
+  );
 
   const textBlock = response.content.find((b) => b.type === "text");
   if (!textBlock || textBlock.type !== "text") {
@@ -213,7 +224,6 @@ export async function runInvestorMemo(
   const parsed = extractJson(textBlock.text);
   const validated = InvestorMemoOutputSchema.parse(parsed);
 
-  // Post-validation: forbidden-words linter on all 8 text fields
   assertNoForbiddenWords(validated.executive_summary);
   assertNoForbiddenWords(validated.vault_structure);
   assertNoForbiddenWords(validated.scenario_analysis);
@@ -222,6 +232,20 @@ export async function runInvestorMemo(
   assertNoForbiddenWords(validated.performance_section);
   assertNoForbiddenWords(validated.methodology_note);
   assertNoForbiddenWords(validated.disclaimer);
+
+  // Assumption citation checks: every narrative section must cite >=1
+  // assumption (spec/09-agents.mdx: "Every section must reference at least
+  // one assumption explicitly"). `disclaimer` is EXEMPTED because it is a
+  // verbatim legal template (DISCLAIMER_NOT_GUARANTEED + DISCLAIMER_PROJECTION),
+  // appended unchanged and not generated — it must not be rewritten to inject
+  // an assumption.
+  assertCitesAssumption(validated.executive_summary);
+  assertCitesAssumption(validated.vault_structure);
+  assertCitesAssumption(validated.scenario_analysis);
+  assertCitesAssumption(validated.risk_section);
+  assertCitesAssumption(validated.mining_section);
+  assertCitesAssumption(validated.performance_section);
+  assertCitesAssumption(validated.methodology_note);
 
   return validated;
 }

@@ -127,6 +127,65 @@ contract PoRRegistryTest is Test {
         assertEq(att.attestor, publisher);
     }
 
+    /* ----------------------------- edge inputs ------------------------------- */
+
+    function test_publish_acceptsZeroAumAndZeroSats() public {
+        // Zero AUM / zero mined sats is a valid degenerate case (e.g. a frozen-period attestation
+        // documenting that no mining output was attributed). The contract intentionally does not
+        // ban it — only `period == 0` is banned.
+        vm.prank(publisher);
+        uint256 id = registry.publish(202_605, 0, 0, bytes32("ev"), "cidZero");
+        assertEq(id, 1);
+
+        PoRRegistry.Attestation memory att = registry.getAttestationByPeriod(202_605);
+        assertEq(att.totalAumUsd, 0);
+        assertEq(att.minedBtcSats, 0);
+        assertEq(att.evidenceHash, bytes32("ev"));
+    }
+
+    function test_publish_acceptsEmptyCid() public {
+        // An attestation may legitimately reference an evidence pinned via a different scheme.
+        vm.prank(publisher);
+        registry.publish(202_605, 1, 1, bytes32("h"), "");
+
+        PoRRegistry.Attestation memory att = registry.getAttestationByPeriod(202_605);
+        assertEq(bytes(att.evidenceCid).length, 0);
+    }
+
+    function test_getAttestationByPeriod_zeroPeriodReturnsEmpty() public view {
+        // Sanity check: period 0 is unreachable because `publish` rejects it; the getter must
+        // therefore always return the zero struct for it.
+        PoRRegistry.Attestation memory att = registry.getAttestationByPeriod(0);
+        assertEq(att.timestamp, 0);
+        assertEq(att.attestor, address(0));
+    }
+
+    function test_publish_recordsBlockTimestamp() public {
+        vm.warp(2_000_000_000);
+        vm.prank(publisher);
+        registry.publish(202_605, 1, 1, bytes32("h"), "cid");
+
+        PoRRegistry.Attestation memory att = registry.getAttestationByPeriod(202_605);
+        assertEq(att.timestamp, uint64(2_000_000_000));
+    }
+
+    function test_publish_duplicateRejectionPreservesFirstAttestation() public {
+        vm.startPrank(publisher);
+        registry.publish(202_605, 100, 200, bytes32("first"), "cidFirst");
+
+        vm.expectRevert(PoRRegistry.PeriodAlreadyAttested.selector);
+        registry.publish(202_605, 999, 999, bytes32("second"), "cidSecond");
+        vm.stopPrank();
+
+        // First attestation must remain untouched.
+        PoRRegistry.Attestation memory att = registry.getAttestationByPeriod(202_605);
+        assertEq(att.totalAumUsd, 100);
+        assertEq(att.minedBtcSats, 200);
+        assertEq(att.evidenceHash, bytes32("first"));
+        assertEq(att.evidenceCid, "cidFirst");
+        assertEq(registry.lastAttestationId(), 1);
+    }
+
     /* --------------------------------- fuzz ---------------------------------- */
 
     function testFuzz_publish_onlyPublisher(address caller) public {

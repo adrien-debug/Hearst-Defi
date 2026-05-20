@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/cn";
+import { Button } from "@/components/ui/button";
 
 interface MemoToolbarProps {
   hasMemo: boolean;
@@ -30,56 +30,38 @@ export function MemoToolbar({
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-wrap items-center gap-3">
-        <button
+        <Button
           type="button"
+          variant="primary"
           onClick={onGenerate}
           disabled={isPending || isPdfPending}
-          className={cn(
-            "rounded-[--radius-button] border px-4 py-2 text-sm font-medium",
-            "transition-[background-color,color,border-color,opacity] duration-[150ms]",
-            "disabled:cursor-not-allowed disabled:opacity-40",
-            "border-[--color-brand] bg-[--color-brand] text-[--color-brand-fg]",
-            "hover:bg-[--color-brand-strong] hover:border-[--color-brand-strong]",
-          )}
         >
           {isPending
             ? "Generating…"
             : hasMemo
               ? "Regenerate memo"
               : "Generate memo"}
-        </button>
+        </Button>
 
         {hasMemo ? (
-          <button
+          <Button
             type="button"
+            variant="secondary"
             onClick={onDownload}
             disabled={isPending || isPdfPending}
-            className={cn(
-              "rounded-[--radius-button] border px-3.5 py-2 text-sm font-medium",
-              "transition-[background-color,color,border-color] duration-[150ms]",
-              "disabled:cursor-not-allowed disabled:opacity-40",
-              "border-[--color-border-strong] bg-transparent text-[--color-text]",
-              "hover:bg-[--color-bg-elevated]",
-            )}
           >
             Download .md
-          </button>
+          </Button>
         ) : null}
 
-        <button
+        <Button
           type="button"
+          variant="secondary"
           onClick={onDownloadPdf}
-          disabled={isPending || isPdfPending}
-          className={cn(
-            "rounded-[--radius-button] border px-3.5 py-2 text-sm font-medium",
-            "transition-[background-color,color,border-color] duration-[150ms]",
-            "disabled:cursor-not-allowed disabled:opacity-40",
-            "border-[--color-border-strong] bg-transparent text-[--color-text]",
-            "hover:bg-[--color-bg-elevated]",
-          )}
+          disabled={!hasMemo || isPending || isPdfPending}
         >
           {isPdfPending ? "Generating PDF…" : "Download PDF"}
-        </button>
+        </Button>
       </div>
 
       <div className="text-right">

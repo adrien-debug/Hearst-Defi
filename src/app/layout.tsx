@@ -1,12 +1,33 @@
 import type { Metadata } from "next";
+import "./tokens-layer.css";
 import "./globals.css";
+import "./cockpit.css";
 
+import { ConnectShell } from "@/components/ConnectShell";
+import { Analytics } from "@/components/analytics";
 import { PrivyProvider } from "@/components/auth/privy-provider";
+import { ClientToaster } from "@/components/ui/client-toaster";
 import { PRIVY_APP_ID } from "@/lib/auth/privy-config";
 
 export const metadata: Metadata = {
-  title: "Hearst Connect",
+  title: { default: "Hearst Connect", template: "%s | Hearst Connect" },
   description: "Institutional DeFi vault — Mining-backed structured yield",
+  metadataBase: new URL("https://hearst.connect"),
+  openGraph: {
+    type: "website",
+    siteName: "Hearst Connect",
+    title: "Hearst Connect — Institutional DeFi Vault",
+    description: "Mining-backed structured yield, monthly USDC distributions, target APY range 8–15%.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Hearst Connect",
+    description: "Institutional DeFi vault — Mining-backed structured yield",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -17,7 +38,19 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <PrivyProvider appId={PRIVY_APP_ID}>{children}</PrivyProvider>
+        <ConnectShell>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[var(--ct-z-overlay)] focus:rounded-lg focus:bg-[--ct-text-strong] focus:px-4 focus:py-2 focus:text-[--ct-bg-deep]"
+          >
+            Skip to main content
+          </a>
+          <PrivyProvider appId={PRIVY_APP_ID}>
+            <main id="main-content">{children}</main>
+            <ClientToaster />
+          </PrivyProvider>
+          <Analytics />
+        </ConnectShell>
       </body>
     </html>
   );

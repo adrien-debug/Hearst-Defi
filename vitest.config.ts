@@ -18,5 +18,19 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
+    setupFiles: ["./vitest.setup.ts"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov", "html"],
+      exclude: [
+        "**/__tests__/**",
+        "**/node_modules/**",
+        "**/*.config.*",
+        "**/coverage/**",
+        ".next/**",
+        "e2e/**",
+      ],
+      thresholds: { lines: 60, functions: 60, branches: 50, statements: 60 },
+    },
   },
 });

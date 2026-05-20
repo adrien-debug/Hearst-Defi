@@ -1,6 +1,7 @@
 # Dependencies
 node_modules
 .pnpm-store
+package-lock.json
 
 # Next.js
 .next
@@ -45,6 +46,10 @@ coverage/
 # Generated audit reports
 docs/audit/
 
+# Ephemeral agent worktrees
+.claude/worktrees/
+
 # Playwright MCP screenshots / snapshots
 .playwright-mcp/
 advanced-metrics-fixed.png
+.vercel

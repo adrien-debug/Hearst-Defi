@@ -1,10 +1,8 @@
+/* Layer order : cockpit (shell tokens + reset) < Tailwind utilities, so
+   utilities (p-*, py-*…) override the unlayered `* { padding: 0 }` reset
+   shipped in `@hearst/cockpit-shell/tokens.css` (imported via tokens-layer.css). */
+@layer cockpit, theme, base, components, utilities;
 @import "tailwindcss";
-
-/* =============================================================================
-   Hearst Connect — design system (connect-scope, always-dark)
-   Mirrors ~/Dev/hearst-connect/src/styles/theme/tokens.css. Single source of
-   truth for accent is --brand-accent; everything else derives from it.
-   ============================================================================= */
 
 @font-face {
   font-family: "Satoshi";
@@ -14,54 +12,57 @@
   font-display: swap;
 }
 
-@theme {
-  /* ---- Brand ---- */
-  --color-brand: #a7fb90;
-  --color-brand-strong: #b8fca3;
-  --color-brand-fg: #000000;
+/* ============================================================
+   Tailwind @theme — heritage Connect token names aliased to
+   Cockpit (--ct-*) tokens. Source of truth lives in
+   `node_modules/@hearst/cockpit-shell/tokens.css` (canon) and
+   `src/app/cockpit.css` (extension). DO NOT reintroduce hex
+   values here — only aliases to --ct-* tokens.
+   ============================================================ */
 
-  /* ---- Surfaces (connect-scope) ---- */
-  --color-bg: #141416;
-  --color-bg-elevated: #0a0a0a;
-  --color-bg-card: #050505;
-  --color-bg-tertiary: #1f1f22;
+@theme {
+  /* ---- Brand (aliased to Cockpit accent) ---- */
+  --color-brand: var(--ct-text-strong);
+  --color-brand-strong: var(--ct-text-strong);
+  --color-brand-fg: var(--ct-bg-deep);
+
+  /* ---- Surfaces ---- */
+  --color-bg: var(--ct-bg-deep);
+  --color-bg-elevated: var(--ct-surface-1);
+  --color-bg-card: var(--ct-surface-2);
+  --color-bg-tertiary: var(--ct-surface-3);
 
   /* ---- Borders ---- */
-  --color-border: rgba(255, 255, 255, 0.12);
-  --color-border-strong: rgba(255, 255, 255, 0.20);
-  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-border: var(--ct-border);
+  --color-border-strong: var(--ct-border-strong);
+  --color-border-subtle: var(--ct-border-soft);
 
   /* ---- Text ---- */
-  --color-text: rgba(255, 255, 255, 0.92);
-  --color-text-muted: rgba(255, 255, 255, 0.60);
-  --color-text-dim: rgba(255, 255, 255, 0.40);
+  --color-text: var(--ct-text-primary);
+  --color-text-muted: var(--ct-text-body);
+  --color-text-dim: var(--ct-text-muted);
 
   /* ---- Status ---- */
-  --color-success: #a7fb90;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-  --color-info: #74b9ff;
+  --color-success: var(--ct-status-success);
+  --color-warning: var(--ct-status-warning);
+  --color-danger: var(--ct-status-danger);
+  --color-info: var(--ct-status-info);
 
   /* ---- Typography ---- */
   --font-sans: "Satoshi", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     sans-serif;
   --font-mono: "Satoshi", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 
-  /* Type scale — rebalanced for desktop (1440–1920 viewports).
-     Base body now sits at --text-md (16px); larger end pushed up so page
-     titles read as page titles on a 1920×1080. Older aliases kept so any
-     external callers don't blow up. */
-  --text-micro: 11px;
-  --text-xs: 12px;
-  --text-sm: 14px;
-  --text-md: 16px;
-  --text-lg: 18px;
-  --text-xl: 22px;
-  --text-2xl: 28px;
-  --text-3xl: 36px;
-  --text-4xl: 48px;
-  --text-5xl: 60px;
-  /* Legacy alias — points to the old "xxl" slot, now rebased to 3xl. */
+  --text-micro: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-4xl: 3rem;
+  --text-5xl: 3.75rem;
   --text-xxl: var(--text-3xl);
 
   /* Font weights */
@@ -86,80 +87,55 @@
   --leading-relaxed: 1.6;
   --leading-loose: 1.8;
 
-  /* ---- Spacing (4px base) ---- */
-  --space-0: 0px;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-16: 64px;
-  --space-20: 80px;
-  --space-24: 120px;
+  /* ---- Radius (aliased to Cockpit) ---- */
+  --radius-sm: var(--ct-radius-sm);
+  --radius-md: var(--ct-radius-md);
+  --radius-lg: var(--ct-radius-lg);
+  --radius-xl: var(--ct-radius-xl);
+  --radius-2xl: var(--ct-radius-xl);
+  --radius-full: var(--ct-radius-full);
 
-  /* ---- Radius ---- */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 22px;
-  --radius-2xl: 28px;
-  --radius-full: 9999px;
-
-  /* Semantic radius — used by components, change primitives to re-skin */
-  --radius-card: var(--radius-lg);
-  --radius-button: var(--radius-md);
-  --radius-modal: var(--radius-lg);
+  --radius-card: var(--ct-radius-lg);
+  --radius-button: var(--ct-radius-full);
+  --radius-modal: var(--ct-radius-xl);
 
   /* ---- Transitions ---- */
-  --transition-fast: 120ms ease-out;
-  --transition-base: 150ms ease-out;
-  --transition-slow: 250ms ease-out;
+  --transition-fast: 150ms var(--ct-ease);
+  --transition-base: var(--ct-dur-base) var(--ct-ease);
+  --transition-slow: 400ms var(--ct-ease);
 }
 
 :root {
-  /* RGB triplet for opacity composition: rgba(var(--brand-accent-rgb), 0.x) */
-  --brand-accent-rgb: 167, 251, 144;
+  /* Accent dim/glow tints — derived from Cockpit accent (color-mix). */
+  --color-accent: var(--ct-accent);
+  --color-accent-dim: color-mix(in srgb, var(--ct-accent) 10%, transparent);
+  --color-accent-subtle: color-mix(in srgb, var(--ct-accent) 15%, transparent);
+  --color-accent-glow: color-mix(in srgb, var(--ct-accent) 25%, transparent);
 
-  /* Accent surfaces derived from the brand triplet */
-  --color-accent-dim: rgba(var(--brand-accent-rgb), 0.10);
-  --color-accent-subtle: rgba(var(--brand-accent-rgb), 0.15);
-  --color-accent-glow: rgba(var(--brand-accent-rgb), 0.25);
+  /* Status soft backgrounds (Cockpit aliases) */
+  --color-success-bg: var(--ct-status-success-soft);
+  --color-success-border: var(--ct-status-success-border);
 
-  /* ---- Status surface colors (bg + border pour badges & banners) ---- */
-  --color-success-bg: oklch(0.22 0.06 145);
-  --color-success-border: oklch(0.38 0.10 145);
+  --color-warning-bg: var(--ct-status-warning-soft);
+  --color-warning-border: var(--ct-status-warning-border);
 
-  --color-warning-bg: oklch(0.24 0.06 70);
-  --color-warning-border: oklch(0.40 0.10 70);
-  --color-warning-rgb: 245, 158, 11;
+  --color-danger-bg: var(--ct-status-danger-soft);
+  --color-danger-border: var(--ct-status-danger-border);
+  --color-danger-bg-hover: color-mix(in srgb, var(--ct-status-danger) 15%, transparent);
 
-  --color-danger-bg: oklch(0.24 0.10 25);
-  --color-danger-border: oklch(0.40 0.14 25);
-  --color-danger-bg-hover: oklch(0.28 0.12 25);
+  /* Shadows (Cockpit aliases) */
+  --shadow-sm: var(--ct-shadow-soft);
+  --shadow-card: var(--ct-shadow-elevated);
+  --shadow-glow: 0 0 0 3px color-mix(in srgb, var(--ct-accent) 25%, transparent);
 
-  /* ---- Shadows ---- */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.40);
-  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.50);
-  --shadow-glow: 0 0 0 3px var(--color-accent-glow);
-
-  /* ---- Form controls ---- */
-  --radius-input: var(--radius-sm);
+  --radius-input: var(--ct-radius-md);
 
   color-scheme: dark;
 }
 
-/* =============================================================================
-   BASE
-   ============================================================================= */
-
-html,
-body {
-  background: var(--color-bg);
-  color: var(--color-text);
+html, body {
+  background: var(--ct-bg-deep);
+  color: var(--ct-text-primary);
   font-family: var(--font-sans);
   font-size: var(--text-md);
   line-height: var(--leading-relaxed);
@@ -167,166 +143,82 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "ss01", "cv11";
   text-rendering: optimizeLegibility;
+  min-height: 100vh;
 }
 
 * {
-  border-color: var(--color-border);
+  border-color: var(--ct-border);
 }
 
 ::selection {
-  background: var(--color-brand);
-  color: var(--color-brand-fg);
+  background: var(--ct-surface-3);
+  color: var(--ct-text-strong);
 }
 
-/* Numeric strings stay aligned across rows in tables, KPIs, etc. */
 .tabular {
   font-variant-numeric: tabular-nums;
 }
 
-/* =============================================================================
-   TYPOGRAPHIC ROLES
-   These are semantic classes (not utility soup): apply them to <h1>/<h2>/<h3>
-   so heading hierarchy stays consistent across the app. They map directly to
-   the brand's stat-value / kpi-label / eyebrow grammar.
-   ============================================================================= */
+/* Typographic roles (.h1/.h2/.h3/.h4, .eyebrow, .stat-value/.stat-label,
+   .body-*) are defined in cockpit.css against --ct-* tokens. */
 
-.h1 {
-  font-size: var(--text-5xl);
-  font-weight: var(--weight-black);
-  letter-spacing: var(--tracking-tight);
-  line-height: var(--leading-display);
-  color: var(--color-text);
-}
-
-.h2 {
-  font-size: var(--text-3xl);
-  font-weight: var(--weight-bold);
-  letter-spacing: var(--tracking-tight);
-  line-height: var(--leading-tight);
-  color: var(--color-text);
-}
-
-.h3 {
-  font-size: var(--text-xl);
-  font-weight: var(--weight-bold);
-  letter-spacing: var(--tracking-tight);
-  line-height: var(--leading-tight);
-  color: var(--color-text);
-}
-
-.h4 {
-  font-size: var(--text-lg);
-  font-weight: var(--weight-semibold);
-  line-height: var(--leading-tight);
-  color: var(--color-text);
-}
-
-/* Small uppercase kicker — section labels above an h1/h2. */
-.eyebrow {
-  font-size: var(--text-xs);
-  font-weight: var(--weight-semibold);
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-  color: var(--color-text-dim);
-}
-
-/* Numeric KPIs — pair with .h1 (huge) or .stat-value (medium). */
-.stat-value {
-  font-size: var(--text-2xl);
-  font-weight: var(--weight-black);
-  letter-spacing: var(--tracking-tight);
-  line-height: var(--leading-tight);
-  font-variant-numeric: tabular-nums;
-  color: var(--color-text);
-}
-
-.stat-label {
-  font-size: var(--text-sm);
-  font-weight: var(--weight-semibold);
-  letter-spacing: var(--tracking-uppercase);
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-/* Body roles */
-.body-lg {
-  font-size: var(--text-lg);
-  line-height: var(--leading-relaxed);
-  color: var(--color-text-muted);
-}
-
-.body-md {
-  font-size: var(--text-md);
-  line-height: var(--leading-relaxed);
-  color: var(--color-text-muted);
-}
-
-.body-sm {
-  font-size: var(--text-sm);
-  line-height: var(--leading-base);
-  color: var(--color-text-muted);
-}
-
-.body-xs {
-  font-size: var(--text-xs);
-  line-height: var(--leading-base);
-  color: var(--color-text-dim);
-}
-
-/* Inline code / mono runs in body text */
-code,
-.mono {
+code, .mono {
   font-family: var(--font-mono);
   font-feature-settings: "tnum", "zero", "ss01";
 }
 
-/* =============================================================================
-   RANGE SLIDER — no external lib, brand-consistent
-   Usage: apply class="slider-track" + CSS var --slider-pct for fill width.
-   ============================================================================= */
-
 .slider-track {
   -webkit-appearance: none;
   appearance: none;
-  height: 4px;
-  border-radius: var(--radius-full);
+  height: var(--ct-space-1_5);
+  border-radius: var(--ct-radius-full);
   outline: none;
   border: none;
   background: linear-gradient(
     to right,
-    var(--color-brand) 0%,
-    var(--color-brand) var(--slider-pct, 50%),
-    var(--color-bg-elevated) var(--slider-pct, 50%),
-    var(--color-bg-elevated) 100%
+    var(--ct-text-primary) 0%,
+    var(--ct-text-primary) var(--slider-pct, 50%),
+    var(--ct-surface-3) var(--slider-pct, 50%),
+    var(--ct-surface-3) 100%
   );
+  box-shadow: inset 0 1px 2px color-mix(in srgb, var(--ct-bg-deep) 50%, transparent);
+}
+
+.slider-track:focus-visible {
+  outline: 2px solid var(--ct-text-strong);
+  outline-offset: 2px;
 }
 
 .slider-track::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: var(--radius-full);
-  background: var(--color-brand);
-  border: 2px solid var(--color-brand-fg);
+  width: var(--ct-space-5);
+  height: var(--ct-space-5);
+  border-radius: var(--ct-radius-full);
+  background: var(--ct-text-strong);
+  box-shadow: var(--ct-shadow-soft);
   cursor: pointer;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: transform var(--ct-dur-base) var(--ct-ease);
 }
 
 .slider-track::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
-  box-shadow: 0 0 0 4px var(--color-accent-glow);
+  transform: scale(1.1);
 }
 
 .slider-track::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: var(--radius-full);
-  background: var(--color-brand);
-  border: 2px solid var(--color-brand-fg);
+  width: var(--ct-space-5);
+  height: var(--ct-space-5);
+  border-radius: var(--ct-radius-full);
+  background: var(--ct-text-strong);
+  box-shadow: var(--ct-shadow-soft);
   cursor: pointer;
+  border: none;
 }
 
-.slider-track:focus-visible::-webkit-slider-thumb {
-  box-shadow: 0 0 0 4px var(--color-accent-glow);
+/* Glass panel utility — definitive version lives in cockpit.css against
+   --ct-* tokens. Kept here only as a no-op safety net for legacy bundles. */
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OMNISCAN — Hearst Connect — 2026-05-19</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg-0: #1A050B;
+    --bg-1: #2a0a14;
+    --accent: #8A1538;
+    --accent-soft: #b21e4b;
+    --text: #ededed;
+    --text-dim: #b9a8ad;
+    --glass-bg: rgba(255,255,255,0.045);
+    --glass-bg-strong: rgba(255,255,255,0.07);
+    --glass-border: rgba(255,255,255,0.10);
+    --green: #2ecc71;
+    --green-bg: rgba(46,204,113,0.13);
+    --green-bd: rgba(46,204,113,0.38);
+    --red: #ff5a6e;
+    --red-bg: rgba(255,90,110,0.13);
+    --red-bd: rgba(255,90,110,0.40);
+    --amber: #f5b945;
+    --amber-bg: rgba(245,185,69,0.12);
+    --amber-bd: rgba(245,185,69,0.38);
+    --grey-bg: rgba(255,255,255,0.05);
+    --grey-bd: rgba(255,255,255,0.13);
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(1200px 700px at 80% -10%, rgba(138,21,56,0.32), transparent 60%),
+      radial-gradient(900px 600px at 0% 100%, rgba(178,30,75,0.18), transparent 55%),
+      linear-gradient(160deg, var(--bg-0) 0%, var(--bg-1) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    line-height: 1.55;
+    font-size: 15px;
+    padding: 40px 22px 80px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+
+  .glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  }
+
+  header.hero {
+    padding: 34px 38px;
+    margin-bottom: 26px;
+    position: relative;
+    overflow: hidden;
+  }
+  header.hero::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(138,21,56,0.22), transparent 55%);
+    pointer-events: none;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent-soft);
+    margin-bottom: 12px;
+  }
+  h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.01em; }
+  h1 .sub { display:block; font-size: 15px; font-weight: 400; color: var(--text-dim); margin-top: 8px; }
+  .branch {
+    display: inline-block;
+    margin-top: 14px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(138,21,56,0.28);
+    border: 1px solid rgba(178,30,75,0.5);
+    color: #ffd9e2;
+  }
+
+  section { margin-bottom: 26px; }
+  h2 {
+    font-size: 18px;
+    font-weight: 650;
+    margin: 0 0 16px;
+    padding-left: 13px;
+    border-left: 3px solid var(--accent-soft);
+  }
+  h3 { font-size: 14px; font-weight: 600; color: var(--text-dim); margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+  p { color: var(--text-dim); }
+  .pad { padding: 26px 30px; }
+
+  /* Score block */
+  .score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 760px){ .score-grid { grid-template-columns: 1fr; } }
+  .score-card { padding: 26px 28px; }
+  .score-line { display:flex; align-items:baseline; gap:14px; margin-bottom:6px; }
+  .score-from { font-size: 26px; color: var(--text-dim); font-weight:600; }
+  .score-arrow { color: var(--accent-soft); font-size:20px; }
+  .score-to { font-size: 44px; font-weight: 800; color: var(--green); }
+  .score-to small { font-size: 18px; color: var(--text-dim); font-weight:500; }
+  .bar-track {
+    margin-top: 16px;
+    height: 18px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid var(--glass-border);
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-before {
+    position:absolute; top:0; left:0; height:100%;
+    width: 54%;
+    background: repeating-linear-gradient(45deg, rgba(255,90,110,0.35), rgba(255,90,110,0.35) 7px, rgba(255,90,110,0.22) 7px, rgba(255,90,110,0.22) 14px);
+    border-right: 1px dashed rgba(255,255,255,0.4);
+  }
+  .bar-after {
+    position:absolute; top:0; left:0; height:100%;
+    width: 87%;
+    background: linear-gradient(90deg, var(--accent), var(--green));
+    box-shadow: 0 0 18px rgba(46,204,113,0.45);
+  }
+  .bar-legend { display:flex; justify-content:space-between; margin-top:8px; font-family: var(--mono); font-size:11.5px; color: var(--text-dim); }
+
+  .stat-card { padding: 22px 24px; }
+  .stat-row { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap: 14px; }
+  .stat {
+    text-align:center;
+    padding: 14px 8px;
+    border-radius: 12px;
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border);
+  }
+  .stat .v { font-size: 24px; font-weight: 800; }
+  .stat .v.ok { color: var(--green); }
+  .stat .l { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.07em; margin-top:4px; }
+
+  ul.clean { list-style:none; }
+  ul.clean li { padding: 7px 0 7px 22px; position: relative; color: var(--text-dim); border-bottom: 1px solid rgba(255,255,255,0.05); }
+  ul.clean li:last-child { border-bottom: none; }
+  ul.clean li::before { content: "▸"; position:absolute; left:0; color: var(--accent-soft); }
+  ul.clean li strong { color: var(--text); }
+
+  /* P0 cards */
+  .p0-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:14px; }
+  @media (max-width: 900px){ .p0-grid { grid-template-columns: repeat(2,1fr);} }
+  @media (max-width: 600px){ .p0-grid { grid-template-columns: 1fr;} }
+  .p0 {
+    padding: 16px 18px;
+    border-radius: 13px;
+    background: var(--green-bg);
+    border: 1px solid var(--green-bd);
+  }
+  .p0 .tag { font-family: var(--mono); font-size:11px; color: var(--green); letter-spacing:0.1em; }
+  .p0 .ttl { font-weight: 650; font-size: 14px; margin: 5px 0 4px; }
+  .p0 .dsc { font-size: 12.5px; color: var(--text-dim); }
+  .p0 .chk { float:right; color: var(--green); font-weight:700; }
+
+  /* Findings table */
+  .tbl-wrap { overflow-x:auto; border-radius: 14px; }
+  table { width:100%; border-collapse: collapse; font-size: 12.8px; min-width: 880px; }
+  th {
+    text-align:left;
+    padding: 12px 13px;
+    background: rgba(138,21,56,0.30);
+    color: #ffe2ea;
+    font-weight:600;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--glass-border);
+  }
+  td { padding: 12px 13px; border-bottom: 1px solid rgba(255,255,255,0.06); color: var(--text-dim); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.id { font-family: var(--mono); color: var(--text); white-space: nowrap; font-weight:600; }
+  td.file { font-family: var(--mono); font-size: 11px; color: #c9b9be; }
+  .lvl { display:inline-block; padding: 3px 9px; border-radius: 999px; font-family: var(--mono); font-size:10.5px; font-weight:700; letter-spacing:0.05em; }
+  .lvl.p0 { background: var(--red-bg); border:1px solid var(--red-bd); color: var(--red); }
+  .lvl.p1 { background: var(--amber-bg); border:1px solid var(--amber-bd); color: var(--amber); }
+  .st { display:inline-block; padding: 3px 9px; border-radius:999px; font-size:11px; font-weight:600; background: var(--green-bg); border:1px solid var(--green-bd); color: var(--green); white-space:nowrap; }
+  tr.reg td { background: rgba(245,185,69,0.05); }
+
+  /* positive axes */
+  .axe-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap:14px; }
+  .axe { padding:16px 18px; border-radius:12px; background: var(--glass-bg-strong); border:1px solid var(--glass-border); }
+  .axe .sc { font-size: 22px; font-weight:800; color: var(--green); }
+  .axe .nm { font-size:13px; font-weight:600; margin:4px 0; }
+  .axe .ds { font-size:11.5px; color: var(--text-dim); }
+
+  .back-item, .reco-item { padding: 11px 0 11px 24px; position:relative; border-bottom:1px solid rgba(255,255,255,0.05); color: var(--text-dim); font-size: 13px; }
+  .back-item:last-child, .reco-item:last-child { border-bottom:none; }
+  .back-item::before { content:"·"; position:absolute; left:6px; color: var(--text-dim); font-size:22px; line-height:1; top:8px; }
+  .reco-item { counter-increment: r; }
+  .reco-list { counter-reset: r; }
+  .reco-item::before { content: counter(r); position:absolute; left:0; top:11px; width:18px; height:18px; border-radius:50%; background: var(--accent); color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .pill-mini { display:inline-block; font-family:var(--mono); font-size:10px; padding:1px 7px; border-radius:999px; background: var(--grey-bg); border:1px solid var(--grey-bd); color: var(--text-dim); margin-right:6px; }
+
+  footer {
+    text-align:center;
+    margin-top: 36px;
+    padding: 22px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    border-top: 1px solid var(--glass-border);
+  }
+  footer strong { color: var(--accent-soft); }
+
+  @media print {
+    body { background: #1A050B !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 12px; }
+    .glass { box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
+    section, header.hero { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero glass">
+    <div class="eyebrow">OMNISCAN · Audit multi-agents orchestré</div>
+    <h1>Hearst Connect — Rapport d'audit complet
+      <span class="sub">Next.js 16 · Tailwind v4 · Prisma · Supabase · Anthropic SDK · Design system Cockpit</span>
+    </h1>
+    <span class="branch">branch: feat/scenario-proof-center</span>
+  </header>
+
+  <section>
+    <h2>Résumé exécutif</h2>
+    <div class="score-grid">
+      <div class="score-card glass">
+        <h3>Score global</h3>
+        <div class="score-line">
+          <span class="score-from">5.4</span>
+          <span class="score-arrow">→</span>
+          <span class="score-to">8.7<small>/10</small></span>
+        </div>
+        <div class="bar-track" role="img" aria-label="Progression du score de 5.4 à 8.7 sur 10">
+          <div class="bar-before"></div>
+          <div class="bar-after"></div>
+        </div>
+        <div class="bar-legend"><span>AVANT 5.4</span><span>APRÈS 8.7</span></div>
+      </div>
+      <div class="stat-card glass">
+        <h3>État du cycle</h3>
+        <div class="stat-row">
+          <div class="stat"><div class="v">9</div><div class="l">P0 identifiés</div></div>
+          <div class="stat"><div class="v ok">9</div><div class="l">P0 résolus</div></div>
+          <div class="stat"><div class="v ok">0</div><div class="l">P0 restants</div></div>
+          <div class="stat"><div class="v ok">209/209</div><div class="l">Tests verts</div></div>
+          <div class="stat"><div class="v ok">10/10</div><div class="l">Cockpit</div></div>
+          <div class="stat"><div class="v ok">PASS</div><div class="l">Build 18 pages</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="glass pad" style="margin-top:18px;">
+      <ul class="clean">
+        <li><strong>Cycle unique :</strong> 16 audits parallèles → triage → 13 fixes parallèles → revérification croisée 4 agents → 1 fix de régression.</li>
+        <li><strong>Qualité :</strong> Typecheck 0 erreur · Lint 0 erreur · Tests 209/209 (après réconciliation fixtures) · Conformité Cockpit 10/10 (inchangée).</li>
+        <li><strong>Diff :</strong> <span style="color:var(--green);font-weight:600;">SAFE TO COMMIT</span> — aucun nouveau P0/P1, engine resté pur, fichiers WIP préexistants non corrompus.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>P0 — tous résolus</h2>
+    <div class="p0-grid">
+      <div class="p0"><span class="chk">✓</span><div class="tag">P0-1 · SÉCU/RLS</div><div class="ttl">Pages admin sans requireAdmin()</div><div class="dsc">requireAdmin() + middleware matcher /admin/:path*</div></div>
+      <div class="p0"><span class="chk">✓</span><div class="tag">P0-2 · RLS</div><div class="ttl">userId absent sur tables clés</div><div class="dsc">userId String? + @@index, migration zéro-risque</div></div>
+      <div class="p0"><span class="chk">✓</span><div class="tag">P0-3 · DATA</div><div class="ttl">resetTables() destructeur</div><div class="dsc">Guard NODE_ENV=production → exit(1)</div></div>
+      <div class="p0"><span class="chk">✓</span><div class="tag">P0-4 · CHAT</div><div class="ttl">Chat sans persistance ni tracing</div><div class="dsc">Prisma user-scopé + LlmRun + rate-limit per-user</div></div>
+      <div class="p0"><span class="chk">✓</span><div class="tag">P0-5 · A11Y</div><div class="ttl">outline:none sans focus-visible</div><div class="dsc">Ring focus-visible --ct-* + aria-label sliders</div></div>
+      <div class="p0"><span class="chk">✓</span><div class="tag">P0-6 · UX</div><div class="ttl">error.tsx absent (10+ routes)</div><div class="dsc">9 error.tsx + 1 not-found.tsx partagés</div></div>
+      <div class="p0"><span class="chk">✓</span><div class="tag">P0-7 · CONFORMITÉ</div><div class="ttl">Provenance badges absents</div><div class="dsc">9 métriques badgées + dégradation Stale</div></div>
+      <div class="p0"><span class="chk">✓</span><div class="tag">P0-8 · PROD</div><div class="ttl">getProofs() mock en prod</div><div class="dsc">Prisma réel server-only + empty state</div></div>
+      <div class="p0"><span class="chk">✓</span><div class="tag">P0-9 · SÉCU</div><div class="ttl">Signature Inngest non vérifiée</div><div class="dsc">Vérif inngest@4 confirmée + fail-fast prod</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tableau des findings &amp; statut</h2>
+    <div class="glass tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Niveau</th><th>Axe</th><th>Fichier</th><th>Problème</th><th>Fix appliqué</th><th>Statut</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="id">P0-1</td><td><span class="lvl p0">P0</span></td><td>Sécu/RLS</td>
+            <td class="file">src/app/admin/{roadmap,feedback,monitoring,spec/[slug],page}.tsx</td>
+            <td>Pages admin sans requireAdmin() — données internes lisibles par tout user auth</td>
+            <td><code>await requireAdmin()</code> ajouté + src/middleware.ts (matcher /admin/:path*)</td>
+            <td><span class="st">✅ RÉSOLU</span></td>
+          </tr>
+          <tr>
+            <td class="id">P0-2</td><td><span class="lvl p0">P0</span></td><td>RLS</td>
+            <td class="file">prisma/schema.prisma</td>
+            <td>userId absent Feedback/ReportExport/LlmRun, ScenarioRun nullable</td>
+            <td>userId String? + @@index ajoutés (nullable, zéro risque migration)</td>
+            <td><span class="st">✅ RÉSOLU</span></td>
+          </tr>
+          <tr>
+            <td class="id">P0-3</td><td><span class="lvl p0">P0</span></td><td>Data</td>
+            <td class="file">prisma/seed.ts</td>
+            <td>resetTables() détruit la DB sans guard</td>
+            <td>Guard NODE_ENV===production → exit(1) avant deleteMany</td>
+            <td><span class="st">✅ RÉSOLU</span></td>
+          </tr>
+          <tr>
+            <td class="id">P0-4</td><td><span class="lvl p0">P0</span></td><td>Chat</td>
+            <td class="file">src/app/api/cockpit-chat/route.ts, kimi.ts, env.ts</td>
+            <td>Zéro persistance, zéro tracing LlmRun, rate-limit IP, HYPERCLI non validé</td>
+            <td>Persistence Prisma user-scopée + tracing LlmRun + rate-limit per-user + guard clé vide + JSDoc fallback</td>
+            <td><span class="st">✅ RÉSOLU</span></td>
+          </tr>
+          <tr>
+            <td class="id">P0-5</td><td><span class="lvl p0">P0</span></td><td>A11y</td>
+            <td class="file">src/app/globals.css, cockpit.css</td>
+            <td>outline:none sans focus-visible (WCAG A KO)</td>
+            <td>focus-visible ring via tokens --ct-* + aria-label/aria-valuetext sliders/dots</td>
+            <td><span class="st">✅ RÉSOLU</span></td>
+          </tr>
+          <tr>
+            <td class="id">P0-6</td><td><span class="lvl p0">P0</span></td><td>UX</td>
+            <td class="file">10+ routes</td>
+            <td>error.tsx absent (juste global-error)</td>
+            <td>9 error.tsx + 1 not-found.tsx créés via composants partagés SegmentError/SegmentNotFound</td>
+            <td><span class="st">✅ RÉSOLU</span></td>
+          </tr>
+          <tr>
+            <td class="id">P0-7</td><td><span class="lvl p0">P0</span></td><td>UX/Conformité</td>
+            <td class="file">src/app/(product)/dashboard/page.tsx</td>
+            <td>Provenance badges absents (non-négociable CLAUDE.md #2)</td>
+            <td>9 métriques badgées (Live/Oracle/Estimated/Attested), dégradation Stale sur fallback</td>
+            <td><span class="st">✅ RÉSOLU</span></td>
+          </tr>
+          <tr>
+            <td class="id">P0-8</td><td><span class="lvl p0">P0</span></td><td>Prod</td>
+            <td class="file">src/app/(product)/proof-center/page.tsx</td>
+            <td>getProofs() mock hardcodé servi en prod</td>
+            <td>src/lib/data/proofs.ts (Prisma réel server-only) + empty state ; mock conservé pour tests</td>
+            <td><span class="st">✅ RÉSOLU</span></td>
+          </tr>
+          <tr>
+            <td class="id">P0-9</td><td><span class="lvl p0">P0</span></td><td>Sécu</td>
+            <td class="file">src/app/api/inngest/route.ts</td>
+            <td>Signature non vérifiée explicitement</td>
+            <td>Vérif auto inngest@4 confirmée par preuve source + fail-fast explicite si signing key absent prod</td>
+            <td><span class="st">✅ RÉSOLU</span></td>
+          </tr>
+          <tr>
+            <td class="id">P1-1</td><td><span class="lvl p1">P1</span></td><td>Agents</td>
+            <td class="file">risk-explanation.ts, investor-memo.ts</td>
+            <td>assertCitesAssumption manquant (top_risks + 4 sections)</td>
+            <td>Ajouté sur top_risks[].explanation + 4 sections (disclaimer exempté) + 9 tests</td>
+            <td><span class="st">✅ RÉSOLU</span></td>
+          </tr>
+          <tr>
+            <td class="id">P1-2</td><td><span class="lvl p1">P1</span></td><td>Sécu</td>
+            <td class="file">investor-memo/scenario-lab/feedback/roadmap actions.ts</td>
+            <td>try/catch+logger absents, rate-limit feedback global, quickSetStatus non validé</td>
+            <td>try/catch+logger sur 8 actions, rate-limit per-user, validation status</td>
+            <td><span class="st">✅ RÉSOLU</span></td>
+          </tr>
+          <tr>
+            <td class="id">P1-3</td><td><span class="lvl p1">P1</span></td><td>TS</td>
+            <td class="file">verify.ts, db.ts, roadmap.ts, spec.ts</td>
+            <td>as unknown as non justifié, JSON.parse sans Zod</td>
+            <td>type guard isRecord, Zod sur roadmap/spec, JSDoc db.ts</td>
+            <td><span class="st">✅ RÉSOLU</span></td>
+          </tr>
+          <tr>
+            <td class="id">P1-4</td><td><span class="lvl p1">P1</span></td><td>Dead/Perf</td>
+            <td class="file">engine validators ×4, motion.tsx, next.config.ts, page.tsx</td>
+            <td>assertNoForbiddenWords dupliqué, framer-motion non lazy, optimizePackageImports, SVG unoptimized</td>
+            <td>3 variantes engine synchronisées+commentées, LazyMotion, optimizePackageImports, unoptimized retiré, BtcTrigger→MockBtcTrigger+alias deprecated</td>
+            <td><span class="st">✅ RÉSOLU</span></td>
+          </tr>
+          <tr class="reg">
+            <td class="id">REG-1</td><td><span class="lvl p1">P1</span></td><td>Tests</td>
+            <td class="file">src/__tests__/integration/investor-memo.integration.test.ts</td>
+            <td>Régression de la vague : fixtures ne citaient pas d'hypothèse dans 4 sections → 2 tests fail</td>
+            <td>Fixtures réconciliées avec le contrat durci (validateur inchangé) — 2/2 pass</td>
+            <td><span class="st">✅ RÉSOLU</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Axes audités — sans finding bloquant</h2>
+    <div class="axe-grid">
+      <div class="axe glass"><div class="sc">10/10</div><div class="nm">Conformité Cockpit</div><div class="ds">tokens --ct-*, shell, chat rail droit, bento 12-col, 0 hex hors fichiers autorisés</div></div>
+      <div class="axe glass"><div class="sc">9/10</div><div class="nm">Secrets</div><div class="ds">aucun secret hardcodé, .env.local gitignore, env.ts Zod strict</div></div>
+      <div class="axe glass"><div class="sc">7/10</div><div class="nm">Dead code</div><div class="ds">repo propre, surtout doublons (traités)</div></div>
+      <div class="axe glass"><div class="sc">7.5/10</div><div class="nm">Performance bundle</div><div class="ds">deps lourdes isolées serveur, 3 use-client seulement</div></div>
+      <div class="axe glass"><div class="sc">8/10</div><div class="nm">TypeScript strictness</div><div class="ds">strict total, 0 any, tsc/lint clean</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Diff résumé</h2>
+    <div class="glass pad">
+      <div class="stat-row">
+        <div class="stat"><div class="v">37</div><div class="l">fichiers modifiés</div></div>
+        <div class="stat"><div class="v">18</div><div class="l">fichiers créés</div></div>
+        <div class="stat"><div class="v" style="color:var(--green)">+882</div><div class="l">lignes ajoutées</div></div>
+        <div class="stat"><div class="v" style="color:var(--red)">-197</div><div class="l">lignes retirées</div></div>
+      </div>
+      <p style="margin-top:16px;">Aucune régression de couplage. Engine resté pur (aucun import I/O / cross-layer). Fichiers WIP préexistants (dashboard.css, proof-card.tsx) non corrompus.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Backlog Cycle 2 — P1/P2 non traités</h2>
+    <p style="margin-bottom:14px;">Nécessitent validation produit · <strong style="color:var(--green)">NON bloquants go-live</strong></p>
+    <div class="glass pad">
+      <div class="back-item"><span class="pill-mini">P1</span>Float→Decimal pour montants USDC (précision financière) — migration de données risquée, décision produit.</div>
+      <div class="back-item"><span class="pill-mini">P1</span>Migrations Prisma versionnées (actuellement db push, zéro rollback prod) — décision archi.</div>
+      <div class="back-item"><span class="pill-mini">P1</span>Vulnérabilités MODERATE : ws &lt; 8.20.1 (via viem/privy), postcss — pnpm dedupe + bump transitifs.</div>
+      <div class="back-item"><span class="pill-mini">P1</span>docs/spec/09-agents.mdx désynchronisé des schemas Zod réels — mise à jour doc.</div>
+      <div class="back-item"><span class="pill-mini">P1</span>Fallback Anthropic↔Kimi sur circuit-breaker ouvert (dégradation service 60s).</div>
+      <div class="back-item"><span class="pill-mini">P2</span>.nvmrc absent ; pnpm build n'enchaîne pas prisma generate (Dockerfile le fait) ; CSP frame-ancestors localhost en prod ; enums Prisma (status en String) ; @updatedAt manquant RebalanceEvent/Proof ; .next 3.2 G (trace NFT Turbopack via spec.ts fs.readFile) ; dompurify potentiellement inutilisé ; breadcrumb /admin/spec/[slug].</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Recommandations</h2>
+    <div class="glass pad reco-list">
+      <div class="reco-item"><strong>Go-live sécurité : OK côté code</strong> (tous P0 traités). AVANT prod : <code>pnpm db:push</code> (colonnes userId), exécuter RLS Postgres Supabase (script à écrire), backfill userId historique.</div>
+      <div class="reco-item">Lancer <strong>Cycle 2</strong> sur le backlog P1 avec validation produit (surtout Float→Decimal + migrations versionnées).</div>
+      <div class="reco-item">Surveiller le poids <strong>.next (3.2 G)</strong> — investiguer la trace NFT Turbopack de src/lib/spec.ts.</div>
+    </div>
+  </section>
+
+  <footer class="glass">
+    <strong>OMNISCAN</strong> — 2026-05-19 — orchestration multi-agents
+    (16 audit ∥ + 13 fix ∥ + 4 review ∥)
+  </footer>
+
+</div>
+</body>
+</html>

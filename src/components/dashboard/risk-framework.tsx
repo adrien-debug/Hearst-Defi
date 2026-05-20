@@ -15,21 +15,21 @@ interface RiskFrameworkSectionProps {
 }
 
 const SEVERITY_TEXT: Record<RiskSeverity, string> = {
-  low: "text-[--color-success]",
-  medium: "text-[--color-warning]",
-  high: "text-[--color-danger]",
+  low: "ct-status-glow-success",
+  medium: "ct-status-glow-warning",
+  high: "ct-status-glow-danger",
 };
 
 const SEVERITY_BAR: Record<RiskSeverity, string> = {
-  low: "bg-[--color-success]",
-  medium: "bg-[--color-warning]",
-  high: "bg-[--color-danger]",
+  low: "ct-status-dot-success",
+  medium: "ct-status-dot-warning",
+  high: "ct-status-dot-danger",
 };
 
 const SEVERITY_DOT: Record<RiskSeverity, string> = {
-  low: "var(--color-success)",
-  medium: "var(--color-warning)",
-  high: "var(--color-danger)",
+  low: "var(--ct-status-success)",
+  medium: "var(--ct-status-warning)",
+  high: "var(--ct-status-danger)",
 };
 
 const SEVERITY_VARIANT: Record<
@@ -48,15 +48,15 @@ const BAND_VARIANT: Record<RiskBand, "success" | "warning" | "danger"> = {
 };
 
 const BAND_TEXT: Record<RiskBand, string> = {
-  low: "text-[--color-success]",
-  medium: "text-[--color-warning]",
-  high: "text-[--color-danger]",
+  low: "ct-status-glow-success",
+  medium: "ct-status-glow-warning",
+  high: "ct-status-glow-danger",
 };
 
 const BAND_BAR: Record<RiskBand, string> = {
-  low: "bg-[--color-success]",
-  medium: "bg-[--color-warning]",
-  high: "bg-[--color-danger]",
+  low: "ct-status-dot-success",
+  medium: "ct-status-dot-warning",
+  high: "ct-status-dot-danger",
 };
 
 function provenanceFromSource(
@@ -86,7 +86,7 @@ export function RiskFrameworkSection({ data }: RiskFrameworkSectionProps) {
         bandLabel={data.bandLabel}
       />
 
-      <ul className="mt-5 divide-y divide-[--color-border-subtle]">
+      <ul className="mt-6 ct-divide-soft">
         {data.dimensions.map((d) => (
           <li key={d.id}>
             <RiskRow dimension={d} />
@@ -94,7 +94,7 @@ export function RiskFrameworkSection({ data }: RiskFrameworkSectionProps) {
         ))}
       </ul>
 
-      <p className="mt-5 text-xs text-[--color-text-dim]">
+      <p className="mt-6 text-xs text-[--ct-text-faint] italic leading-relaxed">
         Composite score is the weighted sum of the five dimensions defined in
         Methodology v1.0. Conditional projection — not guaranteed.
       </p>
@@ -110,22 +110,22 @@ interface CompositeHeaderProps {
 
 function CompositeHeader({ composite, band, bandLabel }: CompositeHeaderProps) {
   return (
-    <div className="flex flex-col gap-3 rounded-[--radius-button] border border-[--color-border-subtle] bg-[--color-bg-elevated] px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-4 rounded-[--ct-radius-xl] glass-panel-subtle px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-baseline gap-3">
         <span className="stat-label">Composite</span>
-        <span className={cn("h3 leading-none tabular", BAND_TEXT[band])}>
+        <span className={cn("text-4xl font-semibold tracking-tight tabular-nums", BAND_TEXT[band])}>
           {composite}
-          <span className="text-[--color-text-dim] text-sm font-normal">
-            {" "}
+          <span className="text-[--ct-text-faint] text-lg font-normal ml-1">
             / 100
           </span>
         </span>
       </div>
-      <div className="flex items-center gap-3 sm:min-w-[240px]">
+      <div className="flex items-center gap-4 sm:min-w-60">
         <Progress
           value={composite}
           fillClassName={BAND_BAR[band]}
-          className="h-1.5 flex-1"
+          className="h-2 flex-1"
+          label={`Composite risk score ${composite} of 100, ${bandLabel}`}
         />
         <Badge variant={BAND_VARIANT[band]}>{bandLabel}</Badge>
       </div>
@@ -140,27 +140,28 @@ interface RiskRowProps {
 function RiskRow({ dimension }: RiskRowProps) {
   const { label, status, score, severity, detail } = dimension;
   return (
-    <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:gap-4">
+    <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:gap-4 group">
       <div className="flex min-w-0 flex-1 items-start gap-3">
         <span
           aria-hidden
-          className="mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full"
-          style={{ background: SEVERITY_DOT[severity] }}
+          className="mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full shadow-[--ct-glow-dot]"
+          style={{ background: SEVERITY_DOT[severity], color: SEVERITY_DOT[severity] }}
         />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium text-[--color-text]">
+            <span className="text-sm font-medium text-[--ct-text-primary] group-hover:text-[--ct-text-body] transition-colors">
               {label}
             </span>
             <Badge variant={SEVERITY_VARIANT[severity]}>{status}</Badge>
           </div>
-          <p className="mt-0.5 text-xs text-[--color-text-dim]">{detail}</p>
+          <p className="mt-1 text-xs text-[--ct-text-muted] group-hover:text-[--ct-text-body] transition-colors">{detail}</p>
         </div>
       </div>
-      <div className="flex items-center gap-3 sm:w-[160px] sm:justify-end">
+      {/* sm:w-[11.25rem] conservé — 11.25rem = 180px, pas de step natif Tailwind (w-44=176px trop étroit, w-48=192px trop large) */}
+      <div className="flex items-center gap-4 sm:w-[11.25rem] sm:justify-end">
         <span
           className={cn(
-            "stat-value leading-none w-9 text-right tabular",
+            "text-lg font-semibold leading-none w-9 text-right tabular-nums",
             SEVERITY_TEXT[severity],
           )}
         >
@@ -169,7 +170,9 @@ function RiskRow({ dimension }: RiskRowProps) {
         <Progress
           value={score}
           fillClassName={SEVERITY_BAR[severity]}
-          className="h-1 w-[68px] sm:w-20"
+          /* 6.25rem = 100px ; pas de step 25 dans la spacing scale Tailwind v4 par défaut */
+          className="h-1.5 w-20 sm:w-[6.25rem]"
+          label={`${label} risk score ${score} of 100, ${status}`}
         />
       </div>
     </div>

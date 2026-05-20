@@ -66,7 +66,7 @@ export function EventTimeline({ events }: EventTimelineProps) {
       {events.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-12 text-center">
           <svg
-            className="h-10 w-10 text-[--color-text-dim]"
+            className="h-10 w-10 text-[--ct-text-muted]"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -93,21 +93,21 @@ export function EventTimeline({ events }: EventTimelineProps) {
                 "relative flex gap-5 pb-8",
                 // Suppress timeline line after last item
                 idx < events.length - 1 &&
-                  "before:absolute before:left-[13px] before:top-7 before:bottom-0 before:w-px before:bg-[--color-border-subtle]",
+                  "before:absolute before:left-[0.8125rem] before:top-7 before:bottom-0 before:w-px before:bg-[--ct-border-soft]",
               )}
             >
               {/* Timeline dot */}
               <div className="relative mt-1 flex h-7 w-7 shrink-0 items-center justify-center">
                 <span
                   className={cn(
-                    "h-3 w-3 rounded-full border-2 border-[--color-bg-card]",
+                    "h-3 w-3 rounded-full border-2 border-[--ct-surface-2]",
                     event.kind === "GuardrailBreach"
-                      ? "bg-[--color-danger]"
+                      ? "bg-[--ct-status-danger]"
                       : event.kind === "Distribution"
-                        ? "bg-[--color-success]"
+                        ? "bg-[--ct-status-success]"
                         : event.kind === "TriggerArmed"
-                          ? "bg-[--color-warning]"
-                          : "bg-[--color-brand]",
+                          ? "bg-[--ct-status-warning]"
+                          : "bg-[--ct-text-strong]",
                   )}
                 />
               </div>
@@ -124,42 +124,42 @@ export function EventTimeline({ events }: EventTimelineProps) {
                 </div>
 
                 <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs">
-                  <dt className="text-[--color-text-dim]">Timestamp</dt>
-                  <dd className="text-[--color-text-muted]">
+                  <dt className="text-[--ct-text-muted]">Timestamp</dt>
+                  <dd className="text-[--ct-text-body]">
                     {dateFmt.format(event.timestamp)} UTC
                   </dd>
 
-                  <dt className="text-[--color-text-dim]">Block</dt>
-                  <dd className="mono tabular text-[--color-text-muted]">
+                  <dt className="text-[--ct-text-muted]">Block</dt>
+                  <dd className="mono tabular text-[--ct-text-body]">
                     {event.blockNumber.toString()}
                   </dd>
 
-                  <dt className="text-[--color-text-dim]">Publisher</dt>
+                  <dt className="text-[--ct-text-muted]">Publisher</dt>
                   <dd
-                    className="mono tabular text-[--color-text-muted]"
+                    className="mono tabular text-[--ct-text-body]"
                     title={event.publisher}
                   >
                     {truncateAddress(event.publisher)}
                   </dd>
 
-                  <dt className="text-[--color-text-dim]">Tx hash</dt>
+                  <dt className="text-[--ct-text-muted]">Tx hash</dt>
                   <dd
-                    className="mono tabular text-[--color-text]"
+                    className="mono tabular text-[--ct-text-primary]"
                     title={event.txHash}
                   >
                     <a
                       href={`${EXPLORER_TX_BASE}${event.txHash}`}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="hover:text-[--color-brand] transition-colors duration-[150ms]"
+                      className="hover:text-[--ct-text-strong] transition-colors duration-[150ms]"
                     >
                       {truncateHash(event.txHash)}
                     </a>
                   </dd>
 
-                  <dt className="text-[--color-text-dim]">Context hash</dt>
+                  <dt className="text-[--ct-text-muted]">Context hash</dt>
                   <dd
-                    className="mono tabular text-[--color-text-dim]"
+                    className="mono tabular text-[--ct-text-muted]"
                     title={event.contextHash}
                   >
                     {truncateHash(event.contextHash)}
@@ -173,10 +173,10 @@ export function EventTimeline({ events }: EventTimelineProps) {
                       target="_blank"
                       rel="noreferrer noopener"
                       className={cn(
-                        "rounded-[--radius-button] border border-[--color-border-strong] bg-[--color-bg-elevated]",
-                        "px-3 py-1 text-xs text-[--color-text]",
-                        "transition-colors duration-[150ms] hover:bg-[--color-bg-tertiary]",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]",
+                        "rounded-[--radius-button] border border-[--ct-border-strong] bg-[--ct-surface-1]",
+                        "px-3 py-1 text-xs text-[--ct-text-primary]",
+                        "transition-colors duration-[150ms] hover:bg-[--ct-surface-3]",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]",
                       )}
                     >
                       View payload (IPFS)

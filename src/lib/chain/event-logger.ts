@@ -1,7 +1,7 @@
 import "server-only";
 
 import { EVENT_KIND_LABELS, EVENT_LOGGER_ABI, type EventKind } from "./abis";
-import { getEventLoggerAddress, getPublicClient } from "./client";
+import { getEventLoggerAddress, getHearstPublisherAddress, getPublicClient } from "./client";
 
 export type { EventKind };
 
@@ -31,6 +31,9 @@ export interface FetchEventsOptions {
 /**
  * Reads `HearstEvent` logs from the EventLogger contract.
  *
+ * Filters events by the authorized HEARST_PUBLISHER address to prevent
+ * spoofed events from unknown publishers.
+ *
  * Never throws: if the contract address is not configured or the RPC call
  * fails, returns an empty list so the Proof Center can fall back to off-chain
  * mocks.
@@ -40,6 +43,8 @@ export async function fetchOnChainEvents(
 ): Promise<OnChainEvent[]> {
   const addr = getEventLoggerAddress();
   if (!addr) return [];
+
+  const authorizedPublisher = getHearstPublisherAddress();
 
   const limit = opts.limit ?? 50;
   const fromBlock = opts.fromBlock ?? "earliest";
@@ -67,6 +72,15 @@ export async function fetchOnChainEvents(
       ) {
         continue;
       }
+
+      // Filter: only accept events from the authorized publisher
+      if (
+        authorizedPublisher &&
+        args.publisher.toLowerCase() !== authorizedPublisher.toLowerCase()
+      ) {
+        continue;
+      }
+
       events.push({
         eventId: args.eventId,
         kind: labelKind(Number(args.kind)),

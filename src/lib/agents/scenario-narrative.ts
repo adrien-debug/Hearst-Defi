@@ -1,11 +1,10 @@
 import "server-only";
 
-import Anthropic from "@anthropic-ai/sdk";
-
 import {
   ScenarioNarrativeOutputSchema,
   type ScenarioNarrativeOutput,
 } from "@/lib/agents/schemas";
+import { callLlm, type LlmClientLike } from "@/lib/llm/client";
 import { METHODOLOGY_MD, METHODOLOGY_VERSION } from "@/lib/agents/system-prompts/methodology";
 import {
   DISCLAIMER_NOT_GUARANTEED,
@@ -32,12 +31,12 @@ export interface ScenarioNarrativeInput {
 
 export interface RunScenarioNarrativeOptions {
   /**
-   * Injected Anthropic client. Tests pass a mock; production callers pass a
-   * shared client. If absent, we construct one inside the function (never at
-   * module load) so importing this file in a non-server context doesn't
-   * trigger SDK init.
+   * Injected LLM client. Tests pass a mock; production callers pass a shared
+   * client. If absent, we construct one inside the function (never at module
+   * load) so importing this file in a non-server context doesn't trigger SDK
+   * init.
    */
-  client?: Anthropic;
+  client?: LlmClientLike;
   /** Override the default model. Default: claude-sonnet-4-6. */
   model?: string;
 }
@@ -129,26 +128,29 @@ export async function runScenarioNarrative(
   input: ScenarioNarrativeInput,
   opts: RunScenarioNarrativeOptions = {},
 ): Promise<ScenarioNarrativeOutput> {
-  const client = opts.client ?? new Anthropic({ apiKey: process.env["ANTHROPIC_API_KEY"] });
   const model = opts.model ?? SCENARIO_NARRATIVE_MODEL;
 
-  const response = await client.messages.create({
-    model,
-    max_tokens: 1024,
-    system: [
-      {
-        type: "text",
-        text: SYSTEM_INSTRUCTIONS,
-        cache_control: { type: "ephemeral" },
-      },
-    ],
-    messages: [
-      {
-        role: "user",
-        content: buildUserPrompt(input),
-      },
-    ],
-  });
+  const { response } = await callLlm(
+    "scenario-narrative",
+    {
+      model,
+      max_tokens: 1024,
+      system: [
+        {
+          type: "text",
+          text: SYSTEM_INSTRUCTIONS,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [
+        {
+          role: "user",
+          content: buildUserPrompt(input),
+        },
+      ],
+    },
+    { client: opts.client },
+  );
 
   const textBlock = response.content.find((b) => b.type === "text");
   if (!textBlock || textBlock.type !== "text") {
@@ -156,7 +158,15 @@ export async function runScenarioNarrative(
   }
 
   const parsed = extractJson(textBlock.text);
-  const validated = ScenarioNarrativeOutputSchema.parse(parsed);
+  const result = ScenarioNarrativeOutputSchema.safeParse(parsed);
+  if (!result.success) {
+    throw new Error(
+      `Scenario Narrative agent output failed schema validation: ${JSON.stringify(
+        result.error.issues,
+      )}`,
+    );
+  }
+  const validated = result.data;
 
   assertNoForbiddenWords(validated.narrative_md);
   assertNoForbiddenWords(validated.risk_warning);

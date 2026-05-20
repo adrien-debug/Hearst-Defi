@@ -1,0 +1,58 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect } from "react";
+
+import { ErrorShellLayout } from "@/components/error/error-shell";
+import { Button } from "@/components/ui/button";
+
+interface SegmentErrorProps {
+  /** Error object provided by the Next.js error boundary. */
+  error: Error & { digest?: string };
+  /** Resets the error boundary and re-renders the segment. */
+  reset: () => void;
+  /** Short eyebrow label, e.g. "Dashboard · Erreur". */
+  scope: string;
+  /** Optional "back" link target (defaults to product home). */
+  homeHref?: string;
+  /** Optional "back" link label. */
+  homeLabel?: string;
+}
+
+/**
+ * Shared client fallback for Next.js segment `error.tsx` boundaries across the
+ * Hearst Connect product shell. Sober copy, no raw stack leaked to the user,
+ * only the opaque `digest` is surfaced for support correlation.
+ */
+export function SegmentError({
+  error,
+  reset,
+  scope,
+  homeHref = "/",
+  homeLabel = "Retour à l'accueil",
+}: SegmentErrorProps) {
+  useEffect(() => {
+    // Local diagnostics only; production capture handled upstream (Sentry).
+    console.error(`[${scope}] uncaught error`, error);
+  }, [error, scope]);
+
+  return (
+    <ErrorShellLayout
+      tone="danger"
+      scope={scope}
+      title="Une erreur est survenue"
+      message="Un incident inattendu a interrompu cette page. Vous pouvez réessayer ; si le problème persiste, contactez le support."
+      digest={error.digest}
+      actions={
+        <>
+          <Button variant="primary" size="sm" onClick={() => reset()}>
+            Réessayer
+          </Button>
+          <Button variant="secondary" size="sm" asChild>
+            <Link href={homeHref}>{homeLabel}</Link>
+          </Button>
+        </>
+      }
+    />
+  );
+}

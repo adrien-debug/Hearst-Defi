@@ -3,6 +3,8 @@ import "server-only";
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import { z } from "zod";
+
 import { prisma } from "@/lib/db";
 import type {
   RoadmapDocument,
@@ -12,12 +14,41 @@ import type {
   RoadmapWeekWithState,
 } from "@/lib/roadmap-types";
 
+/**
+ * Runtime schema for docs/roadmap.json. Only the fields actually consumed
+ * downstream are validated; the parsed shape stays assignable to
+ * RoadmapDocument so the public return type is unchanged.
+ */
+const roadmapItemSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  owner: z.string(),
+  spec_ref: z.string().nullable(),
+});
+
+const roadmapWeekSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  items: z.array(roadmapItemSchema),
+});
+
+const roadmapPhaseSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  weeks: z.array(roadmapWeekSchema),
+});
+
+const roadmapSchema = z.object({
+  version: z.string(),
+  phases: z.array(roadmapPhaseSchema),
+});
+
 const ROADMAP_PATH = path.join(process.cwd(), "docs", "roadmap.json");
 const DONE_LIKE: RoadmapStatus[] = ["done", "validated"];
 
 async function loadRoadmapFromDisk(): Promise<RoadmapDocument> {
   const raw = await fs.readFile(ROADMAP_PATH, "utf8");
-  return JSON.parse(raw) as RoadmapDocument;
+  return roadmapSchema.parse(JSON.parse(raw));
 }
 
 export async function getRoadmap(): Promise<{

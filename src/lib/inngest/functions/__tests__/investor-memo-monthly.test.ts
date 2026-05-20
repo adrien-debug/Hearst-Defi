@@ -62,10 +62,20 @@ const reportExportCreateMock = vi.fn(
   }),
 );
 
+const llmRunFindFirstMock = vi.fn(async () => null);
+const llmRunCreateMock = vi.fn(async (args: { data: Record<string, unknown> }) => ({
+  id: "mock-llm-run-id",
+  ...args.data,
+}));
+
 vi.mock("@/lib/db", () => ({
   prisma: {
     reportExport: {
       create: reportExportCreateMock,
+    },
+    llmRun: {
+      findFirst: llmRunFindFirstMock,
+      create: llmRunCreateMock,
     },
   },
 }));
@@ -112,6 +122,9 @@ describe("investorMemoMonthly Inngest function", () => {
     expect(loadMemoInputMock).toHaveBeenCalledTimes(1);
     expect(runInvestorMemoMock).toHaveBeenCalledTimes(1);
     expect(runInvestorMemoMock).toHaveBeenCalledWith(loaderFake);
+    if ("skipped" in out) {
+      throw new Error("Expected memo output, got skipped");
+    }
     expect(out).toEqual(memoOutputFake);
   });
 

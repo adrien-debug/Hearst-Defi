@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,29 +31,42 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
 
   function setStatus(next: RoadmapStatus) {
     startTransition(async () => {
-      await quickSetStatus(item.id, next);
+      try {
+        await quickSetStatus(item.id, next);
+        toast.success(`Status → ${statusLabel(next)}`);
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        toast.error(`Failed to update status: ${message}`);
+      }
     });
   }
 
   function onSubmit(formData: FormData) {
     startTransition(async () => {
-      await updateRoadmapItem(formData);
-      setOpen(false);
+      try {
+        await updateRoadmapItem(formData);
+        setOpen(false);
+        toast.success("Roadmap item updated");
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        toast.error(`Failed to save: ${message}`);
+      }
     });
   }
 
   return (
-    <div className="rounded-[--radius-button] border border-[--color-border] bg-[--color-bg-elevated]/60">
+    <div className="rounded-xl border border-[--ct-border] bg-[--ct-surface-1]">
       <div className="flex items-center gap-4 px-5 py-4">
         <span
-          aria-hidden
+          role="img"
+          aria-label={statusLabel(item.status)}
           className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
           style={{ background: statusDotColor(item.status) }}
           title={statusLabel(item.status)}
         />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <span className="text-base font-medium text-[--color-text]">
+            <span className="text-base font-medium text-[--ct-text-primary]">
               {item.label}
             </span>
             <Badge variant="default">{item.owner}</Badge>
@@ -61,17 +75,17 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
                 href={item.evidenceUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-sm font-medium text-[--color-brand] underline-offset-2 hover:underline"
+                className="text-sm font-medium text-[--ct-accent] underline-offset-2 hover:underline"
               >
                 Evidence ↗
               </a>
             ) : null}
             {item.blockers ? <Badge variant="danger">Blocker</Badge> : null}
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[--color-text-dim]">
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[--ct-text-muted]">
             <span className="font-mono">{item.id}</span>
             {item.spec_ref ? (
-              <span className="font-mono text-[--color-text-muted]">
+              <span className="font-mono text-[--ct-text-faint]">
                 · {item.spec_ref}
               </span>
             ) : null}
@@ -88,17 +102,19 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
 
         <div className="hidden items-center gap-1 sm:flex">
           {STATUSES.map((s) => (
-            <button
+            <Button
               key={s}
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setStatus(s)}
               disabled={isPending || item.status === s}
               className={cn(
-              "rounded-[--radius-sm] px-2.5 py-1.5 text-xs transition-colors disabled:cursor-default disabled:opacity-50",
-              item.status === s
-                ? "bg-[--color-bg-card] text-[--color-text]"
-                : "text-[--color-text-dim] hover:bg-[--color-bg-card] hover:text-[--color-text]",
-            )}
+                "rounded-md px-2.5 py-1.5 disabled:cursor-default",
+                item.status === s
+                  ? "bg-[--ct-surface-2] text-[--ct-text-primary]"
+                  : "text-[--ct-text-muted] hover:bg-[--ct-surface-2] hover:text-[--ct-text-primary]",
+              )}
               title={statusLabel(s)}
               aria-label={`Set status to ${statusLabel(s)}`}
             >
@@ -107,7 +123,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
                 className="inline-block h-2 w-2 rounded-full"
                 style={{ background: statusDotColor(s) }}
               />
-            </button>
+            </Button>
           ))}
         </div>
 
@@ -124,19 +140,19 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
       {open ? (
         <form
           action={onSubmit}
-          className="space-y-3 border-t border-[--color-border] p-4"
+          className="space-y-3 border-t border-[--ct-border] p-4"
         >
           <input type="hidden" name="itemId" value={item.id} />
 
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block text-xs">
-              <span className="mb-1 block text-[--color-text-dim] uppercase tracking-wide">
+              <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
                 Status
               </span>
               <select
                 name="status"
                 defaultValue={item.status}
-                className="w-full rounded-[--radius-input] border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm"
+                className="ct-select"
               >
                 {STATUSES.map((s) => (
                   <option key={s} value={s}>
@@ -147,7 +163,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
             </label>
 
             <label className="block text-xs">
-              <span className="mb-1 block text-[--color-text-dim] uppercase tracking-wide">
+              <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
                 Validated by
               </span>
               <input
@@ -155,13 +171,13 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
                 type="text"
                 defaultValue={item.validatedBy ?? ""}
                 placeholder="Adrien"
-                className="w-full rounded-[--radius-input] border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm"
+                className="ct-input"
               />
             </label>
           </div>
 
           <label className="block text-xs">
-            <span className="mb-1 block text-[--color-text-dim] uppercase tracking-wide">
+            <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
               Evidence URL
             </span>
             <input
@@ -169,24 +185,24 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
               type="url"
               defaultValue={item.evidenceUrl ?? ""}
               placeholder="https://… preview, PR, screenshot"
-              className="w-full rounded-[--radius-input] border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm font-mono"
+              className="ct-input font-mono"
             />
           </label>
 
           <label className="block text-xs">
-            <span className="mb-1 block text-[--color-text-dim] uppercase tracking-wide">
+            <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
               Notes
             </span>
             <textarea
               name="notes"
               rows={2}
               defaultValue={item.notes ?? ""}
-              className="w-full rounded-[--radius-input] border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm"
+              className="ct-textarea"
             />
           </label>
 
           <label className="block text-xs">
-            <span className="mb-1 block text-[--color-text-dim] uppercase tracking-wide">
+            <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
               Blockers
             </span>
             <textarea
@@ -194,7 +210,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
               rows={2}
               defaultValue={item.blockers ?? ""}
               placeholder="What's blocking this?"
-              className="w-full rounded-[--radius-input] border border-[--color-border-strong] bg-[--color-bg-card] px-2 py-1.5 text-sm"
+              className="ct-textarea"
             />
           </label>
 

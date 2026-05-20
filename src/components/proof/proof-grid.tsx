@@ -26,14 +26,22 @@ export function ProofGrid({ proofs, filter }: ProofGridProps) {
       : proofs.filter((p) => unifiedProofType(p) === filter);
 
   if (filtered.length === 0) {
+    const isFiltered = filter !== "all";
+    const emptyTitle = isFiltered
+      ? `No ${filter} proofs published yet.`
+      : "No proofs published yet.";
+    const emptyHint = isFiltered
+      ? "Try a different filter or check back as new attestations are published."
+      : "Proofs (audits, custody attestations, on-chain events) will appear here once published.";
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
         <svg
-          className="h-10 w-10 text-[--color-text-dim]"
+          className="h-10 w-10 text-[--ct-text-muted]"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
           strokeWidth={1.5}
+          aria-hidden
         >
           <path
             strokeLinecap="round"
@@ -41,7 +49,12 @@ export function ProofGrid({ proofs, filter }: ProofGridProps) {
             d="M3 7h18M3 12h18M3 17h12"
           />
         </svg>
-        <p className="body-sm">No proofs found for this filter.</p>
+        <div>
+          <p className="body-sm font-medium text-[--ct-text-primary]">
+            {emptyTitle}
+          </p>
+          <p className="mt-1 text-xs text-[--ct-text-muted]">{emptyHint}</p>
+        </div>
       </div>
     );
   }

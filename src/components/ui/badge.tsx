@@ -3,20 +3,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/cn";
 
 const badgeVariants = cva(
-  "inline-flex items-center gap-1.5 rounded-[--radius-full] border px-2.5 py-1 text-xs font-semibold uppercase tracking-wider leading-none",
+  "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[length:var(--ct-text-micro)] font-medium uppercase tracking-wide leading-none backdrop-blur-md shadow-sm transition-colors",
   {
     variants: {
       variant: {
         default:
-          "border-[--color-border-strong] bg-[--color-bg-elevated] text-[--color-text-muted]",
+          "border-[--ct-border] bg-[--ct-surface-1] text-[--ct-text-muted]",
         success:
-          "border-[--color-success-border] bg-[--color-success-bg] text-[--color-success]",
+          "border-[--ct-status-success-border] bg-[--ct-status-success-soft] text-[--ct-status-success]",
         warning:
-          "border-[--color-warning-border] bg-[--color-warning-bg] text-[--color-warning]",
+          "border-[--ct-status-warning-border] bg-[--ct-status-warning-soft] text-[--ct-status-warning]",
         danger:
-          "border-[--color-danger-border] bg-[--color-danger-bg] text-[--color-danger]",
+          "border-[--ct-status-danger-border] bg-[--ct-status-danger-soft] text-[--ct-status-danger]",
         brand:
-          "border-[var(--color-accent-subtle)] bg-[var(--color-accent-dim)] text-[--color-brand]",
+          "border-[--ct-border-strong] bg-[--ct-surface-2] text-[--ct-text-strong]",
       },
     },
     defaultVariants: {
@@ -25,7 +25,7 @@ const badgeVariants = cva(
   },
 );
 
-export interface BadgeProps
+interface BadgeProps
   extends React.HTMLAttributes<HTMLSpanElement>,
     VariantProps<typeof badgeVariants> {}
 

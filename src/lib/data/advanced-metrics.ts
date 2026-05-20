@@ -60,16 +60,7 @@ export interface AdvancedMetricsData {
  */
 export async function loadAdvancedMetrics(): Promise<AdvancedMetricsData> {
   const history = await loadVaultMonthlyHistory(HISTORY_WINDOW_MONTHS);
-  return deriveAdvancedMetrics(history);
-}
 
-/**
- * Pure projection: given a monthly history, derive returns + NAV and call the
- * engine. Exposed for testability and for callers that already hold a slice.
- */
-export function deriveAdvancedMetrics(
-  history: readonly VaultMonthlyRow[],
-): AdvancedMetricsData {
   if (history.length < MIN_MONTHS_FOR_RATIOS) {
     return {
       available: false,

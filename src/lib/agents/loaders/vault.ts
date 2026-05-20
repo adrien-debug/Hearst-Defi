@@ -1,5 +1,7 @@
 import "server-only";
 
+import { Prisma } from "@prisma/client";
+
 import { prisma } from "@/lib/db";
 import type {
   Allocation,
@@ -60,9 +62,10 @@ export async function loadMemoInput(): Promise<MemoLoadResult> {
     throw new Error("Vault state incomplete. Run pnpm db:seed first.");
   }
 
-  const vault = projectVault(snapshot);
+  // Decimal → number at the loader boundary (engine/agent shapes are `number`).
+  const vault = projectVault(toVaultSnapshotRow(snapshot));
   const scenarios = scenarioRows.map(parseScenarioOutput);
-  const backtests = backtestRows.map(parseBacktestOutput);
+  const backtests = backtestRows.map((r) => parseBacktestOutput(toBacktestRunRow(r)));
 
   return {
     vault,
@@ -82,6 +85,27 @@ interface VaultSnapshotRow {
   currentApyHigh: number;
   riskScore: number;
   mode: string;
+}
+
+/**
+ * Maps a raw Prisma `VaultSnapshot` (Decimal financial columns) onto the
+ * number-only `VaultSnapshotRow` consumed downstream. Decimal → number happens
+ * here, at the data boundary, so the engine/agent layer never sees Decimal.
+ */
+function toVaultSnapshotRow(row: {
+  aumUsdc: Prisma.Decimal;
+  currentApyLow: Prisma.Decimal;
+  currentApyHigh: Prisma.Decimal;
+  riskScore: number;
+  mode: string;
+}): VaultSnapshotRow {
+  return {
+    aumUsdc: row.aumUsdc.toNumber(),
+    currentApyLow: row.currentApyLow.toNumber(),
+    currentApyHigh: row.currentApyHigh.toNumber(),
+    riskScore: row.riskScore,
+    mode: row.mode,
+  };
 }
 
 function projectVault(row: VaultSnapshotRow): MemoLoadResult["vault"] {
@@ -240,6 +264,36 @@ interface BacktestRunRow {
   monthlySeries: string;
 }
 
+/**
+ * Maps a raw Prisma `BacktestRun` (Decimal money/return columns) onto the
+ * number-only `BacktestRunRow`. Decimal → number at the data boundary.
+ */
+function toBacktestRunRow(row: {
+  id: string;
+  backtestKey: string;
+  initialCapital: Prisma.Decimal;
+  endingValue: Prisma.Decimal;
+  totalReturnPct: Prisma.Decimal;
+  maxDrawdownPct: Prisma.Decimal;
+  worstMonthPct: Prisma.Decimal;
+  numRebalances: number;
+  rulesMode: string;
+  monthlySeries: string;
+}): BacktestRunRow {
+  return {
+    id: row.id,
+    backtestKey: row.backtestKey,
+    initialCapital: row.initialCapital.toNumber(),
+    endingValue: row.endingValue.toNumber(),
+    totalReturnPct: row.totalReturnPct.toNumber(),
+    maxDrawdownPct: row.maxDrawdownPct.toNumber(),
+    worstMonthPct: row.worstMonthPct.toNumber(),
+    numRebalances: row.numRebalances,
+    rulesMode: row.rulesMode,
+    monthlySeries: row.monthlySeries,
+  };
+}
+
 function parseBacktestOutput(row: BacktestRunRow): BacktestOutput {
   if (!isBacktestKey(row.backtestKey)) {
     throw new Error(
@@ -385,9 +439,10 @@ export async function loadVaultMonthlyHistory(
     if (!byMonth.has(period)) {
       byMonth.set(period, {
         period,
-        aumUsdc: s.aumUsdc,
-        currentApyLow: s.currentApyLow,
-        currentApyHigh: s.currentApyHigh,
+        // Decimal → number at the read boundary.
+        aumUsdc: s.aumUsdc.toNumber(),
+        currentApyLow: s.currentApyLow.toNumber(),
+        currentApyHigh: s.currentApyHigh.toNumber(),
         takenAt: s.takenAt,
       });
     }
@@ -406,7 +461,8 @@ export async function loadVaultMonthlyHistory(
       : [];
   const distByPeriod = new Map<string, number>();
   for (const d of dists) {
-    distByPeriod.set(d.period, d.amountUsdc);
+    // Decimal → number at the read boundary.
+    distByPeriod.set(d.period, d.amountUsdc.toNumber());
   }
 
   const real: VaultMonthlyRow[] = [];
@@ -440,7 +496,7 @@ export async function loadVaultMonthlyHistory(
   // anchor (or from "now" if no real data exists at all).
   const missing = safeMonths - real.length;
   const anchorNav =
-    real[0]?.nav_usdc ?? snapshots[0]?.aumUsdc ?? 25_000_000;
+    real[0]?.nav_usdc ?? snapshots[0]?.aumUsdc?.toNumber() ?? 25_000_000;
   const fallback: VaultMonthlyRow[] = [];
   for (let i = missing; i >= 1; i -= 1) {
     const date = monthsAgo(real[0] ? parsePeriod(real[0].period) : new Date(), i);

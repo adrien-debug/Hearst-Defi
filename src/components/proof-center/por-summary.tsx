@@ -111,7 +111,7 @@ export function PorSummary({ attestation }: PorSummaryProps) {
         />
       </div>
 
-      <dl className="mt-6 space-y-2 border-t border-[--color-border-subtle] pt-6">
+      <dl className="mt-6 space-y-2 border-t border-[--ct-border-soft] pt-6">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <dt className="body-xs">Attestor address</dt>
           <dd>
@@ -119,7 +119,7 @@ export function PorSummary({ attestation }: PorSummaryProps) {
               href={`${EXPLORER_ADDRESS_BASE}${attestation.attestor}`}
               target="_blank"
               rel="noreferrer noopener"
-              className="mono tabular text-xs text-[--color-text] hover:text-[--color-brand] transition-colors duration-[150ms]"
+              className="mono tabular text-xs text-[--ct-text-primary] hover:text-[--ct-text-strong] transition-colors duration-[150ms]"
               title={attestation.attestor}
             >
               {truncateAddress(attestation.attestor)}
@@ -129,7 +129,7 @@ export function PorSummary({ attestation }: PorSummaryProps) {
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <dt className="body-xs">Evidence hash</dt>
           <dd
-            className="mono tabular text-xs text-[--color-text-muted]"
+            className="mono tabular text-xs text-[--ct-text-body]"
             title={attestation.evidenceHash}
           >
             {truncateHash(attestation.evidenceHash)}
@@ -137,7 +137,7 @@ export function PorSummary({ attestation }: PorSummaryProps) {
         </div>
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <dt className="body-xs">Block</dt>
-          <dd className="mono tabular text-xs text-[--color-text-muted]">
+          <dd className="mono tabular text-xs text-[--ct-text-body]">
             {attestation.blockNumber.toString()}
           </dd>
         </div>
@@ -149,10 +149,10 @@ export function PorSummary({ attestation }: PorSummaryProps) {
           target="_blank"
           rel="noreferrer noopener"
           className={cn(
-            "rounded-[--radius-button] border border-[--color-brand] bg-[--color-accent-dim]",
-            "px-3 py-1.5 text-xs text-[--color-brand]",
-            "transition-colors duration-[150ms] hover:bg-[--color-accent-subtle]",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]",
+            "rounded-[--radius-button] border border-[--ct-text-strong] bg-[--ct-surface-1]",
+            "px-3 py-1.5 text-xs text-[--ct-text-strong]",
+            "transition-colors duration-[150ms] hover:bg-[--ct-surface-2]",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]",
           )}
         >
           View attestation tx on Base Sepolia
@@ -169,10 +169,10 @@ export function PorSummary({ attestation }: PorSummaryProps) {
             target="_blank"
             rel="noreferrer noopener"
             className={cn(
-              "rounded-[--radius-button] border border-[--color-border-strong] bg-[--color-bg-elevated]",
-              "px-3 py-1.5 text-xs text-[--color-text]",
-              "transition-colors duration-[150ms] hover:bg-[--color-bg-tertiary]",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]",
+              "rounded-[--radius-button] border border-[--ct-border-strong] bg-[--ct-surface-1]",
+              "px-3 py-1.5 text-xs text-[--ct-text-primary]",
+              "transition-colors duration-[150ms] hover:bg-[--ct-surface-3]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]",
             )}
           >
             View evidence (IPFS)
@@ -181,7 +181,7 @@ export function PorSummary({ attestation }: PorSummaryProps) {
       </div>
 
       {stale ? (
-        <p className="mt-3 body-xs text-[--color-warning]">
+        <p className="mt-3 body-xs text-[--ct-status-warning]">
           Last attestation is older than 24h — badge shows Stale. A fresh
           attestation is expected each period close.
         </p>

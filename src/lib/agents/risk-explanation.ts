@@ -1,11 +1,10 @@
 import "server-only";
 
-import Anthropic from "@anthropic-ai/sdk";
-
 import {
   RiskExplanationOutputSchema,
   type RiskExplanationOutput,
 } from "@/lib/agents/schemas";
+import { callLlm, type LlmClientLike } from "@/lib/llm/client";
 import { METHODOLOGY_MD, METHODOLOGY_VERSION } from "@/lib/agents/system-prompts/methodology";
 import {
   DISCLAIMER_NOT_GUARANTEED,
@@ -46,12 +45,12 @@ export interface RiskExplanationInput {
 
 export interface RunRiskExplanationOptions {
   /**
-   * Injected Anthropic client. Tests pass a mock; production callers pass a
-   * shared client. If absent, we construct one inside the function (never at
-   * module load) so importing this file in a non-server context doesn't
-   * trigger SDK init.
+   * Injected LLM client. Tests pass a mock; production callers pass a shared
+   * client. If absent, we construct one inside the function (never at module
+   * load) so importing this file in a non-server context doesn't trigger SDK
+   * init.
    */
-  client?: Anthropic;
+  client?: LlmClientLike;
   /** Override the default model. Default: claude-sonnet-4-6. */
   model?: string;
 }
@@ -135,26 +134,29 @@ export async function runRiskExplanation(
   input: RiskExplanationInput,
   opts: RunRiskExplanationOptions = {},
 ): Promise<RiskExplanationOutput> {
-  const client = opts.client ?? new Anthropic({ apiKey: process.env["ANTHROPIC_API_KEY"] });
   const model = opts.model ?? RISK_EXPLANATION_MODEL;
 
-  const response = await client.messages.create({
-    model,
-    max_tokens: 1024,
-    system: [
-      {
-        type: "text",
-        text: SYSTEM_INSTRUCTIONS,
-        cache_control: { type: "ephemeral" },
-      },
-    ],
-    messages: [
-      {
-        role: "user",
-        content: buildUserPrompt(input),
-      },
-    ],
-  });
+  const { response } = await callLlm(
+    "risk-explanation",
+    {
+      model,
+      max_tokens: 1024,
+      system: [
+        {
+          type: "text",
+          text: SYSTEM_INSTRUCTIONS,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [
+        {
+          role: "user",
+          content: buildUserPrompt(input),
+        },
+      ],
+    },
+    { client: opts.client },
+  );
 
   const textBlock = response.content.find((b) => b.type === "text");
   if (!textBlock || textBlock.type !== "text") {
@@ -162,12 +164,23 @@ export async function runRiskExplanation(
   }
 
   const parsed = extractJson(textBlock.text);
-  const validated = RiskExplanationOutputSchema.parse(parsed);
+  const result = RiskExplanationOutputSchema.safeParse(parsed);
+  if (!result.success) {
+    throw new Error(
+      `Risk Explanation agent output failed schema validation: ${JSON.stringify(
+        result.error.issues,
+      )}`,
+    );
+  }
+  const validated = result.data;
 
-  // Post-validation: forbidden-words linter on all text fields
+  // Post-validation: forbidden-words linter on all text fields.
+  // Each risk explanation must also cite >=1 assumption (spec/09-agents.mdx:
+  // "Each explanation MUST reference at least one assumption").
   for (const risk of validated.top_risks) {
     assertNoForbiddenWords(risk.explanation);
     assertNoForbiddenWords(risk.suggested_guardrail);
+    assertCitesAssumption(risk.explanation);
   }
   assertNoForbiddenWords(validated.overall_summary);
 

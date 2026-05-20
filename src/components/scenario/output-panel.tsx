@@ -2,15 +2,18 @@
 
 import { useState } from "react";
 
+import { Markdown } from "@/components/admin/markdown";
 import { NavSparkline } from "@/components/scenario/nav-sparkline";
 import { PtaiBlock } from "@/components/scenario/ptai-block";
 import { RebalancingActions } from "@/components/scenario/rebalancing-actions";
 import { ApyRange } from "@/components/ui/apy-range";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
+import type { ScenarioNarrativeOutput } from "@/lib/agents/schemas";
 import type {
   AllocationBucket,
   BtcGuardrail,
@@ -21,6 +24,13 @@ import type {
 interface OutputPanelProps {
   output: ScenarioOutput;
   isPending: boolean;
+  /**
+   * AI-generated narrative from the Scenario Narrative agent (Sonnet 4.6).
+   * `null` means the agent failed (timeout, forbidden-words filter, schema fail)
+   * and we degrade gracefully by surfacing a discreet note instead of hiding
+   * the missing section.
+   */
+  narrative?: ScenarioNarrativeOutput | null;
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -33,10 +43,10 @@ const BUCKET_LABEL: Record<AllocationBucket, string> = {
 };
 
 const BUCKET_COLOR: Record<AllocationBucket, string> = {
-  mining: "var(--color-brand)",
-  btc_tactical: "var(--color-warning)",
-  usdc_base: "var(--color-info)",
-  stable_reserve: "var(--color-text-dim)",
+  mining: "var(--ct-text-strong)",
+  btc_tactical: "var(--ct-status-warning)",
+  usdc_base: "var(--ct-status-info)",
+  stable_reserve: "var(--ct-text-muted)",
 };
 
 const CONFIDENCE_VARIANT: Record<
@@ -84,14 +94,14 @@ const GUARDRAIL_KIND_LABEL: Record<BtcGuardrailKind, string> = {
 function scoreColorClass(score: number, invertedRisk = false): string {
   if (invertedRisk) {
     // higher score = worse (risk score)
-    if (score > 70) return "bg-[--color-danger]";
-    if (score > 40) return "bg-[--color-warning]";
-    return "bg-[--color-success]";
+    if (score > 70) return "bg-[--ct-status-danger]";
+    if (score > 40) return "bg-[--ct-status-warning]";
+    return "bg-[--ct-status-success]";
   }
   // higher score = better (mining margin)
-  if (score < 30) return "bg-[--color-danger]";
-  if (score < 60) return "bg-[--color-warning]";
-  return "bg-[--color-success]";
+  if (score < 30) return "bg-[--ct-status-danger]";
+  if (score < 60) return "bg-[--ct-status-warning]";
+  return "bg-[--ct-status-success]";
 }
 
 /**
@@ -124,41 +134,40 @@ function AssumptionsList({ assumptions }: { assumptions: string[] }) {
           return (
             <li key={i} className="flex items-start gap-2 text-sm">
               <span
-                className="mt-0.5 shrink-0 text-[--text-micro] text-[--color-brand]"
+                className="mt-0.5 shrink-0 text-micro text-[--ct-text-strong]"
                 aria-hidden
               >
                 ▸
               </span>
               {key !== null ? (
                 <span>
-                  <span className="font-semibold text-[--color-text-muted] capitalize">
+                  <span className="font-semibold text-[--ct-text-body] capitalize">
                     {key}
                   </span>
-                  <span className="text-[--color-text-dim]">: </span>
-                  <span className="font-mono text-[--color-text-muted]">
+                  <span className="text-[--ct-text-muted]">: </span>
+                  <span className="font-mono text-[--ct-text-body]">
                     {value}
                   </span>
                 </span>
               ) : (
-                <span className="text-[--color-text-muted]">{value}</span>
+                <span className="text-[--ct-text-body]">{value}</span>
               )}
             </li>
           );
         })}
       </ul>
       {shouldTruncate && (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={() => setExpanded((x) => !x)}
-          className={cn(
-            "mt-3 text-xs font-semibold text-[--color-brand]",
-            "hover:text-[--color-brand-strong] transition-colors duration-150",
-          )}
+          className="mt-3 text-[--ct-text-strong] hover:text-[--ct-text-strong]"
         >
           {expanded
             ? "Show less"
             : `Show ${assumptions.length - THRESHOLD} more`}
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -187,7 +196,7 @@ function AllocationBar({
 
 // ── main ──────────────────────────────────────────────────────────────────────
 
-export function OutputPanel({ output, isPending }: OutputPanelProps) {
+export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) {
   const riskColorClass = scoreColorClass(output.risk_score, true);
   const miningColorClass = scoreColorClass(output.mining_margin_score, false);
 
@@ -202,8 +211,8 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
       aria-busy={isPending}
     >
       {isPending && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[--radius-card] bg-[--color-bg-card]/60 backdrop-blur-sm">
-          <span className="text-sm text-[--color-text-muted]">Computing…</span>
+        <div className="pointer-events-none absolute inset-0 z-[--ct-z-overlay] flex items-center justify-center rounded-[--radius-card] bg-[--ct-surface-2]/60 backdrop-blur-sm">
+          <span className="text-sm text-[--ct-text-body]">Computing…</span>
         </div>
       )}
 
@@ -218,7 +227,7 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
           <ApyRange
             low={output.apy_range.low}
             high={output.apy_range.high}
-            className="font-mono text-[--text-5xl] font-black tabular-nums text-[--color-brand] leading-none"
+            className="font-mono text-5xl font-extrabold tabular-nums text-[--ct-text-strong] leading-none"
           />
           <div className="flex flex-col items-end gap-1.5">
             <span className="stat-label">Confidence</span>
@@ -231,12 +240,15 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
           </div>
         </div>
 
-        <div className="mt-4 border-t border-[--color-border-subtle] pt-4">
-          <span className="stat-label mr-2">Stressed APY</span>
-          <span className="font-mono text-2xl font-black tabular-nums text-[--color-text]">
+        <div className="mt-4 border-t border-[--ct-border-soft] pt-4">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <span className="stat-label">Stressed APY</span>
+            <ProvenanceBadge kind="estimated" />
+          </div>
+          <span className="font-mono text-2xl font-extrabold tabular-nums text-[--ct-text-primary]">
             {output.stressed_apy.toFixed(1)}%
           </span>
-          <span className="ml-2 text-xs text-[--color-text-dim]">
+          <span className="ml-2 text-xs text-[--ct-text-muted]">
             bear scenario floor
           </span>
         </div>
@@ -244,6 +256,38 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
 
       {/* ── Section 2: PTAI block ────────────────────────────────────────── */}
       <PtaiBlock output={output} />
+
+      {/* ── Section 2.5: AI Narrative (Sonnet 4.6) ───────────────────────── */}
+      {narrative !== undefined ? (
+        narrative !== null ? (
+          <Card>
+            <CardHeader className="mb-3">
+              <CardTitle>Narrative</CardTitle>
+              <ProvenanceBadge kind="estimated" />
+            </CardHeader>
+            <Markdown content={narrative.narrative_md} />
+            {narrative.risk_warning ? (
+              <div className="mt-4 rounded-[--radius-button] border border-[--ct-status-warning] bg-[--ct-status-warning-soft] px-4 py-3">
+                <p className="stat-label mb-1 text-[--ct-status-warning]">
+                  Risk warning
+                </p>
+                <p className="text-sm text-[--ct-text-body]">
+                  {narrative.risk_warning}
+                </p>
+              </div>
+            ) : null}
+          </Card>
+        ) : (
+          <Card>
+            <div className="flex items-center gap-3">
+              <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[--ct-status-warning]" aria-hidden />
+              <p className="text-xs text-[--ct-text-muted]">
+                AI narrative unavailable — engine output shown above.
+              </p>
+            </div>
+          </Card>
+        )
+      ) : null}
 
       {/* ── Section 3: 12-Month NAV Projection ──────────────────────────── */}
       <NavSparkline output={output} />
@@ -257,17 +301,17 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
             <ProvenanceBadge kind="estimated" />
           </div>
           <div className="mb-1 flex items-baseline gap-1">
-            <span className="font-mono text-2xl font-black tabular-nums text-[--color-text]">
+            <span className="font-mono text-2xl font-extrabold tabular-nums text-[--ct-text-primary]">
               {output.risk_score.toFixed(0)}
             </span>
-            <span className="text-sm text-[--color-text-dim]">/100</span>
+            <span className="text-sm text-[--ct-text-muted]">/100</span>
           </div>
           <Progress
             value={output.risk_score}
             fillClassName={riskColorClass}
             className="mt-2"
           />
-          <p className="mt-2 text-xs text-[--color-text-dim]">
+          <p className="mt-2 text-xs text-[--ct-text-muted]">
             Lower = lower risk
           </p>
         </Card>
@@ -279,17 +323,17 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
             <ProvenanceBadge kind="estimated" />
           </div>
           <div className="mb-1 flex items-baseline gap-1">
-            <span className="font-mono text-2xl font-black tabular-nums text-[--color-text]">
+            <span className="font-mono text-2xl font-extrabold tabular-nums text-[--ct-text-primary]">
               {output.mining_margin_score.toFixed(0)}
             </span>
-            <span className="text-sm text-[--color-text-dim]">/100</span>
+            <span className="text-sm text-[--ct-text-muted]">/100</span>
           </div>
           <Progress
             value={output.mining_margin_score}
             fillClassName={miningColorClass}
             className="mt-2"
           />
-          <p className="mt-2 text-xs text-[--color-text-dim]">
+          <p className="mt-2 text-xs text-[--ct-text-muted]">
             Current vs target
           </p>
         </Card>
@@ -300,7 +344,7 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="stat-label mb-1">Vault Mode</p>
-            <p className="text-xs text-[--color-text-dim]">
+            <p className="text-xs text-[--ct-text-muted]">
               Current allocation posture
             </p>
           </div>
@@ -326,19 +370,19 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
         {/* Table */}
         <div className="mt-4">
           {/* Header */}
-          <div className="mb-2 grid grid-cols-[1fr_auto_auto] gap-x-4 text-[--text-micro] font-semibold uppercase tracking-widest text-[--color-text-dim]">
+          <div className="mb-2 grid grid-cols-[1fr_auto_auto] gap-x-4 text-micro font-semibold uppercase tracking-wide text-[--ct-text-muted]">
             <span>Bucket</span>
             <span className="text-right">Pct</span>
             <span className="text-right">Yield contribution</span>
           </div>
           {/* Rows */}
-          <ul className="divide-y divide-[--color-border-subtle]">
+          <ul className="divide-y divide-[--ct-border-soft]">
             {output.allocations.map((a) => (
               <li
                 key={a.bucket}
                 className="grid grid-cols-[1fr_auto_auto] items-center gap-x-4 py-2.5 text-sm first:pt-1 last:pb-1"
               >
-                <span className="flex items-center gap-2 text-[--color-text-muted]">
+                <span className="flex items-center gap-2 text-[--ct-text-body]">
                   <span
                     className="inline-block h-2 w-2 shrink-0 rounded-full"
                     style={{ background: BUCKET_COLOR[a.bucket] }}
@@ -346,10 +390,10 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
                   />
                   {BUCKET_LABEL[a.bucket]}
                 </span>
-                <span className="text-right font-mono tabular-nums text-[--color-text]">
+                <span className="text-right font-mono tabular-nums text-[--ct-text-primary]">
                   {a.pct.toFixed(0)}%
                 </span>
-                <span className="text-right font-mono tabular-nums text-[--color-text-dim]">
+                <span className="text-right font-mono tabular-nums text-[--ct-text-muted]">
                   {a.yield_contribution_bps > 0
                     ? `+${a.yield_contribution_bps} bps`
                     : "P&L variable"}
@@ -385,8 +429,8 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
 
           {/* Armed triggers */}
           {armedTriggers.length > 0 && (
-            <div className="mt-4 border-t border-[--color-border-subtle] pt-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-[--color-text-dim]">
+            <div className="mt-4 border-t border-[--ct-border-soft] pt-4">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[--ct-text-muted]">
                 Armed triggers
               </p>
               <ul className="space-y-1.5">
@@ -396,12 +440,12 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
                     className="flex items-start gap-2 text-sm"
                   >
                     <span
-                      className="mt-0.5 shrink-0 text-[--text-micro] text-[--color-warning]"
+                      className="mt-0.5 shrink-0 text-micro text-[--ct-status-warning]"
                       aria-hidden
                     >
                       ▸
                     </span>
-                    <span className="text-[--color-text-muted]">
+                    <span className="text-[--ct-text-body]">
                       {t.condition}
                     </span>
                   </li>
@@ -424,13 +468,13 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
       </Card>
 
       {/* ── Disclaimer ──────────────────────────────────────────────────── */}
-      <p className="border-t border-[--color-border-subtle] pt-4 text-xs italic text-[--color-text-dim]">
-        <span className="font-semibold not-italic text-[--color-text-muted]">
+      <p className="border-t border-[--ct-border-soft] pt-4 text-xs italic text-[--ct-text-muted]">
+        <span className="font-semibold not-italic text-[--ct-text-body]">
           Not guaranteed.
         </span>{" "}
         Projections are conditional on stated assumptions. Methodology v1.0.
-        Past performance does not predict future returns. Forward projections
-        are not a promise or commitment to deliver any specific return.
+        Forward projections are conditional on the stated assumptions and are
+        not guaranteed. Past performance does not predict future results.
       </p>
     </div>
   );

@@ -36,6 +36,8 @@ function PresetPicker({
 }: PresetPickerProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const listboxRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -43,7 +45,10 @@ function PresetPicker({
       if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
     }
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
     }
     document.addEventListener("mousedown", onDocClick);
     document.addEventListener("keydown", onKey);
@@ -53,28 +58,64 @@ function PresetPicker({
     };
   }, [open]);
 
+  // Move focus to the first selectable option when the listbox opens so the
+  // keyboard user can act on the menu they just summoned. Without this the
+  // focus stays on the trigger and Tab leaves the dropdown entirely.
+  useEffect(() => {
+    if (!open) return;
+    const first = listboxRef.current?.querySelector<HTMLButtonElement>(
+      'button[role="option"]:not([disabled])',
+    );
+    first?.focus();
+  }, [open]);
+
+  // Arrow key navigation within the listbox. Up/Down cycle through enabled
+  // options; Home/End jump to first/last.
+  function onListKeyDown(e: React.KeyboardEvent<HTMLUListElement>) {
+    if (!listboxRef.current) return;
+    const options = Array.from(
+      listboxRef.current.querySelectorAll<HTMLButtonElement>(
+        'button[role="option"]:not([disabled])',
+      ),
+    );
+    if (options.length === 0) return;
+    const active = document.activeElement as HTMLButtonElement | null;
+    const idx = active ? options.indexOf(active) : -1;
+    let next = idx;
+    if (e.key === "ArrowDown") next = idx < 0 ? 0 : (idx + 1) % options.length;
+    else if (e.key === "ArrowUp")
+      next = idx < 0 ? options.length - 1 : (idx - 1 + options.length) % options.length;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = options.length - 1;
+    else return;
+    e.preventDefault();
+    options[next]?.focus();
+  }
+
   const sideAccent =
     side === "A"
-      ? "border-l-[--color-border-strong]"
-      : "border-l-[--color-brand]";
+      ? "border-l-[--ct-border-strong]"
+      : "border-l-[--ct-text-strong]";
 
   return (
     <div ref={rootRef} className="relative">
       <button
+        ref={triggerRef}
         type="button"
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-label={`Scenario ${side}: ${value ? labelFor(value) : "select a scenario"}`}
         className={cn(
           "flex w-full items-center justify-between gap-3 rounded-[--radius-button]",
-          "border border-[--color-border-strong] border-l-4",
+          "border border-[--ct-border-strong] border-l-4",
           sideAccent,
-          "bg-[--color-bg-elevated] px-4 py-3 text-left",
+          "bg-[--ct-surface-1] px-4 py-3 text-left",
           "transition-[background-color,border-color] duration-150",
           "disabled:cursor-not-allowed disabled:opacity-40",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]",
-          !disabled && "hover:bg-[--color-bg-tertiary]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]",
+          !disabled && "hover:bg-[--ct-surface-3]",
         )}
       >
         <span className="flex min-w-0 flex-col gap-0.5">
@@ -82,7 +123,7 @@ function PresetPicker({
           <span
             className={cn(
               "h4 truncate",
-              !value && "text-[--color-text-dim] font-medium",
+              !value && "text-[--ct-text-muted] font-medium",
             )}
           >
             {value ? labelFor(value) : "Select a scenario"}
@@ -90,7 +131,7 @@ function PresetPicker({
         </span>
         <svg
           className={cn(
-            "h-4 w-4 shrink-0 text-[--color-text-muted] transition-transform duration-150",
+            "h-4 w-4 shrink-0 text-[--ct-text-body] transition-transform duration-150",
             open && "rotate-180",
           )}
           xmlns="http://www.w3.org/2000/svg"
@@ -110,12 +151,14 @@ function PresetPicker({
 
       {open && (
         <ul
+          ref={listboxRef}
           role="listbox"
           aria-label={`Pick a scenario for ${side}`}
+          onKeyDown={onListKeyDown}
           className={cn(
             "absolute z-20 mt-2 w-full overflow-hidden rounded-[--radius-button]",
-            "border border-[--color-border-strong] bg-[--color-bg-elevated]",
-            "shadow-[var(--shadow-card)]",
+            "border border-[--ct-border-strong] bg-[--ct-surface-1]",
+            "shadow-[var(--ct-shadow-elevated)]",
           )}
         >
           {PRESETS.map((p) => {
@@ -131,21 +174,22 @@ function PresetPicker({
                   onClick={() => {
                     onChange(p.id);
                     setOpen(false);
+                    triggerRef.current?.focus();
                   }}
                   title={p.description}
                   className={cn(
                     "flex w-full flex-col items-start gap-0.5 px-4 py-3 text-left",
                     "transition-colors duration-150",
-                    "focus-visible:outline-none",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[--ct-text-strong]",
                     isSelected
-                      ? "bg-[--color-accent-dim] text-[--color-brand]"
-                      : "text-[--color-text-muted] hover:bg-[--color-bg-tertiary] hover:text-[--color-text]",
+                      ? "bg-[--ct-surface-1] text-[--ct-text-strong]"
+                      : "text-[--ct-text-body] hover:bg-[--ct-surface-3] hover:text-[--ct-text-primary]",
                     isExcluded &&
                       "cursor-not-allowed opacity-40 hover:bg-transparent",
                   )}
                 >
                   <span className="text-sm font-semibold">{p.label}</span>
-                  <span className="text-[--text-micro] text-[--color-text-dim]">
+                  <span className="text-micro text-[--ct-text-muted]">
                     {isExcluded ? "Already on the other side" : p.description}
                   </span>
                 </button>
@@ -169,12 +213,13 @@ function Placeholder({ side, pending }: PlaceholderProps) {
   return (
     <div
       className={cn(
+        // min-h-[28rem] conservé — 28rem = 448px (min-h-112 n'existe pas nativement en Tailwind v4, scale s'arrête à w-96=24rem)
         "flex min-h-[28rem] flex-col items-center justify-center gap-3",
-        "rounded-[--radius-card] border border-dashed border-[--color-border-subtle]",
+        "rounded-[--radius-card] border border-dashed border-[--ct-border-soft]",
         "border-l-4",
         side === "A"
-          ? "border-l-[--color-border-strong]"
-          : "border-l-[--color-brand]",
+          ? "border-l-[--ct-border-strong]"
+          : "border-l-[--ct-text-strong]",
         "px-5 py-5",
         "transition-opacity duration-150",
         pending && "opacity-50",
@@ -184,7 +229,7 @@ function Placeholder({ side, pending }: PlaceholderProps) {
       {pending ? (
         <>
           <svg
-            className="h-5 w-5 animate-spin text-[--color-brand]"
+            className="h-4 w-4 animate-spin text-[--ct-text-strong]"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -204,12 +249,12 @@ function Placeholder({ side, pending }: PlaceholderProps) {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
             />
           </svg>
-          <p className="stat-label text-[--color-text-muted]">Computing…</p>
+          <p className="stat-label text-[--ct-text-body]">Computing…</p>
         </>
       ) : (
         <>
           <svg
-            className="h-7 w-7 text-[--color-text-dim]"
+            className="h-10 w-10 text-[--ct-text-muted]"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -223,8 +268,8 @@ function Placeholder({ side, pending }: PlaceholderProps) {
               d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"
             />
           </svg>
-          <p className="text-center text-sm text-[--color-text-dim]">
-            <span className="font-semibold text-[--color-text-muted]">
+          <p className="text-center text-sm text-[--ct-text-muted]">
+            <span className="font-semibold text-[--ct-text-body]">
               Scenario {side}
             </span>
             <br />
@@ -243,7 +288,7 @@ interface ComparisonState {
   b: ScenarioOutput | null;
 }
 
-export function CompareMode() {
+export function CompareMode({ active = true }: { active?: boolean }) {
   const [presetA, setPresetA] = useState<Preset | null>("base");
   const [presetB, setPresetB] = useState<Preset | null>("extreme_stress");
   const [outputs, setOutputs] = useState<ComparisonState>({ a: null, b: null });
@@ -262,29 +307,43 @@ export function CompareMode() {
     });
   }, []);
 
-  // Auto-run on initial mount with the default pair and whenever both sides
-  // change to a valid distinct pair.
+  // Auto-run on initial mount with the default pair. The refs capture the
+  // initial preset values so the effect can be declared with a stable deps
+  // array while still reading the correct starting state.
+  const initialA = useRef(presetA);
+  const initialB = useRef(presetB);
+  const didRunInitial = useRef(false);
   useEffect(() => {
-    if (presetA && presetB && presetA !== presetB) {
-      runComparison(presetA, presetB);
-    } else {
-      setOutputs({ a: null, b: null });
+    if (!active) return;
+    const a = initialA.current;
+    const b = initialB.current;
+    if (!didRunInitial.current && a && b && a !== b) {
+      didRunInitial.current = true;
+      runComparison(a, b);
     }
-  }, [presetA, presetB, runComparison]);
+  }, [active, runComparison]);
 
   function handleSelectA(p: Preset) {
     // If the user picks the same preset that's on B, swap.
-    if (p === presetB) {
-      setPresetB(presetA);
-    }
+    const nextB = p === presetB ? presetA : presetB;
     setPresetA(p);
+    setPresetB(nextB);
+    if (nextB && p !== nextB) {
+      runComparison(p, nextB);
+    } else {
+      setOutputs({ a: null, b: null });
+    }
   }
 
   function handleSelectB(p: Preset) {
-    if (p === presetA) {
-      setPresetA(presetB);
-    }
+    const nextA = p === presetA ? presetB : presetA;
     setPresetB(p);
+    setPresetA(nextA);
+    if (nextA && p !== nextA) {
+      runComparison(nextA, p);
+    } else {
+      setOutputs({ a: null, b: null });
+    }
   }
 
   const showOutputs = outputs.a !== null && outputs.b !== null;
@@ -312,7 +371,7 @@ export function CompareMode() {
       {error && (
         <p
           role="alert"
-          className="rounded-[--radius-button] border border-[--color-danger] bg-[--color-danger-bg] px-4 py-2.5 text-sm text-[--color-danger]"
+          className="rounded-[--radius-button] border border-[--ct-status-danger] bg-[--ct-status-danger-soft] px-4 py-2.5 text-sm text-[--ct-status-danger]"
         >
           {error}
         </p>
@@ -350,8 +409,8 @@ export function CompareMode() {
       )}
 
       {/* Shared disclaimer */}
-      <p className="border-t border-[--color-border-subtle] pt-4 text-xs italic text-[--color-text-dim]">
-        <span className="font-semibold not-italic text-[--color-text-muted]">
+      <p className="border-t border-[--ct-border-soft] pt-4 text-xs italic text-[--ct-text-muted]">
+        <span className="font-semibold not-italic text-[--ct-text-body]">
           Not guaranteed.
         </span>{" "}
         Projections are conditional on stated assumptions. Methodology v1.0. Past

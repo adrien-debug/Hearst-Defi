@@ -1,14 +1,10 @@
-import Link from "next/link";
+// All product routes require auth data and live vault state — disable static prerendering.
+export const dynamic = "force-dynamic";
 
-import { LoginButton } from "@/components/auth/login-button";
-import { cn } from "@/lib/cn";
-
-const NAV = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/scenario-lab", label: "Scenario Lab" },
-  { href: "/proof-center", label: "Proof Center" },
-  { href: "/investor-memo", label: "Investor Memo" },
-] as const;
+import { DemoBanner } from "@/components/demo/demo-banner";
+import { DemoModeToggleSlot } from "@/components/demo/demo-mode-toggle-slot";
+import { HubModeStyles } from "@/components/hub-mode-styles";
+import { ProductRailIntra } from "@/components/nav/product-rail-intra";
 
 export default function ProductLayout({
   children,
@@ -16,47 +12,16 @@ export default function ProductLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-dvh bg-[--color-bg]">
-      <header className="sticky top-0 z-10 border-b border-[--color-border-subtle] bg-[--color-bg]/90 backdrop-blur">
-        <div className="mx-auto flex max-w-screen-2xl items-center justify-between px-8 py-4">
-          <Link href="/dashboard" aria-label="Hearst Connect — Dashboard">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/logos/hearst-connect.svg"
-              alt=""
-              aria-hidden
-              className="h-8 w-auto"
-            />
-          </Link>
-
-          <nav className="flex items-center gap-1">
-            {NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "rounded-[--radius-button] px-4 py-2 text-sm font-medium transition-colors",
-                  "text-[--color-text-muted] hover:bg-[--color-bg-elevated] hover:text-[--color-text]",
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <Link
-              href="/admin/roadmap"
-              className="text-xs font-medium text-[--color-text-dim] hover:text-[--color-text]"
-            >
-              Admin
-            </Link>
-            <LoginButton />
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-screen-2xl px-8 py-12">{children}</main>
-    </div>
+    <>
+      <DemoBanner />
+      <HubModeStyles />
+      <ProductRailIntra />
+      {/* Floating slot — anchored top-right of the product area; hidden in prod
+          unless demo mode is already on. See `DemoModeToggleSlot` for rules. */}
+      <div className="fixed top-4 right-6 z-[var(--ct-z-overlay)] flex items-center gap-2">
+        <DemoModeToggleSlot />
+      </div>
+      {children}
+    </>
   );
 }

@@ -87,7 +87,6 @@ describe("MemoDocument PDF rendering", () => {
     expect(buf.length).toBeGreaterThan(10_000);
     expect(buf.subarray(0, 5).toString("ascii")).toBe("%PDF-");
     // Visible smoke for the operator running the suite — confirms ~size band.
-    // eslint-disable-next-line no-console
     console.log(`[memo-pdf-smoke] generated ${buf.length} bytes`);
   }, 30_000);
 });

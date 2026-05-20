@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EXPLORER_ADDRESS_BASE, EXPLORER_TX_BASE } from "@/lib/chain/client";
 import type { ProofType } from "@/lib/mock/proof-center";
@@ -104,24 +105,24 @@ function PaperProofCard({
       <dl className="space-y-1.5">
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Source</dt>
-          <dd className="body-xs text-[--color-text-muted]">Off-chain</dd>
+          <dd className="body-xs text-[--ct-text-body]">Off-chain</dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Posted</dt>
-          <dd className="body-xs text-[--color-text-muted]">
+          <dd className="body-xs text-[--ct-text-body]">
             {dateFmt.format(postedAt)} UTC
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Signer</dt>
-          <dd className="body-xs text-[--color-text-muted]">
+          <dd className="body-xs text-[--ct-text-body]">
             {proof.postedBy}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Hash</dt>
           <dd
-            className="mono tabular text-xs text-[--color-text]"
+            className="mono tabular text-xs text-[--ct-text-primary]"
             title={proof.hash}
             aria-label={`Hash ${proof.hash}`}
           >
@@ -131,32 +132,37 @@ function PaperProofCard({
       </dl>
 
       <div className="mt-auto flex flex-wrap items-center gap-2 pt-2">
-        <a
-          href={proof.uri}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="rounded-[--radius-button] border border-[--color-border-strong] bg-[--color-bg-elevated] px-3 py-1.5 text-xs text-[--color-text] transition-colors duration-[150ms] hover:bg-[--color-bg-tertiary] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
-        >
-          {uriLabel(proof.uri)}
-        </a>
-        {proof.txHash ? (
+        <Button asChild variant="secondary" size="sm">
           <a
-            href={`${EXPLORER_TX_BASE}${proof.txHash}`}
+            href={proof.uri}
             target="_blank"
             rel="noreferrer noopener"
-            className="rounded-[--radius-button] border border-[--color-brand] bg-[--color-accent-dim] px-3 py-1.5 text-xs text-[--color-brand] transition-colors duration-[150ms] hover:bg-[--color-accent-subtle] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
           >
-            TX on Base
+            {uriLabel(proof.uri)}
           </a>
+        </Button>
+        {proof.txHash ? (
+          <Button asChild variant="primary" size="sm">
+            <a
+              href={`${EXPLORER_TX_BASE}${proof.txHash}`}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              TX on Base
+            </a>
+          </Button>
         ) : (
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
             disabled
-            className="rounded-[--radius-button] border border-dashed border-[--color-border-subtle] px-3 py-1.5 text-xs text-[--color-text-dim]"
+            aria-label="On-chain mirror not yet available — Phase 2 will publish this proof via the EventLogger contract."
+            className="border-dashed border-[--ct-border-soft] px-3 text-[--ct-text-muted]"
             title="Phase 2 will mirror this proof on-chain via the EventLogger contract."
           >
             Off-chain (Phase 1)
-          </button>
+          </Button>
         )}
       </div>
     </Card>
@@ -185,20 +191,20 @@ function OnChainEventCard({
       <dl className="space-y-1.5">
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Source</dt>
-          <dd className="body-xs text-[--color-text-muted]">
+          <dd className="body-xs text-[--ct-text-body]">
             Base Sepolia · block {proof.blockNumber.toString()}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Posted</dt>
-          <dd className="body-xs text-[--color-text-muted]">
+          <dd className="body-xs text-[--ct-text-body]">
             {dateFmt.format(proof.timestamp)} UTC
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Publisher</dt>
           <dd
-            className="mono tabular text-xs text-[--color-text-muted]"
+            className="mono tabular text-xs text-[--ct-text-body]"
             title={proof.publisher}
           >
             {truncateAddress(proof.publisher)}
@@ -207,7 +213,7 @@ function OnChainEventCard({
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Tx hash</dt>
           <dd
-            className="mono tabular text-xs text-[--color-text]"
+            className="mono tabular text-xs text-[--ct-text-primary]"
             title={proof.txHash}
             aria-label={`Transaction hash ${proof.txHash}`}
           >
@@ -217,7 +223,7 @@ function OnChainEventCard({
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Context hash</dt>
           <dd
-            className="mono tabular text-xs text-[--color-text-muted]"
+            className="mono tabular text-xs text-[--ct-text-body]"
             title={proof.contextHash}
           >
             {truncateHash(proof.contextHash)}
@@ -227,23 +233,25 @@ function OnChainEventCard({
 
       <div className="mt-auto flex flex-wrap items-center gap-2 pt-2">
         {proof.payloadCid.length > 0 ? (
+          <Button asChild variant="secondary" size="sm">
+            <a
+              href={ipfsGatewayUrl(proof.payloadCid)}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              View payload (IPFS)
+            </a>
+          </Button>
+        ) : null}
+        <Button asChild variant="primary" size="sm">
           <a
-            href={ipfsGatewayUrl(proof.payloadCid)}
+            href={`${EXPLORER_TX_BASE}${proof.txHash}`}
             target="_blank"
             rel="noreferrer noopener"
-            className="rounded-[--radius-button] border border-[--color-border-strong] bg-[--color-bg-elevated] px-3 py-1.5 text-xs text-[--color-text] transition-colors duration-[150ms] hover:bg-[--color-bg-tertiary] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
           >
-            View payload (IPFS)
+            TX on Base
           </a>
-        ) : null}
-        <a
-          href={`${EXPLORER_TX_BASE}${proof.txHash}`}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="rounded-[--radius-button] border border-[--color-brand] bg-[--color-accent-dim] px-3 py-1.5 text-xs text-[--color-brand] transition-colors duration-[150ms] hover:bg-[--color-accent-subtle] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
-        >
-          TX on Base
-        </a>
+        </Button>
       </div>
     </Card>
   );
@@ -279,34 +287,34 @@ function OnChainAttestationCard({
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Source</dt>
           <dd className="body-xs">
-            <span className="rounded-[--radius-full] border border-[--color-success-border] bg-[--color-success-bg] px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-[--color-success]">
+            <span className="rounded-[--radius-full] border border-[--ct-status-success-border] bg-[--ct-status-success-soft] px-1.5 py-0.5 text-[length:var(--ct-text-micro)] uppercase tracking-wide text-[--ct-status-success]">
               On-chain
             </span>
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Total AUM</dt>
-          <dd className="mono tabular text-xs text-[--color-text]">
+          <dd className="mono tabular text-xs text-[--ct-text-primary]">
             {usdCompactFmt(proof.totalAumUsd)}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Mined</dt>
-          <dd className="mono tabular text-xs text-[--color-text]">
+          <dd className="mono tabular text-xs text-[--ct-text-primary]">
             {btcFmt(proof.minedBtc)}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Attestor</dt>
           <dd
-            className="mono tabular text-xs text-[--color-text-muted]"
+            className="mono tabular text-xs text-[--ct-text-body]"
             title={proof.attestor}
           >
             <a
               href={`${EXPLORER_ADDRESS_BASE}${proof.attestor}`}
               target="_blank"
               rel="noreferrer noopener"
-              className="hover:text-[--color-brand]"
+              className="hover:text-[--ct-text-strong]"
             >
               {truncateAddress(proof.attestor)}
             </a>
@@ -315,7 +323,7 @@ function OnChainAttestationCard({
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Evidence hash</dt>
           <dd
-            className="mono tabular text-xs text-[--color-text]"
+            className="mono tabular text-xs text-[--ct-text-primary]"
             title={proof.evidenceHash}
           >
             {truncateHash(proof.evidenceHash)}
@@ -325,23 +333,25 @@ function OnChainAttestationCard({
 
       <div className="mt-auto flex flex-wrap items-center gap-2 pt-2">
         {proof.evidenceCid.length > 0 ? (
+          <Button asChild variant="secondary" size="sm">
+            <a
+              href={ipfsGatewayUrl(proof.evidenceCid)}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              View evidence (IPFS)
+            </a>
+          </Button>
+        ) : null}
+        <Button asChild variant="primary" size="sm">
           <a
-            href={ipfsGatewayUrl(proof.evidenceCid)}
+            href={`${EXPLORER_TX_BASE}${proof.txHash}`}
             target="_blank"
             rel="noreferrer noopener"
-            className="rounded-[--radius-button] border border-[--color-border-strong] bg-[--color-bg-elevated] px-3 py-1.5 text-xs text-[--color-text] transition-colors duration-[150ms] hover:bg-[--color-bg-tertiary] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
           >
-            View evidence (IPFS)
+            TX on Base
           </a>
-        ) : null}
-        <a
-          href={`${EXPLORER_TX_BASE}${proof.txHash}`}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="rounded-[--radius-button] border border-[--color-brand] bg-[--color-accent-dim] px-3 py-1.5 text-xs text-[--color-brand] transition-colors duration-[150ms] hover:bg-[--color-accent-subtle] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-brand] focus-visible:ring-offset-2 focus-visible:ring-offset-[--color-bg]"
-        >
-          TX on Base
-        </a>
+        </Button>
       </div>
     </Card>
   );

@@ -1,11 +1,6 @@
 import { Text, View } from "@react-pdf/renderer";
 
-import { COLORS, styles } from "./memo-styles";
-
-export interface MemoMeta {
-  period: string;
-  totalPages: number;
-}
+import { styles } from "./memo-styles";
 
 export function PageHeader({ period }: { period: string }) {
   return (
@@ -113,18 +108,5 @@ export function Commentary({ children }: { children: string }) {
     <View style={styles.sectionCommentary}>
       <Text style={styles.bodySmall}>{children}</Text>
     </View>
-  );
-}
-
-/** Hairline rule used to separate sub-sections within a page. */
-export function HairlineRule() {
-  return (
-    <View
-      style={{
-        height: 1,
-        backgroundColor: COLORS.border,
-        marginVertical: 12,
-      }}
-    />
   );
 }

@@ -132,6 +132,40 @@ describe("assertNoForbiddenWords", () => {
     ).toThrowError(/no risk/i);
   });
 
+  // Regression: prefix-anchored detection must still catch inflected forms.
+  // A trailing `\b` previously let "guaranteed" / "promises" / "certainly"
+  // through, silently breaking Hearst non-negotiable #5.
+  it.each([
+    "This product is guaranteed.",
+    "The fund guarantees a payout.",
+    "The strategy promises stable yield.",
+    "Returns were promised to investors.",
+    "Performance is certainly above market.",
+    "There is certainty in this outcome.",
+    "The vault will delivers returns.",
+  ])("throws on inflected forbidden form: %s", (text) => {
+    expect(() => assertNoForbiddenWords(text)).toThrow();
+  });
+
+  it("exempts negated inflected forms", () => {
+    expect(() =>
+      assertNoForbiddenWords("Outcomes are not guaranteed and never promised."),
+    ).not.toThrow();
+  });
+
+  it("still lints disclaimer-style text (no special-casing)", () => {
+    // Negated legal phrasing passes via the negation exemption...
+    expect(() =>
+      assertNoForbiddenWords(
+        "This is not an offer; returns are not guaranteed and no promise of capital protection is made.",
+      ),
+    ).not.toThrow();
+    // ...but an unconditional positive claim slipped into a disclaimer still fails.
+    expect(() =>
+      assertNoForbiddenWords("We guarantee capital protection at all times."),
+    ).toThrow();
+  });
+
   it("passes on clean text", () => {
     expect(() =>
       assertNoForbiddenWords(
@@ -286,12 +320,18 @@ describe("InvestorMemoOutputSchema", () => {
   });
 
   it("rejects a payload missing one field", () => {
-    const { disclaimer: _omitted, ...withoutDisclaimer } = validMemo;
+    const withoutDisclaimer = Object.fromEntries(
+      Object.entries(validMemo).filter(([k]) => k !== "disclaimer"),
+    );
     expect(() => InvestorMemoOutputSchema.parse(withoutDisclaimer)).toThrow();
   });
 
   it("rejects a payload missing multiple fields", () => {
-    const { executive_summary: _a, vault_structure: _b, ...rest } = validMemo;
+    const rest = Object.fromEntries(
+      Object.entries(validMemo).filter(
+        ([k]) => k !== "executive_summary" && k !== "vault_structure",
+      ),
+    );
     expect(() => InvestorMemoOutputSchema.parse(rest)).toThrow();
   });
 

@@ -102,11 +102,12 @@ export async function loadLatestMiningMetrics(): Promise<MiningHealthInput> {
     throw new Error("MiningMetric.uptimePct is null — invalid seed data.");
   }
 
+  // Decimal → number at the loader boundary (engine/agent shapes are `number`).
   return {
-    hashprice_usd_per_th: row.hashprice,
-    difficulty_change_pct: row.hashpriceTrendPct,
+    hashprice_usd_per_th: row.hashprice.toNumber(),
+    difficulty_change_pct: row.hashpriceTrendPct.toNumber(),
     margin_pct: row.miningMarginScore,
-    uptime_pct: row.uptimePct,
+    uptime_pct: row.uptimePct.toNumber(),
     period_days: 30,
   };
 }
@@ -175,9 +176,11 @@ export async function loadMiningOpsSnapshot(
     };
   }
 
+  // Decimal → number at the read boundary before any arithmetic.
   const avgDeployedTh =
-    rows.reduce((sum, r) => sum + r.deployedHashrate, 0) / rows.length;
-  const avgUptime = rows.reduce((sum, r) => sum + r.uptimePct, 0) / rows.length;
+    rows.reduce((sum, r) => sum + r.deployedHashrate.toNumber(), 0) / rows.length;
+  const avgUptime =
+    rows.reduce((sum, r) => sum + r.uptimePct.toNumber(), 0) / rows.length;
   const latest = rows[0];
   // rows[0] is non-undefined here because rows.length > 0 (noUncheckedIndexedAccess).
   const dbMarginScore = latest ? latest.miningMarginScore : OPS_FALLBACK.margin_score;

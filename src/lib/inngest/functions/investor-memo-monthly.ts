@@ -9,6 +9,8 @@ import {
 import { loadMemoInput } from "@/lib/agents/loaders/vault";
 import type { InvestorMemoOutput } from "@/lib/agents/schemas";
 import { prisma } from "@/lib/db";
+import { logger } from "@/lib/logger";
+import { isDuplicate, markComplete } from "@/lib/idempotency";
 import { METHODOLOGY_VERSION } from "@/lib/agents/system-prompts/methodology";
 
 /**
@@ -31,7 +33,13 @@ export async function investorMemoMonthlyHandler({
   step,
 }: {
   step: InvestorMemoMonthlyStep;
-}): Promise<InvestorMemoOutput> {
+}): Promise<InvestorMemoOutput | { skipped: true; reason: string }> {
+  const today = new Date();
+
+  if (await isDuplicate(INVESTOR_MEMO_MONTHLY_ID, today)) {
+    return { skipped: true, reason: "already_run_today" };
+  }
+
   const input: InvestorMemoInput = await step.run("load-memo-input", () =>
     loadMemoInput(),
   );
@@ -54,15 +62,18 @@ export async function investorMemoMonthlyHandler({
           content: JSON.stringify(result),
         },
       });
-      console.info("[memo-monthly] persisted to ReportExport");
+      logger.info("[memo-monthly] persisted to ReportExport");
     } catch (err) {
-      console.error(
-        "[memo-monthly] DB persist failed:",
-        err instanceof Error ? err.message : String(err),
+      logger.error(
+        "[memo-monthly] DB persist failed",
+        {},
+        err instanceof Error ? err : new Error(String(err)),
       );
+      throw err; // Let Inngest retry
     }
   });
 
+  await markComplete(INVESTOR_MEMO_MONTHLY_ID, today);
   return result;
 }
 
