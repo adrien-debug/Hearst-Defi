@@ -1,0 +1,662 @@
+"use client";
+
+import { useState, useTransition, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { ApyRange } from "@/components/ui/apy-range";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Metric } from "@/components/ui/metric";
+import { Ptai } from "@/components/ui/ptai";
+import { cn } from "@/lib/cn";
+import {
+  runProjectionStudy,
+  promoteStudyToDraft,
+  getPresetInputsForProjection,
+} from "./actions";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type Preset = "base" | "btc_bear" | "btc_bull" | "mining_compression" | "extreme_stress";
+
+type MatrixCell = {
+  apyLow: number;
+  apyHigh: number;
+  riskScore: number;
+  scenarioRunId: string;
+};
+
+type StudyResult = {
+  studyId: string;
+  runIds: string[];
+  matrix: {
+    x?: string;
+    y?: string;
+    cells: MatrixCell[];
+  };
+};
+
+type BatchMode = "none" | "1d" | "2d";
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const PRESETS: { id: Preset; label: string }[] = [
+  { id: "base", label: "Base" },
+  { id: "btc_bear", label: "BTC Bear" },
+  { id: "btc_bull", label: "BTC Bull" },
+  { id: "mining_compression", label: "Mining Compression" },
+  { id: "extreme_stress", label: "Extreme Stress" },
+];
+
+// Default BTC chg variation sweep for 1D batch
+const DEFAULT_1D_VALUES = [-30, -15, 0, 15, 30];
+// Default BTC chg × hashprice 3×3 grid for 2D batch
+const DEFAULT_2D_X_VALUES = [-30, 0, 30];
+const DEFAULT_2D_Y_VALUES = [0.05, 0.085, 0.12];
+
+const METHODOLOGY_VERSIONS = [{ id: "v1.0", label: "v1.0 (current)" }];
+
+// ─── Risk color helper (uses status tokens, no hardcoded hex) ─────────────────
+
+function riskColor(score: number): string {
+  if (score <= 35) return "var(--ct-status-success)";
+  if (score <= 65) return "var(--ct-status-warning)";
+  return "var(--ct-status-danger)";
+}
+
+function riskBgClass(score: number): string {
+  if (score <= 35) return "bg-[--ct-status-success-soft]";
+  if (score <= 65) return "bg-[--ct-status-warning-soft]";
+  return "bg-[--ct-status-danger-soft]";
+}
+
+// ─── Slider primitive (uses ct-input class, Cockpit-themed) ──────────────────
+
+type SliderProps = {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (v: number) => void;
+  format?: (v: number) => string;
+};
+
+function SliderField({ label, value, min, max, step, onChange, format }: SliderProps) {
+  const fmt = format ?? ((v: number) => v.toFixed(2));
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="body-sm text-[--ct-text-muted]">{label}</span>
+        <span className="mono tabular text-sm text-[--ct-text-primary]">{fmt(value)}</span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+        className="w-full accent-[--ct-accent] h-1.5 rounded-full cursor-pointer"
+        aria-label={label}
+      />
+      <div className="flex justify-between text-[length:var(--ct-text-micro)] text-[--ct-text-faint]">
+        <span>{fmt(min)}</span>
+        <span>{fmt(max)}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Allocation sliders with sum-100 constraint ───────────────────────────────
+
+type AllocState = {
+  mining: number;
+  btcTactical: number;
+  usdcBase: number;
+  stableReserve: number;
+};
+
+function AllocSliders({
+  alloc,
+  onChange,
+}: {
+  alloc: AllocState;
+  onChange: (a: AllocState) => void;
+}) {
+  const keys: (keyof AllocState)[] = ["mining", "btcTactical", "usdcBase", "stableReserve"];
+  const labels: Record<keyof AllocState, string> = {
+    mining: "Mining",
+    btcTactical: "BTC Tactical",
+    usdcBase: "USDC Base",
+    stableReserve: "Stable Reserve",
+  };
+
+  const sum = alloc.mining + alloc.btcTactical + alloc.usdcBase + alloc.stableReserve;
+  const sumOk = Math.abs(sum - 100) < 0.5;
+
+  function handleChange(key: keyof AllocState, raw: number) {
+    const others = (Object.keys(alloc) as (keyof AllocState)[]).filter((k) => k !== key);
+    const remaining = 100 - raw;
+    const otherSum = others.reduce((acc, k) => acc + alloc[k], 0);
+    const ratio = otherSum > 0 ? remaining / otherSum : 1 / others.length;
+    const next = { ...alloc, [key]: raw } as AllocState;
+    for (const k of others) {
+      next[k] = otherSum > 0 ? Math.max(0, Math.round(alloc[k] * ratio * 10) / 10) : Math.round(remaining / others.length);
+    }
+    onChange(next);
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="eyebrow text-[--ct-text-muted]">Allocations</span>
+        <span
+          className={cn(
+            "mono tabular text-xs px-1.5 py-0.5 rounded",
+            sumOk
+              ? "text-[--ct-status-success] bg-[--ct-status-success-soft]"
+              : "text-[--ct-status-danger] bg-[--ct-status-danger-soft]",
+          )}
+        >
+          {sum.toFixed(1)}%
+        </span>
+      </div>
+      {keys.map((k) => (
+        <SliderField
+          key={k}
+          label={labels[k]}
+          value={alloc[k]}
+          min={0}
+          max={100}
+          step={0.5}
+          onChange={(v) => handleChange(k, v)}
+          format={(v) => `${v.toFixed(1)}%`}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ─── Heatmap grid ─────────────────────────────────────────────────────────────
+
+type HeatmapProps = {
+  cells: MatrixCell[];
+  xAxis?: string;
+  yAxis?: string;
+  xValues?: number[];
+  yValues?: number[];
+  selectedRunId: string | null;
+  onSelect: (runId: string) => void;
+};
+
+function Heatmap({ cells, xAxis, yAxis, xValues, yValues, selectedRunId, onSelect }: HeatmapProps) {
+  const is2D = !!yAxis && yValues && yValues.length > 0 && xValues && xValues.length > 0;
+  const cols = is2D ? (xValues?.length ?? 1) : cells.length;
+  const rows = is2D ? (yValues?.length ?? 1) : 1;
+
+  return (
+    <div className="space-y-3">
+      {xAxis && (
+        <p className="body-xs text-[--ct-text-muted]">
+          X: <span className="mono text-[--ct-text-body]">{xAxis}</span>
+          {yAxis && (
+            <>
+              {" "}— Y: <span className="mono text-[--ct-text-body]">{yAxis}</span>
+            </>
+          )}
+        </p>
+      )}
+      <div
+        className="grid gap-1.5"
+        style={{
+          gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${rows}, auto)`,
+        }}
+        role="grid"
+        aria-label="Projection heatmap"
+      >
+        {cells.map((cell, idx) => {
+          const isSelected = cell.scenarioRunId === selectedRunId;
+          return (
+            <button
+              key={cell.scenarioRunId}
+              type="button"
+              role="gridcell"
+              onClick={() => onSelect(cell.scenarioRunId)}
+              aria-selected={isSelected}
+              aria-label={`APY ${cell.apyLow.toFixed(1)}–${cell.apyHigh.toFixed(1)}%, risk ${cell.riskScore}. Cell ${idx + 1} of ${cells.length}.`}
+              className={cn(
+                "relative p-2.5 rounded-[--ct-radius-md] border text-left transition-all",
+                riskBgClass(cell.riskScore),
+                "border-[--ct-border-soft]",
+                isSelected && "ring-2 ring-offset-1 ring-offset-[--ct-bg-deep]",
+                isSelected && "ring-[--ct-accent]",
+                "hover:border-[--ct-border] hover:shadow-[--ct-shadow-elevated] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-accent]",
+              )}
+            >
+              <div className="flex flex-col gap-0.5">
+                <span
+                  className="mono tabular text-xs font-semibold leading-tight"
+                  style={{ color: riskColor(cell.riskScore) }}
+                >
+                  {cell.apyLow.toFixed(1)}–{cell.apyHigh.toFixed(1)}%
+                </span>
+                <span className="text-[length:var(--ct-text-micro)] text-[--ct-text-muted] font-mono">
+                  Risk {cell.riskScore}
+                </span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main studio ──────────────────────────────────────────────────────────────
+
+export function ProjectionStudio() {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [isPromoting, startPromote] = useTransition();
+
+  // Input state
+  const [btcChange, setBtcChange] = useState(0);
+  const [hashprice, setHashprice] = useState(0.085);
+  const [energyCost, setEnergyCost] = useState(0.045);
+  const [stableApy, setStableApy] = useState(4.5);
+  const [volIndex, setVolIndex] = useState(45);
+  const [alloc, setAlloc] = useState<AllocState>({
+    mining: 40,
+    btcTactical: 20,
+    usdcBase: 25,
+    stableReserve: 15,
+  });
+  const [batchMode, setBatchMode] = useState<BatchMode>("none");
+  const [methodologyVersion] = useState("v1.0");
+
+  // Output state
+  const [result, setResult] = useState<StudyResult | null>(null);
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Preset loader
+  const loadPreset = useCallback(
+    (preset: Preset) => {
+      startTransition(async () => {
+        try {
+          const inputs = await getPresetInputsForProjection(preset);
+          setBtcChange(inputs.btc_price_change_pct);
+          setHashprice(inputs.hashprice_usd_th_day);
+          setEnergyCost(inputs.energy_cost_kwh);
+          setStableApy(inputs.stable_apy_pct);
+          setVolIndex(inputs.vol_index);
+        } catch {
+          setError("Failed to load preset.");
+        }
+      });
+    },
+    [],
+  );
+
+  const handleRun = useCallback(() => {
+    setError(null);
+    startTransition(async () => {
+      try {
+        const currentInputs = {
+          btc_price_change_pct: btcChange,
+          hashprice_usd_th_day: hashprice,
+          energy_cost_kwh: energyCost,
+          stable_apy_pct: stableApy,
+          vol_index: volIndex,
+        };
+
+        let axes:
+          | [
+              { field: "btc_price_change_pct" | "hashprice_usd_th_day" | "stable_apy_pct"; values: number[] },
+              { field: "btc_price_change_pct" | "hashprice_usd_th_day" | "stable_apy_pct"; values: number[] }?,
+            ]
+          | undefined;
+
+        if (batchMode === "1d") {
+          axes = [{ field: "btc_price_change_pct", values: DEFAULT_1D_VALUES }];
+        } else if (batchMode === "2d") {
+          axes = [
+            { field: "btc_price_change_pct", values: DEFAULT_2D_X_VALUES },
+            { field: "hashprice_usd_th_day", values: DEFAULT_2D_Y_VALUES },
+          ];
+        }
+
+        const res = await runProjectionStudy({
+          base: currentInputs,
+          axes,
+          label: batchMode === "none" ? "Single run" : batchMode === "1d" ? "1D batch — BTC" : "2D batch — BTC × Hashprice",
+        });
+
+        setResult(res);
+        setSelectedRunId(res.runIds[0] ?? null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Unexpected error.");
+      }
+    });
+  }, [btcChange, hashprice, energyCost, stableApy, volIndex, batchMode]);
+
+  const handlePromote = useCallback(() => {
+    if (!result) return;
+    setError(null);
+    startPromote(async () => {
+      try {
+        const { deploymentId } = await promoteStudyToDraft(result.studyId);
+        router.push(`/admin/vaults/${deploymentId}/edit`);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Promotion failed.");
+      }
+    });
+  }, [result, router]);
+
+  // Derive selected cell for single-run output
+  const selectedCell = result?.matrix.cells.find(
+    (c) => c.scenarioRunId === selectedRunId,
+  ) ?? result?.matrix.cells[0] ?? null;
+
+  // 2D axis values (for heatmap label context)
+  const xVals = batchMode === "2d" ? DEFAULT_2D_X_VALUES : batchMode === "1d" ? DEFAULT_1D_VALUES : undefined;
+  const yVals = batchMode === "2d" ? DEFAULT_2D_Y_VALUES : undefined;
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6 items-start">
+      {/* ── LEFT: INPUTS ── */}
+      <Card className="space-y-6">
+        {/* Preset selector */}
+        <div className="space-y-3">
+          <p className="eyebrow text-[--ct-text-muted]">Preset</p>
+          <div className="flex flex-wrap gap-2">
+            {PRESETS.map((p) => (
+              <Button
+                key={p.id}
+                variant="secondary"
+                size="sm"
+                onClick={() => loadPreset(p.id)}
+                disabled={isPending}
+              >
+                {p.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        <div className="ct-divide-soft h-px" />
+
+        {/* Base inputs */}
+        <div className="space-y-5">
+          <p className="eyebrow text-[--ct-text-muted]">Market Inputs</p>
+          <SliderField
+            label="BTC Price Change (%)"
+            value={btcChange}
+            min={-100}
+            max={300}
+            step={1}
+            onChange={setBtcChange}
+            format={(v) => `${v > 0 ? "+" : ""}${v.toFixed(0)}%`}
+          />
+          <SliderField
+            label="Hashprice (USD/TH/day)"
+            value={hashprice}
+            min={0.01}
+            max={0.5}
+            step={0.001}
+            onChange={setHashprice}
+            format={(v) => `$${v.toFixed(3)}`}
+          />
+          <SliderField
+            label="Energy Cost (USD/kWh)"
+            value={energyCost}
+            min={0.01}
+            max={1}
+            step={0.001}
+            onChange={setEnergyCost}
+            format={(v) => `$${v.toFixed(3)}`}
+          />
+          <SliderField
+            label="Stable APY (%)"
+            value={stableApy}
+            min={0}
+            max={30}
+            step={0.1}
+            onChange={setStableApy}
+            format={(v) => `${v.toFixed(1)}%`}
+          />
+          <SliderField
+            label="Vol Index (0-100)"
+            value={volIndex}
+            min={0}
+            max={100}
+            step={1}
+            onChange={setVolIndex}
+            format={(v) => v.toFixed(0)}
+          />
+        </div>
+
+        <div className="ct-divide-soft h-px" />
+
+        {/* Allocation sliders */}
+        <AllocSliders alloc={alloc} onChange={setAlloc} />
+
+        <div className="ct-divide-soft h-px" />
+
+        {/* Batch mode toggle */}
+        <div className="space-y-3">
+          <p className="eyebrow text-[--ct-text-muted]">Batch Mode</p>
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                { id: "none", label: "Single run" },
+                { id: "1d", label: "1D — BTC (5 vals)" },
+                { id: "2d", label: "2D — BTC × HP (3×3)" },
+              ] as { id: BatchMode; label: string }[]
+            ).map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setBatchMode(m.id)}
+                className={cn(
+                  "ct-pill text-xs",
+                  batchMode === m.id ? "accent" : "",
+                )}
+                style={
+                  batchMode === m.id
+                    ? { backgroundColor: "var(--ct-accent-soft)", color: "var(--ct-accent)", border: "1px solid var(--ct-border-accent)" }
+                    : {}
+                }
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+          {batchMode === "1d" && (
+            <p className="body-xs text-[--ct-text-muted]">
+              BTC chg sweep:{" "}
+              <span className="mono">{DEFAULT_1D_VALUES.join(", ")}%</span>
+              {" "}→ 5 parallel runs
+            </p>
+          )}
+          {batchMode === "2d" && (
+            <p className="body-xs text-[--ct-text-muted]">
+              BTC chg × Hashprice — 3×3 = 9 cells, max 25
+            </p>
+          )}
+        </div>
+
+        <div className="ct-divide-soft h-px" />
+
+        {/* Methodology version */}
+        <div className="space-y-2">
+          <p className="eyebrow text-[--ct-text-muted]">Methodology</p>
+          <select
+            className="ct-select w-full"
+            value={methodologyVersion}
+            aria-label="Methodology version"
+            disabled
+          >
+            {METHODOLOGY_VERSIONS.map((v) => (
+              <option key={v.id} value={v.id}>{v.label}</option>
+            ))}
+          </select>
+          <p className="body-xs text-[--ct-text-faint]">
+            Pinned to v1.0. Bump version via ADR + spec update.
+          </p>
+        </div>
+
+        {/* Run button */}
+        <Button
+          variant="primary"
+          className="w-full"
+          onClick={handleRun}
+          disabled={isPending}
+          aria-busy={isPending}
+        >
+          {isPending
+            ? batchMode === "none"
+              ? "Running…"
+              : "Running batch…"
+            : batchMode === "none"
+              ? "Run Scenario"
+              : batchMode === "1d"
+                ? "Run 1D Batch (5 runs)"
+                : "Run 2D Batch (9 runs)"}
+        </Button>
+
+        {error && (
+          <p className="body-xs text-[--ct-status-danger] bg-[--ct-status-danger-soft] px-3 py-2 rounded-[--ct-radius-md]">
+            {error}
+          </p>
+        )}
+      </Card>
+
+      {/* ── RIGHT: OUTPUTS ── */}
+      <div className="space-y-6">
+        {!result && (
+          <Card className="flex items-center justify-center min-h-48">
+            <p className="body-md text-[--ct-text-muted]">
+              Configure inputs and run a scenario or batch to see projections.
+            </p>
+          </Card>
+        )}
+
+        {result && (
+          <>
+            {/* Study metadata */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <Badge variant="default">
+                Study {result.studyId.slice(-8)}
+              </Badge>
+              <Badge variant="brand">
+                {result.runIds.length} run{result.runIds.length > 1 ? "s" : ""}
+              </Badge>
+              <span className="body-xs text-[--ct-text-muted] mono">
+                methodology v1.0
+              </span>
+            </div>
+
+            {/* Single run: KPI grid */}
+            {result.runIds.length === 1 && selectedCell && (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <Metric
+                  label="APY Range"
+                  provenance="estimated"
+                  value={
+                    <ApyRange low={selectedCell.apyLow} high={selectedCell.apyHigh} precision={1} />
+                  }
+                />
+                <Metric
+                  label="Risk Score"
+                  provenance="estimated"
+                  value={
+                    <span style={{ color: riskColor(selectedCell.riskScore) }} className="tabular">
+                      {selectedCell.riskScore}
+                    </span>
+                  }
+                />
+              </div>
+            )}
+
+            {/* Batch: heatmap */}
+            {result.runIds.length > 1 && (
+              <Card>
+                <p className="eyebrow text-[--ct-text-muted] mb-4">
+                  Projection Heatmap — {result.runIds.length} cells
+                </p>
+                <Heatmap
+                  cells={result.matrix.cells}
+                  xAxis={result.matrix.x}
+                  yAxis={result.matrix.y}
+                  xValues={xVals}
+                  yValues={yVals}
+                  selectedRunId={selectedRunId}
+                  onSelect={setSelectedRunId}
+                />
+              </Card>
+            )}
+
+            {/* Selected cell detail (batch) */}
+            {result.runIds.length > 1 && selectedCell && (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <Metric
+                  label="Selected APY Range"
+                  provenance="estimated"
+                  value={
+                    <ApyRange low={selectedCell.apyLow} high={selectedCell.apyHigh} precision={1} />
+                  }
+                />
+                <Metric
+                  label="Risk Score"
+                  provenance="estimated"
+                  value={
+                    <span style={{ color: riskColor(selectedCell.riskScore) }} className="tabular">
+                      {selectedCell.riskScore}
+                    </span>
+                  }
+                />
+              </div>
+            )}
+
+            {/* PTAI block — mandatory for every projection (#3) */}
+            {selectedCell && (
+              <Ptai
+                projection={`APY range ${selectedCell.apyLow.toFixed(1)}–${selectedCell.apyHigh.toFixed(1)}% under current assumptions (methodology v1.0). Not guaranteed — projections are conditional on stated inputs.`}
+                trigger={`Risk score ${selectedCell.riskScore}/100 computed from vol_index, hashprice margin, and BTC price change inputs. Rebalancing rule activates when risk > 65.`}
+                action={`Admin review of projection study ${result.studyId.slice(-8)} required before promotion. Promote to vault draft via button below.`}
+                impact={`Target APY range seeded into VaultDeployment (draft status). Requires 2-of-N multisig approval before going live. Past performance does not predict future results.`}
+              />
+            )}
+
+            {/* "Not guaranteed" disclaimer — non-negotiable #10 */}
+            <p className="body-xs text-[--ct-text-faint] border border-[--ct-border-soft] rounded-[--ct-radius-md] px-3 py-2">
+              <strong className="text-[--ct-text-muted]">Disclaimer:</strong>{" "}
+              Projections are conditional on stated assumptions and are not guaranteed.
+              Rule-based engine — no Monte Carlo. Past performance does not predict future
+              results. Hearst Yield Vault is offered exclusively to professional / qualified
+              investors. Not an offer or solicitation where prohibited.
+            </p>
+
+            {/* Promote to vault draft */}
+            <div className="flex items-center gap-3">
+              <Button
+                variant="primary"
+                onClick={handlePromote}
+                disabled={isPromoting || !result}
+                aria-busy={isPromoting}
+              >
+                {isPromoting ? "Promoting…" : "Promote to Vault Draft"}
+              </Button>
+              <span className="body-xs text-[--ct-text-muted]">
+                Seeds APY range into a new VaultDeployment (draft)
+              </span>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
