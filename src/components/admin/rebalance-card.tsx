@@ -182,6 +182,8 @@ export function RebalanceCard({
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [signerWallet, setSignerWallet] = useState("");
   const [error, setError] = useState<string | null>(null);
+  // Confirmation gate: null = no pending confirm, "approve" | "execute" = awaiting 2nd click
+  const [confirmingAction, setConfirmingAction] = useState<"approve" | "execute" | null>(null);
 
   const signers = parseSigners(event.approvedBy);
   const fromAlloc = parseAllocation(event.fromAllocation);
@@ -194,6 +196,12 @@ export function RebalanceCard({
       return;
     }
     setError(null);
+    // First click → stage confirmation; second click (confirmingAction === "approve") → execute
+    if (confirmingAction !== "approve") {
+      setConfirmingAction("approve");
+      return;
+    }
+    setConfirmingAction(null);
     startTransition(async () => {
       try {
         await approveRebalance(event.id, signerWallet.trim());
@@ -221,6 +229,12 @@ export function RebalanceCard({
 
   function handleExecute() {
     setError(null);
+    // First click → stage confirmation; second click (confirmingAction === "execute") → execute
+    if (confirmingAction !== "execute") {
+      setConfirmingAction("execute");
+      return;
+    }
+    setConfirmingAction(null);
     startTransition(async () => {
       try {
         await executeRebalance(event.id);
@@ -311,32 +325,55 @@ export function RebalanceCard({
               <input
                 type="text"
                 value={signerWallet}
-                onChange={(e) => setSignerWallet(e.target.value)}
+                onChange={(e) => {
+                  setSignerWallet(e.target.value);
+                  // Reset confirmation gate if wallet changes mid-confirm
+                  if (confirmingAction === "approve") setConfirmingAction(null);
+                }}
                 placeholder="Signer wallet (0x…)"
                 className="ct-input flex-1 mono text-sm"
                 disabled={isPending}
               />
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="primary"
-                onClick={handleApprove}
-                disabled={isPending}
-              >
-                {isPending
-                  ? "Processing…"
-                  : `Approve (${signerCount}/${requiredSigners} sigs)`}
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setShowRejectForm((v) => !v);
-                  setError(null);
-                }}
-                disabled={isPending}
-              >
-                Reject
-              </Button>
+              {confirmingAction === "approve" ? (
+                <>
+                  <Button
+                    variant="primary"
+                    onClick={handleApprove}
+                    disabled={isPending}
+                  >
+                    {isPending ? "Processing…" : "Confirm approve"}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setConfirmingAction(null)}
+                    disabled={isPending}
+                  >
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="primary"
+                    onClick={handleApprove}
+                    disabled={isPending}
+                  >
+                    {`Approve (${signerCount}/${requiredSigners} sigs)`}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setShowRejectForm((v) => !v);
+                      setError(null);
+                    }}
+                    disabled={isPending}
+                  >
+                    Reject
+                  </Button>
+                </>
+              )}
             </div>
             {showRejectForm && (
               <div className="flex gap-2">
@@ -361,13 +398,34 @@ export function RebalanceCard({
         )}
 
         {event.status === "approved" && (
-          <Button
-            variant="primary"
-            onClick={handleExecute}
-            disabled={isPending}
-          >
-            {isPending ? "Executing…" : "Execute (off-chain)"}
-          </Button>
+          <div className="flex gap-2">
+            {confirmingAction === "execute" ? (
+              <>
+                <Button
+                  variant="primary"
+                  onClick={handleExecute}
+                  disabled={isPending}
+                >
+                  {isPending ? "Executing…" : "Confirm execute"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => setConfirmingAction(null)}
+                  disabled={isPending}
+                >
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="primary"
+                onClick={handleExecute}
+                disabled={isPending}
+              >
+                Execute (off-chain)
+              </Button>
+            )}
+          </div>
         )}
 
         {event.status === "executed" && (

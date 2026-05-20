@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { DistributionPreview } from "@/components/admin/distribution-preview";
 import {
   computeDistribution,
@@ -39,6 +40,8 @@ export function DistributionForm() {
     required: number;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Two-step confirmation gate
+  const [awaitingConfirm, setAwaitingConfirm] = useState(false);
 
   const totalUsdcNum = parseFloat(totalUsdc);
 
@@ -65,7 +68,8 @@ export function DistributionForm() {
     });
   }
 
-  function handleConfirm() {
+  // Step 1 — review: show the confirmation recap Card
+  function handleReview() {
     if (!signerWallet.trim()) {
       setError("Signer wallet is required to confirm.");
       return;
@@ -75,6 +79,13 @@ export function DistributionForm() {
       return;
     }
     setError(null);
+    setAwaitingConfirm(true);
+  }
+
+  // Step 2 — actual execution after explicit confirmation
+  function handleConfirm() {
+    setError(null);
+    setAwaitingConfirm(false);
 
     startTransition(async () => {
       try {
@@ -172,7 +183,10 @@ export function DistributionForm() {
                   id="dist-signer"
                   type="text"
                   value={signerWallet}
-                  onChange={(e) => setSignerWallet(e.target.value)}
+                  onChange={(e) => {
+                    setSignerWallet(e.target.value);
+                    if (awaitingConfirm) setAwaitingConfirm(false);
+                  }}
                   placeholder="0x…"
                   className="ct-input w-full mono"
                   disabled={isPending}
@@ -187,15 +201,57 @@ export function DistributionForm() {
                 </p>
               )}
 
-              <Button
-                variant="primary"
-                onClick={handleConfirm}
-                disabled={isPending || !signerWallet.trim()}
-              >
-                {isPending
-                  ? "Confirming…"
-                  : "Confirm distribution (multisig)"}
-              </Button>
+              {awaitingConfirm ? (
+                <Card className="space-y-4">
+                  <p className="eyebrow">Confirm distribution</p>
+                  <div className="space-y-1">
+                    <div className="flex justify-between body-sm">
+                      <span className="ct-text-muted">Period</span>
+                      <span className="ct-text-body font-semibold mono">{period}</span>
+                    </div>
+                    <div className="flex justify-between body-sm">
+                      <span className="ct-text-muted">Total USDC</span>
+                      <span className="ct-text-strong font-bold tabular">
+                        ${totalUsdcNum.toLocaleString("en-US")} USDC
+                      </span>
+                    </div>
+                    <div className="flex justify-between body-sm">
+                      <span className="ct-text-muted">Recipients</span>
+                      <span className="ct-text-body tabular">{preview.recipients.length}</span>
+                    </div>
+                  </div>
+                  <p className="body-xs ct-text-muted">
+                    This will record your multisig signature. Distribution is
+                    finalised once the required threshold is reached. Results
+                    are not projected — see methodology v1.0.
+                  </p>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button
+                      variant="secondary"
+                      onClick={() => setAwaitingConfirm(false)}
+                      disabled={isPending}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="primary"
+                      onClick={handleConfirm}
+                      disabled={isPending}
+                      className="flex-1"
+                    >
+                      {isPending ? "Confirming…" : "Confirm distribution (multisig)"}
+                    </Button>
+                  </div>
+                </Card>
+              ) : (
+                <Button
+                  variant="primary"
+                  onClick={handleReview}
+                  disabled={isPending || !signerWallet.trim()}
+                >
+                  Review distribution
+                </Button>
+              )}
             </div>
           )}
         </>

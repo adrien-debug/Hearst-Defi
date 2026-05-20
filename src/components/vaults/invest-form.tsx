@@ -54,8 +54,8 @@ function ctaLabel(state: CtaState, amount: number): string {
       return "Confirming…";
     case "ready":
       return amount > 0
-        ? `Confirm deposit · ${formatUsd(amount)} →`
-        : "Confirm deposit →";
+        ? `Review deposit · ${formatUsd(amount)} →`
+        : "Review deposit →";
   }
 }
 
@@ -112,6 +112,8 @@ export function InvestForm({ vault }: InvestFormProps) {
   const [allowanceApproved, setAllowanceApproved] = useState(false);
   const [approving, setApproving] = useState(false);
   const [depositing, setDepositing] = useState(false);
+  const [awaitingConfirm, setAwaitingConfirm] = useState(false);
+  const [depositError, setDepositError] = useState<string | null>(null);
 
   // MVP stub wallet — simulate connected wallet
   const STUB_WALLET = "0xABCDEF1234567890abcdef1234567890ABCDEF12";
@@ -161,17 +163,33 @@ export function InvestForm({ vault }: InvestFormProps) {
 
   const helper = amountHelperText();
 
-  // Confirm deposit
-  const handleConfirm = useCallback(async () => {
+  // Step 1 — first CTA click: enter the confirmation staging area
+  const handleReview = useCallback(() => {
     if (!ctaEnabled || depositing) return;
+    setDepositError(null);
+    setAwaitingConfirm(true);
+  }, [ctaEnabled, depositing]);
+
+  // Step 2 — second explicit action: actually execute the deposit
+  const handleConfirm = useCallback(async () => {
+    if (depositing) return;
     setDepositing(true);
+    setDepositError(null);
     try {
       const result = await stubDeposit({ vault, amount });
       router.push(`/vaults/${vault.id}/invest/confirmed?tx=${result.txHash}&amount=${amount}`);
-    } finally {
+    } catch (e) {
+      setDepositError(e instanceof Error ? e.message : "Deposit failed. Please try again.");
       setDepositing(false);
+      setAwaitingConfirm(false);
     }
-  }, [ctaEnabled, depositing, vault, amount, router]);
+  }, [depositing, vault, amount, router]);
+
+  // Cancel — return to form without executing
+  const handleCancelConfirm = useCallback(() => {
+    setAwaitingConfirm(false);
+    setDepositError(null);
+  }, []);
 
   const ptai = buildPtai(deferredAmount, vault);
 
@@ -280,30 +298,80 @@ export function InvestForm({ vault }: InvestFormProps) {
           </span>
         </label>
 
-        {/* CTA row */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <Button
-            variant="secondary"
-            size="md"
-            asChild
-          >
-            <Link href={`/vaults/${vault.id}`}>← Back</Link>
-          </Button>
+        {/* Deposit error */}
+        {depositError && (
+          <p className="body-xs ct-status-danger px-3 py-2 rounded-[--ct-radius-lg] border border-[--ct-status-danger-border] ct-surface-1">
+            {depositError}
+          </p>
+        )}
 
-          <Button
-            variant="primary"
-            size="md"
-            onClick={handleConfirm}
-            disabled={!ctaEnabled}
-            aria-disabled={!ctaEnabled}
-            className={cn(
-              "font-bold flex-1",
-              !ctaEnabled && "opacity-60 cursor-not-allowed",
-            )}
-          >
-            {ctaLabel(currentCtaState, amount)}
-          </Button>
-        </div>
+        {/* CTA row — two-step confirmation */}
+        {awaitingConfirm ? (
+          <Card className="space-y-4">
+            <p className="eyebrow">Confirm your deposit</p>
+            <div className="space-y-1">
+              <div className="flex justify-between body-sm">
+                <span className="ct-text-muted">Vault</span>
+                <span className="ct-text-body font-semibold">{vault.name}</span>
+              </div>
+              <div className="flex justify-between body-sm">
+                <span className="ct-text-muted">Amount</span>
+                <span className="ct-text-strong font-bold tabular">{formatUsd(amount)} USDC</span>
+              </div>
+              <div className="flex justify-between body-sm">
+                <span className="ct-text-muted">Action</span>
+                <span className="ct-text-body">Deposit</span>
+              </div>
+            </div>
+            <p className="body-xs ct-text-muted">
+              This action is irreversible once submitted. Subject to 60-day soft
+              lock-up. Results are not projected — see methodology v1.0.
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={handleCancelConfirm}
+                disabled={depositing}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="md"
+                onClick={handleConfirm}
+                disabled={depositing}
+                className="font-bold flex-1"
+              >
+                {depositing ? "Confirming…" : `Confirm ${formatUsd(amount)} deposit`}
+              </Button>
+            </div>
+          </Card>
+        ) : (
+          <div className="flex items-center gap-3 flex-wrap">
+            <Button
+              variant="secondary"
+              size="md"
+              asChild
+            >
+              <Link href={`/vaults/${vault.id}`}>← Back</Link>
+            </Button>
+
+            <Button
+              variant="primary"
+              size="md"
+              onClick={handleReview}
+              disabled={!ctaEnabled}
+              aria-disabled={!ctaEnabled}
+              className={cn(
+                "font-bold flex-1",
+                !ctaEnabled && "opacity-60 cursor-not-allowed",
+              )}
+            >
+              {ctaLabel(currentCtaState, amount)}
+            </Button>
+          </div>
+        )}
 
         {/* Time-to-target chart — only when amount is set */}
         {deferredAmount > 0 && (
