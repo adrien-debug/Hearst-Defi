@@ -1,0 +1,535 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+
+import { requireAdmin } from "@/lib/auth/require-admin";
+import { recordAdminAudit } from "@/lib/admin/audit";
+import { prisma } from "@/lib/db";
+import { logger } from "@/lib/logger";
+
+// ---------------------------------------------------------------------------
+// Forbidden words in disclaimers (CLAUDE.md non-négociable #5)
+// ---------------------------------------------------------------------------
+
+const FORBIDDEN_WORDS = [
+  "guarantee",
+  "promise",
+  "certain",
+  "will deliver",
+  "risk-free",
+] as const;
+
+function containsForbiddenWord(text: string): string | null {
+  const lower = text.toLowerCase();
+  for (const word of FORBIDDEN_WORDS) {
+    if (lower.includes(word)) return word;
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+const StrategyEnum = z.enum(["mining_yield", "btc_tactical", "stable_reserve"]);
+const SpvEnum = z.enum(["cayman", "bvi", "delaware", "lux"]);
+const RegExemptionEnum = z.enum(["regD_506c", "regS", "art2_lux"]);
+
+// ---------------------------------------------------------------------------
+// Shared schema
+// ---------------------------------------------------------------------------
+
+const CreateDraftSchema = z.object({
+  ticker: z
+    .string()
+    .regex(/^[A-Z0-9-]{3,12}$/, "Ticker must be 3-12 uppercase letters/digits/hyphens"),
+  name: z.string().min(3).max(80),
+  description: z.string().optional(),
+  strategy: StrategyEnum,
+  colorTag: z.string().optional(),
+  minTicketUsdc: z.number().min(1000),
+  capacityUsdc: z.number().min(1000),
+  mgmtFeeBps: z.number().min(0).max(500),
+  perfFeeBps: z.number().min(0).max(3000),
+  softLockupDays: z.number().min(0).max(365),
+  targetApyLowBps: z.number().min(0),
+  targetApyHighBps: z.number().min(0),
+  spvJurisdiction: SpvEnum,
+  shareClass: z
+    .string()
+    .regex(/^[A-Z]$/, "Share class must be a single uppercase letter"),
+  regExemption: RegExemptionEnum,
+  disclaimers: z
+    .string()
+    .min(80, "Disclaimers must be at least 80 characters")
+    .refine((v) => {
+      const hit = containsForbiddenWord(v);
+      return hit === null;
+    }, "Disclaimers contain a forbidden word (guarantee / promise / certain / will deliver / risk-free)"),
+  targetMiningBps: z.number().min(0).max(10000),
+  targetBtcTacticalBps: z.number().min(0).max(10000),
+  targetUsdcBaseBps: z.number().min(0).max(10000),
+  targetStableReserveBps: z.number().min(0).max(10000),
+  signersWhitelist: z
+    .array(z.string().min(1))
+    .min(2, "At least 2 signers required")
+    .max(5, "At most 5 signers allowed"),
+});
+
+export type CreateDraftInput = z.infer<typeof CreateDraftSchema>;
+
+export type VaultActionResult =
+  | { ok: true; id: string }
+  | { ok: false; issues: z.ZodIssue[] | string };
+
+// ---------------------------------------------------------------------------
+// Allowed status transitions (state machine)
+// ---------------------------------------------------------------------------
+
+type VaultStatus = "draft" | "review" | "deployed" | "live" | "paused" | "closed";
+
+const ALLOWED_TRANSITIONS: Record<VaultStatus, VaultStatus[]> = {
+  draft: ["review"],
+  review: ["deployed", "draft"], // reject pushes back to draft
+  deployed: ["live"],
+  live: ["paused"],
+  paused: ["live", "closed"],
+  closed: [],
+};
+
+function assertTransition(current: string, next: VaultStatus): void {
+  const allowed = ALLOWED_TRANSITIONS[current as VaultStatus] ?? [];
+  if (!allowed.includes(next)) {
+    throw new Error(
+      `Transition ${current} → ${next} is not allowed. Allowed: [${allowed.join(", ")}]`,
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// createDraftVault
+// ---------------------------------------------------------------------------
+
+export async function createDraftVault(
+  input: CreateDraftInput,
+): Promise<VaultActionResult> {
+  const admin = await requireAdmin();
+
+  const parsed = CreateDraftSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, issues: parsed.error.issues };
+  }
+
+  const d = parsed.data;
+
+  try {
+    const vault = await prisma.vaultDeployment.create({
+      data: {
+        ticker: d.ticker,
+        name: d.name,
+        description: d.description ?? null,
+        strategy: d.strategy,
+        colorTag: d.colorTag ?? "accent",
+        status: "draft",
+        minTicketUsdc: d.minTicketUsdc,
+        capacityUsdc: d.capacityUsdc,
+        mgmtFeeBps: d.mgmtFeeBps,
+        perfFeeBps: d.perfFeeBps,
+        softLockupDays: d.softLockupDays,
+        targetApyLowBps: d.targetApyLowBps,
+        targetApyHighBps: d.targetApyHighBps,
+        spvJurisdiction: d.spvJurisdiction,
+        shareClass: d.shareClass,
+        regExemption: d.regExemption,
+        disclaimers: d.disclaimers,
+        targetMiningBps: d.targetMiningBps,
+        targetBtcTacticalBps: d.targetBtcTacticalBps,
+        targetUsdcBaseBps: d.targetUsdcBaseBps,
+        targetStableReserveBps: d.targetStableReserveBps,
+        signersWhitelist: JSON.stringify(d.signersWhitelist),
+        requiredSigners: Math.min(d.signersWhitelist.length, 2),
+        createdBy: admin.walletAddress ?? admin.userId,
+      },
+    });
+
+    await recordAdminAudit({
+      actorWallet: admin.walletAddress ?? admin.userId,
+      action: "vault.createDraft",
+      entityType: "VaultDeployment",
+      entityId: vault.id,
+      before: null,
+      after: { status: "draft", ticker: vault.ticker },
+    });
+
+    revalidatePath("/admin/vaults");
+    logger.info("vault draft created", { vaultId: vault.id, ticker: vault.ticker });
+    return { ok: true, id: vault.id };
+  } catch (err) {
+    logger.error("createDraftVault failed", { ticker: d.ticker }, err);
+    throw err;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// updateDraftVault
+// ---------------------------------------------------------------------------
+
+export async function updateDraftVault(
+  id: string,
+  input: CreateDraftInput,
+): Promise<VaultActionResult> {
+  const admin = await requireAdmin();
+
+  const parsed = CreateDraftSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, issues: parsed.error.issues };
+  }
+
+  const d = parsed.data;
+
+  const existing = await prisma.vaultDeployment.findUnique({ where: { id } });
+  if (!existing) throw new Error("VaultDeployment not found");
+  if (existing.status !== "draft") {
+    throw new Error("Only draft vaults can be edited");
+  }
+
+  try {
+    const vault = await prisma.vaultDeployment.update({
+      where: { id },
+      data: {
+        ticker: d.ticker,
+        name: d.name,
+        description: d.description ?? null,
+        strategy: d.strategy,
+        colorTag: d.colorTag ?? "accent",
+        minTicketUsdc: d.minTicketUsdc,
+        capacityUsdc: d.capacityUsdc,
+        mgmtFeeBps: d.mgmtFeeBps,
+        perfFeeBps: d.perfFeeBps,
+        softLockupDays: d.softLockupDays,
+        targetApyLowBps: d.targetApyLowBps,
+        targetApyHighBps: d.targetApyHighBps,
+        spvJurisdiction: d.spvJurisdiction,
+        shareClass: d.shareClass,
+        regExemption: d.regExemption,
+        disclaimers: d.disclaimers,
+        targetMiningBps: d.targetMiningBps,
+        targetBtcTacticalBps: d.targetBtcTacticalBps,
+        targetUsdcBaseBps: d.targetUsdcBaseBps,
+        targetStableReserveBps: d.targetStableReserveBps,
+        signersWhitelist: JSON.stringify(d.signersWhitelist),
+        requiredSigners: Math.min(d.signersWhitelist.length, 2),
+      },
+    });
+
+    await recordAdminAudit({
+      actorWallet: admin.walletAddress ?? admin.userId,
+      action: "vault.updateDraft",
+      entityType: "VaultDeployment",
+      entityId: id,
+      before: { status: existing.status, ticker: existing.ticker },
+      after: { status: vault.status, ticker: vault.ticker },
+    });
+
+    revalidatePath("/admin/vaults");
+    revalidatePath(`/admin/vaults/${id}`);
+    return { ok: true, id };
+  } catch (err) {
+    logger.error("updateDraftVault failed", { id }, err);
+    throw err;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// submitForReview
+// ---------------------------------------------------------------------------
+
+export async function submitForReview(id: string): Promise<void> {
+  const admin = await requireAdmin();
+
+  const vault = await prisma.vaultDeployment.findUnique({ where: { id } });
+  if (!vault) throw new Error("VaultDeployment not found");
+
+  assertTransition(vault.status, "review");
+
+  try {
+    await prisma.vaultDeployment.update({
+      where: { id },
+      data: { status: "review", submittedAt: new Date() },
+    });
+
+    await recordAdminAudit({
+      actorWallet: admin.walletAddress ?? admin.userId,
+      action: "vault.submitForReview",
+      entityType: "VaultDeployment",
+      entityId: id,
+      before: { status: vault.status },
+      after: { status: "review" },
+    });
+
+    revalidatePath("/admin/vaults");
+    revalidatePath(`/admin/vaults/${id}`);
+  } catch (err) {
+    logger.error("submitForReview failed", { id }, err);
+    throw err;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// signApproval
+// ---------------------------------------------------------------------------
+
+export async function signApproval(
+  id: string,
+  decision: "approve" | "reject",
+  reason?: string,
+): Promise<void> {
+  const admin = await requireAdmin();
+  const actorWallet = admin.walletAddress ?? admin.userId;
+
+  const vault = await prisma.vaultDeployment.findUnique({
+    where: { id },
+    include: { approvals: true },
+  });
+  if (!vault) throw new Error("VaultDeployment not found");
+  if (vault.status !== "review") {
+    throw new Error("Only vaults in review status can be signed");
+  }
+
+  // Check signer is in the whitelist
+  const whitelist: string[] = JSON.parse(vault.signersWhitelist) as string[];
+  if (!whitelist.includes(actorWallet)) {
+    throw new Error("Signer not in the whitelist");
+  }
+
+  try {
+    // Upsert approval (overwrite if same signer signs again)
+    await prisma.vaultDeploymentApproval.upsert({
+      where: { deploymentId_signerWallet: { deploymentId: id, signerWallet: actorWallet } },
+      create: {
+        deploymentId: id,
+        signerWallet: actorWallet,
+        decision,
+        reason: reason ?? null,
+      },
+      update: {
+        decision,
+        reason: reason ?? null,
+        signedAt: new Date(),
+      },
+    });
+
+    await recordAdminAudit({
+      actorWallet,
+      action: `vault.sign.${decision}`,
+      entityType: "VaultDeployment",
+      entityId: id,
+      before: { status: vault.status },
+      after: { decision, reason },
+    });
+
+    // Auto-promote to deployed if enough distinct approvals
+    if (decision === "approve") {
+      const freshApprovals = await prisma.vaultDeploymentApproval.findMany({
+        where: { deploymentId: id, decision: "approve" },
+      });
+      const distinctApprovers = new Set(freshApprovals.map((a) => a.signerWallet));
+      if (distinctApprovers.size >= vault.requiredSigners) {
+        await prisma.vaultDeployment.update({
+          where: { id },
+          data: { status: "deployed", deployedAt: new Date() },
+        });
+        await recordAdminAudit({
+          actorWallet,
+          action: "vault.autoDeployed",
+          entityType: "VaultDeployment",
+          entityId: id,
+          before: { status: "review" },
+          after: { status: "deployed" },
+        });
+      }
+    }
+
+    revalidatePath("/admin/vaults");
+    revalidatePath(`/admin/vaults/${id}`);
+  } catch (err) {
+    logger.error("signApproval failed", { id, decision }, err);
+    throw err;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// rejectDeployment (admin hard-reject, pushes back to draft)
+// ---------------------------------------------------------------------------
+
+export async function rejectDeployment(id: string, reason: string): Promise<void> {
+  const admin = await requireAdmin();
+
+  const vault = await prisma.vaultDeployment.findUnique({ where: { id } });
+  if (!vault) throw new Error("VaultDeployment not found");
+
+  assertTransition(vault.status, "draft"); // review → draft
+
+  try {
+    await prisma.vaultDeployment.update({
+      where: { id },
+      data: { status: "draft" },
+    });
+
+    await recordAdminAudit({
+      actorWallet: admin.walletAddress ?? admin.userId,
+      action: "vault.rejectDeployment",
+      entityType: "VaultDeployment",
+      entityId: id,
+      before: { status: vault.status },
+      after: { status: "draft", reason },
+    });
+
+    revalidatePath("/admin/vaults");
+    revalidatePath(`/admin/vaults/${id}`);
+  } catch (err) {
+    logger.error("rejectDeployment failed", { id }, err);
+    throw err;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// markAsLive
+// ---------------------------------------------------------------------------
+
+export async function markAsLive(id: string): Promise<void> {
+  const admin = await requireAdmin();
+
+  const vault = await prisma.vaultDeployment.findUnique({ where: { id } });
+  if (!vault) throw new Error("VaultDeployment not found");
+
+  assertTransition(vault.status, "live");
+
+  try {
+    await prisma.vaultDeployment.update({
+      where: { id },
+      data: { status: "live" },
+    });
+
+    await recordAdminAudit({
+      actorWallet: admin.walletAddress ?? admin.userId,
+      action: "vault.markAsLive",
+      entityType: "VaultDeployment",
+      entityId: id,
+      before: { status: vault.status },
+      after: { status: "live" },
+    });
+
+    revalidatePath("/admin/vaults");
+    revalidatePath(`/admin/vaults/${id}`);
+  } catch (err) {
+    logger.error("markAsLive failed", { id }, err);
+    throw err;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// pauseVault
+// ---------------------------------------------------------------------------
+
+export async function pauseVault(id: string): Promise<void> {
+  const admin = await requireAdmin();
+
+  const vault = await prisma.vaultDeployment.findUnique({ where: { id } });
+  if (!vault) throw new Error("VaultDeployment not found");
+
+  assertTransition(vault.status, "paused");
+
+  try {
+    await prisma.vaultDeployment.update({
+      where: { id },
+      data: { status: "paused", pausedAt: new Date() },
+    });
+
+    await recordAdminAudit({
+      actorWallet: admin.walletAddress ?? admin.userId,
+      action: "vault.pause",
+      entityType: "VaultDeployment",
+      entityId: id,
+      before: { status: vault.status },
+      after: { status: "paused" },
+    });
+
+    revalidatePath("/admin/vaults");
+    revalidatePath(`/admin/vaults/${id}`);
+  } catch (err) {
+    logger.error("pauseVault failed", { id }, err);
+    throw err;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// resumeVault
+// ---------------------------------------------------------------------------
+
+export async function resumeVault(id: string): Promise<void> {
+  const admin = await requireAdmin();
+
+  const vault = await prisma.vaultDeployment.findUnique({ where: { id } });
+  if (!vault) throw new Error("VaultDeployment not found");
+
+  assertTransition(vault.status, "live");
+
+  try {
+    await prisma.vaultDeployment.update({
+      where: { id },
+      data: { status: "live", pausedAt: null },
+    });
+
+    await recordAdminAudit({
+      actorWallet: admin.walletAddress ?? admin.userId,
+      action: "vault.resume",
+      entityType: "VaultDeployment",
+      entityId: id,
+      before: { status: vault.status },
+      after: { status: "live" },
+    });
+
+    revalidatePath("/admin/vaults");
+    revalidatePath(`/admin/vaults/${id}`);
+  } catch (err) {
+    logger.error("resumeVault failed", { id }, err);
+    throw err;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// closeVault
+// ---------------------------------------------------------------------------
+
+export async function closeVault(id: string): Promise<void> {
+  const admin = await requireAdmin();
+
+  const vault = await prisma.vaultDeployment.findUnique({ where: { id } });
+  if (!vault) throw new Error("VaultDeployment not found");
+
+  assertTransition(vault.status, "closed");
+
+  try {
+    await prisma.vaultDeployment.update({
+      where: { id },
+      data: { status: "closed", closedAt: new Date() },
+    });
+
+    await recordAdminAudit({
+      actorWallet: admin.walletAddress ?? admin.userId,
+      action: "vault.close",
+      entityType: "VaultDeployment",
+      entityId: id,
+      before: { status: vault.status },
+      after: { status: "closed" },
+    });
+
+    revalidatePath("/admin/vaults");
+    revalidatePath(`/admin/vaults/${id}`);
+  } catch (err) {
+    logger.error("closeVault failed", { id }, err);
+    throw err;
+  }
+}
