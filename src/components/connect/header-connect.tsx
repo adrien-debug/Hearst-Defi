@@ -7,20 +7,27 @@ import { Button } from "@/components/ui/button";
 /**
  * HeaderConnect — address pill + disconnect button.
  *
- * Rendered only when Privy reports `authenticated: true`.
- * Returns null otherwise — safe to mount unconditionally in (product)/layout.
+ * Two-tier guard to avoid "useWallets called outside the PrivyProvider"
+ * warnings during the hydration window: the PrivyProvider is mounted
+ * via `dynamic({ ssr: false })`, so for ~50ms after first paint there
+ * is no Privy context yet. The outer component only consumes `usePrivy`
+ * (which tolerates a missing context); `useWallets` is deferred to the
+ * inner component, mounted only when `ready && authenticated`.
  *
  * Address format: `0xAB…CD` (first 6 chars + last 4 chars).
  * Wallet address source: `useWallets()[0].address` (first linked wallet).
  * Falls back to user.email if no wallet is linked (email-only Privy accounts).
  */
 export function HeaderConnect() {
-  const { ready, authenticated, logout, user } = usePrivy();
+  const { ready, authenticated } = usePrivy();
+  if (!ready || !authenticated) return null;
+  return <HeaderConnectAuthed />;
+}
+
+function HeaderConnectAuthed() {
+  const { logout, user } = usePrivy();
   const { wallets } = useWallets();
 
-  if (!ready || !authenticated) return null;
-
-  // Resolve display address: prefer first wallet, fall back to email identifier.
   const walletAddress = wallets[0]?.address ?? null;
   const displayAddress = walletAddress
     ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}`
