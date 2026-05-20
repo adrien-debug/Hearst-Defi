@@ -108,19 +108,19 @@ function AllocationDiffTable({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm tabular ct-divide-soft border border-[--ct-border-soft] rounded-lg overflow-hidden">
+      <table className="w-full text-sm tabular ct-divide-soft border border-[--ct-border-soft] rounded-[--ct-radius-lg] overflow-hidden">
         <thead>
           <tr className="ct-surface-1">
-            <th className="text-left px-3 py-2 ct-text-muted body-xs font-medium">
+            <th className="text-left ct-table-header ct-text-muted body-xs">
               Bucket
             </th>
-            <th className="text-right px-3 py-2 ct-text-muted body-xs font-medium">
+            <th className="text-right ct-table-header ct-text-muted body-xs">
               Current %
             </th>
-            <th className="text-right px-3 py-2 ct-text-muted body-xs font-medium">
+            <th className="text-right ct-table-header ct-text-muted body-xs">
               Target %
             </th>
-            <th className="text-right px-3 py-2 ct-text-muted body-xs font-medium">
+            <th className="text-right ct-table-header ct-text-muted body-xs">
               Delta
             </th>
           </tr>
@@ -138,18 +138,18 @@ function AllocationDiffTable({
                 key={bucket}
                 className="border-t border-[--ct-border-soft] ct-hover-surface transition-colors"
               >
-                <td className="px-3 py-2 ct-text-body font-mono text-xs capitalize">
+                <td className="ct-table-cell ct-text-body font-mono text-xs capitalize">
                   {bucket.replace(/_/g, " ")}
                 </td>
-                <td className="px-3 py-2 text-right ct-text-muted tabular">
+                <td className="ct-table-cell text-right ct-text-muted tabular">
                   {fromPct.toFixed(1)}%
                 </td>
-                <td className="px-3 py-2 text-right ct-text-body tabular">
+                <td className="ct-table-cell text-right ct-text-body tabular">
                   {toPct.toFixed(1)}%
                 </td>
                 <td
                   className={cn(
-                    "px-3 py-2 text-right font-semibold tabular",
+                    "ct-table-cell text-right font-semibold tabular",
                     delta > 0
                       ? "ct-status-success"
                       : delta < 0
@@ -298,7 +298,7 @@ export function RebalanceCard({
 
       {/* Error display */}
       {error && (
-        <p className="body-xs ct-status-danger-bg px-3 py-2 rounded-lg">
+        <p className="body-xs ct-status-danger-bg px-3 py-2 rounded-[--ct-radius-lg]">
           {error}
         </p>
       )}

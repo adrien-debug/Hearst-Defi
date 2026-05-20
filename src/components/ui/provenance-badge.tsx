@@ -47,7 +47,7 @@ export function ProvenanceBadge({ kind }: { kind: Provenance }) {
     <Badge variant={variants[kind]} title={`Data provenance: ${labels[kind]}`}>
       <span
         aria-hidden
-        className="inline-block h-1.5 w-1.5 rounded-full"
+        className="inline-block h-[var(--ct-space-1_5)] w-[var(--ct-space-1_5)] rounded-full"
         style={{ background: dotColor[kind] }}
       />
       {labels[kind]}

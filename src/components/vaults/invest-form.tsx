@@ -242,7 +242,7 @@ export function InvestForm({ vault }: InvestFormProps) {
                 "flex items-center justify-center w-5 h-5 rounded border transition-colors",
                 agreedToTermSheet
                   ? "bg-[--ct-accent] border-[--ct-border-accent]"
-                  : "bg-[--ct-surface-1] border-[--ct-border-soft] group-hover:border-[--ct-border-strong]",
+                  : "ct-surface-1 border-[--ct-border-soft] group-hover:border-[--ct-border-strong]",
               )}
             >
               {agreedToTermSheet && (

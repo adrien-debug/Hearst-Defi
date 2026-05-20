@@ -29,7 +29,7 @@ function truncate(str: string, head: number, tail: number): string {
 export function ProofList({ items }: { items: ProofItem[] }) {
   if (items.length === 0) {
     return (
-      <div className="rounded-md border border-dashed border-[--ct-border] px-4 py-8 text-center text-sm text-[--ct-text-muted]">
+      <div className="rounded-[--ct-radius-md] border border-dashed border-[--ct-border] px-4 py-8 text-center text-sm text-[--ct-text-muted]">
         No proofs yet. Use the ingest CLI to publish an attestation.
       </div>
     );

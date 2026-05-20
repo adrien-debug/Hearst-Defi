@@ -433,8 +433,8 @@ export default async function DashboardPage() {
               <ProvenanceBadge kind={allocationProvenance} />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "12.5rem 1fr", gap: "var(--ct-space-6)", alignItems: "center", marginTop: "var(--ct-space-2)" }}>
-              <div className="dash-chart-container" style={{ height: "12.5rem", marginTop: 0 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "var(--ct-donut-size) 1fr", gap: "var(--ct-space-6)", alignItems: "center", marginTop: "var(--ct-space-2)" }}>
+              <div className="dash-chart-container" style={{ height: "var(--ct-donut-size)", marginTop: 0 }}>
                 <svg
                   className="dash-chart-svg"
                   viewBox="0 0 42 42"

@@ -85,18 +85,18 @@ const TONE_CLASSES: Record<
 > = {
   success: {
     border: "border-[--ct-status-success-border]",
-    badge: "text-[--ct-status-success]",
-    text: "text-[--ct-status-success]",
+    badge: "ct-status-success",
+    text: "ct-status-success",
   },
   warning: {
     border: "border-[--ct-border]",
-    badge: "text-[--ct-text-primary]",
-    text: "text-[--ct-text-primary]",
+    badge: "ct-text-primary",
+    text: "ct-text-primary",
   },
   danger: {
     border: "border-[--ct-status-danger-border]",
-    badge: "text-[--ct-status-danger]",
-    text: "text-[--ct-status-danger]",
+    badge: "ct-status-danger",
+    text: "ct-status-danger",
   },
 };
 
@@ -117,7 +117,7 @@ function AllocationBar({ label, pct, tone }: AllocationBarProps) {
   return (
     <div className="flex items-center gap-2 min-w-0">
       <span className="body-xs ct-text-muted w-20 shrink-0">{label}</span>
-      <div className="flex-1 h-1.5 rounded-full bg-[--ct-surface-2] overflow-hidden">
+      <div className="flex-1 h-1.5 rounded-full ct-surface-2 overflow-hidden">
         <div
           className={cn("h-full rounded-full transition-all", barColor)}
           style={{ width: `${pct}%` }}
@@ -141,7 +141,7 @@ export function DynamicAllocationCards() {
     <div
       className="grid gap-4"
       style={{
-        gridTemplateColumns: "repeat(auto-fit, minmax(17.5rem, 1fr))",
+        gridTemplateColumns: "repeat(auto-fit, minmax(var(--ct-regime-card-min-w), 1fr))",
       }}
     >
       {REGIME_CARDS.map((card) => {
@@ -180,7 +180,7 @@ export function DynamicAllocationCards() {
                 aria-label={`APY range ${card.apyLow} to ${card.apyHigh} percent`}
               >
                 {card.apyLow.toFixed(1)}
-                <span className="mx-1 text-[--ct-text-muted] font-sans font-normal text-sm">
+                <span className="mx-1 ct-text-muted font-sans font-normal text-sm">
                   —
                 </span>
                 {card.apyHigh.toFixed(1)}

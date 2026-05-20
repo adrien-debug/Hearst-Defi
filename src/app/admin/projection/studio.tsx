@@ -365,7 +365,7 @@ export function ProjectionStudio() {
   const yVals = batchMode === "2d" ? DEFAULT_2D_Y_VALUES : undefined;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6 items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-[var(--ct-sidebar-w)_1fr] gap-6 items-start">
       {/* ── LEFT: INPUTS ── */}
       <Card className="space-y-6">
         {/* Preset selector */}

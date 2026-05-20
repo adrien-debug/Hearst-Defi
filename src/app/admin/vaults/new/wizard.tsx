@@ -334,7 +334,7 @@ export function VaultWizard() {
               </label>
             </div>
 
-            <div className="p-4 rounded-lg bg-bg-elevated border border-border-subtle">
+            <div className="p-4 rounded-[--ct-radius-lg] bg-[--ct-surface-2] border border-[--ct-border-soft]">
               <span className="stat-label block mb-1">APY Range Preview</span>
               <ApyRange
                 low={form.targetApyLowBps / 100}
@@ -566,7 +566,7 @@ export function VaultWizard() {
               )}
             </div>
 
-            <p className="body-xs text-[--ct-text-faint] border-t border-border-subtle pt-3">
+            <p className="body-xs text-[--ct-text-faint] border-t border-[--ct-border-soft] pt-3">
               Assumptions: mining yields, BTC price, network difficulty, energy costs are
               projected based on historical ranges. Target APY is not guaranteed and may vary.
               Past performance is not indicative of future results.
@@ -576,7 +576,7 @@ export function VaultWizard() {
 
         {/* Navigation */}
         {error && (
-          <div className="mt-4 p-3 rounded-lg bg-danger-bg border border-danger-border">
+          <div className="mt-4 p-3 rounded-[--ct-radius-lg] bg-[--ct-status-danger-soft] border border-[--ct-status-danger]">
             <p className="body-sm text-[--ct-status-danger]">{error}</p>
           </div>
         )}

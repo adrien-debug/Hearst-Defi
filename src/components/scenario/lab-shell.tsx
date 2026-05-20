@@ -510,7 +510,7 @@ function SingleMode({
         </p>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(360px,420px)_1fr]">
+      <div className="grid gap-8 lg:grid-cols-[minmax(var(--ct-input-panel-min,360px),var(--ct-input-panel-max,420px))_1fr]">
         {/* Left: Inputs panel */}
         <div className="flex flex-col gap-0 rounded-[--radius-card] border border-[--ct-border] bg-[--ct-surface-2]">
           <div className="border-b border-[--ct-border-soft] px-6 py-4">

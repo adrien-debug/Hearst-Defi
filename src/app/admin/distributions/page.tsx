@@ -58,22 +58,22 @@ export default async function DistributionsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm tabular border border-[--ct-border-soft] rounded-lg overflow-hidden">
+            <table className="w-full text-sm tabular border border-[--ct-border-soft] rounded-[--ct-radius-lg] overflow-hidden">
               <thead>
                 <tr className="ct-surface-1">
-                  <th className="text-left px-4 py-3 body-xs ct-text-muted font-medium">
+                  <th className="text-left ct-table-header body-xs ct-text-muted font-medium">
                     Period
                   </th>
-                  <th className="text-right px-4 py-3 body-xs ct-text-muted font-medium">
+                  <th className="text-right ct-table-header body-xs ct-text-muted font-medium">
                     Amount (USDC)
                   </th>
-                  <th className="text-right px-4 py-3 body-xs ct-text-muted font-medium">
+                  <th className="text-right ct-table-header body-xs ct-text-muted font-medium">
                     Recipients
                   </th>
-                  <th className="text-right px-4 py-3 body-xs ct-text-muted font-medium">
+                  <th className="text-right ct-table-header body-xs ct-text-muted font-medium">
                     Distributed at
                   </th>
-                  <th className="text-right px-4 py-3 body-xs ct-text-muted font-medium">
+                  <th className="text-right ct-table-header body-xs ct-text-muted font-medium">
                     Tx hash
                   </th>
                 </tr>
@@ -84,22 +84,22 @@ export default async function DistributionsPage() {
                     key={d.id}
                     className="border-t border-[--ct-border-soft] ct-hover-surface transition-colors"
                   >
-                    <td className="px-4 py-3 font-mono text-xs ct-text-body">
+                    <td className="ct-table-cell font-mono text-xs ct-text-body">
                       {d.period}
                     </td>
-                    <td className="px-4 py-3 text-right ct-text-strong font-semibold tabular">
+                    <td className="ct-table-cell text-right ct-text-strong font-semibold tabular">
                       $
                       {d.amountUsdc.toNumber().toLocaleString("en-US", {
                         minimumFractionDigits: 2,
                       })}
                     </td>
-                    <td className="px-4 py-3 text-right ct-text-muted tabular">
+                    <td className="ct-table-cell text-right ct-text-muted tabular">
                       {d.recipientsCount}
                     </td>
-                    <td className="px-4 py-3 text-right ct-text-muted">
+                    <td className="ct-table-cell text-right ct-text-muted">
                       {formatDate(d.distributedAt)}
                     </td>
-                    <td className="px-4 py-3 text-right font-mono text-xs ct-text-faint">
+                    <td className="ct-table-cell text-right font-mono text-xs ct-text-faint">
                       {d.txHash
                         ? `${d.txHash.slice(0, 8)}…`
                         : <span className="ct-text-faint">—</span>}

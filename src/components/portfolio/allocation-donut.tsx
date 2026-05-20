@@ -78,7 +78,7 @@ export function AllocationDonut({
           marginTop: "var(--ct-space-2)",
         }}
       >
-        <div className="dash-chart-container" style={{ marginTop: 0, width: "12.5rem", height: "12.5rem" }}>
+        <div className="dash-chart-container" style={{ marginTop: 0, width: "var(--ct-donut-size)", height: "var(--ct-donut-size)" }}>
           <svg
             className="dash-chart-svg"
             viewBox="0 0 42 42"

@@ -55,12 +55,12 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
   }
 
   return (
-    <div className="rounded-xl border border-[--ct-border] bg-[--ct-surface-1]">
+    <div className="rounded-[--ct-radius-xl] border border-[--ct-border] bg-[--ct-surface-1]">
       <div className="flex items-center gap-4 px-5 py-4">
         <span
           role="img"
           aria-label={statusLabel(item.status)}
-          className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
+          className="inline-block h-2.5 w-2.5 shrink-0 rounded-[--ct-radius-full]"
           style={{ background: statusDotColor(item.status) }}
           title={statusLabel(item.status)}
         />
@@ -110,7 +110,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
               onClick={() => setStatus(s)}
               disabled={isPending || item.status === s}
               className={cn(
-                "rounded-md px-2.5 py-1.5 disabled:cursor-default",
+                "rounded-[--ct-radius-md] px-2.5 py-1.5 disabled:cursor-default",
                 item.status === s
                   ? "bg-[--ct-surface-2] text-[--ct-text-primary]"
                   : "text-[--ct-text-muted] hover:bg-[--ct-surface-2] hover:text-[--ct-text-primary]",
@@ -120,7 +120,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
             >
               <span
                 aria-hidden
-                className="inline-block h-2 w-2 rounded-full"
+                className="inline-block h-2 w-2 rounded-[--ct-radius-full]"
                 style={{ background: statusDotColor(s) }}
               />
             </Button>

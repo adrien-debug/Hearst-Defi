@@ -55,7 +55,7 @@ function downloadMarkdown(memo: InvestorMemoOutput): void {
 
 function SkeletonSection() {
   return (
-    <div className="rounded-[--radius-card] border border-[--ct-border] bg-[--ct-surface-2] p-6">
+    <div className="rounded-[--ct-radius-md] border border-[--ct-border] bg-[--ct-surface-2] p-6">
       <div className="mb-4 h-5 w-1/3 animate-pulse rounded bg-[--ct-surface-1]" />
       <div className="space-y-2">
         <div className="h-3 w-full animate-pulse rounded bg-[--ct-surface-1]" />
@@ -152,7 +152,7 @@ export function MemoShell() {
       />
 
       {error ? (
-        <div className="rounded-[--radius-button] border border-[--ct-status-danger] bg-[--ct-status-danger-soft] px-4 py-3">
+        <div className="rounded-[--ct-radius-md] border border-[--ct-status-danger] bg-[--ct-status-danger-soft] px-4 py-3">
           <p className="stat-label text-[--ct-status-danger]">Generation failed</p>
           <p className="mt-1 font-mono text-xs text-[--ct-status-danger] break-words">
             {error}
@@ -173,7 +173,7 @@ export function MemoShell() {
           ))}
         </div>
       ) : (
-        <div className="flex h-48 items-center justify-center rounded-[--radius-card] border border-dashed border-[--ct-border-soft] text-center">
+        <div className="flex min-h-[12rem] items-center justify-center rounded-[--ct-radius-lg] border border-dashed border-[--ct-border-soft] text-center">
           <p className="body-sm max-w-md">
             Press{" "}
             <span className="text-[--ct-text-primary]">Generate memo</span> to produce

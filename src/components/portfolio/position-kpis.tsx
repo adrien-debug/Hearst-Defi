@@ -30,7 +30,7 @@ export function PositionKpis({ position }: PositionKpisProps) {
       aria-label="Position metrics"
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(11rem, 1fr))",
+        gridTemplateColumns: "repeat(auto-fit, minmax(var(--ct-card-min-w), 1fr))",
         gap: "var(--ct-space-3)",
       }}
     >

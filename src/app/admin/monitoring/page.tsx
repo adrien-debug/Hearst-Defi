@@ -50,17 +50,17 @@ export default async function MonitoringPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[--ct-border]">
-                <th className="text-left py-3 px-4 font-medium text-[--ct-text-muted]">Agent</th>
-                <th className="text-right py-3 px-4 font-medium text-[--ct-text-muted]">Runs</th>
-                <th className="text-right py-3 px-4 font-medium text-[--ct-text-muted]">Cost (USD)</th>
+                <th className="text-left ct-table-header font-medium text-[--ct-text-muted]">Agent</th>
+                <th className="text-right ct-table-header font-medium text-[--ct-text-muted]">Runs</th>
+                <th className="text-right ct-table-header font-medium text-[--ct-text-muted]">Cost (USD)</th>
               </tr>
             </thead>
             <tbody>
               {stats.runsByAgent.map((row) => (
                 <tr key={row.agentName} className="border-b border-[--ct-border-soft]">
-                  <td className="py-3 px-4">{row.agentName}</td>
-                  <td className="py-3 px-4 text-right">{row.count}</td>
-                  <td className="py-3 px-4 text-right">${row.costUsd.toFixed(4)}</td>
+                  <td className="ct-table-cell">{row.agentName}</td>
+                  <td className="ct-table-cell text-right">{row.count}</td>
+                  <td className="ct-table-cell text-right">${row.costUsd.toFixed(4)}</td>
                 </tr>
               ))}
               {stats.runsByAgent.length === 0 && (
@@ -82,29 +82,29 @@ export default async function MonitoringPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[--ct-border]">
-                <th className="text-left py-3 px-4 font-medium text-[--ct-text-muted]">Agent</th>
-                <th className="text-left py-3 px-4 font-medium text-[--ct-text-muted]">Model</th>
-                <th className="text-left py-3 px-4 font-medium text-[--ct-text-muted]">Status</th>
-                <th className="text-right py-3 px-4 font-medium text-[--ct-text-muted]">Latency</th>
-                <th className="text-right py-3 px-4 font-medium text-[--ct-text-muted]">Cost</th>
-                <th className="text-right py-3 px-4 font-medium text-[--ct-text-muted]">Time</th>
+                <th className="text-left ct-table-header font-medium text-[--ct-text-muted]">Agent</th>
+                <th className="text-left ct-table-header font-medium text-[--ct-text-muted]">Model</th>
+                <th className="text-left ct-table-header font-medium text-[--ct-text-muted]">Status</th>
+                <th className="text-right ct-table-header font-medium text-[--ct-text-muted]">Latency</th>
+                <th className="text-right ct-table-header font-medium text-[--ct-text-muted]">Cost</th>
+                <th className="text-right ct-table-header font-medium text-[--ct-text-muted]">Time</th>
               </tr>
             </thead>
             <tbody>
               {stats.recentRuns.map((run) => (
                 <tr key={run.id} className="border-b border-[--ct-border-soft]">
-                  <td className="py-3 px-4">{run.agentName}</td>
-                  <td className="py-3 px-4">{run.model}</td>
-                  <td className="py-3 px-4">
+                  <td className="ct-table-cell">{run.agentName}</td>
+                  <td className="ct-table-cell">{run.model}</td>
+                  <td className="ct-table-cell">
                     <StatusBadge status={run.status} />
                   </td>
-                  <td className="py-3 px-4 text-right">
+                  <td className="ct-table-cell text-right">
                     {run.latencyMs ? `${run.latencyMs}ms` : "—"}
                   </td>
-                  <td className="py-3 px-4 text-right">
+                  <td className="ct-table-cell text-right">
                     {run.costUsd ? `$${run.costUsd.toFixed(4)}` : "—"}
                   </td>
-                  <td className="py-3 px-4 text-right text-[--ct-text-muted]">
+                  <td className="ct-table-cell text-right text-[--ct-text-muted]">
                     {run.createdAt.toLocaleString()}
                   </td>
                 </tr>
@@ -145,7 +145,7 @@ function StatusBadge({ status }: { status: string }) {
 
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] ?? "bg-[--ct-surface-2] text-[--ct-text-muted]"}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-[--ct-radius-full] text-xs font-medium ${colors[status] ?? "bg-[--ct-surface-2] text-[--ct-text-muted]"}`}
     >
       {status}
     </span>

@@ -51,16 +51,16 @@ export function DistributionPreview({
 
       {/* Recipients table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm tabular border border-[--ct-border-soft] rounded-lg overflow-hidden">
+        <table className="w-full text-sm tabular border border-[--ct-border-soft] rounded-[--ct-radius-lg] overflow-hidden">
           <thead>
             <tr className="ct-surface-1">
-              <th className="text-left px-3 py-2 body-xs ct-text-muted font-medium">
+              <th className="text-left ct-table-header body-xs ct-text-muted">
                 Investor wallet
               </th>
-              <th className="text-right px-3 py-2 body-xs ct-text-muted font-medium">
+              <th className="text-right ct-table-header body-xs ct-text-muted">
                 Share %
               </th>
-              <th className="text-right px-3 py-2 body-xs ct-text-muted font-medium">
+              <th className="text-right ct-table-header body-xs ct-text-muted">
                 Payout (USDC)
               </th>
             </tr>
@@ -71,13 +71,13 @@ export function DistributionPreview({
                 key={r.investorId}
                 className="border-t border-[--ct-border-soft] ct-hover-surface transition-colors"
               >
-                <td className="px-3 py-2 font-mono text-xs ct-text-body">
+                <td className="ct-table-cell font-mono text-xs ct-text-body">
                   {abbrWallet(r.walletAddress)}
                 </td>
-                <td className="px-3 py-2 text-right ct-text-muted tabular">
+                <td className="ct-table-cell text-right ct-text-muted tabular">
                   {r.sharesPct.toFixed(4)}%
                 </td>
-                <td className="px-3 py-2 text-right ct-text-strong font-semibold tabular">
+                <td className="ct-table-cell text-right ct-text-strong font-semibold tabular">
                   ${r.payoutUsdc.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                 </td>
               </tr>
@@ -85,13 +85,13 @@ export function DistributionPreview({
           </tbody>
           <tfoot>
             <tr className="border-t border-[--ct-border-strong] ct-surface-2">
-              <td className="px-3 py-2 body-xs ct-text-muted font-medium">
+              <td className="ct-table-cell body-xs ct-text-muted font-medium">
                 Total ({recipients.length} recipients)
               </td>
-              <td className="px-3 py-2 text-right ct-text-muted tabular text-xs">
+              <td className="ct-table-cell text-right ct-text-muted tabular text-xs">
                 100%
               </td>
-              <td className="px-3 py-2 text-right ct-text-strong font-bold tabular text-sm">
+              <td className="ct-table-cell text-right ct-text-strong font-bold tabular text-sm">
                 ${totalUsdc.toLocaleString("en-US", { minimumFractionDigits: 2 })}
               </td>
             </tr>

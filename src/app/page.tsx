@@ -120,7 +120,7 @@ export default function Home() {
       {/* CTA */}
       <section className="px-6 py-24 md:py-32">
         <FadeIn>
-          <div className="mx-auto max-w-3xl rounded-3xl border border-[--ct-border-soft] bg-[--ct-surface-0] p-10 md:p-16 text-center">
+          <div className="mx-auto max-w-3xl rounded-[--ct-radius-xl] border border-[--ct-border-soft] bg-[--ct-surface-0] p-10 md:p-16 text-center">
             <h2 className="h2 mb-4">Ready to explore?</h2>
             <p className="body-lg text-[--ct-text-body] mb-10">
               Access the dashboard, run scenarios, and generate your first investor memo.
@@ -156,7 +156,7 @@ function NavLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="body-sm rounded-md px-3 py-2 text-[--ct-text-body] transition-colors hover:bg-[--ct-surface-1] hover:text-[--ct-text-strong] no-underline"
+      className="body-sm rounded-[--ct-radius-md] px-3 py-2 text-[--ct-text-body] transition-colors hover:bg-[--ct-surface-1] hover:text-[--ct-text-strong] no-underline"
     >
       {label}
     </Link>
@@ -174,7 +174,7 @@ function Stat({ value, label }: { value: string; label: string }) {
 
 function Feature({ title, description }: { title: string; description: string }) {
   return (
-    <div className="rounded-2xl border border-[--ct-border-soft] bg-[--ct-surface-0] p-8">
+    <div className="rounded-[--ct-radius-xl] border border-[--ct-border-soft] bg-[--ct-surface-0] p-8">
       <h3 className="h3 mb-3">{title}</h3>
       <p className="text-[--ct-text-body] leading-relaxed">{description}</p>
     </div>

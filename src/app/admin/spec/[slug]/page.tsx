@@ -26,7 +26,7 @@ export default async function SpecPage({
   }
 
   return (
-    <section className="ct-section grid gap-8 md:grid-cols-[220px_1fr]">
+    <section className="ct-section grid gap-8 md:grid-cols-[var(--ct-spec-nav-w)_1fr]">
       <aside className="md:sticky md:top-24 md:self-start">
         <p className="eyebrow mb-3">Spec — v1.0</p>
         <nav className="space-y-1">
@@ -37,7 +37,7 @@ export default async function SpecPage({
                 key={entry.slug}
                 href={`/admin/spec/${entry.slug}`}
                 className={cn(
-                  "block rounded-lg px-2 py-1.5 text-sm transition-colors",
+                  "block rounded-[--ct-radius-lg] px-2 py-1.5 text-sm transition-colors",
                   active
                     ? "glass-panel-subtle"
                     : "hover:glass-panel-subtle",

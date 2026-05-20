@@ -123,6 +123,15 @@
   --ct-tracking-normal: 0;
   --ct-tracking-wide: 0.04em;
   --ct-tracking-wider: 0.05em;
+
+  /* Layout sizing tokens — composants métier Connect. */
+  --ct-donut-size: 12.5rem;        /* allocation donut chart diameter */
+  --ct-sidebar-w: 25rem;           /* slide-over / detail sidebar */
+  --ct-spec-nav-w: 13.75rem;       /* spec doc left nav */
+  --ct-card-min-w: 11rem;          /* generic KPI card floor */
+  --ct-vault-card-min-w: 22.5rem;  /* vault summary card floor */
+  --ct-regime-card-min-w: 17.5rem; /* regime/scenario card floor */
+  --ct-chart-empty-h: 8.75rem;     /* empty-state chart placeholder height */
 }
 
 /* ── HELPERS sémantiques status (utilitaires Cockpit) ── */
@@ -277,6 +286,15 @@
   font-size: var(--ct-text-xs);
   line-height: var(--leading-base);
   color: var(--ct-text-muted);
+}
+
+/* ── TABLE CELL utilitaires ── */
+.ct-table-cell {
+  padding: var(--ct-space-2) var(--ct-space-3);
+}
+.ct-table-header {
+  padding: var(--ct-space-2) var(--ct-space-3);
+  font-weight: var(--ct-font-medium);
 }
 
 /* ── SECTION-TITLE utilitaire additionnel ── */

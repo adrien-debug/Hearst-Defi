@@ -22,7 +22,7 @@ interface FeedbackItem {
 export function FeedbackList({ items }: { items: FeedbackItem[] }) {
   if (items.length === 0) {
     return (
-      <div className="rounded-md border border-dashed border-[--ct-border] px-4 py-8 text-center text-sm text-[--ct-text-muted]">
+      <div className="rounded-[--ct-radius-md] border border-dashed border-[--ct-border] px-4 py-8 text-center text-sm text-[--ct-text-muted]">
         No feedback yet. Be the first.
       </div>
     );

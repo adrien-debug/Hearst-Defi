@@ -47,13 +47,13 @@ export function Markdown({ content }: { content: string }) {
               );
             }
             return (
-              <code className="rounded bg-[--ct-surface-1] px-1 py-0.5 font-mono text-xs text-[--ct-text-primary]">
+              <code className="rounded-[--ct-radius-sm] bg-[--ct-surface-1] px-1 py-0.5 font-mono text-xs text-[--ct-text-primary]">
                 {children}
               </code>
             );
           },
           pre: ({ children }) => (
-            <pre className="my-4 overflow-x-auto rounded-md border border-[--ct-border] bg-[--ct-surface-1] p-4 text-xs">
+            <pre className="my-4 overflow-x-auto rounded-[--ct-radius-md] border border-[--ct-border] bg-[--ct-surface-1] p-4 text-xs">
               {children}
             </pre>
           ),
@@ -65,12 +65,12 @@ export function Markdown({ content }: { content: string }) {
             </div>
           ),
           th: ({ children }) => (
-            <th className="border-b border-[--ct-border] px-3 py-2 text-left font-medium text-[--ct-text-body] uppercase tracking-wide">
+            <th className="border-b border-[--ct-border] ct-table-header text-left text-[--ct-text-body] uppercase tracking-wide">
               {children}
             </th>
           ),
           td: ({ children }) => (
-            <td className="border-b border-[--ct-border] px-3 py-2 align-top text-[--ct-text-body]">
+            <td className="border-b border-[--ct-border] ct-table-cell align-top text-[--ct-text-body]">
               {children}
             </td>
           ),

@@ -116,10 +116,10 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
         </span>
 
         <div className="flex flex-col gap-[var(--ct-space-2)]">
-          <h1 className="h1 text-[--ct-text-strong]">
+          <h1 className="h1 ct-text-strong">
             Deposit confirmed
           </h1>
-          <p className="body-md text-[--ct-text-body]">
+          <p className="body-md ct-text-body">
             {amount !== "—"
               ? `${amount} USDC deposited into Hearst Yield Vault.`
               : "Your USDC has been deposited into Hearst Yield Vault."}

@@ -300,7 +300,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border-subtle">
+                <tr className="border-b border-[--ct-border-soft]">
                   <th className="stat-label text-left pb-2">Signer</th>
                   <th className="stat-label text-left pb-2">Decision</th>
                   <th className="stat-label text-left pb-2">Reason</th>

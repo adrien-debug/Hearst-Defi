@@ -131,7 +131,7 @@ function NavChart({ points, provenance }: NavChartProps) {
           <div className="flex items-center gap-3">
             <span
               className={cn(
-                "mono tabular-nums text-sm font-medium px-2 py-0.5 rounded-md backdrop-blur-md",
+                "mono tabular-nums text-sm font-medium px-2 py-0.5 rounded-[--ct-radius-md] backdrop-blur-md",
                 trendDir === "up" && "ct-status-success-bg",
                 trendDir === "down" && "ct-status-danger-bg",
                 trendDir === "flat" && "ct-surface-1 ct-text-body ct-border-base",

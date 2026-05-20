@@ -41,7 +41,7 @@ export default async function VaultsPage() {
         <div
           className="grid gap-4"
           style={{
-            gridTemplateColumns: "repeat(auto-fit, minmax(22.5rem, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(var(--ct-vault-card-min-w), 1fr))",
           }}
         >
           {vaults.map((vault) => (

@@ -39,13 +39,12 @@ export function StepProgress({ active }: StepProgressProps) {
                 aria-current={isActive ? "step" : undefined}
                 className={cn(
                   "inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold border transition-colors",
-                  isDone &&
-                    "border-[--ct-border-accent] bg-[--ct-accent] text-[--ct-text-strong]",
+                  isDone && "border-[--ct-border-accent] bg-[--ct-accent]",
+                  isDone && "ct-text-strong",
                   isActive &&
                     "border-[--ct-border-accent] bg-[--ct-accent-soft] text-[--ct-accent] shadow-[var(--ct-glow-subtle)]",
-                  !isDone &&
-                    !isActive &&
-                    "border-[--ct-border-soft] bg-[--ct-surface-1] text-[--ct-text-muted]",
+                  !isDone && !isActive && "border-[--ct-border-soft] ct-surface-1",
+                  !isDone && !isActive && "ct-text-muted",
                 )}
               >
                 {isDone ? (
@@ -74,10 +73,10 @@ export function StepProgress({ active }: StepProgressProps) {
                 className={cn(
                   "eyebrow font-medium whitespace-nowrap",
                   isActive
-                    ? "text-[--ct-text-strong]"
+                    ? "ct-text-strong"
                     : isDone
-                      ? "text-[--ct-text-primary]"
-                      : "text-[--ct-text-muted]",
+                      ? "ct-text-primary"
+                      : "ct-text-muted",
                 )}
               >
                 {step.label}
