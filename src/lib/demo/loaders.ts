@@ -1,7 +1,5 @@
 import "server-only";
 
-import { loadAdvancedMetrics as realLoadAdvancedMetrics } from "@/lib/data/advanced-metrics";
-import { fetchBtcPrice as realFetchBtcPrice } from "@/lib/data/btc-price";
 import { loadDashboardData as realLoadDashboardData } from "@/lib/data/dashboard";
 import { fetchHashprice as realFetchHashprice } from "@/lib/data/hashprice";
 import { getProofs as realGetProofs } from "@/lib/data/proofs";
@@ -9,8 +7,6 @@ import { loadRiskFramework as realLoadRiskFramework } from "@/lib/data/risk-fram
 
 import { withDemoFallback } from ".";
 import {
-  DEMO_ADVANCED_METRICS,
-  DEMO_BTC_PRICE,
   DEMO_DASHBOARD_DATA,
   DEMO_HASHPRICE,
   DEMO_PROOFS,
@@ -38,14 +34,6 @@ export function loadRiskFramework() {
 
 export function fetchHashprice() {
   return withDemoFallback(realFetchHashprice, DEMO_HASHPRICE);
-}
-
-export function fetchBtcPrice() {
-  return withDemoFallback(realFetchBtcPrice, DEMO_BTC_PRICE);
-}
-
-export function loadAdvancedMetrics() {
-  return withDemoFallback(realLoadAdvancedMetrics, DEMO_ADVANCED_METRICS);
 }
 
 export function getProofs() {
