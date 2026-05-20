@@ -20,7 +20,7 @@ export default function ProductLayout({
       {/* Floating slot — anchored top-right of the product area.
           HeaderConnect renders only when Privy authenticated (returns null otherwise).
           DemoModeToggleSlot is hidden in prod unless demo mode is on. */}
-      <div className="fixed top-4 right-6 z-[var(--ct-z-overlay)] flex items-center gap-2">
+      <div className="fixed top-4 right-[max(1.5rem,env(safe-area-inset-right))] z-[var(--ct-z-overlay)] flex items-center gap-2">
         <HeaderConnect />
         <DemoModeToggleSlot />
       </div>

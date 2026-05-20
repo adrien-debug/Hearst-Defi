@@ -100,27 +100,13 @@ export function PositionsList({ positions, source }: PositionsListProps) {
                     flexShrink: 0,
                   }}
                 />
-                <span
-                  className="body-md ct-text-primary"
-                  style={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
+                <span className="body-md ct-text-primary min-w-0 truncate">
                   {p.vaultName}
                 </span>
               </div>
 
               {/* Principal */}
-              <span
-                className="tabular body-md"
-                style={{
-                  color: "var(--ct-text-body)",
-                  fontFamily: "var(--font-mono)",
-                  textAlign: "right",
-                }}
-              >
+              <span className="tabular body-md mono text-right text-[--ct-text-body]">
                 {usdCompact.format(p.principalUsdc)}
               </span>
 
