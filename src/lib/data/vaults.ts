@@ -1,5 +1,6 @@
 import "server-only";
 
+import { type VaultDeployment } from "@prisma/client";
 import { prisma } from "@/lib/db";
 
 // ---------------------------------------------------------------------------
@@ -107,32 +108,7 @@ function riskLevelFromBps(
   return "low";
 }
 
-interface PrismaVaultRow {
-  id: string;
-  ticker: string;
-  name: string;
-  description: string | null;
-  strategy: string;
-  status: string;
-  targetApyLowBps: number;
-  targetApyHighBps: number;
-  minTicketUsdc: { toNumber(): number };
-  capacityUsdc: { toNumber(): number };
-  mgmtFeeBps: number;
-  perfFeeBps: number;
-  hurdleBps: number;
-  softLockupDays: number;
-  spvJurisdiction: string;
-  shareClass: string;
-  regExemption: string;
-  disclaimers: string;
-  targetMiningBps: number;
-  targetBtcTacticalBps: number;
-  targetUsdcBaseBps: number;
-  targetStableReserveBps: number;
-}
-
-function toVaultProduct(row: PrismaVaultRow, aumUsdc: number): VaultProduct {
+function toVaultProduct(row: VaultDeployment, aumUsdc: number): VaultProduct {
   const miningBps = row.targetMiningBps;
   return {
     id: row.id,
@@ -184,7 +160,7 @@ export async function listVaults(): Promise<VaultProduct[]> {
     const latestAum = latestSnapshots[0]?.aumUsdc?.toNumber() ?? 0;
 
     return rows.map((row) =>
-      toVaultProduct(row as unknown as PrismaVaultRow, latestAum),
+      toVaultProduct(row, latestAum),
     );
   } catch {
     // DB unavailable (e.g. fresh dev box) — return fixture
@@ -211,7 +187,7 @@ export async function getVault(
         orderBy: { takenAt: "desc" },
       });
       return toVaultProduct(
-        row as unknown as PrismaVaultRow,
+        row,
         snapshot?.aumUsdc?.toNumber() ?? 0,
       );
     } catch {
@@ -231,7 +207,7 @@ export async function getVault(
       orderBy: { takenAt: "desc" },
     });
     return toVaultProduct(
-      row as unknown as PrismaVaultRow,
+      row,
       snapshot?.aumUsdc?.toNumber() ?? 0,
     );
   } catch {

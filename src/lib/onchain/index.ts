@@ -53,6 +53,8 @@ export async function stubApprove(opts: ApproveOpts): Promise<ApproveResult> {
   await delay(STUB_DELAY_MS);
   return {
     success: true,
+    // Date.now() is intentional here: stubs are called at runtime (not top-level),
+    // so each invocation returns a unique hash. Not a fixture invariant violation.
     txHash: `0xstub_approve_${opts.vaultId}_${Date.now().toString(16)}`,
   };
 }
@@ -62,6 +64,7 @@ export async function stubDeposit(opts: DepositOpts): Promise<DepositResult> {
   await delay(STUB_DELAY_MS);
   return {
     success: true,
+    // Date.now() intentional: runtime-unique stub hash, not a fixture.
     txHash: `0xstub_deposit_${opts.vault.id}_${Date.now().toString(16)}`,
     amount: opts.amount,
   };

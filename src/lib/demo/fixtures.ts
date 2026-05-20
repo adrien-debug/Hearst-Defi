@@ -466,7 +466,8 @@ export const DEMO_POSITION_DETAIL: PositionDetail = {
       txHash: "0xdemo01ab23cd45ef6789ab12cd34ef5678901234567890abcdef1234567890ab",
     },
   ],
-  source: "live",
+  // demo fixture — not from live DB
+  source: "fallback",
 };
 
 // ---------------------------------------------------------------------------
@@ -685,5 +686,6 @@ export const DEMO_PORTFOLIO_DATA: PortfolioData = {
       positionVaultName: "Hearst Yield Vault",
     },
   ],
-  source: "live",
+  // demo fixture — not from live DB
+  source: "fallback",
 };
