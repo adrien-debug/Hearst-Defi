@@ -1,5 +1,18 @@
 export { calcCalmar, calcMaxDrawdown, calcSharpe, calcSortino, calcVaR } from "./ratios";
 export {
+  BASE_MIX_BY_MODE,
+  buildSignal,
+  evaluateRules,
+  THRESHOLDS,
+} from "./rebalancing-rules";
+export type {
+  AllocationMix,
+  EvaluateRulesInput,
+  EvaluateRulesOutput,
+  RebalanceSignal,
+  VaultStateForSignal,
+} from "./rebalancing-rules";
+export {
   compareScenarios,
   getPresetInputs,
   METHODOLOGY_VERSION,
