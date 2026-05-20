@@ -5,7 +5,6 @@ export type Provenance =
   | "oracle"
   | "attested"
   | "estimated"
-  | "partial"
   | "manual"
   | "stale";
 
@@ -14,7 +13,6 @@ const labels: Record<Provenance, string> = {
   oracle: "Oracle",
   attested: "Attested",
   estimated: "Estimated",
-  partial: "Partial",
   manual: "Manual",
   stale: "Stale",
 };
@@ -27,7 +25,6 @@ const variants: Record<
   oracle: "brand",
   attested: "brand",
   estimated: "warning",
-  partial: "warning",
   manual: "default",
   stale: "danger",
 };

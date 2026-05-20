@@ -1,8 +1,9 @@
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { EXPLORER_ADDRESS_BASE, EXPLORER_TX_BASE } from "@/lib/chain/client";
-import { cn } from "@/lib/cn";
-import { truncateAddress } from "@/lib/format/chain-display";
+import { truncateAddress, truncateTx } from "@/lib/format/chain-display";
 
 interface DeployedContract {
   name: string;
@@ -61,18 +62,10 @@ const AUDIT_ENTRIES: ReadonlyArray<AuditEntry> = [
   },
 ];
 
-function truncateTx(tx: string): string {
-  if (tx.length <= 12) return tx;
-  return `${tx.slice(0, 10)}…${tx.slice(-6)}`;
-}
-
-const variantStyles: Record<"success" | "warning" | "default", string> = {
-  success:
-    "border-[--ct-status-success-border] bg-[--ct-status-success-soft] text-[--ct-status-success]",
-  warning:
-    "border-[--ct-status-warning-border] bg-[--ct-status-warning-soft] text-[--ct-status-warning]",
-  default:
-    "border-[--ct-border-strong] bg-[--ct-surface-1] text-[--ct-text-body]",
+const variantStyles: Record<"success" | "warning" | "default", "success" | "warning" | "default"> = {
+  success: "success",
+  warning: "warning",
+  default: "default",
 };
 
 export function ContractsAuditTrail() {
@@ -145,32 +138,24 @@ export function ContractsAuditTrail() {
               </dl>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                <a
-                  href={`${EXPLORER_ADDRESS_BASE}${contract.address}`}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className={cn(
-                    "rounded-[--radius-button] border border-[--ct-text-strong] bg-[--ct-surface-1]",
-                    "px-3 py-1.5 text-xs text-[--ct-text-strong]",
-                    "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-2]",
-                    "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
-                  )}
-                >
-                  View on Basescan
-                </a>
-                <a
-                  href={`${EXPLORER_TX_BASE}${contract.deployTxHash}`}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className={cn(
-                    "rounded-[--radius-button] border border-[--ct-border-strong] bg-[--ct-surface-1]",
-                    "px-3 py-1.5 text-xs text-[--ct-text-primary]",
-                    "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-3]",
-                    "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
-                  )}
-                >
-                  Deploy tx
-                </a>
+                <Button asChild variant="secondary" size="sm">
+                  <a
+                    href={`${EXPLORER_ADDRESS_BASE}${contract.address}`}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >
+                    View on Basescan
+                  </a>
+                </Button>
+                <Button asChild variant="secondary" size="sm">
+                  <a
+                    href={`${EXPLORER_TX_BASE}${contract.deployTxHash}`}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >
+                    Deploy tx
+                  </a>
+                </Button>
               </div>
             </article>
           ))}
@@ -201,32 +186,23 @@ export function ContractsAuditTrail() {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span
-                  className={cn(
-                    "inline-flex items-center rounded-[--radius-full] border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide leading-none",
-                    variantStyles[entry.variant],
-                  )}
-                >
+                <Badge variant={variantStyles[entry.variant]}>
                   {entry.variant === "success"
                     ? "Published"
                     : entry.variant === "warning"
                       ? "In progress"
                       : "Pending"}
-                </span>
+                </Badge>
                 {entry.href !== null ? (
-                  <a
-                    href={entry.href}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    className={cn(
-                      "rounded-[--radius-button] border border-[--ct-border-strong] bg-[--ct-surface-1]",
-                      "px-3 py-1 text-xs text-[--ct-text-primary]",
-                      "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-3]",
-                      "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
-                    )}
-                  >
-                    View document
-                  </a>
+                  <Button asChild variant="secondary" size="sm">
+                    <a
+                      href={entry.href}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                    >
+                      View document
+                    </a>
+                  </Button>
                 ) : null}
               </div>
             </li>

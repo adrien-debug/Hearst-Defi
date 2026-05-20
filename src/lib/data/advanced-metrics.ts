@@ -40,7 +40,7 @@ export interface AdvancedMetricsData {
   /** Number of monthly observations used (0 when unavailable). */
   monthsUsed: number;
   /** Whether the underlying NAV series came from DB rows or synthetic padding. */
-  provenance: "partial" | "estimated";
+  provenance: "estimated";
   sharpe: number;
   sortino: number;
   /** VaR 95% as a positive decimal loss (0.042 = "lost up to 4.2%"). */
@@ -87,11 +87,9 @@ export async function loadAdvancedMetrics(): Promise<AdvancedMetricsData> {
 
   // Heuristic provenance: when the loader padded the head with synthetic
   // months (deterministic series anchored at 9.0–13.0% APY) we mark the
-  // metrics as "estimated"; otherwise the DB drove every observation and we
-  // use "partial" to match the convention in risk-framework.tsx.
-  const provenance: AdvancedMetricsData["provenance"] = looksSynthetic(history)
-    ? "estimated"
-    : "partial";
+  // metrics as "estimated"; for DS consistency we keep the same provenance
+  // label for fully DB-driven series as well.
+  const provenance: AdvancedMetricsData["provenance"] = "estimated";
 
   return {
     available: true,
@@ -124,19 +122,3 @@ function buildReturnsSeries(history: readonly VaultMonthlyRow[]): number[] {
   return out;
 }
 
-/**
- * Detects the deterministic fallback pattern emitted by `loadVaultMonthlyHistory`
- * when the DB is under-populated: every padded row carries `apy_low === 9.0`
- * and `apy_high === 13.0`. We treat the whole series as synthetic when more
- * than half the rows match that signature.
- */
-function looksSynthetic(history: readonly VaultMonthlyRow[]): boolean {
-  if (history.length === 0) return true;
-  let syntheticCount = 0;
-  for (const row of history) {
-    if (row.apy_low === 9.0 && row.apy_high === 13.0) {
-      syntheticCount += 1;
-    }
-  }
-  return syntheticCount * 2 > history.length;
-}

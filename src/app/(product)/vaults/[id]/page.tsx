@@ -65,7 +65,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
         <div className="flex items-center gap-3">
           <Link
             href="/vaults"
-            className="body-sm ct-text-muted hover:ct-text-primary transition-colors"
+            className="body-sm ct-text-muted hover:text-[--ct-text-primary] transition-colors"
             aria-label="Back to product list"
           >
             ← Products

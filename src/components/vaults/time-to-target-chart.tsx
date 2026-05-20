@@ -72,7 +72,7 @@ export function TimeToTargetChart({ amount, vault }: TimeToTargetChartProps) {
         viewBox={`0 0 ${W} ${H}`}
         aria-label="Projected NAV growth chart"
         role="img"
-        className="w-full h-auto max-h-[160px]"
+        className="w-full h-auto max-h-40"
       >
         <defs>
           {/* Accent gradient — vars only, no hex */}

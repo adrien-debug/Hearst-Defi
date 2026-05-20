@@ -76,18 +76,18 @@ export function OutputPanelCompact({
   // For Risk: higher is "worse" (positive delta = red).
   const apyDeltaToneClass = apyDelta
     ? apyDelta.value > 0.05
-      ? "text-[--ct-status-success]"
+      ? "ct-status-success"
       : apyDelta.value < -0.05
-        ? "text-[--ct-status-danger]"
-        : "text-[--ct-text-muted]"
+        ? "ct-status-danger"
+        : "ct-text-muted"
     : "";
 
   const riskDeltaToneClass = riskDelta
     ? riskDelta.value > 0.5
-      ? "text-[--ct-status-danger]"
+      ? "ct-status-danger"
       : riskDelta.value < -0.5
-        ? "text-[--ct-status-success]"
-        : "text-[--ct-text-muted]"
+        ? "ct-status-success"
+        : "ct-text-muted"
     : "";
 
   return (
@@ -98,7 +98,7 @@ export function OutputPanelCompact({
         side === "A"
           ? "border-l-[--ct-border-strong]"
           : "border-l-[--ct-text-strong]",
-        "transition-opacity duration-[var(--ct-dur-fast)]",
+        "transition-opacity duration-(--ct-dur-fast)",
         isPending && "pointer-events-none opacity-50",
       )}
       aria-busy={isPending}
@@ -115,7 +115,7 @@ export function OutputPanelCompact({
       {/* ── APY Hero ─────────────────────────────────────────────────── */}
       <div className="glass-panel-subtle p-5">
         <div className="mb-3 flex items-start justify-between gap-4">
-          <h4 className="h4 text-[--ct-text-strong]">Projected APY</h4>
+          <h4 className="h4 ct-text-strong">Projected APY</h4>
           <ProvenanceBadge kind="estimated" />
         </div>
 
@@ -125,7 +125,7 @@ export function OutputPanelCompact({
             high={output.apy_range.high}
             className={cn(
               "mono text-4xl font-extrabold tabular-nums",
-              "text-[--ct-text-strong] leading-none",
+              "ct-text-strong leading-none",
             )}
           />
           <div className="flex flex-col items-end gap-1">
@@ -149,7 +149,7 @@ export function OutputPanelCompact({
             aria-label={`APY midpoint delta vs Scenario A: ${apyDelta.value.toFixed(2)} percentage points`}
           >
             Δ {formatSignedFixed(apyDelta.value, 2)} pts{" "}
-            <span className="font-sans font-normal text-[--ct-text-muted]">
+            <span className="font-sans font-normal ct-text-muted">
               midpoint vs Scenario A
             </span>
           </p>
@@ -169,7 +169,7 @@ export function OutputPanelCompact({
               aria-label={`Risk score delta vs Scenario A: ${Math.round(riskDelta.value)}`}
             >
               Δ {formatSignedInt(riskDelta.value)}{" "}
-              <span className="font-sans font-normal text-[--ct-text-muted]">
+              <span className="font-sans font-normal ct-text-muted">
                 vs A
               </span>
             </p>
@@ -182,7 +182,7 @@ export function OutputPanelCompact({
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="stat-label text-micro">Vault Mode</p>
-            <p className="mt-0.5 text-micro text-[--ct-text-muted]">
+            <p className="mt-0.5 text-micro ct-text-muted">
               Allocation posture
             </p>
           </div>
@@ -198,7 +198,7 @@ export function OutputPanelCompact({
       {/* ── Allocation (compact table, no stacked bar) ────────────────── */}
       <div className="glass-panel-subtle p-4">
         <div className="mb-3 flex items-start justify-between gap-4">
-          <h4 className="h4 text-[--ct-text-strong]">Allocation</h4>
+          <h4 className="h4 ct-text-strong">Allocation</h4>
           <ProvenanceBadge kind="estimated" />
         </div>
 

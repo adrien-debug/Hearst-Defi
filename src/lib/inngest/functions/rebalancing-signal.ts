@@ -192,7 +192,7 @@ export async function loadVaultStateForSignal(): Promise<VaultStateForSignal> {
     source: fallbackUsed
       ? latestSnapshot === null && latestMining === null
         ? "fallback"
-        : "partial"
+        : "estimated"
       : "db",
   };
 }

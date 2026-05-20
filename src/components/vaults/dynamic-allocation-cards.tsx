@@ -4,6 +4,7 @@
 // No forbidden words (#5): no "guarantee", "promise", "certain", "risk-free".
 
 import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
 
@@ -118,13 +119,12 @@ function AllocationBar({ label, pct, tone }: AllocationBarProps) {
   return (
     <div className="flex items-center gap-2 min-w-0">
       <span className="body-xs ct-text-muted w-20 shrink-0">{label}</span>
-      <div className="flex-1 h-1.5 rounded-full ct-surface-2 overflow-hidden">
-        <div
-          className={cn("h-full rounded-full transition-all", barColor)}
-          style={{ width: `${pct}%` }}
-          aria-label={`${label}: ${pct}%`}
-        />
-      </div>
+      <Progress
+        value={pct}
+        className="flex-1"
+        fillClassName={barColor}
+        label={`${label}: ${pct}%`}
+      />
       <span className="body-xs tabular ct-text-body w-8 text-right shrink-0">
         {pct}%
       </span>

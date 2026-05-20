@@ -269,7 +269,7 @@ export function InvestForm({ vault }: InvestFormProps) {
             I have reviewed and accept the{" "}
             <Link
               href={`/vaults/${vault.id}`}
-              className="underline ct-text-primary hover:ct-text-strong transition-colors"
+              className="underline ct-text-primary hover:text-[--ct-text-strong] transition-colors"
               target="_blank"
               rel="noopener noreferrer"
             >

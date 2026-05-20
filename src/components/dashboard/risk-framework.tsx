@@ -65,8 +65,8 @@ function provenanceFromSource(
   switch (source) {
     case "db":
       return "live";
-    case "partial":
-      return "partial";
+    case "estimated":
+      return "estimated";
     case "fallback":
       return "estimated";
   }
@@ -159,8 +159,7 @@ function RiskRow({ dimension }: RiskRowProps) {
           <p className="mt-1 text-xs text-[--ct-text-muted] group-hover:text-[--ct-text-body] transition-colors">{detail}</p>
         </div>
       </div>
-      {/* sm:w-[11.25rem] conservé — 11.25rem = 180px, pas de step natif Tailwind (w-44=176px trop étroit, w-48=192px trop large) */}
-      <div className="flex items-center gap-4 sm:w-[11.25rem] sm:justify-end">
+      <div className="flex items-center gap-4 sm:w-45 sm:justify-end">
         <span
           className={cn(
             "text-lg font-semibold leading-none w-9 text-right tabular-nums",
@@ -172,8 +171,7 @@ function RiskRow({ dimension }: RiskRowProps) {
         <Progress
           value={score}
           fillClassName={SEVERITY_BAR[severity]}
-          /* 6.25rem = 100px ; pas de step 25 dans la spacing scale Tailwind v4 par défaut */
-          className="h-1.5 w-20 sm:w-[6.25rem]"
+          className="h-1.5 w-20 sm:w-25"
           label={`${label} risk score ${score} of 100, ${status}`}
         />
       </div>

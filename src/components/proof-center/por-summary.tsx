@@ -1,4 +1,5 @@
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Metric } from "@/components/ui/metric";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import {
@@ -6,9 +7,11 @@ import {
   EXPLORER_TX_BASE,
 } from "@/lib/chain/client";
 import type { OnChainAttestation } from "@/lib/chain/por-registry";
-import { cn } from "@/lib/cn";
 import {
   formatPeriod,
+  formatBtc,
+  formatUsdCompact,
+  formatUtcDateTimeLong,
   truncateAddress,
   truncateHash,
 } from "@/lib/format/chain-display";
@@ -17,30 +20,9 @@ interface PorSummaryProps {
   attestation: OnChainAttestation | null;
 }
 
-const dateFmt = new Intl.DateTimeFormat("en-US", {
-  dateStyle: "long",
-  timeStyle: "short",
-  timeZone: "UTC",
-});
-
 function isStale(ts: Date): boolean {
   const ageMs = Date.now() - ts.getTime();
   return ageMs > 24 * 60 * 60 * 1000;
-}
-
-function usdFmt(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    notation: "compact",
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
-function btcFmt(value: number): string {
-  return `${new Intl.NumberFormat("en-US", {
-    maximumFractionDigits: 4,
-  }).format(value)} BTC`;
 }
 
 export function PorSummary({ attestation }: PorSummaryProps) {
@@ -79,17 +61,17 @@ export function PorSummary({ attestation }: PorSummaryProps) {
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Metric
           label="Total AUM"
-          value={usdFmt(attestation.totalAumUsd)}
+          value={formatUsdCompact(attestation.totalAumUsd)}
           provenance={provenance}
         />
         <Metric
           label="Mined (period)"
-          value={btcFmt(attestation.minedBtc)}
+          value={formatBtc(attestation.minedBtc)}
           provenance={provenance}
         />
         <Metric
           label="Attested at"
-          value={dateFmt.format(attestation.timestamp)}
+          value={formatUtcDateTimeLong(attestation.timestamp)}
           sublabel="UTC"
           provenance={provenance}
         />
@@ -108,7 +90,7 @@ export function PorSummary({ attestation }: PorSummaryProps) {
               href={`${EXPLORER_ADDRESS_BASE}${attestation.attestor}`}
               target="_blank"
               rel="noreferrer noopener"
-              className="mono tabular text-xs text-[--ct-text-primary] hover:text-[--ct-text-strong] transition-colors duration-[var(--ct-dur-fast)]"
+              className="mono tabular text-xs ct-text-primary hover:text-[--ct-text-strong] transition-colors duration-(--ct-dur-fast)"
               title={attestation.attestor}
             >
               {truncateAddress(attestation.attestor)}
@@ -118,7 +100,7 @@ export function PorSummary({ attestation }: PorSummaryProps) {
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <dt className="body-xs">Evidence hash</dt>
           <dd
-            className="mono tabular text-xs text-[--ct-text-body]"
+            className="mono tabular text-xs ct-text-body"
             title={attestation.evidenceHash}
           >
             {truncateHash(attestation.evidenceHash)}
@@ -126,51 +108,43 @@ export function PorSummary({ attestation }: PorSummaryProps) {
         </div>
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <dt className="body-xs">Block</dt>
-          <dd className="mono tabular text-xs text-[--ct-text-body]">
+          <dd className="mono tabular text-xs ct-text-body">
             {attestation.blockNumber.toString()}
           </dd>
         </div>
       </dl>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        <a
-          href={`${EXPLORER_TX_BASE}${attestation.txHash}`}
-          target="_blank"
-          rel="noreferrer noopener"
-          className={cn(
-            "rounded-[--radius-button] border border-[--ct-text-strong] bg-[--ct-surface-1]",
-            "px-3 py-1.5 text-xs text-[--ct-text-strong]",
-            "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-2]",
-            "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
-          )}
-        >
-          View attestation tx on Base Sepolia
-        </a>
-        {attestation.evidenceCid.length > 0 ? (
+        <Button asChild variant="secondary" size="sm">
           <a
-            href={
-              attestation.evidenceCid.startsWith("ipfs://")
-                ? `https://ipfs.io/ipfs/${attestation.evidenceCid.slice(7)}`
-                : attestation.evidenceCid.startsWith("https://")
-                  ? attestation.evidenceCid
-                  : `https://ipfs.io/ipfs/${attestation.evidenceCid}`
-            }
+            href={`${EXPLORER_TX_BASE}${attestation.txHash}`}
             target="_blank"
             rel="noreferrer noopener"
-            className={cn(
-              "rounded-[--radius-button] border border-[--ct-border-strong] bg-[--ct-surface-1]",
-              "px-3 py-1.5 text-xs text-[--ct-text-primary]",
-              "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-3]",
-              "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
-            )}
           >
-            View evidence (IPFS)
+            View attestation tx on Base Sepolia
           </a>
+        </Button>
+        {attestation.evidenceCid.length > 0 ? (
+          <Button asChild variant="secondary" size="sm">
+            <a
+              href={
+                attestation.evidenceCid.startsWith("ipfs://")
+                  ? `https://ipfs.io/ipfs/${attestation.evidenceCid.slice(7)}`
+                  : attestation.evidenceCid.startsWith("https://")
+                    ? attestation.evidenceCid
+                    : `https://ipfs.io/ipfs/${attestation.evidenceCid}`
+              }
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              View evidence (IPFS)
+            </a>
+          </Button>
         ) : null}
       </div>
 
       {stale ? (
-        <p className="mt-3 body-xs text-[--ct-status-warning]">
+        <p className="mt-3 body-xs ct-status-warning">
           Last attestation is older than 24h — badge shows Stale. A fresh
           attestation is expected each period close.
         </p>

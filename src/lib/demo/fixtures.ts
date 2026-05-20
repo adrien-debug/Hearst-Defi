@@ -577,7 +577,7 @@ export const DEMO_PROOFS: ProofItem[] = [
 export const DEMO_ADVANCED_METRICS: AdvancedMetricsData = {
   available: true,
   monthsUsed: 24,
-  provenance: "partial",
+  provenance: "estimated",
   sharpe: 1.4,
   sortino: 2.1,
   // 3.2% monthly loss at 95% confidence, expressed as positive decimal.

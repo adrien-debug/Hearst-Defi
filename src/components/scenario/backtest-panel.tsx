@@ -44,23 +44,23 @@ function AssumptionsList({ assumptions }: { assumptions: string[] }) {
           return (
             <li key={i} className="flex items-start gap-2 text-sm">
               <span
-                className="mt-0.5 shrink-0 text-micro text-[--ct-text-strong]"
+                className="mt-0.5 shrink-0 text-micro ct-text-strong"
                 aria-hidden
               >
                 ▸
               </span>
               {key !== null ? (
                 <span>
-                  <span className="font-semibold capitalize text-[--ct-text-body]">
+                  <span className="font-semibold capitalize ct-text-body">
                     {key}
                   </span>
-                  <span className="text-[--ct-text-muted]">: </span>
-                  <span className="mono text-[--ct-text-body]">
+                  <span className="ct-text-muted">: </span>
+                  <span className="mono ct-text-body">
                     {value}
                   </span>
                 </span>
               ) : (
-                <span className="text-[--ct-text-body]">{value}</span>
+                <span className="ct-text-body">{value}</span>
               )}
             </li>
           );
@@ -72,7 +72,7 @@ function AssumptionsList({ assumptions }: { assumptions: string[] }) {
           variant="ghost"
           size="sm"
           onClick={() => setExpanded((x) => !x)}
-          className="mt-3 text-[--ct-text-strong] hover:text-[--ct-text-strong]"
+          className="mt-3 ct-text-strong hover:text-[--ct-text-strong]"
         >
           {expanded
             ? "Show less"
@@ -91,14 +91,14 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
   return (
     <div
       className={cn(
-        "relative space-y-4 transition-opacity duration-[var(--ct-dur-fast)]",
+        "relative space-y-4 transition-opacity duration-(--ct-dur-fast)",
         isPending && "pointer-events-none opacity-50",
       )}
       aria-busy={isPending}
     >
       {isPending && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[--radius-card] bg-[--ct-surface-2]/60 backdrop-blur-sm">
-          <span className="text-sm text-[--ct-text-body]">Computing backtest…</span>
+          <span className="text-sm ct-text-body">Computing backtest…</span>
         </div>
       )}
 
@@ -119,7 +119,7 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
             {isPositive ? "+" : ""}
             {output.totalReturnPct.toFixed(1)}%
           </p>
-          <p className="mt-1 text-xs text-[--ct-text-muted]">
+          <p className="mt-1 text-xs ct-text-muted">
             {output.startDate} — {output.endDate}
           </p>
         </Card>
@@ -133,7 +133,7 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
           <p className="stat-value text-[--ct-status-danger]">
             -{output.maxDrawdownPct.toFixed(1)}%
           </p>
-          <p className="mt-1 text-xs text-[--ct-text-muted]">peak-to-trough</p>
+          <p className="mt-1 text-xs ct-text-muted">peak-to-trough</p>
         </Card>
 
         {/* Worst Month */}
@@ -145,7 +145,7 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
           <p className="stat-value text-[--ct-status-warning]">
             {output.worstMonthPct.toFixed(1)}%
           </p>
-          <p className="mt-1 text-xs text-[--ct-text-muted]">
+          <p className="mt-1 text-xs ct-text-muted">
             single-month floor
           </p>
         </Card>
@@ -156,10 +156,10 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
             <p className="stat-label">Rebalances</p>
             <ProvenanceBadge kind="estimated" />
           </div>
-          <p className="stat-value text-[--ct-text-primary]">
+          <p className="stat-value ct-text-primary">
             {output.numRebalances}
           </p>
-          <p className="mt-1 text-xs text-[--ct-text-muted]">
+          <p className="mt-1 text-xs ct-text-muted">
             mode triggers
           </p>
         </Card>
@@ -179,7 +179,7 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="stat-label mb-1">Rule Engine</p>
-            <p className="text-xs text-[--ct-text-muted]">
+            <p className="text-xs ct-text-muted">
               Rule-based rebalancing enabled
             </p>
           </div>
@@ -198,8 +198,8 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
       </Card>
 
       {/* ── Disclaimer ───────────────────────────────────────────────────── */}
-      <p className="border-t border-[--ct-border-soft] pt-4 text-xs italic text-[--ct-text-muted]">
-        <span className="font-semibold not-italic text-[--ct-text-body]">
+      <p className="border-t border-[--ct-border-soft] pt-4 text-xs italic ct-text-muted">
+        <span className="font-semibold not-italic ct-text-body">
           Not guaranteed.
         </span>{" "}
         Historical simulation based on stated assumptions. Past performance does

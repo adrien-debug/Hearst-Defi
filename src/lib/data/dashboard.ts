@@ -97,10 +97,10 @@ export interface DashboardData {
   /** 30-day NAV + APY range trailing time-series for the dashboard charts. */
   timeseries: DashboardTimeseries;
   /**
-   * `db` when every field above came from real rows; `partial` when at least
+   * `db` when every field above came from real rows; `estimated` when at least
    * one fallback fired; `fallback` when no DB data exists yet.
    */
-  source: "db" | "partial" | "fallback";
+  source: "db" | "estimated" | "fallback";
 }
 
 // Synthetic AUM used in fallback mode — matches the long-running mock.
@@ -192,7 +192,7 @@ export async function loadDashboardData(): Promise<DashboardData> {
     latestSnapshot === null && recentEvents.length === 0
       ? "fallback"
       : usedFallback
-        ? "partial"
+        ? "estimated"
         : "db";
 
   return {

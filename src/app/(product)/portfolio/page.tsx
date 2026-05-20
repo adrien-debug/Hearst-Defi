@@ -48,7 +48,7 @@ export default async function PortfolioPage() {
             <p className="body-lg ct-text-primary font-semibold">
               No open positions
             </p>
-            <p className="body-sm ct-text-muted max-w-[26rem]">
+            <p className="body-sm ct-text-muted max-w-md">
               Subscribe to the Hearst Yield Vault to start earning structured yield backed by mining operations.
               Minimum ticket $250k · 60-day soft lock-up.
             </p>

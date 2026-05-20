@@ -58,7 +58,7 @@ export interface VaultStateForSignal {
   /** Live BTC price, USD. Zero when stale. */
   btcUsd: number;
   /** Source label for diagnostics. */
-  source: "db" | "partial" | "fallback";
+  source: "db" | "estimated" | "fallback";
 }
 
 export interface AllocationMix {

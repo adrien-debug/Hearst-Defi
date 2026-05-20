@@ -1,4 +1,5 @@
-import { ProvenanceBadge, type Provenance } from "@/components/ui/provenance-badge";
+import { Metric } from "@/components/ui/metric";
+import type { Provenance } from "@/components/ui/provenance-badge";
 import type { PortfolioData } from "@/lib/data/portfolio";
 
 const usdCompact = new Intl.NumberFormat("en-US", {
@@ -33,53 +34,33 @@ export function PortfolioKpiRow({ data }: KpiRowProps) {
   const hasPositions = data.positions.length > 0;
 
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <section
+      aria-label="Portfolio metrics"
+      className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(var(--ct-card-min-w),1fr))]"
+    >
       {/* Portfolio Value */}
-      <article className="dash-cell" aria-label="Portfolio value">
-        <div className="dash-label">
-          <span>Portfolio Value</span>
-          <ProvenanceBadge kind={valueProvenance} />
-        </div>
-        <div className="dash-value-group">
-          <span className="dash-value">
-            {hasPositions ? usdCompact.format(data.totalValueUsdc) : "—"}
-          </span>
-          <span className="dash-unit">USDC</span>
-        </div>
-      </article>
+      <Metric
+        label="Portfolio Value"
+        value={hasPositions ? usdCompact.format(data.totalValueUsdc) : "—"}
+        sublabel="USDC"
+        provenance={valueProvenance}
+      />
 
       {/* Yield YTD */}
-      <article className="dash-cell" aria-label="Yield year to date">
-        <div className="dash-label">
-          <span>Yield YTD</span>
-          <ProvenanceBadge kind={yieldProvenance} />
-        </div>
-        <div className="dash-value-group">
-          <span className="dash-value">
-            {hasPositions ? usdCompact.format(data.totalYieldYtdUsdc) : "—"}
-          </span>
-          <span className="dash-unit">USDC</span>
-        </div>
-        <p className="body-xs ct-text-muted mt-2 italic">
-          Accrued + distributed. Not projected forward.
-        </p>
-      </article>
+      <Metric
+        label="Yield YTD"
+        value={hasPositions ? usdCompact.format(data.totalYieldYtdUsdc) : "—"}
+        sublabel="USDC · Accrued + distributed. Not projected forward."
+        provenance={yieldProvenance}
+      />
 
       {/* Next Distribution */}
-      <article className="dash-cell" aria-label="Next distribution date">
-        <div className="dash-label">
-          <span>Next Distribution</span>
-          <ProvenanceBadge kind={distProvenance} />
-        </div>
-        <div className="dash-value-group">
-          <span className="dash-value-range stat-value tabular">
-            {monthDayFmt.format(data.nextDistributionAt)}
-          </span>
-        </div>
-        <p className="body-xs ct-text-muted mt-2">
-          Monthly cadence · Day 1, T+5
-        </p>
-      </article>
-    </div>
+      <Metric
+        label="Next Distribution"
+        value={monthDayFmt.format(data.nextDistributionAt)}
+        sublabel="Monthly cadence · Day 1, T+5"
+        provenance={distProvenance}
+      />
+    </section>
   );
 }

@@ -72,7 +72,7 @@ const SA = {
     background: CT_PRODUCT_CONNECT_HEX,
     color: CT_PRODUCT_CONNECT_FG_HEX,
     border: "none",
-    borderRadius: "9999px",
+    borderRadius: "var(--ct-radius-full)",
     cursor: "pointer",
     fontSize: "0.875rem",
     fontWeight: 500,
@@ -167,7 +167,7 @@ export function ErrorShellLayout({
             "text-[var(--ct-text-primary)]",
             "overflow-auto",
             "whitespace-pre-wrap break-words",
-            "max-h-64 px-4 py-3.5 text-[0.8125rem] leading-normal",
+            "max-h-64 px-4 py-3.5 text-xs leading-normal",
           )}
         >
           {errorMessage}

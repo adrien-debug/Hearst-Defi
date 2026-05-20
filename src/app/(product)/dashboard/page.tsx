@@ -8,6 +8,7 @@ import {
   type Provenance,
 } from "@/components/ui/provenance-badge";
 import { HalfGauge } from "@/components/charts/gauge-half";
+import { ApyRange } from "@/components/ui/apy-range";
 import {
   allocationDashToneFor,
   allocationLabelFor,
@@ -72,7 +73,7 @@ function round1(n: number): number {
  */
 function provenanceFor(
   intrinsic: Provenance,
-  loaderSource: "db" | "partial" | "fallback",
+  loaderSource: "db" | "estimated" | "fallback",
 ): Provenance {
   return loaderSource === "fallback" ? "stale" : intrinsic;
 }
@@ -293,16 +294,14 @@ export default async function DashboardPage() {
               high={apyHigh}
               maxAxis={apyMaxAxis}
               centerPrimary={
-                <>
-                  {apyLow}–{apyHigh}
-                </>
+                <ApyRange low={apyLow} high={apyHigh} precision={1} />
               }
               centerSecondary="% APY range"
               footer={
                 <>
                   <span>0%</span>
                   <span>
-                    Blended {blendedLow}–{blendedHigh}%
+                    Blended <ApyRange low={blendedLow} high={blendedHigh} precision={1} />
                   </span>
                   <span>{apyMaxAxis}%</span>
                 </>
@@ -410,7 +409,7 @@ export default async function DashboardPage() {
                     Blended target
                   </span>
                   <span className="dash-legend-val">
-                    {blendedLow}–{blendedHigh}%
+                    <ApyRange low={blendedLow} high={blendedHigh} precision={1} />
                   </span>
                 </div>
               </div>

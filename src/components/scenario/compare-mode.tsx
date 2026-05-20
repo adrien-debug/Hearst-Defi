@@ -6,6 +6,7 @@ import { runComparisonAction } from "@/app/(product)/scenario-lab/actions";
 import { DeltaRow } from "@/components/scenario/delta-row";
 import { OutputPanelCompact } from "@/components/scenario/output-panel-compact";
 import { PRESETS } from "@/components/scenario/preset-bar";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { cn } from "@/lib/cn";
 import type { Preset, ScenarioOutput } from "@/lib/engine/types";
 
@@ -113,7 +114,7 @@ function PresetPicker({
           sideAccent,
           "px-4 py-3 text-left",
           "disabled:cursor-not-allowed disabled:opacity-40",
-          "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
+          "focus-visible:outline-none focus-visible:shadow-(--ct-shadow-focus-ring)",
         )}
       >
         <span className="flex min-w-0 flex-col gap-0.5">
@@ -121,7 +122,7 @@ function PresetPicker({
           <span
             className={cn(
               "h4 truncate",
-              !value && "text-[--ct-text-muted] font-medium",
+              !value && "ct-text-muted font-medium",
             )}
           >
             {value ? labelFor(value) : "Select a scenario"}
@@ -129,7 +130,7 @@ function PresetPicker({
         </span>
         <svg
           className={cn(
-            "h-4 w-4 shrink-0 text-[--ct-text-body] transition-transform duration-[var(--ct-dur-fast)]",
+            "h-4 w-4 shrink-0 ct-text-body transition-transform duration-(--ct-dur-fast)",
             open && "rotate-180",
           )}
           xmlns="http://www.w3.org/2000/svg"
@@ -154,9 +155,9 @@ function PresetPicker({
           aria-label={`Pick a scenario for ${side}`}
           onKeyDown={onListKeyDown}
           className={cn(
-            "absolute z-[var(--ct-z-dropdown)] mt-2 w-full overflow-hidden",
+            "absolute z-(--ct-z-dropdown) mt-2 w-full overflow-hidden",
             "glass-panel p-0",
-            "shadow-[var(--ct-shadow-elevated)]",
+            "shadow-(--ct-shadow-elevated)",
           )}
         >
           {PRESETS.map((p) => {
@@ -177,17 +178,17 @@ function PresetPicker({
                   title={p.description}
                   className={cn(
                     "flex w-full flex-col items-start gap-0.5 px-4 py-3 text-left",
-                    "transition-colors duration-[var(--ct-dur-fast)]",
-                    "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
+                    "transition-colors duration-(--ct-dur-fast)",
+                    "focus-visible:outline-none focus-visible:shadow-(--ct-shadow-focus-ring)",
                     isSelected
                       ? "bg-[--ct-surface-1] text-[--ct-text-strong]"
-                      : "text-[--ct-text-body] hover:bg-[--ct-surface-3] hover:text-[--ct-text-primary]",
+                      : "ct-text-body hover:bg-[--ct-surface-3] hover:text-[--ct-text-primary]",
                     isExcluded &&
                       "cursor-not-allowed opacity-40 hover:bg-transparent",
                   )}
                 >
                   <span className="text-sm font-semibold">{p.label}</span>
-                  <span className="text-micro text-[--ct-text-muted]">
+                  <span className="text-micro ct-text-muted">
                     {isExcluded ? "Already on the other side" : p.description}
                   </span>
                 </button>
@@ -218,40 +219,20 @@ function Placeholder({ side, pending }: PlaceholderProps) {
           ? "border-l-[--ct-border-strong]"
           : "border-l-[--ct-text-strong]",
         "px-5 py-5",
-        "transition-opacity duration-[var(--ct-dur-fast)]",
+        "transition-opacity duration-(--ct-dur-fast)",
         pending && "opacity-50",
       )}
       aria-live="polite"
     >
       {pending ? (
         <>
-          <svg
-            className="h-4 w-4 animate-spin text-[--ct-text-strong]"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            aria-hidden
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-            />
-          </svg>
-          <p className="stat-label text-[--ct-text-body]">Computing…</p>
+          <LoadingSpinner className="ct-text-strong" />
+          <p className="stat-label ct-text-body">Computing…</p>
         </>
       ) : (
         <>
           <svg
-            className="h-10 w-10 text-[--ct-text-muted]"
+            className="h-10 w-10 ct-text-muted"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -265,8 +246,8 @@ function Placeholder({ side, pending }: PlaceholderProps) {
               d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"
             />
           </svg>
-          <p className="text-center text-sm text-[--ct-text-muted]">
-            <span className="font-semibold text-[--ct-text-body]">
+          <p className="text-center text-sm ct-text-muted">
+            <span className="font-semibold ct-text-body">
               Scenario {side}
             </span>
             <br />
@@ -407,7 +388,7 @@ export function CompareMode({ active = true }: { active?: boolean }) {
 
       {/* Shared disclaimer */}
       <p className="border-t border-[--ct-border-soft] pt-4 text-xs italic text-[--ct-text-muted]">
-        <span className="font-semibold not-italic text-[--ct-text-body]">
+        <span className="font-semibold not-italic ct-text-body">
           Not guaranteed.
         </span>{" "}
         Projections are conditional on stated assumptions. Methodology v1.0. Past

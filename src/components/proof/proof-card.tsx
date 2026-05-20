@@ -5,7 +5,10 @@ import { EXPLORER_ADDRESS_BASE, EXPLORER_TX_BASE } from "@/lib/chain/client";
 import type { ProofType } from "@/lib/mock/proof-center";
 
 import {
+  formatBtc,
   formatPeriod,
+  formatUsdCompact,
+  formatUtcDateMedium,
   truncateAddress,
   truncateHash,
 } from "@/lib/format/chain-display";
@@ -33,11 +36,6 @@ const TYPE_VARIANT: Record<
   methodology: "default",
 };
 
-const dateFmt = new Intl.DateTimeFormat("en-US", {
-  dateStyle: "medium",
-  timeZone: "UTC",
-});
-
 function uriLabel(uri: string): string {
   if (uri.startsWith("ipfs://")) return "View on IPFS";
   if (uri.startsWith("https://")) return "View document";
@@ -51,21 +49,6 @@ function ipfsGatewayUrl(cid: string): string {
   }
   if (cid.startsWith("https://") || cid.startsWith("http://")) return cid;
   return `https://ipfs.io/ipfs/${cid}`;
-}
-
-function usdCompactFmt(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    notation: "compact",
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
-function btcFmt(value: number): string {
-  return `${new Intl.NumberFormat("en-US", {
-    maximumFractionDigits: 4,
-  }).format(value)} BTC`;
 }
 
 export function ProofCard({ proof }: ProofCardProps) {
@@ -101,24 +84,24 @@ function PaperProofCard({
       <dl className="space-y-1.5">
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Source</dt>
-          <dd className="body-xs text-[--ct-text-body]">Off-chain</dd>
+          <dd className="body-xs ct-text-body">Off-chain</dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Posted</dt>
-          <dd className="body-xs text-[--ct-text-body]">
-            {dateFmt.format(postedAt)} UTC
+          <dd className="body-xs ct-text-body">
+            {formatUtcDateMedium(postedAt)} UTC
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Signer</dt>
-          <dd className="body-xs text-[--ct-text-body]">
+          <dd className="body-xs ct-text-body">
             {proof.postedBy}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Hash</dt>
           <dd
-            className="mono tabular text-xs text-[--ct-text-primary]"
+            className="mono tabular text-xs ct-text-primary"
             title={proof.hash}
             aria-label={`Hash ${proof.hash}`}
           >
@@ -154,7 +137,7 @@ function PaperProofCard({
             size="sm"
             disabled
             aria-label="On-chain mirror not yet available — Phase 2 will publish this proof via the EventLogger contract."
-            className="border-dashed border-[--ct-border-soft] px-3 text-[--ct-text-muted]"
+            className="border-dashed border-[--ct-border-soft] px-3 ct-text-muted"
             title="Phase 2 will mirror this proof on-chain via the EventLogger contract."
           >
             Off-chain (Phase 1)
@@ -187,20 +170,20 @@ function OnChainEventCard({
       <dl className="space-y-1.5">
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Source</dt>
-          <dd className="body-xs text-[--ct-text-body]">
+          <dd className="body-xs ct-text-body">
             Base Sepolia · block {proof.blockNumber.toString()}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Posted</dt>
-          <dd className="body-xs text-[--ct-text-body]">
-            {dateFmt.format(proof.timestamp)} UTC
+          <dd className="body-xs ct-text-body">
+            {formatUtcDateMedium(proof.timestamp)} UTC
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Publisher</dt>
           <dd
-            className="mono tabular text-xs text-[--ct-text-body]"
+            className="mono tabular text-xs ct-text-body"
             title={proof.publisher}
           >
             {truncateAddress(proof.publisher)}
@@ -209,7 +192,7 @@ function OnChainEventCard({
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Tx hash</dt>
           <dd
-            className="mono tabular text-xs text-[--ct-text-primary]"
+            className="mono tabular text-xs ct-text-primary"
             title={proof.txHash}
             aria-label={`Transaction hash ${proof.txHash}`}
           >
@@ -219,7 +202,7 @@ function OnChainEventCard({
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Context hash</dt>
           <dd
-            className="mono tabular text-xs text-[--ct-text-body]"
+            className="mono tabular text-xs ct-text-body"
             title={proof.contextHash}
           >
             {truncateHash(proof.contextHash)}
@@ -281,20 +264,20 @@ function OnChainAttestationCard({
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Total AUM</dt>
-          <dd className="mono tabular text-xs text-[--ct-text-primary]">
-            {usdCompactFmt(proof.totalAumUsd)}
+          <dd className="mono tabular text-xs ct-text-primary">
+            {formatUsdCompact(proof.totalAumUsd)}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Mined</dt>
-          <dd className="mono tabular text-xs text-[--ct-text-primary]">
-            {btcFmt(proof.minedBtc)}
+          <dd className="mono tabular text-xs ct-text-primary">
+            {formatBtc(proof.minedBtc)}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Attestor</dt>
           <dd
-            className="mono tabular text-xs text-[--ct-text-body]"
+            className="mono tabular text-xs ct-text-body"
             title={proof.attestor}
           >
             <a
@@ -310,7 +293,7 @@ function OnChainAttestationCard({
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Evidence hash</dt>
           <dd
-            className="mono tabular text-xs text-[--ct-text-primary]"
+            className="mono tabular text-xs ct-text-primary"
             title={proof.evidenceHash}
           >
             {truncateHash(proof.evidenceHash)}

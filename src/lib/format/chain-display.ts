@@ -19,3 +19,41 @@ export function truncateHash(hash: string): string {
 
 /** Alias for tx hashes (same truncation rule as `truncateHash`). */
 export const truncateTx = truncateHash;
+
+const COMPACT_USD_FORMATTER = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  notation: "compact",
+  maximumFractionDigits: 2,
+});
+
+const BTC_FORMATTER = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 4,
+});
+
+const UTC_MEDIUM_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "medium",
+  timeZone: "UTC",
+});
+
+const UTC_LONG_DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "long",
+  timeStyle: "short",
+  timeZone: "UTC",
+});
+
+export function formatUsdCompact(value: number): string {
+  return COMPACT_USD_FORMATTER.format(value);
+}
+
+export function formatBtc(value: number): string {
+  return `${BTC_FORMATTER.format(value)} BTC`;
+}
+
+export function formatUtcDateMedium(value: Date): string {
+  return UTC_MEDIUM_DATE_FORMATTER.format(value);
+}
+
+export function formatUtcDateTimeLong(value: Date): string {
+  return UTC_LONG_DATE_TIME_FORMATTER.format(value);
+}

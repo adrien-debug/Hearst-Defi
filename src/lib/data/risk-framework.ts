@@ -67,8 +67,8 @@ export interface RiskFrameworkData {
   band: RiskBand;
   bandLabel: string;
   dimensions: RiskDimension[];
-  /** `db` when every input came from real rows; `partial`/`fallback` otherwise. */
-  source: "db" | "partial" | "fallback";
+  /** `db` when every input came from real rows; `estimated`/`fallback` otherwise. */
+  source: "db" | "estimated" | "fallback";
 }
 
 // ---------------------------------------------------------------------------
@@ -296,7 +296,7 @@ export async function loadRiskFramework(): Promise<RiskFrameworkData> {
     latestSnapshot === null && latestMining === null
       ? "fallback"
       : usedFallback
-        ? "partial"
+        ? "estimated"
         : "db";
 
   return {

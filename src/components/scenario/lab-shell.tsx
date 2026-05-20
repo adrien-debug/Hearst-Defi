@@ -13,6 +13,7 @@ import { InputsPanel } from "@/components/scenario/inputs-panel";
 import { OutputPanel } from "@/components/scenario/output-panel";
 import { PresetBar } from "@/components/scenario/preset-bar";
 import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { cn } from "@/lib/cn";
 import type { ScenarioNarrativeOutput } from "@/lib/agents/schemas";
 import type {
@@ -103,13 +104,13 @@ function TabBar({ active, onChange }: TabBarProps) {
   return (
     <nav
       aria-label="Scenario Lab tabs"
-      className="flex gap-1 glass-panel-subtle p-1 w-fit"
+      className="ct-seg-track flex gap-1 w-fit"
       onKeyDown={handleKeyDown}
     >
       {(["scenario", "backtest"] as Tab[]).map((tab) => {
         const isActive = active === tab;
         return (
-          <Button
+          <button
             key={tab}
             type="button"
             role="tab"
@@ -117,18 +118,14 @@ function TabBar({ active, onChange }: TabBarProps) {
             aria-controls={`tabpanel-${tab}`}
             aria-selected={isActive}
             tabIndex={isActive ? 0 : -1}
-            variant="ghost"
-            size="sm"
             onClick={() => onChange(tab)}
             className={cn(
-              "rounded-[--ct-radius-sm] px-5 py-2 text-sm font-semibold capitalize shadow-none active:scale-100",
-              isActive
-                ? "bg-[--ct-text-strong] text-[--ct-bg-deep] hover:bg-[--ct-text-strong] hover:text-[--ct-bg-deep]"
-                : "text-[--ct-text-body] hover:text-[--ct-text-primary]",
+              "ct-seg-btn px-5 py-2 text-sm font-semibold capitalize",
+              isActive && "primary",
             )}
           >
             {tab === "scenario" ? "Scenario" : "Backtest"}
-          </Button>
+          </button>
         );
       })}
     </nav>
@@ -147,12 +144,12 @@ function ScenarioModeToggle({ active, onChange }: ScenarioModeToggleProps) {
     <div
       role="tablist"
       aria-label="Scenario mode"
-      className="inline-flex gap-1 glass-panel-subtle p-1"
+      className="ct-seg-track inline-flex gap-1"
     >
       {(["single", "compare"] as ScenarioMode[]).map((mode) => {
         const isActive = active === mode;
         return (
-          <Button
+          <button
             key={mode}
             type="button"
             role="tab"
@@ -160,49 +157,17 @@ function ScenarioModeToggle({ active, onChange }: ScenarioModeToggleProps) {
             aria-controls={`tabpanel-mode-${mode}`}
             aria-selected={isActive}
             tabIndex={isActive ? 0 : -1}
-            variant="ghost"
-            size="sm"
             onClick={() => onChange(mode)}
             className={cn(
-              "rounded-[--ct-radius-sm] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide shadow-none active:scale-100",
-              isActive
-                ? "bg-[--ct-text-strong] text-[--ct-bg-deep] hover:bg-[--ct-text-strong] hover:text-[--ct-bg-deep]"
-                : "text-[--ct-text-body] hover:text-[--ct-text-primary]",
+              "ct-seg-btn px-4 py-1.5 text-xs font-semibold uppercase tracking-wide",
+              isActive && "primary",
             )}
           >
             {mode}
-          </Button>
+          </button>
         );
       })}
     </div>
-  );
-}
-
-// ── Spinner ───────────────────────────────────────────────────────────────────
-
-function Spinner() {
-  return (
-    <svg
-      className="h-4 w-4 animate-spin"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      aria-hidden
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-      />
-    </svg>
   );
 }
 
@@ -219,7 +184,7 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
   return (
     <div className="space-y-6">
       {/* Period selector */}
-      <div className="flex flex-wrap gap-3">
+      <div className="ct-seg-track flex flex-wrap gap-1 p-1">
         {BACKTEST_PERIODS.map((p) => {
           const isActive = state.selectedKey === p.key;
           return (
@@ -230,20 +195,9 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
               onClick={() => onSelect(p.key)}
               aria-pressed={isActive}
               className={cn(
-                "flex flex-col items-start gap-0.5 rounded-[--radius-button] border px-4 py-3 text-left",
-                "transition-[background-color,color,border-color,box-shadow] duration-[var(--ct-dur-fast)]",
+                "ct-seg-btn h-auto flex-col items-start gap-0.5 px-4 py-3 text-left",
                 "disabled:cursor-not-allowed disabled:opacity-40",
-                "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
-                isActive
-                  ? [
-                      "border-[--ct-text-strong] bg-[--ct-text-strong] text-[--ct-bg-deep]",
-                      "shadow-[var(--ct-shadow-focus-ring)]",
-                    ]
-                  : [
-                      "border-[--ct-border-strong] bg-[--ct-surface-1]",
-                      "text-[--ct-text-body]",
-                      "hover:border-[--ct-border-strong] hover:bg-[--ct-surface-3] hover:text-[--ct-text-primary]",
-                    ],
+                isActive && "primary",
               )}
             >
               <span className="text-sm font-semibold leading-tight">
@@ -253,7 +207,7 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
                 className={cn(
                   "text-xs leading-tight",
                   isActive
-                    ? "text-[--ct-bg-deep] opacity-70"
+                    ? "text-[--ct-bg-deep] opacity-80"
                     : "text-[--ct-text-muted]",
                 )}
               >
@@ -301,7 +255,7 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
             "glass-panel-subtle border-dashed",
           )}
         >
-          <Spinner />
+          <LoadingSpinner className="ct-text-strong" />
           <p className="stat-label text-[--ct-text-body]">
             Computing backtest…
           </p>
@@ -510,7 +464,7 @@ function SingleMode({
         </p>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(var(--ct-input-panel-min,360px),var(--ct-input-panel-max,420px))_1fr]">
+      <div className="grid gap-8 lg:grid-cols-[minmax(22.5rem,26.25rem)_1fr]">
         {/* Left: Inputs panel */}
         <div className="flex flex-col gap-0 glass-panel p-0 overflow-hidden">
           <div className="border-b border-[--ct-border-soft] px-6 py-4">
@@ -543,7 +497,7 @@ function SingleMode({
             >
               {scenarioPending ? (
                 <>
-                  <Spinner />
+                  <LoadingSpinner />
                   Running…
                 </>
               ) : (
@@ -577,33 +531,13 @@ function SingleMode({
               className={cn(
                 "flex min-h-80 flex-col items-center justify-center gap-3",
                 "glass-panel-subtle border-dashed",
-                "transition-opacity duration-[var(--ct-dur-fast)]",
+                "transition-opacity duration-(--ct-dur-fast)",
                 scenarioPending && "opacity-50",
               )}
             >
               {scenarioPending ? (
                 <>
-                  <svg
-                    className="h-4 w-4 animate-spin text-[--ct-text-strong]"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    aria-hidden
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                    />
-                  </svg>
+                  <LoadingSpinner className="ct-text-strong" />
                   <p className="stat-label">Computing…</p>
                 </>
               ) : (
