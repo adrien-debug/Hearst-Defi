@@ -61,7 +61,7 @@ export function ProductSelectCard({ vault }: ProductSelectCardProps) {
         <div className="flex flex-col gap-1 min-w-0">
           <h2 className="h3 truncate">{vault.name}</h2>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="ct-pill accent font-mono text-[length:var(--ct-text-micro)]">
+            <span className="ct-pill accent font-mono text-xs">
               {vault.ticker}
             </span>
             <Badge variant={STATUS_VARIANT[vault.status]}>
@@ -102,25 +102,25 @@ export function ProductSelectCard({ vault }: ProductSelectCardProps) {
       <div className="flex flex-wrap gap-x-6 gap-y-2 pt-1 border-t border-[--ct-border-soft]">
         <div className="flex flex-col gap-0.5">
           <span className="stat-label">Min. ticket</span>
-          <span className="stat-value tabular text-[length:var(--ct-text-sm)]">
+          <span className="stat-value tabular text-sm">
             {USD_COMPACT.format(vault.minTicketUsdc)}
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
           <span className="stat-label">Soft lock-up</span>
-          <span className="stat-value tabular text-[length:var(--ct-text-sm)]">
+          <span className="stat-value tabular text-sm">
             {vault.softLockupDays}d
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
           <span className="stat-label">Risk level</span>
-          <span className="stat-value text-[length:var(--ct-text-sm)]">
+          <span className="stat-value text-sm">
             {RISK_LABELS[vault.riskLevel]}
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
           <span className="stat-label">AUM</span>
-          <span className="stat-value tabular text-[length:var(--ct-text-sm)]">
+          <span className="stat-value tabular text-sm">
             {USD_COMPACT.format(vault.currentAumUsdc)}
           </span>
         </div>

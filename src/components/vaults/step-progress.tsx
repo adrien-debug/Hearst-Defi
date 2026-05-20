@@ -38,7 +38,7 @@ export function StepProgress({ active }: StepProgressProps) {
               <span
                 aria-current={isActive ? "step" : undefined}
                 className={cn(
-                  "inline-flex items-center justify-center w-7 h-7 rounded-full text-[length:var(--ct-text-xs)] font-semibold border transition-colors",
+                  "inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold border transition-colors",
                   isDone &&
                     "border-[--ct-border-accent] bg-[--ct-accent] text-[--ct-text-strong]",
                   isActive &&
@@ -72,7 +72,7 @@ export function StepProgress({ active }: StepProgressProps) {
               {/* Label */}
               <span
                 className={cn(
-                  "text-[length:var(--ct-text-micro)] font-medium tracking-wide whitespace-nowrap",
+                  "eyebrow font-medium whitespace-nowrap",
                   isActive
                     ? "text-[--ct-text-strong]"
                     : isDone

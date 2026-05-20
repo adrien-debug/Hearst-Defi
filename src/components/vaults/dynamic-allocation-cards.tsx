@@ -141,7 +141,7 @@ export function DynamicAllocationCards() {
     <div
       className="grid gap-4"
       style={{
-        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+        gridTemplateColumns: "repeat(auto-fit, minmax(17.5rem, 1fr))",
       }}
     >
       {REGIME_CARDS.map((card) => {
@@ -174,17 +174,17 @@ export function DynamicAllocationCards() {
               <span className="stat-label">Expected APY range</span>
               <span
                 className={cn(
-                  "font-mono tabular-nums font-semibold text-[length:var(--ct-text-lg)]",
+                  "font-mono tabular-nums font-semibold text-lg",
                   toneClass.text,
                 )}
                 aria-label={`APY range ${card.apyLow} to ${card.apyHigh} percent`}
               >
                 {card.apyLow.toFixed(1)}
-                <span className="mx-1 text-[--ct-text-muted] font-sans font-normal text-[length:var(--ct-text-sm)]">
+                <span className="mx-1 text-[--ct-text-muted] font-sans font-normal text-sm">
                   —
                 </span>
                 {card.apyHigh.toFixed(1)}
-                <span className="ml-0.5 opacity-80 text-[length:var(--ct-text-base)]">
+                <span className="ml-0.5 opacity-80 text-base">
                   %
                 </span>
               </span>

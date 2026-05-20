@@ -90,7 +90,7 @@ function KpiRow({ label, value, provenance = "manual" }: KpiRowProps) {
       <span className="stat-label flex-1">{label}</span>
       <div className="flex items-center gap-2 flex-shrink-0">
         <ProvenanceBadge kind={provenance} />
-        <span className="stat-value tabular text-[length:var(--ct-text-sm)] text-right">
+        <span className="stat-value tabular text-sm text-right">
           {value}
         </span>
       </div>
@@ -126,7 +126,7 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
                 low={vault.apyLow}
                 high={vault.apyHigh}
                 precision={1}
-                className="stat-value text-[length:var(--ct-text-sm)]"
+                className="stat-value text-sm"
               />
             </div>
           </div>
@@ -214,7 +214,7 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
                 <span className="body-md font-semibold ct-text-primary">
                   {row.label}
                 </span>
-                <span className="tabular font-mono font-semibold text-[length:var(--ct-text-sm)] ct-text-strong">
+                <span className="tabular font-mono font-semibold text-sm ct-text-strong">
                   {(row.bps / 100).toFixed(0)}%
                 </span>
               </div>
