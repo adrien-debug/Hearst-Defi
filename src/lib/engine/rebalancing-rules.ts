@@ -7,7 +7,7 @@ import type { ScenarioInputs, VaultMode } from "./types";
  * Sourced verbatim from `src/lib/inngest/functions/rebalancing-signal.ts`
  * (V3.j) and extracted here so the rule logic can be reused by:
  *   - the Inngest event-driven function (existing consumer)
- *   - `/api/scenario/run` route (preview signals on simulated state)
+ *   - `runScenarioAction` Server Action (preview signals on simulated state)
  *   - the dashboard's "active triggers" widget
  *   - future cron variants (risk-daily, etc.)
  *

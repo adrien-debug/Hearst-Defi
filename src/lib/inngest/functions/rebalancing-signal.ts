@@ -206,7 +206,7 @@ function normaliseMode(m: string): VaultMode {
 // Rule evaluator — thin wrapper around the pure engine lib.
 //
 // The rule logic now lives in `src/lib/engine/rebalancing-rules.ts` so that
-// `/api/scenario/run`, the dashboard, and any future caller can reuse it
+// `runScenarioAction`, the dashboard, and any future caller can reuse it
 // without dragging in Inngest/Prisma. This wrapper preserves the legacy
 // `evaluateRules(state)` signature consumed by existing tests.
 // ---------------------------------------------------------------------------

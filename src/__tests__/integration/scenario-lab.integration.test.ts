@@ -50,10 +50,10 @@ describe("Scenario Lab integration", () => {
 });
 
 /* -------------------------------------------------------------------------- */
-/* POST /api/scenario/run — route handler integration                          */
+/* runScenarioAction Server Action — integration                              */
 /* -------------------------------------------------------------------------- */
 
-// requireAuth is mocked per-test to control the 401 path.
+// requireAuth is mocked per-test to control the auth-failure path.
 const requireAuthMock = vi.fn();
 vi.mock("@/lib/auth/require-auth", () => ({
   requireAuth: () => requireAuthMock(),
@@ -71,7 +71,8 @@ vi.mock("@/lib/agents/scenario-narrative", () => ({
   runScenarioNarrative: (...args: unknown[]) => runScenarioNarrativeMock(...args),
 }));
 
-// Prisma is mocked so the route's DB writes don't touch a real database.
+// Prisma is mocked so the Server Action's DB writes don't touch a real
+// database.
 const createMock = vi.fn();
 const updateMock = vi.fn();
 vi.mock("@/lib/db", () => ({
@@ -100,21 +101,7 @@ const NARRATIVE_FIXTURE = {
   key_drivers: ["mining margin", "stable APY", "volatility regime"],
 };
 
-async function callPost(body: unknown): Promise<Response> {
-  // Dynamic import so module-level mocks are wired BEFORE the route loads.
-  const { POST } = await import("@/app/api/scenario/run/route");
-  const req = new Request("http://localhost/api/scenario/run", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  // The route signature takes NextRequest; the structural subset we use
-  // (`req.json()`) is identical on the standard Request, so the cast is safe
-  // for testing.
-  return POST(req as unknown as Parameters<typeof POST>[0]);
-}
-
-describe("POST /api/scenario/run", () => {
+describe("runScenarioAction Server Action", () => {
   beforeEach(() => {
     requireAuthMock.mockReset();
     runScenarioNarrativeMock.mockReset();
@@ -125,24 +112,19 @@ describe("POST /api/scenario/run", () => {
     updateMock.mockResolvedValue(undefined);
   });
 
-  it("A. valid input → 200, ScenarioRun persisted, narrative present", async () => {
+  it("A. valid input → ok, ScenarioRun persisted, narrative present", async () => {
     requireAuthMock.mockResolvedValue({ userId: "user_a" });
     runScenarioNarrativeMock.mockResolvedValue(NARRATIVE_FIXTURE);
 
-    const res = await callPost({ inputs: VALID_INPUTS, scenarioId: "base" });
-
-    expect(res.status).toBe(200);
-    const payload = (await res.json()) as {
-      id: string;
-      output: { apy_range: { low: number; high: number } };
-      narrative: typeof NARRATIVE_FIXTURE | null;
-    };
-    expect(payload.id).toBe("run_test_123");
-    expect(payload.output.apy_range.high).toBeGreaterThan(
-      payload.output.apy_range.low,
+    const { runScenarioAction } = await import(
+      "@/app/(product)/scenario-lab/actions"
     );
-    expect(payload.narrative).not.toBeNull();
-    expect(payload.narrative?.narrative_md).toContain("assumption");
+    const result = await runScenarioAction(VALID_INPUTS, "base");
+
+    expect(result.runId).toBe("run_test_123");
+    expect(result.apy_range.high).toBeGreaterThan(result.apy_range.low);
+    expect(result.narrative).not.toBeNull();
+    expect(result.narrative?.narrative_md).toContain("assumption");
 
     // ScenarioRun.create called with the authenticated userId + JSON payloads.
     expect(createMock).toHaveBeenCalledTimes(1);
@@ -165,60 +147,52 @@ describe("POST /api/scenario/run", () => {
     expect(updateArgs.data.confidence).toBe("medium");
   });
 
-  it("B. invalid input (slider out of bounds) → 400 with issues", async () => {
+  it("B. invalid input (slider out of bounds) → throws, no DB or agent call", async () => {
     requireAuthMock.mockResolvedValue({ userId: "user_b" });
 
-    const res = await callPost({
-      inputs: { ...VALID_INPUTS, vol_index: 500 },
-    });
+    const { runScenarioAction } = await import(
+      "@/app/(product)/scenario-lab/actions"
+    );
 
-    expect(res.status).toBe(400);
-    const payload = (await res.json()) as {
-      error: string;
-      issues: Array<{ path: string; message: string }>;
-    };
-    expect(payload.error).toBe("Invalid request body");
-    expect(payload.issues.length).toBeGreaterThan(0);
-    expect(payload.issues.some((i) => i.path.includes("vol_index"))).toBe(true);
+    await expect(
+      runScenarioAction({ ...VALID_INPUTS, vol_index: 500 }),
+    ).rejects.toThrow(/vol_index/);
 
     // No DB writes, no agent call.
     expect(createMock).not.toHaveBeenCalled();
     expect(runScenarioNarrativeMock).not.toHaveBeenCalled();
   });
 
-  it("C. unauthenticated request → 401, no engine or DB call", async () => {
+  it("C. unauthenticated request → throws, no engine or DB call", async () => {
     requireAuthMock.mockRejectedValue(
       new Error("Authentication required. Please log in."),
     );
 
-    const res = await callPost({ inputs: VALID_INPUTS });
+    const { runScenarioAction } = await import(
+      "@/app/(product)/scenario-lab/actions"
+    );
 
-    expect(res.status).toBe(401);
-    const payload = (await res.json()) as { error: string };
-    expect(payload.error).toBe("Authentication required");
+    await expect(runScenarioAction(VALID_INPUTS)).rejects.toThrow(
+      /Authentication required/,
+    );
     expect(createMock).not.toHaveBeenCalled();
     expect(runScenarioNarrativeMock).not.toHaveBeenCalled();
   });
 
-  it("D. narrative agent failure → 200 with narrative=null (graceful degradation)", async () => {
+  it("D. narrative agent failure → ok with narrative=null (graceful degradation)", async () => {
     requireAuthMock.mockResolvedValue({ userId: "user_d" });
     runScenarioNarrativeMock.mockRejectedValue(
       new Error("anthropic timeout"),
     );
 
-    const res = await callPost({ inputs: VALID_INPUTS, scenarioId: "custom" });
-
-    expect(res.status).toBe(200);
-    const payload = (await res.json()) as {
-      id: string;
-      output: { apy_range: { low: number; high: number } };
-      narrative: unknown;
-    };
-    expect(payload.id).toBe("run_test_123");
-    expect(payload.narrative).toBeNull();
-    expect(payload.output.apy_range.high).toBeGreaterThan(
-      payload.output.apy_range.low,
+    const { runScenarioAction } = await import(
+      "@/app/(product)/scenario-lab/actions"
     );
+    const result = await runScenarioAction(VALID_INPUTS, "custom");
+
+    expect(result.runId).toBe("run_test_123");
+    expect(result.narrative).toBeNull();
+    expect(result.apy_range.high).toBeGreaterThan(result.apy_range.low);
 
     // Engine output IS persisted; narrative update is skipped on agent failure.
     expect(createMock).toHaveBeenCalledTimes(1);

@@ -13,6 +13,8 @@ import { requireAuth } from "@/lib/auth/require-auth";
 import { logger } from "@/lib/logger";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { prisma } from "@/lib/db";
+import { runScenarioNarrative } from "@/lib/agents/scenario-narrative";
+import type { ScenarioNarrativeOutput } from "@/lib/agents/schemas";
 
 const PresetSchema = z.enum([
   "base",
@@ -50,16 +52,40 @@ function assertBounds(inputs: ScenarioInputs): void {
 }
 
 /**
- * Runs a single scenario through the deterministic engine.
+ * Runs a single scenario through the deterministic engine + Scenario Narrative
+ * agent.
  *
- * Rate limited to 30 calls per minute per user.
+ * Flow:
+ *   1. requireAuth() — Privy JWT → userId (throws on failure)
+ *   2. assertRateLimit by userId — 10/min (LLM-aware threshold; was 30/min
+ *      before the narrative agent was wired in)
+ *   3. assertBounds(inputs) — slider bounds (throws on out-of-range)
+ *   4. runScenario(inputs) — pure-function engine
+ *   5. Persist ScenarioRun (engine output)
+ *   6. runScenarioNarrative({ scenario_id, scenario_output }) — Sonnet 4.6
+ *      with graceful degradation: if the agent throws (timeout, forbidden-words
+ *      filter, schema fail), the run still returns the engine output with
+ *      `narrative: null` and the error is logged.
+ *   7. Update ScenarioRun with the narrative if produced
+ *   8. Return { ...engineOutput, runId, narrative }
+ *
+ * The Scenario Lab UI MUST tolerate `narrative === null`.
+ *
+ * Rate limited to 10 calls per minute per user (LLM-aware — was 30/min before
+ * the narrative agent was wired in).
  */
 export async function runScenarioAction(
   inputs: ScenarioInputs,
-): Promise<ScenarioOutput & { runId: string | null }> {
+  scenarioId: string = "custom",
+): Promise<
+  ScenarioOutput & {
+    runId: string | null;
+    narrative: ScenarioNarrativeOutput | null;
+  }
+> {
   const { userId } = await requireAuth();
   try {
-    await assertRateLimit(`run-scenario:${userId}`, 30, 60_000);
+    await assertRateLimit(`run-scenario:${userId}`, 10, 60_000);
     assertBounds(inputs);
     const outputs = runScenario(inputs, { now: new Date() });
 
@@ -71,6 +97,7 @@ export async function runScenarioAction(
           inputs: JSON.stringify(inputs),
           outputs: JSON.stringify(outputs),
           status: "completed",
+          confidence: outputs.confidence,
         },
         select: { id: true },
       });
@@ -80,7 +107,46 @@ export async function runScenarioAction(
       logger.warn("runScenarioAction persistence failed", { userId }, persistErr);
     }
 
-    return { ...outputs, runId };
+    // Narrative agent — graceful degradation on any failure (Anthropic down,
+    // forbidden-words filter trip, schema validation fail). Engine result is
+    // still returned with `narrative: null`.
+    let narrative: ScenarioNarrativeOutput | null = null;
+    if (runId !== null) {
+      try {
+        narrative = await runScenarioNarrative({
+          scenario_id: scenarioId,
+          scenario_output: outputs,
+        });
+
+        // Persist narrative on the same run row. A failure here is non-fatal:
+        // narrative was produced, just couldn't be stored.
+        try {
+          await prisma.scenarioRun.update({
+            where: { id: runId },
+            data: {
+              narrative: narrative.narrative_md,
+              riskWarning: narrative.risk_warning,
+              confidence: narrative.confidence,
+            },
+          });
+        } catch (updateErr) {
+          logger.warn(
+            "runScenarioAction narrative persistence failed",
+            { userId, runId },
+            updateErr,
+          );
+        }
+      } catch (agentErr) {
+        logger.error(
+          "runScenarioAction narrative agent failed",
+          { userId, runId, scenarioId },
+          agentErr,
+        );
+        narrative = null;
+      }
+    }
+
+    return { ...outputs, runId, narrative };
   } catch (err) {
     logger.error("runScenarioAction failed", { userId }, err);
     throw err;

@@ -12,7 +12,7 @@ Agents produce **artifacts**, not chat. Invisible in UX except when delivering o
 ## The 4 agents
 
 ### 1. Scenario Narrative Agent (Sonnet 4.6)
-- **Trigger**: `POST /api/scenarios/run`
+- **Trigger**: `runScenarioAction()` Server Action (`src/app/(product)/scenario-lab/actions.ts`)
 - **Input**: scenario_run JSON (assumptions + computed outputs)
 - **Output schema**:
   ```ts
