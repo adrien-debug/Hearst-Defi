@@ -98,11 +98,8 @@ export function PositionTransactions({
         {chips.map((c) => (
           <span
             key={c}
-            className="ct-pill"
-            style={{
-              fontSize: "var(--ct-text-xs)",
-              cursor: "default",
-            }}
+            className="ct-pill body-xs"
+            style={{ cursor: "default" }}
           >
             {TYPE_LABEL[c]}
           </span>
@@ -132,14 +129,8 @@ export function PositionTransactions({
           >
             <thead>
               <tr
-                style={{
-                  borderBottom: "1px solid var(--ct-border-soft)",
-                  color: "var(--ct-text-muted)",
-                  fontSize: "var(--ct-text-micro)",
-                  fontWeight: "var(--ct-font-bold)",
-                  textTransform: "uppercase",
-                  letterSpacing: "var(--ct-tracking-wider)",
-                }}
+                className="stat-label ct-text-muted"
+                style={{ borderBottom: "1px solid var(--ct-border-soft)" }}
               >
                 <th style={{ textAlign: "left", paddingBottom: "var(--ct-space-2)", fontWeight: "inherit" }}>
                   Date
@@ -167,12 +158,10 @@ export function PositionTransactions({
                   >
                     {/* Date */}
                     <td
-                      className="tabular"
+                      className="tabular body-xs ct-text-muted"
                       style={{
                         padding: "var(--ct-space-2) 0",
-                        color: "var(--ct-text-muted)",
                         fontFamily: "var(--font-mono)",
-                        fontSize: "var(--ct-text-xs)",
                         whiteSpace: "nowrap",
                         paddingRight: "var(--ct-space-4)",
                       }}
@@ -188,21 +177,16 @@ export function PositionTransactions({
                       }}
                     >
                       <span
+                        className="body-xs ct-text-body"
                         style={{
                           display: "inline-flex",
                           alignItems: "center",
                           gap: "var(--ct-space-1_5)",
-                          color: "var(--ct-text-body)",
                         }}
                       >
                         <span
                           aria-hidden="true"
-                          style={{
-                            fontSize: "var(--ct-text-xs)",
-                            color: incoming
-                              ? "var(--ct-text-muted)"
-                              : "var(--ct-status-success)",
-                          }}
+                          className={incoming ? "ct-text-muted body-xs" : "ct-status-success body-xs"}
                         >
                           {TYPE_ICON[tx.type]}
                         </span>
@@ -212,15 +196,12 @@ export function PositionTransactions({
 
                     {/* Amount — signed, accent for yield/dist, muted for deposits */}
                     <td
-                      className="tabular"
+                      className={`tabular body-md ${incoming ? "ct-text-primary" : "ct-status-success"}`}
                       style={{
                         padding: "var(--ct-space-2) 0",
                         textAlign: "right",
                         fontFamily: "var(--font-mono)",
                         fontWeight: "var(--ct-font-semibold)",
-                        color: incoming
-                          ? "var(--ct-text-primary)"
-                          : "var(--ct-status-success)",
                         paddingRight: "var(--ct-space-4)",
                         whiteSpace: "nowrap",
                       }}

@@ -112,7 +112,7 @@ export function RecentActivity({ transactions, source }: RecentActivityProps) {
       </div>
 
       {displayed.length === 0 ? (
-        <p style={{ color: "var(--ct-text-muted)", marginTop: "var(--ct-space-4)" }}>
+        <p className="body-sm ct-text-muted" style={{ marginTop: "var(--ct-space-4)" }}>
           No transactions yet.
         </p>
       ) : (
@@ -138,24 +138,17 @@ export function RecentActivity({ transactions, source }: RecentActivityProps) {
               <TxIcon type={tx.type} />
 
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: "var(--ct-text-xs)",
-                    color: "var(--ct-text-primary)",
-                    fontWeight: "var(--ct-font-semibold)",
-                  }}
-                >
+                <div className="body-xs ct-text-primary" style={{ fontWeight: "var(--ct-font-semibold)" }}>
                   {TYPE_LABELS[tx.type] ?? tx.type}
                   {tx.positionVaultName && (
-                    <span style={{ color: "var(--ct-text-muted)", fontWeight: "normal" }}>
+                    <span className="ct-text-muted" style={{ fontWeight: "normal" }}>
                       {" "}· {tx.positionVaultName}
                     </span>
                   )}
                 </div>
                 <div
+                  className="stat-label ct-text-muted"
                   style={{
-                    fontSize: "var(--ct-text-micro)",
-                    color: "var(--ct-text-muted)",
                     marginTop: "var(--ct-space-0_5)",
                     fontFamily: "var(--font-mono)",
                   }}
@@ -165,10 +158,8 @@ export function RecentActivity({ transactions, source }: RecentActivityProps) {
               </div>
 
               <span
-                className="tabular"
+                className="tabular body-md ct-text-strong"
                 style={{
-                  fontSize: "var(--ct-text-sm)",
-                  color: "var(--ct-text-strong)",
                   fontFamily: "var(--font-mono)",
                   fontWeight: "var(--ct-font-semibold)",
                   flexShrink: 0,

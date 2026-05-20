@@ -58,9 +58,8 @@ export function PositionHeader({ position }: PositionHeaderProps) {
       {/* Back link */}
       <Link
         href="/portfolio"
-        className="body-sm"
+        className="body-sm ct-text-muted"
         style={{
-          color: "var(--ct-text-muted)",
           textDecoration: "none",
           display: "inline-flex",
           alignItems: "center",
@@ -89,17 +88,14 @@ export function PositionHeader({ position }: PositionHeaderProps) {
           }}
         >
           <h2
-            className="h2"
-            style={{ color: "var(--ct-text-strong)", margin: 0 }}
+            className="h2 ct-text-strong"
+            style={{ margin: 0 }}
           >
             {position.vaultName}
           </h2>
           <span
-            className="eyebrow tabular"
-            style={{
-              fontFamily: "var(--font-mono)",
-              color: "var(--ct-text-muted)",
-            }}
+            className="eyebrow tabular ct-text-muted"
+            style={{ fontFamily: "var(--font-mono)" }}
           >
             {position.vaultTicker} ·{" "}
             <span title={position.id}>{position.id.slice(0, 8)}&hellip;</span>
@@ -129,18 +125,12 @@ export function PositionHeader({ position }: PositionHeaderProps) {
             gap: "var(--ct-space-1)",
           }}
         >
-          <span
-            className="eyebrow"
-            style={{ color: "var(--ct-text-muted)" }}
-          >
+          <span className="eyebrow ct-text-muted">
             Total value
           </span>
           <span
-            className="stat-value tabular"
-            style={{
-              color: "var(--ct-text-strong)",
-              fontFamily: "var(--font-mono)",
-            }}
+            className="stat-value tabular ct-text-strong"
+            style={{ fontFamily: "var(--font-mono)" }}
           >
             {usdFull.format(totalValue)}
           </span>

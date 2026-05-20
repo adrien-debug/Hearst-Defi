@@ -67,12 +67,8 @@ export function PortfolioKpiRow({ data }: KpiRowProps) {
           <span className="dash-unit">USDC</span>
         </div>
         <p
-          className="body-xs"
-          style={{
-            color: "var(--ct-text-muted)",
-            marginTop: "var(--ct-space-2)",
-            fontStyle: "italic",
-          }}
+          className="body-xs ct-text-muted"
+          style={{ marginTop: "var(--ct-space-2)", fontStyle: "italic" }}
         >
           Accrued + distributed. Not projected forward.
         </p>
@@ -85,19 +81,13 @@ export function PortfolioKpiRow({ data }: KpiRowProps) {
           <ProvenanceBadge kind={distProvenance} />
         </div>
         <div className="dash-value-group">
-          <span
-            className="dash-value-range"
-            style={{ fontSize: "var(--ct-text-3xl)" }}
-          >
+          <span className="dash-value-range stat-value tabular">
             {monthDayFmt.format(data.nextDistributionAt)}
           </span>
         </div>
         <p
-          className="body-xs"
-          style={{
-            color: "var(--ct-text-muted)",
-            marginTop: "var(--ct-space-2)",
-          }}
+          className="body-xs ct-text-muted"
+          style={{ marginTop: "var(--ct-space-2)" }}
         >
           Monthly cadence · Day 1, T+5
         </p>

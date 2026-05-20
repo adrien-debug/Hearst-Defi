@@ -46,7 +46,7 @@ export function PositionsList({ positions, source }: PositionsListProps) {
       </div>
 
       {positions.length === 0 ? (
-        <p style={{ color: "var(--ct-text-muted)", marginTop: "var(--ct-space-4)" }}>
+        <p className="body-sm ct-text-muted" style={{ marginTop: "var(--ct-space-4)" }}>
           No open positions.
         </p>
       ) : (
@@ -60,17 +60,13 @@ export function PositionsList({ positions, source }: PositionsListProps) {
         >
           {/* Header row */}
           <div
+            className="stat-label"
             style={{
               display: "grid",
               gridTemplateColumns: "1fr auto auto auto auto",
               gap: "var(--ct-space-4)",
               paddingBottom: "var(--ct-space-2)",
               borderBottom: "1px solid var(--ct-border-soft)",
-              fontSize: "var(--ct-text-micro)",
-              fontWeight: "var(--ct-font-bold)",
-              textTransform: "uppercase",
-              letterSpacing: "var(--ct-tracking-wider)",
-              color: "var(--ct-text-muted)",
             }}
           >
             <span>Vault</span>
@@ -105,9 +101,8 @@ export function PositionsList({ positions, source }: PositionsListProps) {
                   }}
                 />
                 <span
+                  className="body-md ct-text-primary"
                   style={{
-                    fontSize: "var(--ct-text-sm)",
-                    color: "var(--ct-text-primary)",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
@@ -119,9 +114,8 @@ export function PositionsList({ positions, source }: PositionsListProps) {
 
               {/* Principal */}
               <span
-                className="tabular"
+                className="tabular body-md"
                 style={{
-                  fontSize: "var(--ct-text-sm)",
                   color: "var(--ct-text-body)",
                   fontFamily: "var(--font-mono)",
                   textAlign: "right",
@@ -132,10 +126,8 @@ export function PositionsList({ positions, source }: PositionsListProps) {
 
               {/* Current value */}
               <span
-                className="tabular"
+                className="tabular body-md ct-text-strong"
                 style={{
-                  fontSize: "var(--ct-text-sm)",
-                  color: "var(--ct-text-strong)",
                   fontFamily: "var(--font-mono)",
                   fontWeight: "var(--ct-font-semibold)",
                   textAlign: "right",
@@ -151,9 +143,8 @@ export function PositionsList({ positions, source }: PositionsListProps) {
 
               {/* Subscribed date */}
               <span
+                className="body-xs tabular ct-text-muted"
                 style={{
-                  fontSize: "var(--ct-text-xs)",
-                  color: "var(--ct-text-muted)",
                   fontFamily: "var(--font-mono)",
                   textAlign: "right",
                 }}

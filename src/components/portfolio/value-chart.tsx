@@ -129,14 +129,12 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
 
       {/* Month labels */}
       <div
+        className="stat-label ct-text-muted"
         style={{
           display: "flex",
           justifyContent: "space-between",
           marginTop: "var(--ct-space-1)",
           fontFamily: "var(--font-mono)",
-          fontSize: "var(--ct-text-micro)",
-          color: "var(--ct-text-muted)",
-          letterSpacing: "var(--ct-tracking-wide)",
         }}
       >
         {series
@@ -147,12 +145,8 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
       </div>
 
       <p
-        style={{
-          marginTop: "var(--ct-space-2)",
-          fontSize: "var(--ct-text-xs)",
-          color: "var(--ct-text-muted)",
-          fontStyle: "italic",
-        }}
+        className="body-xs ct-text-muted"
+        style={{ marginTop: "var(--ct-space-2)", fontStyle: "italic" }}
       >
         Indicative trend based on position history. Past performance does not predict future results.
       </p>
