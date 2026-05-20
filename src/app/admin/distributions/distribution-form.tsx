@@ -204,7 +204,7 @@ export function DistributionForm() {
       {/* Confirmed */}
       {confirmResult?.confirmed && (
         <div className="ct-status-success-bg px-4 py-3 rounded-xl space-y-1">
-          <p className="body-sm text-[--ct-status-success] font-semibold">
+          <p className="body-sm ct-status-success font-semibold">
             Distribution confirmed for period {period}.
           </p>
           <p className="body-xs ct-text-muted">

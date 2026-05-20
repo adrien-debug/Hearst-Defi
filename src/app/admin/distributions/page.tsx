@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { DistributionForm } from "./distribution-form";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +21,8 @@ function formatDate(d: Date | string): string {
 // ---------------------------------------------------------------------------
 
 export default async function DistributionsPage() {
+  await requireAdmin();
+
   const history = await prisma.distribution.findMany({
     orderBy: { distributedAt: "desc" },
     take: 6,

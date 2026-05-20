@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { RebalanceCard } from "@/components/admin/rebalance-card";
 import { cn } from "@/lib/cn";
 import Link from "next/link";
@@ -49,6 +50,8 @@ interface SignalsPageProps {
 }
 
 export default async function SignalsPage({ searchParams }: SignalsPageProps) {
+  await requireAdmin();
+
   const params = await searchParams;
   const activeStatus = toFilter(params.status);
 

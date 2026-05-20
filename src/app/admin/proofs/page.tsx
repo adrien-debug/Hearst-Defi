@@ -25,14 +25,10 @@ export default async function ProofsPage() {
         <ProofList items={items} />
       </section>
 
-      <p className="body-sm text-[--ct-text-muted]">
-        Ingestion via Server Action{" "}
-        <code className="font-mono text-[--ct-text-body]">ingestProof()</code>{" "}
-        — pas encore d&apos;UI. Voir{" "}
-        <code className="font-mono text-[--ct-text-body]">
-          docs/spec/05-proof.mdx
-        </code>
-        .
+      <p className="body-sm ct-text-muted">
+        New attestations are ingested via the{" "}
+        <code className="font-mono ct-text-body">ingestProof()</code>{" "}
+        Server Action. On-chain submission UI is available in Phase 2.
       </p>
     </div>
   );

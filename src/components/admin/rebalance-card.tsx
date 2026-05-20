@@ -151,9 +151,9 @@ function AllocationDiffTable({
                   className={cn(
                     "px-3 py-2 text-right font-semibold tabular",
                     delta > 0
-                      ? "text-[--ct-status-success]"
+                      ? "ct-status-success"
                       : delta < 0
-                        ? "text-[--ct-status-danger]"
+                        ? "ct-status-danger"
                         : "ct-text-muted",
                   )}
                 >
