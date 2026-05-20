@@ -7,6 +7,11 @@ import {
 } from "@/lib/chain/client";
 import type { OnChainAttestation } from "@/lib/chain/por-registry";
 import { cn } from "@/lib/cn";
+import {
+  formatPeriod,
+  truncateAddress,
+  truncateHash,
+} from "@/lib/format/chain-display";
 
 interface PorSummaryProps {
   attestation: OnChainAttestation | null;
@@ -17,22 +22,6 @@ const dateFmt = new Intl.DateTimeFormat("en-US", {
   timeStyle: "short",
   timeZone: "UTC",
 });
-
-function formatPeriod(period: bigint): string {
-  const raw = period.toString();
-  if (raw.length !== 6) return raw;
-  return `${raw.slice(0, 4)}-${raw.slice(4)}`;
-}
-
-function truncateAddress(addr: string): string {
-  if (addr.length <= 12) return addr;
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
-}
-
-function truncateHash(hash: string): string {
-  if (hash.length <= 12) return hash;
-  return `${hash.slice(0, 6)}…${hash.slice(-4)}`;
-}
 
 function isStale(ts: Date): boolean {
   const ageMs = Date.now() - ts.getTime();

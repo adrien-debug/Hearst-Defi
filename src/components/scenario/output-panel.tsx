@@ -10,14 +10,16 @@ import { ApyRange } from "@/components/ui/apy-range";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
+import { ScenarioAllocationTable } from "@/components/scenario/scenario-allocation-table";
+import { ScenarioRiskMiningGrid } from "@/components/scenario/scenario-risk-mining-grid";
 import {
   BUCKET_COLOR,
   BUCKET_LABEL,
   CONFIDENCE_VARIANT,
-  progressScoreFillClass,
+  MODE_LABEL,
+  MODE_VARIANT,
 } from "@/components/scenario/output-panel-shared";
 import type { ScenarioNarrativeOutput } from "@/lib/agents/schemas";
 import type {
@@ -40,21 +42,6 @@ interface OutputPanelProps {
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
-
-const MODE_LABEL: Record<ScenarioOutput["mode"], string> = {
-  defensive: "Defensive",
-  balanced: "Balanced",
-  opportunistic: "Opportunistic",
-};
-
-const MODE_VARIANT: Record<
-  ScenarioOutput["mode"],
-  "danger" | "default" | "success"
-> = {
-  defensive: "danger",
-  balanced: "default",
-  opportunistic: "success",
-};
 
 const GUARDRAIL_STATUS_VARIANT: Record<
   BtcGuardrail["status"],
@@ -167,9 +154,6 @@ function AllocationBar({
 // ── main ──────────────────────────────────────────────────────────────────────
 
 export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) {
-  const riskColorClass = progressScoreFillClass(output.risk_score, true);
-  const miningColorClass = progressScoreFillClass(output.mining_margin_score, false);
-
   const armedTriggers = output.btc_tactical.triggers.filter((t) => t.armed);
 
   return (
@@ -262,52 +246,7 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
       {/* ── Section 3: 12-Month NAV Projection ──────────────────────────── */}
       <NavSparkline output={output} />
 
-      {/* ── Section 4: Risk & Mining 2×2 grid ───────────────────────────── */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        {/* Risk Score */}
-        <Card>
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <span className="stat-label">Risk Score</span>
-            <ProvenanceBadge kind="estimated" />
-          </div>
-          <div className="mb-1 flex items-baseline gap-1">
-            <span className="mono text-2xl font-extrabold tabular-nums text-[--ct-text-primary]">
-              {output.risk_score.toFixed(0)}
-            </span>
-            <span className="text-sm text-[--ct-text-muted]">/100</span>
-          </div>
-          <Progress
-            value={output.risk_score}
-            fillClassName={riskColorClass}
-            className="mt-2"
-          />
-          <p className="mt-2 text-xs text-[--ct-text-muted]">
-            Lower = lower risk
-          </p>
-        </Card>
-
-        {/* Mining Margin Score */}
-        <Card>
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <span className="stat-label">Mining Margin</span>
-            <ProvenanceBadge kind="estimated" />
-          </div>
-          <div className="mb-1 flex items-baseline gap-1">
-            <span className="mono text-2xl font-extrabold tabular-nums text-[--ct-text-primary]">
-              {output.mining_margin_score.toFixed(0)}
-            </span>
-            <span className="text-sm text-[--ct-text-muted]">/100</span>
-          </div>
-          <Progress
-            value={output.mining_margin_score}
-            fillClassName={miningColorClass}
-            className="mt-2"
-          />
-          <p className="mt-2 text-xs text-[--ct-text-muted]">
-            Current vs target
-          </p>
-        </Card>
-      </div>
+      <ScenarioRiskMiningGrid output={output} />
 
       {/* ── Section 3: Vault Mode ────────────────────────────────────────── */}
       <Card>
@@ -337,40 +276,8 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
         {/* Stacked bar */}
         <AllocationBar allocations={output.allocations} />
 
-        {/* Table */}
         <div className="mt-4">
-          {/* Header */}
-          <div className="mb-2 grid grid-cols-[1fr_auto_auto] gap-x-4 text-micro font-semibold uppercase tracking-wide text-[--ct-text-muted]">
-            <span>Bucket</span>
-            <span className="text-right">Pct</span>
-            <span className="text-right">Yield contribution</span>
-          </div>
-          {/* Rows */}
-          <ul className="divide-y divide-[--ct-border-soft]">
-            {output.allocations.map((a) => (
-              <li
-                key={a.bucket}
-                className="grid grid-cols-[1fr_auto_auto] items-center gap-x-4 py-2.5 text-sm first:pt-1 last:pb-1"
-              >
-                <span className="flex items-center gap-2 text-[--ct-text-body]">
-                  <span
-                    className="inline-block h-2 w-2 shrink-0 rounded-full shadow-[var(--ct-glow-dot)] bg-current"
-                    style={{ color: BUCKET_COLOR[a.bucket] }}
-                    aria-hidden
-                  />
-                  {BUCKET_LABEL[a.bucket]}
-                </span>
-                <span className="text-right mono tabular-nums text-[--ct-text-primary]">
-                  {a.pct.toFixed(0)}%
-                </span>
-                <span className="text-right mono tabular-nums text-[--ct-text-muted]">
-                  {a.yield_contribution_bps > 0
-                    ? `+${a.yield_contribution_bps} bps`
-                    : "P&L variable"}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <ScenarioAllocationTable allocations={output.allocations} />
         </div>
       </Card>
 

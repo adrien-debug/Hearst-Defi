@@ -4,6 +4,7 @@ import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { EXPLORER_TX_BASE } from "@/lib/chain/client";
 import type { EventKind, OnChainEvent } from "@/lib/chain/event-logger";
 import { cn } from "@/lib/cn";
+import { truncateAddress, truncateHash } from "@/lib/format/chain-display";
 
 interface EventTimelineProps {
   events: ReadonlyArray<OnChainEvent>;
@@ -35,16 +36,6 @@ const dateFmt = new Intl.DateTimeFormat("en-US", {
   timeStyle: "short",
   timeZone: "UTC",
 });
-
-function truncateHash(hash: string): string {
-  if (hash.length <= 12) return hash;
-  return `${hash.slice(0, 6)}…${hash.slice(-4)}`;
-}
-
-function truncateAddress(addr: string): string {
-  if (addr.length <= 12) return addr;
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
-}
 
 function ipfsGatewayUrl(cid: string): string {
   if (cid.startsWith("ipfs://")) return `https://ipfs.io/ipfs/${cid.slice(7)}`;

@@ -4,6 +4,12 @@ import { Card } from "@/components/ui/card";
 import { EXPLORER_ADDRESS_BASE, EXPLORER_TX_BASE } from "@/lib/chain/client";
 import type { ProofType } from "@/lib/mock/proof-center";
 
+import {
+  formatPeriod,
+  truncateAddress,
+  truncateHash,
+} from "@/lib/format/chain-display";
+
 import type { UnifiedProof } from "./proof-types";
 
 interface ProofCardProps {
@@ -31,16 +37,6 @@ const dateFmt = new Intl.DateTimeFormat("en-US", {
   dateStyle: "medium",
   timeZone: "UTC",
 });
-
-function truncateHash(hash: string): string {
-  if (hash.length <= 12) return hash;
-  return `${hash.slice(0, 6)}…${hash.slice(-4)}`;
-}
-
-function truncateAddress(addr: string): string {
-  if (addr.length <= 12) return addr;
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
-}
 
 function uriLabel(uri: string): string {
   if (uri.startsWith("ipfs://")) return "View on IPFS";
@@ -255,13 +251,6 @@ function OnChainEventCard({
       </div>
     </Card>
   );
-}
-
-function formatPeriod(period: bigint): string {
-  // YYYYMM → "YYYY-MM"
-  const raw = period.toString();
-  if (raw.length !== 6) return raw;
-  return `${raw.slice(0, 4)}-${raw.slice(4)}`;
 }
 
 function OnChainAttestationCard({

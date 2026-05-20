@@ -7,10 +7,12 @@ import {
   ProvenanceBadge,
   type Provenance,
 } from "@/components/ui/provenance-badge";
+import { HalfGauge } from "@/components/charts/gauge-half";
 import {
   allocationDashToneFor,
   allocationLabelFor,
 } from "@/lib/allocation-colors";
+import { buildDonutSegments } from "@/lib/charts/donut-segments";
 import { toHashpriceRow, toMiningHealth } from "@/lib/dashboard-adapters";
 import {
   fetchHashprice,
@@ -130,12 +132,6 @@ export default async function DashboardPage() {
   //   path position 0  = RIGHT end of arc = max% on axis
   //   path position 50 = LEFT  end of arc = 0% on axis
   // For axis value v: path position = (1 - v/maxAxis) * 50
-  const apyLowPos = Math.max(0, Math.min(50, (1 - apyLow / apyMaxAxis) * 50));
-  const apyHighPos = Math.max(0, Math.min(50, (1 - apyHigh / apyMaxAxis) * 50));
-  const apyBandArc = Math.max(0.5, apyLowPos - apyHighPos);
-  const apyGaugeDash = `${apyBandArc} ${100 - apyBandArc}`;
-  const apyGaugeOffset = -apyHighPos;
-
   const blendedBps = data.allocations.reduce(
     (acc, a) => acc + (a.pct / 100) * a.yieldContributionBps,
     0,
@@ -144,32 +140,20 @@ export default async function DashboardPage() {
   const blendedLow = round1(Math.max(0, blendedPct * 0.85));
   const blendedHigh = round1(Math.max(blendedPct * 0.85 + 0.5, blendedPct * 1.18));
 
-  /** Donut allocation: build stroke-dasharray segments for each bucket. */
-  const allocSegments = (() => {
-    const segs: Array<{
-      bucket: string;
-      tone: "primary" | "accent" | "maroon" | "muted";
-      pct: number;
-      valueUsdc: number;
-      dashArray: string;
-      dashOffset: number;
-    }> = [];
-    let cumulative = 0;
-    for (const a of data.allocations) {
-      const dashArray = `${a.pct} ${100 - a.pct}`;
-      const dashOffset = -cumulative;
-      segs.push({
-        bucket: a.bucket,
-        tone: allocationDashToneFor(a.bucket),
-        pct: a.pct,
-        valueUsdc: a.valueUsdc,
-        dashArray,
-        dashOffset,
-      });
-      cumulative += a.pct;
-    }
-    return segs;
-  })();
+  const allocSegments = buildDonutSegments(
+    data.allocations.map((a) => ({ pct: a.pct })),
+  ).map((seg, i) => {
+    const a = data.allocations[i];
+    if (!a) throw new Error("allocSegments length mismatch");
+    return {
+      bucket: a.bucket,
+      tone: allocationDashToneFor(a.bucket),
+      pct: seg.pct,
+      valueUsdc: a.valueUsdc,
+      dashArray: seg.dashArray,
+      dashOffset: seg.dashOffset,
+    };
+  });
 
   const aumValue = usdCompact.format(data.vault.aumUsdc);
 
@@ -193,11 +177,6 @@ export default async function DashboardPage() {
 
   /** Operational confidence gauge */
   const opConf = data.operationalConfidence;
-  // Smile ∪ gauge: fill from 0% (LEFT) up to value. Path direction is
-  // right→bottom→left, so the fill ends at the left end (position 50).
-  const opConfArc = (opConf / 100) * 50;
-  const opConfDash = `${opConfArc} ${100 - opConfArc}`;
-  const opConfOffset = -(50 - opConfArc);
 
   /** Density matrix: 30 cols x 4 rows = 120 cells, last 120 days before asOf. */
   const eventsByDay = new Map<number, number>();
@@ -308,44 +287,27 @@ export default async function DashboardPage() {
               <span>APY range (annualized)</span>
               <ProvenanceBadge kind={apyProvenance} />
             </div>
-            <div className="gauge-container">
-              <svg
-                className="gauge-svg"
-                viewBox="0 0 42 42"
-                width="160"
-                height="160"
-                aria-hidden="true"
-              >
-                <circle
-                  className="gauge-svg-circle bg"
-                  cx="21"
-                  cy="21"
-                  r="15.9155"
-                  strokeWidth="6"
-                  strokeDasharray="50 50"
-                />
-                <circle
-                  className="gauge-svg-circle fg"
-                  cx="21"
-                  cy="21"
-                  r="15.9155"
-                  strokeWidth="6"
-                  strokeDasharray={apyGaugeDash}
-                  strokeDashoffset={apyGaugeOffset}
-                />
-              </svg>
-              <div className="gauge-center">
-                <span className="gauge-val">
+            <HalfGauge
+              mode="range"
+              low={apyLow}
+              high={apyHigh}
+              maxAxis={apyMaxAxis}
+              centerPrimary={
+                <>
                   {apyLow}–{apyHigh}
-                </span>
-                <span className="gauge-lbl">% APY range</span>
-              </div>
-            </div>
-            <div className="gauge-range">
-              <span>0%</span>
-              <span>Blended {blendedLow}–{blendedHigh}%</span>
-              <span>{apyMaxAxis}%</span>
-            </div>
+                </>
+              }
+              centerSecondary="% APY range"
+              footer={
+                <>
+                  <span>0%</span>
+                  <span>
+                    Blended {blendedLow}–{blendedHigh}%
+                  </span>
+                  <span>{apyMaxAxis}%</span>
+                </>
+              }
+            />
           </article>
 
           {/* W3 — BTC Sleeve sparkline (source: kpi-elegant) */}
@@ -475,42 +437,19 @@ export default async function DashboardPage() {
               <span>Operational confidence</span>
               <ProvenanceBadge kind={opConfProvenance} />
             </div>
-            <div className="gauge-container">
-              <svg
-                className="gauge-svg"
-                viewBox="0 0 42 42"
-                width="160"
-                height="160"
-                aria-hidden="true"
-              >
-                <circle
-                  className="gauge-svg-circle bg"
-                  cx="21"
-                  cy="21"
-                  r="15.9155"
-                  strokeWidth="6"
-                  strokeDasharray="50 50"
-                />
-                <circle
-                  className="gauge-svg-circle fg"
-                  cx="21"
-                  cy="21"
-                  r="15.9155"
-                  strokeWidth="6"
-                  strokeDasharray={opConfDash}
-                  strokeDashoffset={opConfOffset}
-                />
-              </svg>
-              <div className="gauge-center">
-                <span className="gauge-val">{opConf}</span>
-                <span className="gauge-lbl">% confidence</span>
-              </div>
-            </div>
-            <div className="gauge-range">
-              <span>0%</span>
-              <span>Threshold 70%</span>
-              <span>100%</span>
-            </div>
+            <HalfGauge
+              mode="value"
+              value={opConf}
+              centerPrimary={opConf}
+              centerSecondary="% confidence"
+              footer={
+                <>
+                  <span>0%</span>
+                  <span>Threshold 70%</span>
+                  <span>100%</span>
+                </>
+              }
+            />
           </article>
         </div>
       </section>

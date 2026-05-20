@@ -1,4 +1,5 @@
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
+import { buildDonutSegments } from "@/lib/charts/donut-segments";
 import type { PortfolioPosition } from "@/lib/data/portfolio";
 
 /**
@@ -54,12 +55,24 @@ export function AllocationDonut({
     dashOffset: number;
   }> = [];
 
-  let cumulative = 0;
-  for (const [status, value] of grouped.entries()) {
-    const pct = totalValueUsdc > 0 ? (value / totalValueUsdc) * 100 : 0;
-    const dashArray = `${pct} ${100 - pct}`;
-    segments.push({ status, pct, valueUsdc: value, dashArray, dashOffset: -cumulative });
-    cumulative += pct;
+  const entries = [...grouped.entries()];
+  const donutSegs = buildDonutSegments(
+    entries.map(([, value]) => ({
+      pct: totalValueUsdc > 0 ? (value / totalValueUsdc) * 100 : 0,
+    })),
+  );
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    const seg = donutSegs[i];
+    if (!entry || !seg) continue;
+    const [status, value] = entry;
+    segments.push({
+      status,
+      pct: seg.pct,
+      valueUsdc: value,
+      dashArray: seg.dashArray,
+      dashOffset: seg.dashOffset,
+    });
   }
 
   return (

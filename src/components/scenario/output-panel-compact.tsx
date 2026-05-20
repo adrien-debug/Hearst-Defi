@@ -1,30 +1,15 @@
 import { ApyRange } from "@/components/ui/apy-range";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
+import { ScenarioAllocationTable } from "@/components/scenario/scenario-allocation-table";
+import { ScenarioRiskMiningGrid } from "@/components/scenario/scenario-risk-mining-grid";
 import {
-  BUCKET_COLOR,
-  BUCKET_LABEL,
   CONFIDENCE_VARIANT,
-  progressScoreFillClass,
+  MODE_LABEL,
+  MODE_VARIANT,
 } from "@/components/scenario/output-panel-shared";
 import type { ScenarioOutput } from "@/lib/engine/types";
-
-const MODE_LABEL: Record<ScenarioOutput["mode"], string> = {
-  defensive: "Defensive",
-  balanced: "Balanced",
-  opportunistic: "Opportunistic",
-};
-
-const MODE_VARIANT: Record<
-  ScenarioOutput["mode"],
-  "danger" | "default" | "success"
-> = {
-  defensive: "danger",
-  balanced: "default",
-  opportunistic: "success",
-};
 
 // ── delta helpers ────────────────────────────────────────────────────────────
 
@@ -83,9 +68,6 @@ export function OutputPanelCompact({
   vs,
   isPending,
 }: OutputPanelCompactProps) {
-  const riskColorClass = progressScoreFillClass(output.risk_score, true);
-  const miningColorClass = progressScoreFillClass(output.mining_margin_score, false);
-
   const showDeltas = side === "B" && vs !== null && vs !== undefined;
   const apyDelta = showDeltas ? computeApyDelta(vs, output) : null;
   const riskDelta = showDeltas ? computeRiskDelta(vs, output) : null;
@@ -174,27 +156,11 @@ export function OutputPanelCompact({
         )}
       </div>
 
-      {/* ── Risk + Mining 2×1 ───────────────────────────────────────── */}
-      <div className="grid gap-3 sm:grid-cols-2">
-        {/* Risk Score */}
-        <div className="glass-panel-subtle p-4">
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <span className="stat-label text-micro">Risk Score</span>
-            <ProvenanceBadge kind="estimated" />
-          </div>
-          <div className="mb-1 flex items-baseline gap-1">
-            <span className="mono text-xl font-extrabold tabular-nums text-[--ct-text-primary]">
-              {output.risk_score.toFixed(0)}
-            </span>
-            <span className="text-xs text-[--ct-text-muted]">/100</span>
-          </div>
-          <Progress
-            value={output.risk_score}
-            fillClassName={riskColorClass}
-            className="mt-1.5"
-          />
-          {/* Risk delta (only on B) */}
-          {riskDelta && (
+      <ScenarioRiskMiningGrid
+        output={output}
+        density="compact"
+        riskDelta={
+          riskDelta ? (
             <p
               className={cn(
                 "mt-2 mono text-micro font-semibold tabular-nums",
@@ -207,33 +173,9 @@ export function OutputPanelCompact({
                 vs A
               </span>
             </p>
-          )}
-        </div>
-
-        {/* Mining Margin */}
-        <div className="glass-panel-subtle p-4">
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <span className="stat-label text-micro">
-              Mining Margin
-            </span>
-            <ProvenanceBadge kind="estimated" />
-          </div>
-          <div className="mb-1 flex items-baseline gap-1">
-            <span className="mono text-xl font-extrabold tabular-nums text-[--ct-text-primary]">
-              {output.mining_margin_score.toFixed(0)}
-            </span>
-            <span className="text-xs text-[--ct-text-muted]">/100</span>
-          </div>
-          <Progress
-            value={output.mining_margin_score}
-            fillClassName={miningColorClass}
-            className="mt-1.5"
-          />
-          <p className="mt-2 text-micro text-[--ct-text-muted]">
-            Current vs target
-          </p>
-        </div>
-      </div>
+          ) : undefined
+        }
+      />
 
       {/* ── Vault Mode ───────────────────────────────────────────────── */}
       <div className="glass-panel-subtle p-4">
@@ -260,38 +202,10 @@ export function OutputPanelCompact({
           <ProvenanceBadge kind="estimated" />
         </div>
 
-        <div>
-          <div className="mb-1.5 grid grid-cols-[1fr_auto_auto] gap-x-3 text-micro font-semibold uppercase tracking-wide text-[--ct-text-muted]">
-            <span>Bucket</span>
-            <span className="text-right">Pct</span>
-            <span className="text-right">Yield</span>
-          </div>
-          <ul className="divide-y divide-[--ct-border-soft]">
-            {output.allocations.map((a) => (
-              <li
-                key={a.bucket}
-                className="grid grid-cols-[1fr_auto_auto] items-center gap-x-3 py-1.5 text-sm first:pt-0.5 last:pb-0.5"
-              >
-                <span className="flex min-w-0 items-center gap-2 text-[--ct-text-body]">
-                  <span
-                    className="inline-block h-2 w-2 shrink-0 rounded-full shadow-[var(--ct-glow-dot)] bg-current"
-                    style={{ color: BUCKET_COLOR[a.bucket] }}
-                    aria-hidden
-                  />
-                  <span className="truncate">{BUCKET_LABEL[a.bucket]}</span>
-                </span>
-                <span className="text-right mono tabular-nums text-[--ct-text-primary]">
-                  {a.pct.toFixed(0)}%
-                </span>
-                <span className="text-right mono text-xs tabular-nums text-[--ct-text-muted]">
-                  {a.yield_contribution_bps > 0
-                    ? `+${a.yield_contribution_bps}bps`
-                    : "P&L"}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <ScenarioAllocationTable
+          allocations={output.allocations}
+          density="compact"
+        />
       </div>
     </section>
   );

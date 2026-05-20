@@ -20,6 +20,21 @@ export const CONFIDENCE_VARIANT: Record<
 };
 
 /** Progress bar fill class for risk (inverted) and mining scores. */
+export const MODE_LABEL: Record<ScenarioOutput["mode"], string> = {
+  defensive: "Defensive",
+  balanced: "Balanced",
+  opportunistic: "Opportunistic",
+};
+
+export const MODE_VARIANT: Record<
+  ScenarioOutput["mode"],
+  "danger" | "default" | "success"
+> = {
+  defensive: "danger",
+  balanced: "default",
+  opportunistic: "success",
+};
+
 export function progressScoreFillClass(
   score: number,
   invertedRisk = false,
