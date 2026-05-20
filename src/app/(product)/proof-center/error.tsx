@@ -9,9 +9,9 @@ export default function ProofCenterError(props: {
   return (
     <SegmentError
       {...props}
-      scope="Proof Center · Erreur"
+      scope="Proof Center · Error"
       homeHref="/proof-center"
-      homeLabel="Recharger le Proof Center"
+      homeLabel="Reload Proof Center"
     />
   );
 }

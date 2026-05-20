@@ -9,9 +9,9 @@ export default function SpecError(props: {
   return (
     <SegmentError
       {...props}
-      scope="Admin · Spec · Erreur"
+      scope="Admin · Spec · Error"
       homeHref="/admin/spec"
-      homeLabel="Retour à la spec"
+      homeLabel="Back to spec"
     />
   );
 }

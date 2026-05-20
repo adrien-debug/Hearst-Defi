@@ -9,9 +9,9 @@ export default function FeedbackError(props: {
   return (
     <SegmentError
       {...props}
-      scope="Admin · Feedback · Erreur"
+      scope="Admin · Feedback · Error"
       homeHref="/admin"
-      homeLabel="Retour admin"
+      homeLabel="Back to admin"
     />
   );
 }

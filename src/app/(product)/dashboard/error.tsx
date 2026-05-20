@@ -9,9 +9,9 @@ export default function DashboardError(props: {
   return (
     <SegmentError
       {...props}
-      scope="Dashboard · Erreur"
+      scope="Dashboard · Error"
       homeHref="/dashboard"
-      homeLabel="Recharger le dashboard"
+      homeLabel="Reload dashboard"
     />
   );
 }

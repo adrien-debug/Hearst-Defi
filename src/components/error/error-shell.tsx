@@ -99,7 +99,7 @@ interface ErrorShellLayoutProps {
   variant: "layout";
   /** Eyebrow label colour: "danger" | "warning" */
   tone?: "danger" | "warning";
-  /** Eyebrow label text, e.g. "Dashboard · Erreur" */
+  /** Eyebrow label text, e.g. "Dashboard · Error" */
   scope: string;
   title: string;
   /** Optional body copy */
@@ -176,7 +176,7 @@ export function ErrorShellLayout({
 
       {digest ? (
         <p className="body-xs m-0 text-[var(--ct-text-muted)]">
-          Digest&nbsp;: <span className="mono">{digest}</span>
+          Error ID:&nbsp;<span className="mono">{digest}</span>
         </p>
       ) : null}
 
