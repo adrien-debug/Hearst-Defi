@@ -10,7 +10,8 @@ import type { RiskFrameworkData } from "@/lib/data/risk-framework";
 
 /**
  * Fake risk framework data returned by the data loader.
- * Uses `mining_ops` (dashboard convention) to verify the dimension remapping.
+ * Uses the canonical `mining` key (loader and agent schema now agree;
+ * the historical `mining_ops` dashboard key was retired in V3.h cleanup).
  */
 const riskFrameworkFake: RiskFrameworkData = {
   composite: 58,
@@ -19,7 +20,7 @@ const riskFrameworkFake: RiskFrameworkData = {
   source: "db",
   dimensions: [
     { id: "market", label: "Market", score: 62, status: "ELEVATED", severity: "medium", detail: "BTC vol index 50/100." },
-    { id: "mining_ops", label: "Mining Operations", score: 45, status: "MONITORED", severity: "medium", detail: "Margin score 64/100." },
+    { id: "mining", label: "Mining Operations", score: 45, status: "MONITORED", severity: "medium", detail: "Margin score 64/100." },
     { id: "liquidity", label: "Liquidity", score: 30, status: "HEALTHY", severity: "low", detail: "Stable." },
     { id: "smart_contract", label: "Smart Contract", score: 42, status: "MONITORED", severity: "medium", detail: "Pre-audit." },
     { id: "counterparty", label: "Counterparty", score: 25, status: "OPTIMAL", severity: "low", detail: "Diversified." },
@@ -148,7 +149,8 @@ describe("riskDaily Inngest function", () => {
     // loadRiskFramework called
     expect(loadRiskFrameworkMock).toHaveBeenCalledTimes(1);
 
-    // Agent called with remapped dimension keys (mining_ops → mining)
+    // Agent called with canonical dimension keys (loader already emits the
+    // canonical `mining` key — no remap needed).
     expect(runRiskExplanationMock).toHaveBeenCalledTimes(1);
     const agentCalls = runRiskExplanationMock.mock.calls;
     expect(agentCalls.length).toBeGreaterThan(0);
@@ -156,7 +158,7 @@ describe("riskDaily Inngest function", () => {
     const agentInput = agentCall[0] as { riskScore: number; componentScores: Record<string, number>; mode: string };
     expect(agentInput.riskScore).toBe(58);
     expect(agentInput.mode).toBe("base");
-    // Remapping: "mining_ops" → "mining", others pass-through
+    // Canonical pass-through — historical `mining_ops` key must never appear.
     expect(agentInput.componentScores["mining"]).toBe(45);
     expect("mining_ops" in agentInput.componentScores).toBe(false);
     expect(agentInput.componentScores["market"]).toBe(62);

@@ -17,9 +17,19 @@ import type { ScenarioInputs } from "@/lib/engine/types";
 // and the loader is responsible solely for I/O + I/O-flavoured fallbacks.
 // ---------------------------------------------------------------------------
 
+/**
+ * Canonical risk-dimension key set, aligned with the agent schema
+ * (`src/lib/agents/schemas.ts` → RiskExplanation input).
+ *
+ * NOTE — historical: this used to surface `"mining_ops"` to match an
+ * earlier dashboard label convention; `risk-daily.ts` then had to remap
+ * `mining_ops → mining` before calling the agent. The id is invisible to
+ * the UI (only `label` is rendered), so we converged on the canonical
+ * agent key here and removed the remap.
+ */
 export type RiskDimensionId =
   | "smart_contract"
-  | "mining_ops"
+  | "mining"
   | "counterparty"
   | "market"
   | "liquidity";
@@ -94,7 +104,7 @@ interface Thresholds {
 
 const THRESHOLDS: Record<RiskDimensionId, Thresholds> = {
   market: { green: 40, amber: 65 },
-  mining_ops: { green: 30, amber: 60 },
+  mining: { green: 30, amber: 60 },
   liquidity: { green: 35, amber: 55 },
   smart_contract: { green: 40, amber: 60 },
   counterparty: { green: 30, amber: 55 },
@@ -111,7 +121,7 @@ function severityFor(id: RiskDimensionId, score: number): RiskSeverity {
 // three severity bands.
 const STATUS_LABELS: Record<RiskDimensionId, Record<RiskSeverity, RiskStatus>> = {
   market: { low: "STABLE", medium: "ELEVATED", high: "EXTREME" },
-  mining_ops: { low: "STABLE", medium: "MONITORED", high: "COMPRESSED" },
+  mining: { low: "STABLE", medium: "MONITORED", high: "COMPRESSED" },
   liquidity: { low: "HEALTHY", medium: "MONITORED", high: "TIGHT" },
   smart_contract: { low: "AUDITED", medium: "MONITORED", high: "PRE-AUDIT" },
   counterparty: { low: "OPTIMAL", medium: "MONITORED", high: "EXPOSED" },
@@ -252,7 +262,7 @@ export async function loadRiskFramework(): Promise<RiskFrameworkData> {
       detail: smartContractDetail(breakdown.smart_contract),
     }),
     buildDimension({
-      id: "mining_ops",
+      id: "mining",
       label: "Mining Operations",
       // Engine `breakdown.mining` already represents *mining risk* (higher =
       // more compression), so we can use it directly. We surface the margin

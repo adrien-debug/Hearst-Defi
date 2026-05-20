@@ -85,7 +85,7 @@ export async function ingestProof(
     return { ok: false, issues: parsed.error.issues };
   }
 
-  const { proofType, period, hash, uri, txHash } = parsed.data;
+  const { proofType, period, hash, uri, txHash, notes } = parsed.data;
 
   try {
     const proof = await prisma.proof.create({
@@ -95,6 +95,7 @@ export async function ingestProof(
         hash,
         uri,
         txHash: txHash ?? null,
+        notes: notes ?? null,
         // postedBy uses the admin's walletAddress when available, else userId
         postedBy: admin.walletAddress ?? admin.userId,
         // postedAt is defaulted to now() in the Prisma schema

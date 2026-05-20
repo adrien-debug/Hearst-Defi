@@ -77,6 +77,7 @@ describe("ingestProof", () => {
       postedAt: new Date(),
       postedBy: MOCK_ADMIN.walletAddress,
       txHash: null,
+      notes: null,
     } as never);
 
     const result = await ingestProof(VALID_INPUT);
@@ -90,11 +91,51 @@ describe("ingestProof", () => {
         hash: VALID_INPUT.hash,
         uri: VALID_INPUT.uri,
         txHash: null,
+        notes: null,
         postedBy: MOCK_ADMIN.walletAddress,
       }),
     });
     expect(revalidatePath).toHaveBeenCalledWith("/admin/proofs");
     expect(revalidatePath).toHaveBeenCalledWith("/proof-center");
+  });
+
+  it("Case A² — admin + valid input with notes → notes persisted on the row", async () => {
+    vi.mocked(requireAdmin).mockResolvedValue(MOCK_ADMIN);
+    vi.mocked(prisma.proof.create).mockResolvedValue({
+      id: "proof_cuid_002",
+      proofType: VALID_INPUT.proofType,
+      period: VALID_INPUT.period,
+      hash: VALID_INPUT.hash,
+      uri: VALID_INPUT.uri,
+      postedAt: new Date(),
+      postedBy: MOCK_ADMIN.walletAddress,
+      txHash: null,
+      notes: "Quarterly attestation — Spearbit signed off on Phase 2 ABI.",
+    } as never);
+
+    const result = await ingestProof({
+      ...VALID_INPUT,
+      notes: "Quarterly attestation — Spearbit signed off on Phase 2 ABI.",
+    });
+
+    expect(result).toEqual({ ok: true, id: "proof_cuid_002" });
+    expect(prisma.proof.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        notes: "Quarterly attestation — Spearbit signed off on Phase 2 ABI.",
+      }),
+    });
+  });
+
+  it("Case A³ — notes > 500 chars rejected by Zod, nothing created", async () => {
+    vi.mocked(requireAdmin).mockResolvedValue(MOCK_ADMIN);
+
+    const result = await ingestProof({
+      ...VALID_INPUT,
+      notes: "x".repeat(501),
+    });
+
+    expect(result).toMatchObject({ ok: false });
+    expect(prisma.proof.create).not.toHaveBeenCalled();
   });
 
   it("Case B — admin + invalid hash → { ok: false, issues }, nothing created", async () => {

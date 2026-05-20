@@ -21,11 +21,12 @@ import { isDuplicate, markComplete } from "@/lib/idempotency";
  * `agentName === "risk-daily"` within the last 24 hours (24h window). This
  * guards against Inngest retries and any accidental duplicate triggers.
  *
- * NOTE — dimension key mapping:
- *   `loadRiskFramework` surfaces `mining_ops` as a dimension ID (aligned with
- *   the dashboard UI). The Risk Explanation Agent schema (Zod + system prompt)
- *   uses `"mining"` as the canonical key. We remap before passing to the agent
- *   so both layers remain unmodified.
+ * NOTE — dimension key alignment:
+ *   `loadRiskFramework` now surfaces `mining` as the canonical key,
+ *   matching the Risk Explanation Agent schema. No remap is performed
+ *   here; we pass `dim.id` straight through. (Until V3.h the loader used
+ *   `mining_ops` for dashboard convention reasons and this function had
+ *   to remap inline — see commit history.)
  */
 
 export const RISK_DAILY_ID = "risk-daily" as const;
@@ -69,14 +70,12 @@ export async function riskDailyHandler({
   const riskData = await step.run("fetch-risk-data", () => loadRiskFramework());
 
   // ---- Build agent input --------------------------------------------------
-  // Map dimension IDs from the dashboard convention to the agent schema:
-  //   "mining_ops"  → "mining"  (Zod enum enforces canonical agent keys)
-  // All other keys ("market", "liquidity", "smart_contract", "counterparty")
-  // already match.
+  // Dimension IDs surfaced by `loadRiskFramework` are already canonical
+  // (mining | market | liquidity | smart_contract | counterparty), so we
+  // can pass them straight through to the agent.
   const componentScores: Record<string, number> = {};
   for (const dim of riskData.dimensions) {
-    const agentKey = dim.id === "mining_ops" ? "mining" : dim.id;
-    componentScores[agentKey] = dim.score;
+    componentScores[dim.id] = dim.score;
   }
 
   // ---- Step 2: invoke agent -----------------------------------------------

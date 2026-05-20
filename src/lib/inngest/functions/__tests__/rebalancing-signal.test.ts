@@ -66,6 +66,11 @@ type RebalanceEventRow = {
   triggerText: string;
   actionText: string;
   impactText: string;
+  projection: string;
+  status: string;
+  triggeredAt: Date;
+  sourceEventName: string | null;
+  sourceEventId: string | null;
   fromAllocation: string;
   toAllocation: string;
   approvedBy: string;
@@ -217,13 +222,23 @@ describe("rebalancingSignal Inngest function", () => {
     );
     expect(r1Create).toBeDefined();
     const r1Data = (r1Create?.[0] as { data: RebalanceEventRow }).data;
-    expect(r1Data.triggerText).toContain("PROJECTION");
+    // Projection is now persisted as its own column (no more "| PROJECTION:"
+    // embedded delimiter inside triggerText).
+    expect(r1Data.triggerText).not.toContain("PROJECTION");
+    expect(r1Data.projection.length).toBeGreaterThan(0);
+    expect(r1Data.projection.toLowerCase()).toContain("apy");
+    // New traceability columns wired from the Inngest event metadata.
+    expect(r1Data.status).toBe("pending");
+    expect(r1Data.sourceEventName).toBe("risk.daily.completed");
+    expect(r1Data.sourceEventId).toBe("evt-source-A");
+    expect(r1Data.triggeredAt).toBeInstanceOf(Date);
     // Forbidden words are tolerated only inside a negated phrase
     // (e.g. "not guaranteed"). Verify the bare bad words never appear.
     const bareBadPattern = /(?<!\b(not|no|never|without)\s+(\w+\s+){0,3})\b(guarantee|promise|certain|will deliver|risk-free|no risk)\w*/i;
     expect(bareBadPattern.test(r1Data.triggerText)).toBe(false);
     expect(bareBadPattern.test(r1Data.actionText)).toBe(false);
     expect(bareBadPattern.test(r1Data.impactText)).toBe(false);
+    expect(bareBadPattern.test(r1Data.projection)).toBe(false);
 
     // Allocation snapshot is JSON-parseable
     const from = JSON.parse(r1Data.fromAllocation) as Record<string, number>;
@@ -327,6 +342,11 @@ describe("rebalancingSignal Inngest function", () => {
       triggerText: "",
       actionText: "",
       impactText: "",
+      projection: "",
+      status: "pending",
+      triggeredAt: new Date(),
+      sourceEventName: null,
+      sourceEventId: null,
       fromAllocation: "{}",
       toAllocation: "{}",
       approvedBy: "[]",

@@ -122,18 +122,24 @@ model BacktestRun {
 // =============================================================================
 
 model RebalanceEvent {
-  id              String   @id @default(cuid())
-  executedAt      DateTime @default(now())
-  ruleId          String   // e.g. "R2", "R-BTC-3"
-  triggerText     String   // plain English
-  actionText      String
-  impactText      String
-  fromAllocation  String   // JSON
-  toAllocation    String   // JSON
-  txHash          String?  // Phase 2+
-  approvedBy      String   // JSON array of multisig signers
+  id               String   @id @default(cuid())
+  executedAt       DateTime @default(now())
+  ruleId           String   // e.g. "R2", "R-BTC-3"
+  triggerText      String   // plain English — PTAI Trigger
+  actionText       String   // PTAI Action
+  impactText       String   // PTAI Impact
+  projection       String   @default("")            // PTAI Projection (was previously embedded into triggerText)
+  status           String   @default("pending")     // pending | approved | executed | cancelled
+  triggeredAt      DateTime @default(now())         // when the signal fired (distinct from executedAt)
+  sourceEventName  String?                          // Inngest source event name (e.g. "risk.daily.completed")
+  sourceEventId    String?                          // Inngest event id for traceability
+  fromAllocation   String   // JSON
+  toAllocation     String   // JSON
+  txHash           String?  // Phase 2+
+  approvedBy       String   // JSON array of multisig signers
 
   @@index([executedAt])
+  @@index([status, triggeredAt])
 }
 
 model Distribution {
@@ -156,6 +162,7 @@ model Proof {
   postedAt    DateTime @default(now())
   postedBy    String
   txHash      String?
+  notes       String?  // free-form admin annotation (Zod-validated ≤ 500 chars at ingest)
 
   @@index([proofType, period])
 }
