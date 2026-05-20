@@ -328,7 +328,6 @@
 }
 
 .gauge-svg {
-  transform: rotate(-180deg);
   overflow: visible;
 }
 

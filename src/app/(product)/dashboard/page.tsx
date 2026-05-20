@@ -129,11 +129,18 @@ export default async function DashboardPage() {
 
   const apyLow = data.vault.apyRange.low;
   const apyHigh = data.vault.apyRange.high;
-  const apyMid = (apyLow + apyHigh) / 2;
   const apyMaxAxis = 20;
-  const apyPct = Math.min(100, (apyMid / apyMaxAxis) * 100);
-  const apyGaugeArc = (apyPct / 100) * 50;
-  const apyGaugeDash = `${apyGaugeArc} ${100 - apyGaugeArc}`;
+  // Show the RANGE as a highlighted band on the half-circle (smile ∪) arc.
+  // Path circumference = 100, visible arc = bottom 50 (3 o'clock → 6 → 9).
+  // Default SVG circle starts at 3 o'clock going clockwise, so:
+  //   path position 0  = RIGHT end of arc = max% on axis
+  //   path position 50 = LEFT  end of arc = 0% on axis
+  // For axis value v: path position = (1 - v/maxAxis) * 50
+  const apyLowPos = Math.max(0, Math.min(50, (1 - apyLow / apyMaxAxis) * 50));
+  const apyHighPos = Math.max(0, Math.min(50, (1 - apyHigh / apyMaxAxis) * 50));
+  const apyBandArc = Math.max(0.5, apyLowPos - apyHighPos);
+  const apyGaugeDash = `${apyBandArc} ${100 - apyBandArc}`;
+  const apyGaugeOffset = -apyHighPos;
 
   const blendedBps = data.allocations.reduce(
     (acc, a) => acc + (a.pct / 100) * a.yieldContributionBps,
@@ -233,8 +240,11 @@ export default async function DashboardPage() {
 
   /** Operational confidence gauge */
   const opConf = data.operationalConfidence;
+  // Smile ∪ gauge: fill from 0% (LEFT) up to value. Path direction is
+  // right→bottom→left, so the fill ends at the left end (position 50).
   const opConfArc = (opConf / 100) * 50;
   const opConfDash = `${opConfArc} ${100 - opConfArc}`;
+  const opConfOffset = -(50 - opConfArc);
 
   /** Density matrix: 30 cols x 4 rows = 120 cells, last 120 days before asOf. */
   const eventsByDay = new Map<number, number>();
@@ -368,6 +378,7 @@ export default async function DashboardPage() {
                   r="15.9155"
                   strokeWidth="6"
                   strokeDasharray={apyGaugeDash}
+                  strokeDashoffset={apyGaugeOffset}
                 />
               </svg>
               <div className="gauge-center">
@@ -618,6 +629,7 @@ export default async function DashboardPage() {
                   r="15.9155"
                   strokeWidth="6"
                   strokeDasharray={opConfDash}
+                  strokeDashoffset={opConfOffset}
                 />
               </svg>
               <div className="gauge-center">
