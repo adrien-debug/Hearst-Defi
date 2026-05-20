@@ -16,7 +16,7 @@ export async function DemoBanner() {
     <div
       role="status"
       aria-label="Demo mode active"
-      className="ct-status-warning-bg flex items-center justify-center gap-3 px-4 py-2 text-center text-xs"
+      className="sticky top-0 z-[var(--ct-z-overlay)] ct-status-warning-bg flex items-center justify-center gap-3 px-4 py-2 text-center text-xs"
     >
       <span className="eyebrow">Demo mode</span>
       <span className="text-[--ct-text-body]">

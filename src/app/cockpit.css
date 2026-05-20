@@ -59,6 +59,11 @@
   --ct-shadow-focus-ring: 0 0 0 3px var(--ct-glow-soft);
   --ct-scrollbar-size: 6px;
 
+  /* Layout — hauteur du header inter-apps du shell Cockpit (launcher + offset).
+     Référencé dans .ct-rail-intra (top:) mais absent de tokens.css du package.
+     Si une future v0.3.0 l'expose, retirer ce bloc et conserver le fallback. */
+  --ct-shell-header-h: 5rem;
+
   /* Transitions — déclarées explicitement ici car le package tokens.css
      ne les expose pas (--ct-dur-base était référencé partout sans valeur).
      Si une future version 0.3.0 du package les ajoute, retirer ce bloc. */
