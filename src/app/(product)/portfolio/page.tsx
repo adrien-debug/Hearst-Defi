@@ -2,6 +2,7 @@ import "../dashboard/dashboard.css";
 
 import Link from "next/link";
 import { loadPortfolio } from "@/lib/demo/loaders";
+import { Button } from "@/components/ui/button";
 import { PortfolioKpiRow } from "@/components/portfolio/kpi-row";
 import { AllocationDonut } from "@/components/portfolio/allocation-donut";
 import { ValueChart } from "@/components/portfolio/value-chart";
@@ -30,8 +31,7 @@ export default async function PortfolioPage() {
       {data.positions.length === 0 && (
         <div className="dash-bento">
           <article
-            className="dash-cell col-12"
-            style={{ alignItems: "center", justifyContent: "center", textAlign: "center", gap: "var(--ct-space-4)" }}
+            className="dash-cell col-12 items-center justify-center text-center gap-4"
           >
             {/* Icon — simple SVG inline, no new primitive */}
             <svg
@@ -40,35 +40,21 @@ export default async function PortfolioPage() {
               viewBox="0 0 48 48"
               fill="none"
               aria-hidden="true"
-              style={{ color: "var(--ct-text-muted)", margin: "0 auto var(--ct-space-2)" }}
+              className="ct-text-muted mx-auto mb-2"
             >
               <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="1.5" />
               <path d="M16 24h16M24 16v16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
-            <p className="body-lg" style={{ color: "var(--ct-text-primary)", fontWeight: "var(--ct-font-semibold)" }}>
+            <p className="body-lg ct-text-primary font-semibold">
               No open positions
             </p>
-            <p className="body-sm" style={{ color: "var(--ct-text-muted)", maxWidth: "26rem" }}>
+            <p className="body-sm ct-text-muted max-w-[26rem]">
               Subscribe to the Hearst Yield Vault to start earning structured yield backed by mining operations.
               Minimum ticket $250k · 60-day soft lock-up.
             </p>
-            <Link
-              href="/vaults"
-              style={{
-                display: "inline-block",
-                marginTop: "var(--ct-space-2)",
-                padding: "var(--ct-space-2_5) var(--ct-space-6)",
-                background: "var(--ct-accent)",
-                color: "var(--ct-text-strong)",
-                borderRadius: "var(--ct-radius-full)",
-                fontWeight: "var(--ct-font-bold)",
-                fontSize: "var(--ct-text-sm)",
-                textDecoration: "none",
-                transition: "opacity var(--ct-dur-base) var(--ct-ease)",
-              }}
-            >
-              View Vaults
-            </Link>
+            <Button asChild variant="primary" size="sm" className="mt-2">
+              <Link href="/vaults">View Vaults</Link>
+            </Button>
           </article>
         </div>
       )}

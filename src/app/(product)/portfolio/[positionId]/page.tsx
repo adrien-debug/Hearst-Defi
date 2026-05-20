@@ -39,10 +39,7 @@ export default async function PositionDetailPage({ params }: PageProps) {
       <PositionTransactions transactions={position.transactions} source={position.source} />
 
       {/* Disclaimer — non-negotiable #10 */}
-      <p
-        className="body-xs"
-        style={{ color: "var(--ct-text-faint)", maxWidth: "48rem" }}
-      >
+      <p className="body-xs ct-text-faint max-w-[48rem]">
         APY ranges are target projections based on stated assumptions — they are
         not a commitment of future returns. Accrued yield figures are indicative
         and subject to change based on vault conditions and Methodology v1.0.
