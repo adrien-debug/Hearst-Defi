@@ -89,6 +89,15 @@ function createMainWindow(env: "local" | "prod"): void {
     },
   });
 
+  // In dev (env=local), nuke caches so HMR / new routes always show fresh.
+  // In prod, the production app handles caching at the HTTP layer.
+  if (env === "local") {
+    mainWindow.webContents.session.clearCache();
+    mainWindow.webContents.session.clearStorageData({
+      storages: ["cachestorage", "serviceworkers", "shadercache"],
+    });
+  }
+
   mainWindow.loadURL(url);
 
   // Open external links in the user's default browser. Only http(s) — never
@@ -123,12 +132,34 @@ function createMainWindow(env: "local" | "prod"): void {
             createSplash();
           },
         },
+        {
+          label: "Force reload (clear cache)",
+          accelerator: "CmdOrCtrl+Shift+R",
+          click: () => {
+            mainWindow?.webContents.session.clearCache().then(() => {
+              mainWindow?.webContents.reloadIgnoringCache();
+            });
+          },
+        },
         { type: "separator" },
         { role: "quit" },
       ],
     },
     { role: "editMenu" },
-    { role: "viewMenu" },
+    {
+      label: "View",
+      submenu: [
+        { role: "reload" },
+        { role: "forceReload" },
+        { role: "toggleDevTools" },
+        { type: "separator" },
+        { role: "resetZoom" },
+        { role: "zoomIn" },
+        { role: "zoomOut" },
+        { type: "separator" },
+        { role: "togglefullscreen" },
+      ],
+    },
     { role: "windowMenu" },
     {
       label: "Help",
