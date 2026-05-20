@@ -37,6 +37,12 @@ const serverEnvSchema = z.object({
   HYPERCLI_BASE_URL: z.string().url().optional(),
   HYPERCLI_DEFAULT_MODEL: z.string().min(1).default("kimi-k2.6"),
   HYPERCLI_ORG_ID: z.string().optional(),
+  // Sentry observability — all optional, project boots without them (no-op fallback)
+  SENTRY_DSN: z.string().url().optional(),
+  NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
+  SENTRY_AUTH_TOKEN: z.string().optional(),
+  SENTRY_ORG: z.string().optional(),
+  SENTRY_PROJECT: z.string().optional(),
 });
 
 type ServerEnv = z.infer<typeof serverEnvSchema>;

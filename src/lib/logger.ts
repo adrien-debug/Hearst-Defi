@@ -2,6 +2,7 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 
+import { captureError } from "./error-tracking";
 import { env } from "./env";
 import { getRequestContext } from "./request-context";
 
@@ -78,6 +79,16 @@ function write(level: LogLevel, message: string, context?: LogContext, error?: u
   }
 
   const serialized = JSON.stringify(entry);
+
+  // Auto-forward errors to Sentry (no-op when DSN is absent)
+  if (level === "error") {
+    captureError(error ?? new Error(message), {
+      ...context,
+      requestId: ctx?.requestId,
+      runId: ctx?.runId,
+      jobId: ctx?.jobId,
+    });
+  }
 
   switch (level) {
     case "debug":
