@@ -8,6 +8,10 @@ import { StepProgress } from "@/components/vaults/step-progress";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Select a Product — Hearst Yield Vault",
+};
+
 export default async function VaultsPage() {
   const vaults = await listVaults();
 
@@ -37,7 +41,7 @@ export default async function VaultsPage() {
         <div
           className="grid gap-4"
           style={{
-            gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(22.5rem, 1fr))",
           }}
         >
           {vaults.map((vault) => (

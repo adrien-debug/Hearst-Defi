@@ -12,6 +12,10 @@ import { StepProgress } from "@/components/vaults/step-progress";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Deposit Confirmed — Hearst Yield Vault",
+};
+
 // Next.js 16 App Router — params + searchParams are Promises
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -84,12 +88,12 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
-            width: "var(--ct-space-14)",
-            height: "var(--ct-space-14)",
+            width: "var(--ct-space-12)",
+            height: "var(--ct-space-12)",
             borderRadius: "var(--ct-radius-full)",
             background: "var(--ct-status-success-soft)",
             border: "1px solid var(--ct-status-success-border)",
-            boxShadow: "var(--ct-status-glow-success)",
+            boxShadow: "0 0 10px var(--ct-status-success-glow)",
             color: "var(--ct-status-success)",
             flexShrink: 0,
           }}
@@ -112,9 +116,9 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
         </span>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-2)" }}>
-          <h2 className="h2" style={{ color: "var(--ct-text-strong)" }}>
+          <h1 className="h2" style={{ color: "var(--ct-text-strong)" }}>
             Deposit confirmed
-          </h2>
+          </h1>
           <p className="body-md" style={{ color: "var(--ct-text-body)" }}>
             {amount !== "—"
               ? `${amount} USDC deposited into Hearst Yield Vault.`
@@ -228,7 +232,7 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
                 <span
                   aria-hidden="true"
                   style={{
-                    marginTop: "0.2em",
+                    marginTop: "var(--ct-space-0_5)",
                     width: "var(--ct-space-1_5)",
                     height: "var(--ct-space-1_5)",
                     borderRadius: "var(--ct-radius-full)",
