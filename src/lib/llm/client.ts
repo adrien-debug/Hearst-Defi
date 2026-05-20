@@ -91,11 +91,17 @@ export async function callLlm(
     .digest("hex")
     .slice(0, 16);
 
+  // Hash of the (cacheable) system prompt — groups LlmRun rows by prompt
+  // version so we can audit hit-rate per revision. `null` when no system
+  // prompt is supplied.
+  const systemPromptHash = hashSystemPrompt(params.system);
+
   const run = await prisma.llmRun.create({
     data: {
       agentName,
       model: params.model,
       promptHash,
+      systemPromptHash,
       status: "queued",
     },
   });
@@ -114,7 +120,19 @@ export async function callLlm(
 
           const inputTokens = response.usage?.input_tokens ?? 0;
           const outputTokens = response.usage?.output_tokens ?? 0;
-          const costUsd = estimateCost(params.model, inputTokens, outputTokens);
+          // Prompt-cache usage (Anthropic ephemeral cache). Both fields are
+          // `null` on the SDK type when caching is disabled — coerce to a
+          // nullable `number | null` for Prisma persistence.
+          const cacheCreationInputTokens =
+            response.usage?.cache_creation_input_tokens ?? null;
+          const cacheReadInputTokens =
+            response.usage?.cache_read_input_tokens ?? null;
+          const costUsd = estimateCost(params.model, {
+            inputTokens,
+            outputTokens,
+            cacheCreationInputTokens: cacheCreationInputTokens ?? 0,
+            cacheReadInputTokens: cacheReadInputTokens ?? 0,
+          });
 
           await prisma.llmRun.update({
             where: { id: run.id },
@@ -123,6 +141,8 @@ export async function callLlm(
               latencyMs: latency,
               inputTokens,
               outputTokens,
+              cacheCreationInputTokens,
+              cacheReadInputTokens,
               costUsd,
             },
           });
@@ -309,24 +329,83 @@ async function callKimiFallback(
 }
 
 /**
- * Approximate cost in USD. Pinned to Anthropic pricing as of 2025-05.
- * Update when model pricing changes.
+ * Per-million-token USD pricing per model family. Source: Anthropic pricing
+ * page (https://docs.anthropic.com/en/docs/about-claude/pricing) and
+ * prompt-caching docs (https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching#pricing).
+ *
+ * Anthropic prompt caching adjusts the per-token rate:
+ *   - cache_write tokens  = input * CACHE_WRITE_MULTIPLIER (1.25×)
+ *   - cache_read  tokens  = input * CACHE_READ_MULTIPLIER  (0.10×)
+ *   - regular input/output tokens unchanged
  */
-function estimateCost(
-  model: string,
-  inputTokens: number,
-  outputTokens: number,
-): number {
+const CACHE_WRITE_MULTIPLIER = 1.25;
+const CACHE_READ_MULTIPLIER = 0.1;
+
+interface ModelPricing {
+  /** USD per 1M input tokens (regular, non-cached). */
+  input: number;
+  /** USD per 1M output tokens. */
+  output: number;
+}
+
+const MODEL_PRICING: Record<string, ModelPricing> = {
+  opus: { input: 15, output: 75 },
+  sonnet: { input: 3, output: 15 },
+};
+
+function resolvePricing(model: string): ModelPricing {
   if (model.includes("opus") || model.includes("claude-3-opus")) {
-    // ~$15 / 1M input, ~$75 / 1M output
-    return (inputTokens * 15 + outputTokens * 75) / 1_000_000;
+    return MODEL_PRICING.opus!;
   }
-  if (model.includes("sonnet") || model.includes("claude-3-sonnet")) {
-    // ~$3 / 1M input, ~$15 / 1M output
-    return (inputTokens * 3 + outputTokens * 15) / 1_000_000;
-  }
-  // Fallback: assume Sonnet-level pricing
-  return (inputTokens * 3 + outputTokens * 15) / 1_000_000;
+  // Default to Sonnet-tier pricing for any non-Opus model (Sonnet 4.x, Haiku,
+  // Kimi fallback, unknowns). Kimi tokens are persisted with the Kimi model
+  // name so cost reports can still be filtered downstream.
+  return MODEL_PRICING.sonnet!;
+}
+
+interface TokenBreakdown {
+  inputTokens: number;
+  outputTokens: number;
+  cacheCreationInputTokens: number;
+  cacheReadInputTokens: number;
+}
+
+/**
+ * Approximate cost in USD, factoring Anthropic prompt-cache pricing.
+ *
+ * `inputTokens` from `response.usage.input_tokens` is the *regular* input
+ * count and is already net of cached tokens — Anthropic reports cached
+ * tokens separately. Cost components are summed accordingly.
+ */
+function estimateCost(model: string, tokens: TokenBreakdown): number {
+  const pricing = resolvePricing(model);
+  const regular = tokens.inputTokens * pricing.input;
+  const cacheWrite =
+    tokens.cacheCreationInputTokens * pricing.input * CACHE_WRITE_MULTIPLIER;
+  const cacheRead =
+    tokens.cacheReadInputTokens * pricing.input * CACHE_READ_MULTIPLIER;
+  const output = tokens.outputTokens * pricing.output;
+  return (regular + cacheWrite + cacheRead + output) / 1_000_000;
+}
+
+/**
+ * Stable hash of the system prompt blocks. Used to group LlmRun rows by
+ * prompt version (cache hit-rate audit). Returns `null` when no system
+ * prompt is supplied so the column stays NULL rather than hashing an empty
+ * string.
+ */
+function hashSystemPrompt(
+  system: Anthropic.MessageCreateParamsNonStreaming["system"],
+): string | null {
+  if (system === undefined) return null;
+  const text =
+    typeof system === "string"
+      ? system
+      : system
+          .map((block) => (block.type === "text" ? block.text : ""))
+          .join("\n\n");
+  if (text.length === 0) return null;
+  return createHash("sha256").update(text).digest("hex");
 }
 
 function sleep(ms: number): Promise<void> {

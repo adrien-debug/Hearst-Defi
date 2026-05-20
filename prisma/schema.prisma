@@ -246,22 +246,29 @@ model CockpitMessage {
 // =============================================================================
 
 model LlmRun {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  agentName     String
-  model         String
-  promptHash    String?
-  inputTokens   Int?
-  outputTokens  Int?
-  latencyMs     Int?
-  status        String   // queued | success | failed | timeout
-  errorType     String?
-  errorMessage  String?
-  costUsd       Float?
-  userId        String?  // RLS owner — nullable for system / background agent runs
+  id                       String   @id @default(cuid())
+  createdAt                DateTime @default(now())
+  agentName                String
+  model                    String
+  promptHash               String?
+  inputTokens              Int?
+  outputTokens             Int?
+  // Prompt caching observability (Anthropic ephemeral cache).
+  // Both nullable — legacy rows stay NULL, and providers without caching
+  // (e.g. Kimi fallback) also persist NULL here.
+  cacheCreationInputTokens Int?     // tokens written to cache (first occurrence)
+  cacheReadInputTokens     Int?     // tokens read from cache on subsequent hits
+  systemPromptHash         String?  // sha256(system blocks) — groups runs by prompt version
+  latencyMs                Int?
+  status                   String   // queued | success | failed | timeout | fallback
+  errorType                String?
+  errorMessage             String?
+  costUsd                  Float?
+  userId                   String?  // RLS owner — nullable for system / background agent runs
 
   @@index([createdAt])
   @@index([agentName])
   @@index([status])
   @@index([userId, createdAt])
+  @@index([systemPromptHash])
 }
