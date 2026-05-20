@@ -139,7 +139,7 @@ export function PreFlightCheck({
         status={epochOk ? "ok" : "pending"}
         detail={`${epochStatusLabel[epoch.status]} · closes in ${epoch.endsInDays}d`}
       />
-    </div>
+    </Card>
   );
 }
 
