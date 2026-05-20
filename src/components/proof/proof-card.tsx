@@ -132,23 +132,25 @@ function PaperProofCard({
       </dl>
 
       <div className="mt-auto flex flex-wrap items-center gap-2 pt-2">
-        <a
-          href={proof.uri}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="rounded-[--radius-button] border border-[--ct-border-strong] bg-[--ct-surface-1] px-3 py-1.5 text-xs text-[--ct-text-primary] transition-colors duration-[150ms] hover:bg-[--ct-surface-3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]"
-        >
-          {uriLabel(proof.uri)}
-        </a>
-        {proof.txHash ? (
+        <Button asChild variant="secondary" size="sm">
           <a
-            href={`${EXPLORER_TX_BASE}${proof.txHash}`}
+            href={proof.uri}
             target="_blank"
             rel="noreferrer noopener"
-            className="rounded-[--radius-button] border border-[--ct-text-strong] bg-[--ct-surface-1] px-3 py-1.5 text-xs text-[--ct-text-strong] transition-colors duration-[150ms] hover:bg-[--ct-surface-2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]"
           >
-            TX on Base
+            {uriLabel(proof.uri)}
           </a>
+        </Button>
+        {proof.txHash ? (
+          <Button asChild variant="primary" size="sm">
+            <a
+              href={`${EXPLORER_TX_BASE}${proof.txHash}`}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              TX on Base
+            </a>
+          </Button>
         ) : (
           <Button
             type="button"
@@ -231,23 +233,25 @@ function OnChainEventCard({
 
       <div className="mt-auto flex flex-wrap items-center gap-2 pt-2">
         {proof.payloadCid.length > 0 ? (
+          <Button asChild variant="secondary" size="sm">
+            <a
+              href={ipfsGatewayUrl(proof.payloadCid)}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              View payload (IPFS)
+            </a>
+          </Button>
+        ) : null}
+        <Button asChild variant="primary" size="sm">
           <a
-            href={ipfsGatewayUrl(proof.payloadCid)}
+            href={`${EXPLORER_TX_BASE}${proof.txHash}`}
             target="_blank"
             rel="noreferrer noopener"
-            className="rounded-[--radius-button] border border-[--ct-border-strong] bg-[--ct-surface-1] px-3 py-1.5 text-xs text-[--ct-text-primary] transition-colors duration-[150ms] hover:bg-[--ct-surface-3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]"
           >
-            View payload (IPFS)
+            TX on Base
           </a>
-        ) : null}
-        <a
-          href={`${EXPLORER_TX_BASE}${proof.txHash}`}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="rounded-[--radius-button] border border-[--ct-text-strong] bg-[--ct-surface-1] px-3 py-1.5 text-xs text-[--ct-text-strong] transition-colors duration-[150ms] hover:bg-[--ct-surface-2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]"
-        >
-          TX on Base
-        </a>
+        </Button>
       </div>
     </Card>
   );
@@ -329,23 +333,25 @@ function OnChainAttestationCard({
 
       <div className="mt-auto flex flex-wrap items-center gap-2 pt-2">
         {proof.evidenceCid.length > 0 ? (
+          <Button asChild variant="secondary" size="sm">
+            <a
+              href={ipfsGatewayUrl(proof.evidenceCid)}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              View evidence (IPFS)
+            </a>
+          </Button>
+        ) : null}
+        <Button asChild variant="primary" size="sm">
           <a
-            href={ipfsGatewayUrl(proof.evidenceCid)}
+            href={`${EXPLORER_TX_BASE}${proof.txHash}`}
             target="_blank"
             rel="noreferrer noopener"
-            className="rounded-[--radius-button] border border-[--ct-border-strong] bg-[--ct-surface-1] px-3 py-1.5 text-xs text-[--ct-text-primary] transition-colors duration-[150ms] hover:bg-[--ct-surface-3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]"
           >
-            View evidence (IPFS)
+            TX on Base
           </a>
-        ) : null}
-        <a
-          href={`${EXPLORER_TX_BASE}${proof.txHash}`}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="rounded-[--radius-button] border border-[--ct-text-strong] bg-[--ct-surface-1] px-3 py-1.5 text-xs text-[--ct-text-strong] transition-colors duration-[150ms] hover:bg-[--ct-surface-2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]"
-        >
-          TX on Base
-        </a>
+        </Button>
       </div>
     </Card>
   );

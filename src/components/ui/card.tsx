@@ -33,6 +33,13 @@ export function CardHeader({
 /**
  * Section title inside a card. Renders as h3 with the .h3 typographic role
  */
+/**
+ * Section title inside a card. Renders as <h3>. Card titles are visually
+ * heavier than the body-section `.h3` role (~28px vs 16px), so this primitive
+ * binds directly to Tailwind v4 utilities resolved through the `@theme` block
+ * in globals.css (text-2xl → --text-2xl, font-semibold → --weight-semibold,
+ * tracking-tight → --tracking-tight). No raw hex / no Tailwind default palette.
+ */
 export function CardTitle({
   className,
   ...props
