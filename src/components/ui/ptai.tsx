@@ -32,7 +32,7 @@ export function Ptai({
       <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm relative z-10">
         {ROWS.map(({ key, label, iconColorVar }) => (
           <div key={key} className="contents group/row">
-            <dt className="flex items-center gap-2 font-mono text-[length:var(--ct-text-micro)] uppercase tracking-widest text-[--ct-text-muted] pt-0.5 group-hover/row:text-[--ct-text-body] transition-colors">
+            <dt className="flex items-center gap-2 font-mono text-[length:var(--ct-text-micro)] uppercase tracking-wide text-[--ct-text-muted] pt-0.5 group-hover/row:text-[--ct-text-body] transition-colors">
               <span
                 className="h-1.5 w-1.5 rounded-full shadow-[--ct-glow-dot]"
                 style={{ color: iconColorVar }}

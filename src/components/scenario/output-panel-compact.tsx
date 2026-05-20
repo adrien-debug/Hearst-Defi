@@ -178,15 +178,15 @@ export function OutputPanelCompact({
             low={output.apy_range.low}
             high={output.apy_range.high}
             className={cn(
-              "font-mono text-[--text-4xl] font-extrabold tabular-nums",
+              "font-mono text-4xl font-extrabold tabular-nums",
               "text-[--ct-text-strong] leading-none",
             )}
           />
           <div className="flex flex-col items-end gap-1">
-            <span className="stat-label text-[--text-micro]">Confidence</span>
+            <span className="stat-label text-micro">Confidence</span>
             <Badge
               variant={CONFIDENCE_VARIANT[output.confidence]}
-              className="text-[--text-micro]"
+              className="text-micro"
             >
               {output.confidence.toUpperCase()}
             </Badge>
@@ -215,7 +215,7 @@ export function OutputPanelCompact({
         {/* Risk Score */}
         <Card className="p-4">
           <div className="mb-2 flex items-center justify-between gap-2">
-            <span className="stat-label text-[--text-micro]">Risk Score</span>
+            <span className="stat-label text-micro">Risk Score</span>
             <ProvenanceBadge kind="estimated" />
           </div>
           <div className="mb-1 flex items-baseline gap-1">
@@ -233,7 +233,7 @@ export function OutputPanelCompact({
           {riskDelta && (
             <p
               className={cn(
-                "mt-2 font-mono text-[--text-micro] font-semibold tabular-nums",
+                "mt-2 font-mono text-micro font-semibold tabular-nums",
                 riskDeltaToneClass,
               )}
               aria-label={`Risk score delta vs Scenario A: ${Math.round(riskDelta.value)}`}
@@ -249,7 +249,7 @@ export function OutputPanelCompact({
         {/* Mining Margin */}
         <Card className="p-4">
           <div className="mb-2 flex items-center justify-between gap-2">
-            <span className="stat-label text-[--text-micro]">
+            <span className="stat-label text-micro">
               Mining Margin
             </span>
             <ProvenanceBadge kind="estimated" />
@@ -265,7 +265,7 @@ export function OutputPanelCompact({
             fillClassName={miningColorClass}
             className="mt-1.5"
           />
-          <p className="mt-2 text-[--text-micro] text-[--ct-text-muted]">
+          <p className="mt-2 text-micro text-[--ct-text-muted]">
             Current vs target
           </p>
         </Card>
@@ -275,8 +275,8 @@ export function OutputPanelCompact({
       <Card className="p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="stat-label text-[--text-micro]">Vault Mode</p>
-            <p className="mt-0.5 text-[--text-micro] text-[--ct-text-muted]">
+            <p className="stat-label text-micro">Vault Mode</p>
+            <p className="mt-0.5 text-micro text-[--ct-text-muted]">
               Allocation posture
             </p>
           </div>
@@ -297,7 +297,7 @@ export function OutputPanelCompact({
         </CardHeader>
 
         <div>
-          <div className="mb-1.5 grid grid-cols-[1fr_auto_auto] gap-x-3 text-[--text-micro] font-semibold uppercase tracking-wider text-[--ct-text-muted]">
+          <div className="mb-1.5 grid grid-cols-[1fr_auto_auto] gap-x-3 text-micro font-semibold uppercase tracking-wide text-[--ct-text-muted]">
             <span>Bucket</span>
             <span className="text-right">Pct</span>
             <span className="text-right">Yield</span>

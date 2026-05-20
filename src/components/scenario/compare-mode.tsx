@@ -145,7 +145,7 @@ function PresetPicker({
                   )}
                 >
                   <span className="text-sm font-semibold">{p.label}</span>
-                  <span className="text-[--text-micro] text-[--ct-text-muted]">
+                  <span className="text-micro text-[--ct-text-muted]">
                     {isExcluded ? "Already on the other side" : p.description}
                   </span>
                 </button>
@@ -185,7 +185,7 @@ function Placeholder({ side, pending }: PlaceholderProps) {
       {pending ? (
         <>
           <svg
-            className="h-5 w-5 animate-spin text-[--ct-text-strong]"
+            className="h-4 w-4 animate-spin text-[--ct-text-strong]"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -210,7 +210,7 @@ function Placeholder({ side, pending }: PlaceholderProps) {
       ) : (
         <>
           <svg
-            className="h-7 w-7 text-[--ct-text-muted]"
+            className="h-8 w-8 text-[--ct-text-muted]"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

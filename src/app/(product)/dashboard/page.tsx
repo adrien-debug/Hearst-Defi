@@ -396,7 +396,7 @@ export default async function DashboardPage() {
               <span className="dash-value">{usdCompact.format(btcSleeveUsd)}</span>
               <span className="dash-unit">{btcSleevePct.toFixed(0)}% alloc</span>
             </div>
-            <div className="dash-legend" style={{ marginTop: 12 }}>
+            <div className="dash-legend" style={{ marginTop: "var(--ct-space-3)" }}>
               <div className="dash-legend-row">
                 <span className="dash-legend-left">BTC held</span>
                 <span className="dash-legend-val">{btcHeld.toFixed(2)} BTC</span>
@@ -428,8 +428,8 @@ export default async function DashboardPage() {
               <ProvenanceBadge kind={allocationProvenance} />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: 24, alignItems: "center", marginTop: 8 }}>
-              <div className="dash-chart-container" style={{ height: 200, marginTop: 0 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "12.5rem 1fr", gap: "var(--ct-space-6)", alignItems: "center", marginTop: "var(--ct-space-2)" }}>
+              <div className="dash-chart-container" style={{ height: "12.5rem", marginTop: 0 }}>
                 <svg
                   className="dash-chart-svg"
                   viewBox="0 0 42 42"
@@ -474,7 +474,7 @@ export default async function DashboardPage() {
                     </span>
                   </div>
                 ))}
-                <div className="dash-legend-row" style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid var(--ct-border-soft)" }}>
+                <div className="dash-legend-row" style={{ marginTop: "var(--ct-space-2)", paddingTop: "var(--ct-space-2)", borderTop: "1px solid var(--ct-border-soft)" }}>
                   <span className="dash-legend-left" style={{ color: "var(--ct-text-muted)" }}>
                     Blended target
                   </span>
@@ -543,7 +543,7 @@ export default async function DashboardPage() {
                 )}
               </svg>
             </div>
-            <div className="dash-legend" style={{ marginTop: 16 }}>
+            <div className="dash-legend" style={{ marginTop: "var(--ct-space-4)" }}>
               {riskFramework.dimensions.slice(0, 3).map((d, i) => (
                 <div key={d.id} className="dash-legend-row">
                   <span className="dash-legend-left">
@@ -650,7 +650,7 @@ export default async function DashboardPage() {
                 />
               ))}
             </div>
-            <div className="mt-2 flex justify-between font-mono text-[length:var(--ct-text-micro)] text-[--ct-text-muted] tracking-[0.04em]">
+            <div className="mt-2 flex justify-between font-mono text-[length:var(--ct-text-micro)] text-[--ct-text-muted] tracking-loose">
               <span>120d ago</span>
               <span>60d ago</span>
               <span>Today</span>

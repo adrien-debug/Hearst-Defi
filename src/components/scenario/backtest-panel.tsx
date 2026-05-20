@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { BacktestChart } from "@/components/scenario/backtest-chart";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
@@ -43,7 +44,7 @@ function AssumptionsList({ assumptions }: { assumptions: string[] }) {
           return (
             <li key={i} className="flex items-start gap-2 text-sm">
               <span
-                className="mt-0.5 shrink-0 text-[--text-micro] text-[--ct-text-strong]"
+                className="mt-0.5 shrink-0 text-micro text-[--ct-text-strong]"
                 aria-hidden
               >
                 ▸
@@ -66,18 +67,17 @@ function AssumptionsList({ assumptions }: { assumptions: string[] }) {
         })}
       </ul>
       {shouldTruncate && (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={() => setExpanded((x) => !x)}
-          className={cn(
-            "mt-3 text-xs font-semibold text-[--ct-text-strong]",
-            "transition-colors duration-150 hover:text-[--ct-text-strong]",
-          )}
+          className="mt-3 text-[--ct-text-strong] hover:text-[--ct-text-strong]"
         >
           {expanded
             ? "Show less"
             : `Show ${assumptions.length - THRESHOLD} more`}
-        </button>
+        </Button>
       )}
     </div>
   );

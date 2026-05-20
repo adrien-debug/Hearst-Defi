@@ -15,6 +15,7 @@ Cayman SPV structure, $250k min ticket, 60-day soft lock-up.
 - **Methodology**: `/docs/methodology/v1.0.md` — immutable once published, bump version if change needed
 - **Roadmap**: `/docs/roadmap.json` + `/admin/roadmap` UI — every PR must reference a roadmap item
 - **Decisions**: `/docs/decisions/ADR-*.md` — Architecture Decision Records, append-only
+- **Design system**: `/docs/DESIGN_SYSTEM.md` (visuel) + `/docs/design-lock.md` (🔒 **verrou** : liste exhaustive des tokens/primitives/classes autorisés, process pour demander un ajout). **Aucun nouveau token/primitive/classe sans validation explicite.**
 - **Plan source**: `/Users/adrienbeyondcrypto/.claude/plans/tu-es-claude-opus-functional-eich.md`
 
 ## Non-negotiables (CI enforces most)
@@ -30,6 +31,12 @@ Cayman SPV structure, $250k min ticket, 60-day soft lock-up.
 8. **Smart contracts**: testnet event logger Phase 2, audited ERC-4626 Phase 3 only.
 9. **Single vault** at MVP. No multi-vault UI abstractions until V1+.
 10. Every projection must show its **assumptions** and a **"not guaranteed"** disclaimer.
+11. **HARD RULE — no cross-project imports.** It is **forbidden** to copy, move, or import any
+    component, file, asset, snippet, type, style, or dependency from `/Users/adrienbeyondcrypto/Dev/hearst-connect`
+    (or any other sibling repo) into this codebase. That project is **read-only reference material**:
+    you may open it to study patterns/structure, but every line shipped here must be **recoded
+    from scratch** using this project's locked design system (Cockpit tokens) and conventions.
+    No `git mv`, no copy-paste, no symlink, no new dependency added just because A had it.
 
 ## Stack
 

@@ -24,6 +24,10 @@ export const CT_ACCENT_STRONG_HEX = "#A03B57" as const; // ≈ accent 78% + whit
 // "Hearst Connect" launcher tile. Distinct from the Cockpit chrome accent.
 export const CT_PRODUCT_CONNECT_HEX = "#A7FB90" as const;
 
+// Foreground colour for content rendered on top of CT_PRODUCT_CONNECT_HEX
+// (e.g. CTA button label on Connect green). Dark grey for AA contrast.
+export const CT_PRODUCT_CONNECT_FG_HEX = "#0a0a0a" as const;
+
 // ── Cockpit chrome base (dark) — minimal hex mirror for surfaces that
 //    cannot rely on the global CSS (Next.js standalone error pages, etc.) ──
 export const CT_CHROME = {

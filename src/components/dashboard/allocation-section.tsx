@@ -45,7 +45,7 @@ export function AllocationSection({
       <CardHeader>
         <CardTitle>Allocation</CardTitle>
         <div className="flex items-center gap-3 text-xs text-[--ct-text-muted] glass-panel-subtle px-3 py-1.5 rounded-full">
-          <span className="uppercase tracking-widest font-medium">Blended target</span>
+          <span className="uppercase tracking-wide font-medium">Blended target</span>
           <ApyRange
             className="text-[--ct-text-strong] drop-shadow-sm"
             low={blendedYieldRange.low}

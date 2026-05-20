@@ -4,6 +4,7 @@ import { CockpitShell } from "@hearst/cockpit-shell";
 import type { ChatConfig } from "@hearst/cockpit-shell";
 import type { ReactNode } from "react";
 
+import { ConnectBottomNav } from "@/components/nav/connect-bottom-nav";
 import { CT_PRODUCT_CONNECT_HEX } from "@/lib/cockpit-tokens";
 
 const CONNECT_PRODUCTS = [
@@ -17,12 +18,15 @@ const CHAT_CONFIG: ChatConfig = {
 
 export function ConnectShell({ children }: { children: ReactNode }) {
   return (
-    <CockpitShell
-      products={CONNECT_PRODUCTS}
-      appId="connect"
-      chatConfig={CHAT_CONFIG}
-    >
-      {children}
-    </CockpitShell>
+    <>
+      <CockpitShell
+        products={CONNECT_PRODUCTS}
+        appId="connect"
+        chatConfig={CHAT_CONFIG}
+      >
+        {children}
+      </CockpitShell>
+      <ConnectBottomNav />
+    </>
   );
 }

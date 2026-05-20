@@ -11,7 +11,7 @@ const buttonVariants = cva(
         primary:
           "bg-[--ct-text-strong] text-[--ct-bg-deep] hover:bg-[--ct-text-primary] shadow-[var(--ct-glow-subtle)] hover:shadow-[var(--ct-glow-soft)]",
         secondary:
-          "glass-panel-subtle text-[--ct-text-primary] hover:bg-[--ct-surface-2] hover:border-[--ct-border-strong] hover:text-[--ct-text-strong] shadow-sm",
+          "bg-[--ct-surface-0] backdrop-blur-[20px] border border-[--ct-border-soft] text-[--ct-text-primary] hover:bg-[--ct-surface-2] hover:border-[--ct-border-strong] hover:text-[--ct-text-strong] shadow-sm",
         ghost:
           "text-[--ct-text-muted] hover:bg-[--ct-surface-1] hover:text-[--ct-text-strong]",
         danger:

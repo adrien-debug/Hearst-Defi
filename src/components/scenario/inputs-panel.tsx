@@ -144,14 +144,14 @@ export function InputsPanel({ inputs, onChange, disabled }: InputsPanelProps) {
 
             {/* Min / max labels */}
             <div className="mt-1.5 flex justify-between">
-              <span className="text-[--text-micro] text-[--ct-text-muted]">
+              <span className="text-micro text-[--ct-text-muted]">
                 {field.key === "btc_price_change_pct"
                   ? "−60%"
                   : field.key === "vol_index"
                     ? "Low"
                     : `${field.min} ${field.unit}`}
               </span>
-              <span className="text-[--text-micro] text-[--ct-text-muted]">
+              <span className="text-micro text-[--ct-text-muted]">
                 {field.key === "btc_price_change_pct"
                   ? "+120%"
                   : field.key === "vol_index"

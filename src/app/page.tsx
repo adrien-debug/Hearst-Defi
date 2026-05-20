@@ -160,12 +160,9 @@ function HomeCtaFallback() {
       <Button variant="primary" size="lg" asChild>
         <Link href="/dashboard">Open Dashboard</Link>
       </Button>
-      <Link
-        href="/admin/roadmap"
-        className="rounded-[--radius-button] border border-[--ct-border] px-5 py-3 text-base font-medium text-[--ct-text-body] hover:text-[--ct-text-primary]"
-      >
-        Admin
-      </Link>
+      <Button variant="secondary" size="lg" asChild>
+        <Link href="/admin/roadmap">Admin</Link>
+      </Button>
     </div>
   );
 }

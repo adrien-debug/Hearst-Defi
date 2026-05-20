@@ -19,7 +19,11 @@ import type React from "react";
 
 import Link from "next/link";
 
-import { CT_CHROME, CT_PRODUCT_CONNECT_HEX } from "@/lib/cockpit-tokens";
+import {
+  CT_CHROME,
+  CT_PRODUCT_CONNECT_FG_HEX,
+  CT_PRODUCT_CONNECT_HEX,
+} from "@/lib/cockpit-tokens";
 import { cn } from "@/lib/cn";
 
 // ── Standalone style constants (no CSS vars) ──────────────────────────────────
@@ -66,7 +70,7 @@ const SA = {
     display: "inline-block",
     padding: "0.5rem 1rem",
     background: CT_PRODUCT_CONNECT_HEX,
-    color: "#0a0a0a", // dark text on Connect green — intentional contrast
+    color: CT_PRODUCT_CONNECT_FG_HEX,
     border: "none",
     borderRadius: "9999px",
     cursor: "pointer",

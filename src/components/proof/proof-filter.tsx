@@ -7,6 +7,7 @@ import {
   parseFilter,
   type FilterValue,
 } from "@/components/proof/proof-filter-types";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 
 const OPTIONS: ReadonlyArray<{ value: FilterValue; label: string }> = [
@@ -48,24 +49,21 @@ export function ProofFilter() {
       {OPTIONS.map((opt) => {
         const isActive = current === opt.value;
         return (
-          <button
+          <Button
             key={opt.value}
             type="button"
+            variant={isActive ? "primary" : "secondary"}
+            size="sm"
             disabled={isPending}
             onClick={() => select(opt.value)}
             aria-pressed={isActive}
             className={cn(
-              "rounded-[--radius-button] border px-3.5 py-1.5 text-sm font-medium",
-              "transition-[background-color,color,border-color] duration-150",
-              "disabled:cursor-not-allowed disabled:opacity-40",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]",
-              isActive
-                ? "border-[--ct-text-strong] bg-[--ct-text-strong] text-[--ct-bg-deep]"
-                : "border-[--ct-border-strong] bg-transparent text-[--ct-text-body] hover:text-[--ct-text-primary]",
+              "px-3.5",
+              !isActive && "border-[--ct-border-strong] bg-transparent text-[--ct-text-body] hover:text-[--ct-text-primary]",
             )}
           >
             {opt.label}
-          </button>
+          </Button>
         );
       })}
     </nav>

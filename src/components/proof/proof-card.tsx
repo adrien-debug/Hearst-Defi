@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EXPLORER_ADDRESS_BASE, EXPLORER_TX_BASE } from "@/lib/chain/client";
 import type { ProofType } from "@/lib/mock/proof-center";
@@ -149,15 +150,17 @@ function PaperProofCard({
             TX on Base
           </a>
         ) : (
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
             disabled
             aria-label="On-chain mirror not yet available — Phase 2 will publish this proof via the EventLogger contract."
-            className="rounded-[--radius-button] border border-dashed border-[--ct-border-soft] px-3 py-1.5 text-xs text-[--ct-text-muted]"
+            className="border-dashed border-[--ct-border-soft] px-3 text-[--ct-text-muted]"
             title="Phase 2 will mirror this proof on-chain via the EventLogger contract."
           >
             Off-chain (Phase 1)
-          </button>
+          </Button>
         )}
       </div>
     </Card>
@@ -280,7 +283,7 @@ function OnChainAttestationCard({
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Source</dt>
           <dd className="body-xs">
-            <span className="rounded-[--radius-full] border border-[--ct-status-success-border] bg-[--ct-status-success-soft] px-1.5 py-0.5 text-[length:var(--ct-text-micro)] uppercase tracking-wider text-[--ct-status-success]">
+            <span className="rounded-[--radius-full] border border-[--ct-status-success-border] bg-[--ct-status-success-soft] px-1.5 py-0.5 text-[length:var(--ct-text-micro)] uppercase tracking-wide text-[--ct-status-success]">
               On-chain
             </span>
           </dd>

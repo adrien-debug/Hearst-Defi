@@ -7,6 +7,7 @@ import { PtaiBlock } from "@/components/scenario/ptai-block";
 import { RebalancingActions } from "@/components/scenario/rebalancing-actions";
 import { ApyRange } from "@/components/ui/apy-range";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
@@ -124,7 +125,7 @@ function AssumptionsList({ assumptions }: { assumptions: string[] }) {
           return (
             <li key={i} className="flex items-start gap-2 text-sm">
               <span
-                className="mt-0.5 shrink-0 text-[--text-micro] text-[--ct-text-strong]"
+                className="mt-0.5 shrink-0 text-micro text-[--ct-text-strong]"
                 aria-hidden
               >
                 ▸
@@ -147,18 +148,17 @@ function AssumptionsList({ assumptions }: { assumptions: string[] }) {
         })}
       </ul>
       {shouldTruncate && (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={() => setExpanded((x) => !x)}
-          className={cn(
-            "mt-3 text-xs font-semibold text-[--ct-text-strong]",
-            "hover:text-[--ct-text-strong] transition-colors duration-150",
-          )}
+          className="mt-3 text-[--ct-text-strong] hover:text-[--ct-text-strong]"
         >
           {expanded
             ? "Show less"
             : `Show ${assumptions.length - THRESHOLD} more`}
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -218,7 +218,7 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
           <ApyRange
             low={output.apy_range.low}
             high={output.apy_range.high}
-            className="font-mono text-[--text-5xl] font-extrabold tabular-nums text-[--ct-text-strong] leading-none"
+            className="font-mono text-5xl font-extrabold tabular-nums text-[--ct-text-strong] leading-none"
           />
           <div className="flex flex-col items-end gap-1.5">
             <span className="stat-label">Confidence</span>
@@ -329,7 +329,7 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
         {/* Table */}
         <div className="mt-4">
           {/* Header */}
-          <div className="mb-2 grid grid-cols-[1fr_auto_auto] gap-x-4 text-[--text-micro] font-semibold uppercase tracking-widest text-[--ct-text-muted]">
+          <div className="mb-2 grid grid-cols-[1fr_auto_auto] gap-x-4 text-micro font-semibold uppercase tracking-wide text-[--ct-text-muted]">
             <span>Bucket</span>
             <span className="text-right">Pct</span>
             <span className="text-right">Yield contribution</span>
@@ -389,7 +389,7 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
           {/* Armed triggers */}
           {armedTriggers.length > 0 && (
             <div className="mt-4 border-t border-[--ct-border-soft] pt-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-[--ct-text-muted]">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[--ct-text-muted]">
                 Armed triggers
               </p>
               <ul className="space-y-1.5">
@@ -399,7 +399,7 @@ export function OutputPanel({ output, isPending }: OutputPanelProps) {
                     className="flex items-start gap-2 text-sm"
                   >
                     <span
-                      className="mt-0.5 shrink-0 text-[--text-micro] text-[--ct-status-warning]"
+                      className="mt-0.5 shrink-0 text-micro text-[--ct-status-warning]"
                       aria-hidden
                     >
                       ▸

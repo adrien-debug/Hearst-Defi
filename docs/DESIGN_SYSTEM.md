@@ -4,6 +4,10 @@
 > `~/.claude/assets/cockpit/SPEC.md`). **Ne jamais réinventer ces valeurs.**
 > Toute nouvelle page produit (scenario-lab, proof-center, investor-memo) se
 > construit contre ce document. Dernière révision : 2026-05-19.
+>
+> **🔒 VERROU** : le DS est figé depuis 2026-05-20. Voir [`design-lock.md`](./design-lock.md)
+> pour la liste exhaustive des tokens/primitives/classes autorisés et le process
+> obligatoire pour demander un ajout. **Aucun ajout silencieux.**
 
 ## 1. Principe
 

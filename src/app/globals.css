@@ -1,3 +1,7 @@
+/* Layer order : cockpit (shell tokens + reset) < Tailwind utilities, so
+   utilities (p-*, py-*…) override the unlayered `* { padding: 0 }` reset
+   shipped in `@hearst/cockpit-shell/tokens.css` (imported via tokens-layer.css). */
+@layer cockpit, theme, base, components, utilities;
 @import "tailwindcss";
 
 @font-face {
@@ -166,7 +170,7 @@ code, .mono {
 .slider-track {
   -webkit-appearance: none;
   appearance: none;
-  height: 6px;
+  height: var(--ct-space-1_5);
   border-radius: var(--ct-radius-full);
   outline: none;
   border: none;
@@ -188,8 +192,8 @@ code, .mono {
 .slider-track::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 20px;
-  height: 20px;
+  width: var(--ct-space-5);
+  height: var(--ct-space-5);
   border-radius: var(--ct-radius-full);
   background: var(--ct-text-strong);
   box-shadow: var(--ct-shadow-soft);
@@ -202,8 +206,8 @@ code, .mono {
 }
 
 .slider-track::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
+  width: var(--ct-space-5);
+  height: var(--ct-space-5);
   border-radius: var(--ct-radius-full);
   background: var(--ct-text-strong);
   box-shadow: var(--ct-shadow-soft);

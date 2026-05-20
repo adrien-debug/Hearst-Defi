@@ -207,7 +207,7 @@ export function ContractsAuditTrail() {
               <div className="flex items-center gap-2">
                 <span
                   className={cn(
-                    "inline-flex items-center rounded-[--radius-full] border px-2.5 py-1 text-xs font-semibold uppercase tracking-wider leading-none",
+                    "inline-flex items-center rounded-[--radius-full] border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide leading-none",
                     variantStyles[entry.variant],
                   )}
                 >

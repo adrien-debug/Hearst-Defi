@@ -112,7 +112,7 @@ function CompositeHeader({ composite, band, bandLabel }: CompositeHeaderProps) {
   return (
     <div className="flex flex-col gap-4 rounded-[--ct-radius-xl] glass-panel-subtle px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-baseline gap-3">
-        <span className="text-sm font-medium uppercase tracking-widest text-[--ct-text-muted]">Composite</span>
+        <span className="text-sm font-medium uppercase tracking-wide text-[--ct-text-muted]">Composite</span>
         <span className={cn("text-4xl font-semibold tracking-tight tabular-nums", BAND_TEXT[band])}>
           {composite}
           <span className="text-[--ct-text-faint] text-lg font-normal ml-1">

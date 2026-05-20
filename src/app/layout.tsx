@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import "@hearst/cockpit-shell/tokens.css";
-import "./cockpit.css";
+import "./tokens-layer.css";
 import "./globals.css";
+import "./cockpit.css";
 
 import { ConnectShell } from "@/components/ConnectShell";
 import { Analytics } from "@/components/analytics";
@@ -41,7 +41,7 @@ export default function RootLayout({
         <ConnectShell>
           <a
             href="#main-content"
-            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-black"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[var(--ct-z-overlay)] focus:rounded-lg focus:bg-[--ct-text-strong] focus:px-4 focus:py-2 focus:text-[--ct-bg-deep]"
           >
             Skip to main content
           </a>

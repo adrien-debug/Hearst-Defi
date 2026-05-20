@@ -131,7 +131,7 @@ export function RebalancingActions({ output }: RebalancingActionsProps) {
             <span
               className={cn(
                 "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center",
-                "rounded-full text-[--text-micro] font-bold tabular-nums",
+                "rounded-full text-micro font-bold tabular-nums",
                 action.armed
                   ? "bg-[--ct-text-strong] text-[--ct-bg-deep]"
                   : "bg-[--ct-surface-3] text-[--ct-text-muted]",
@@ -146,7 +146,7 @@ export function RebalancingActions({ output }: RebalancingActionsProps) {
                 <span className="text-sm font-semibold text-[--ct-text-primary]">
                   {action.label}
                 </span>
-                <Badge variant={action.variant} className="text-[--text-micro]">
+                <Badge variant={action.variant} className="text-micro">
                   {action.ruleId}
                 </Badge>
               </div>

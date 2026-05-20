@@ -190,94 +190,94 @@
 
 /* .h1 → ct-title style */
 .h1 {
-  font-size: 1.75rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
+  font-size: var(--ct-text-2xl);
+  font-weight: var(--ct-font-extrabold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
   color: var(--ct-text-primary);
 }
 
 /* .h2 → sous-titre Cockpit */
 .h2 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  line-height: 1.25;
+  font-size: var(--ct-text-xl);
+  font-weight: var(--ct-font-bold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
   color: var(--ct-text-primary);
 }
 
 /* .h3 → section heading */
 .h3 {
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: 1.3;
+  font-size: var(--ct-text-base);
+  font-weight: var(--ct-font-bold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
   color: var(--ct-text-primary);
 }
 
 /* .h4 → card heading */
 .h4 {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: var(--ct-text-sm);
+  font-weight: var(--ct-font-semibold);
+  line-height: var(--leading-tight);
   color: var(--ct-text-body);
 }
 
 /* .eyebrow → ct-eyebrow style */
 .eyebrow {
-  font-size: 0.625rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
+  font-size: var(--ct-text-micro);
+  font-weight: var(--ct-font-extrabold);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   color: var(--ct-text-muted);
 }
 
 /* .stat-value → ct-kpi-value style */
 .stat-value {
-  font-size: 1.75rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
+  font-size: var(--ct-text-2xl);
+  font-weight: var(--ct-font-extrabold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
   font-variant-numeric: tabular-nums;
   color: var(--ct-text-primary);
 }
 
 /* .stat-label → ct-kpi-label style */
 .stat-label {
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-size: var(--ct-text-micro);
+  font-weight: var(--ct-font-bold);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   color: var(--ct-text-muted);
 }
 
 /* .body-lg / .body-md / .body-sm / .body-xs → ct-card-body palette */
 .body-lg {
-  font-size: 1.0625rem;
-  line-height: 1.65;
+  font-size: var(--ct-text-lg);
+  line-height: var(--leading-relaxed);
   color: var(--ct-text-body);
 }
 .body-md {
-  font-size: 0.9375rem;
-  line-height: 1.6;
+  font-size: var(--ct-text-sm);
+  line-height: var(--leading-relaxed);
   color: var(--ct-text-body);
 }
 .body-sm {
-  font-size: 0.8125rem;
-  line-height: 1.55;
+  font-size: var(--ct-text-sm);
+  line-height: var(--leading-base);
   color: var(--ct-text-body);
 }
 .body-xs {
-  font-size: 0.75rem;
-  line-height: 1.5;
+  font-size: var(--ct-text-xs);
+  line-height: var(--leading-base);
   color: var(--ct-text-muted);
 }
 
 /* ── SECTION-TITLE utilitaire additionnel ── */
 .ct-section-title {
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-size: var(--ct-text-micro);
+  font-weight: var(--ct-font-bold);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   color: var(--ct-text-muted);
   margin-bottom: 0.75rem;
@@ -289,10 +289,10 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.25rem 0.625rem;
-  border-radius: 9999px;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  border-radius: var(--ct-radius-full);
+  font-size: var(--ct-text-xs);
+  font-weight: var(--ct-font-bold);
+  letter-spacing: var(--tracking-loose);
   background: var(--ct-surface-2);
   border: 1px solid var(--ct-border);
   color: var(--ct-text-body);
@@ -309,12 +309,12 @@
 .ct-select,
 .ct-textarea {
   width: 100%;
-  border-radius: 0.375rem;
+  border-radius: var(--ct-radius-sm);
   border: 1px solid var(--ct-border-strong);
   background: var(--ct-surface-1);
   color: var(--ct-text-primary);
   padding: 0.375rem 0.5rem;
-  font-size: 0.875rem;
+  font-size: var(--ct-text-sm);
   transition:
     border-color var(--ct-dur-base) var(--ct-ease),
     background var(--ct-dur-base) var(--ct-ease);
@@ -358,7 +358,7 @@
   width: max-content;
   max-width: calc(100% - 3rem);
   padding: 0.75rem 1.75rem;
-  border-radius: 9999px;
+  border-radius: var(--ct-radius-full);
   background: var(--ct-surface-2);
   border: 1px solid var(--ct-border-strong);
   backdrop-filter: blur(60px) saturate(110%) brightness(105%);
@@ -384,9 +384,9 @@
   display: flex;
   align-items: center;
   padding: 0.25rem;
-  background: rgba(0, 0, 0, 0.2);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-  border-radius: 9999px;
+  background: color-mix(in srgb, var(--ct-bg-deep) 80%, transparent);
+  box-shadow: inset 0 0 0 1px var(--ct-border);
+  border-radius: var(--ct-radius-full);
 }
 
 .ct-seg-btn {
@@ -395,10 +395,10 @@
   background: transparent;
   color: var(--ct-text-primary);
   padding: 0.5rem 1rem;
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: var(--ct-text-xs);
+  font-weight: var(--ct-font-medium);
   font-family: inherit;
-  border-radius: 9999px;
+  border-radius: var(--ct-radius-full);
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
@@ -411,23 +411,21 @@
 }
 
 .ct-seg-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--ct-surface-1);
 }
 
 .ct-seg-btn.active {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--ct-surface-1);
+  border: 1px solid var(--ct-border);
   box-shadow: inset 0 1px 0 var(--ct-border-soft);
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--ct-text-primary);
 }
 
 .ct-seg-btn.primary {
   background: var(--ct-text-strong);
   color: var(--ct-bg-deep);
-  font-weight: 700;
-  box-shadow:
-    inset 0 1px 0 var(--ct-border-soft),
-    0 4px 12px rgba(0, 0, 0, 0.15);
+  font-weight: var(--ct-font-bold);
+  box-shadow: var(--ct-shadow-soft);
 }
 
 /* ── SONNER TOAST — Cockpit dark theme ── */
@@ -444,7 +442,7 @@
 }
 
 [data-sonner-toaster] [data-sonner-toast][data-type="success"] {
-  border-color: rgba(34, 197, 94, 0.3) !important;
+  border-color: var(--ct-status-success-border) !important;
 }
 
 [data-sonner-toaster] [data-sonner-toast][data-type="error"] {
@@ -504,7 +502,7 @@
   justify-content: center;
   width: 2.75rem;
   height: 2.75rem;
-  border-radius: 0.625rem;
+  border-radius: var(--ct-radius-md);
   color: var(--ct-text-muted);
   background: transparent;
   border: 1px solid transparent;
@@ -541,8 +539,8 @@
   background: var(--ct-surface-3);
   border: 1px solid var(--ct-border-strong);
   color: var(--ct-text-primary);
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: var(--ct-text-xs);
+  font-weight: var(--ct-font-medium);
   padding: 0.25rem 0.625rem;
   border-radius: 0.375rem;
   white-space: nowrap;
@@ -587,3 +585,116 @@
   max-width: 72ch;
   line-height: 1.65;
 }
+
+/* ── Hub bottom bar — replace the shell's native single-segment HubBottomBar
+   ("Overview" only, hard-coded in node_modules/@hearst/cockpit-shell/src/shell/
+   HubBottomBar.tsx) with our own <ConnectBottomNav> that exposes the 4 product
+   surfaces (Scenario Lab / Dashboard / Proof Center / Investor Memo).
+   Our nav uses the shell's `.ct-hub-bar` look + adds `.connect-nav` to
+   distinguish it from the native one, which is suppressed here. ── */
+.ct-hub-bar:not(.connect-nav) { display: none; }
+
+/* Our nav lives as a sibling of <CockpitShell>, outside `.ct-root`, so the
+   shell's centering formula (which reads --ct-rail-left + --ct-rail-right-eff
+   from `.ct-root`) resolves to `left: auto` and the bar drifts off-screen.
+   We re-anchor with position:fixed and mirror the math using vars promoted
+   to :root so they react to the live rail state via :has(). */
+:root {
+  --connect-rail-left-eff: 88px;
+  --connect-rail-right-eff: 420px;
+}
+:root:has(.ct-rail-left.launcher) {
+  --connect-rail-left-eff: clamp(208px, 15vw, 260px);
+}
+:root:has(.ct-rail-right.collapsed) {
+  --connect-rail-right-eff: 48px;
+}
+.ct-hub-bar.connect-nav {
+  position: fixed;
+  bottom: 24px;
+  left: calc((var(--connect-rail-left-eff) + 100vw - var(--connect-rail-right-eff)) / 2);
+  transform: translateX(-50%);
+  z-index: 35;
+}
+
+/* Custom nav: <a> segments instead of <button>, kill default link styling.
+   Active state colour follows the shell convention (.active class). */
+.ct-hub-bar.connect-nav a.ct-hub-bar-seg {
+  text-decoration: none;
+  color: var(--ct-text-body);
+}
+.ct-hub-bar.connect-nav a.ct-hub-bar-seg:hover {
+  color: var(--ct-text-primary);
+}
+
+/* ── Shell padding overrides — restore tokens.css values that get reset to 0
+   because tokens.css now lives in a cascade layer (see src/app/tokens-layer.css
+   + globals.css). Each rule mirrors verbatim the spec in
+   node_modules/@hearst/cockpit-shell/tokens.css.
+   cockpit.css is unlayered and imported last in layout.tsx → max cascade priority,
+   no !important needed. ── */
+
+/* Rail gauche */
+.ct-rail-left                              { padding: 32px 0; }
+.ct-rail-left.launcher                     { padding: clamp(20px, 2.4vh, 32px) clamp(12px, 0.8vw, 16px); }
+
+/* Rail gauche — nav */
+.ct-rail-top                               { padding: 8px; }
+.ct-rail-left:not(.launcher) .ct-rail-top  { padding: 8px 0; }
+.ct-rail-list                              { padding: 6px 0; }
+.ct-rail-row                               { padding: clamp(10px, 1.3vh, 16px) 14px; }
+
+/* Logout hero */
+.ct-logout-hero                            { padding: 32px 24px; }
+
+/* Hub bar */
+.ct-hub-bar                                { padding: 10px 16px; }
+.ct-hub-bar-label                          { padding-left: 4px; }
+.ct-hub-bar-track                          { padding: 3px; }
+.ct-hub-bar-seg                            { padding: 6px 14px; }
+
+/* Master FAB */
+.ct-master-fab                             { padding: 10px 18px; }
+
+/* Centre — page area & embed */
+.ct-page-area                              { padding: 32px 40px 80px; }
+.ct-embed-overlay                          { padding: 40px; }
+.ct-embed-sub code                         { padding: 1px 6px; }
+.ct-embed-btn                              { padding: 9px 18px; }
+
+/* Rail droit — header & body */
+.ct-rail-right-header                      { padding: 20px 20px 12px; }
+.ct-rail-right.collapsed .ct-rail-right-header { padding: 10px 0; }
+.ct-rail-right-body                        { padding: 20px 20px 20px; }
+
+/* Page composants */
+.ct-kpi-card                               { padding: 20px 24px; }
+.ct-card                                   { padding: 20px 24px; }
+
+/* Chat Kimi */
+.ct-chat-actionbar                         { padding-bottom: 8px; }
+.ct-chat-newbtn                            { padding: 4px 10px; }
+.ct-chat-list                              { padding-bottom: 12px; }
+.ct-chat-msg                               { padding: 12px 14px; }
+.ct-chat-msg.assistant code                { padding: 1px 5px; }
+.ct-chat-form                              { padding: 10px 10px 10px 14px; }
+.ct-chat-input                             { padding: 6px 0; }
+.ct-chat-thinking                          { padding-left: 14px; }
+
+/* Chat settings */
+.ct-chat-settings                          { padding: 4px 2px; }
+.ct-chat-settings-section                  { padding: 16px 0; }
+.ct-chat-settings-input,
+.ct-chat-settings-select                   { padding: 9px 12px; }
+.ct-chat-settings-select                   { padding-right: 32px; }
+.ct-chat-settings-save                     { padding: 9px 14px; }
+.ct-chat-settings-product                  { padding: 10px 12px; }
+
+/* Chat history */
+.ct-chat-history                           { padding: 4px 2px; }
+.ct-chat-history-actions                   { padding-bottom: 8px; }
+.ct-chat-history-newbtn                    { padding: 9px 14px; }
+.ct-chat-history-clearbtn                  { padding: 9px 12px; }
+.ct-chat-history-list                      { padding: 0; }
+.ct-chat-history-item-main                 { padding: 10px 12px; }
+.ct-chat-history-delete                    { padding: 0 10px; }

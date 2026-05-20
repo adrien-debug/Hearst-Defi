@@ -143,7 +143,7 @@ function ScenarioModeToggle({ active, onChange }: ScenarioModeToggleProps) {
             aria-selected={isActive}
             onClick={() => onChange(mode)}
             className={cn(
-              "rounded-[--radius-sm] px-4 py-1.5 text-xs font-semibold uppercase tracking-wider",
+              "rounded-[--radius-sm] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide",
               "transition-[background-color,color] duration-150",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-surface-1]",
               isActive
@@ -523,7 +523,7 @@ function SingleMode({
               {scenarioPending ? (
                 <>
                   <svg
-                    className="h-5 w-5 animate-spin text-[--ct-text-strong]"
+                    className="h-4 w-4 animate-spin text-[--ct-text-strong]"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"

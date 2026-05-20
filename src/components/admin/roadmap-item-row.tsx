@@ -89,13 +89,15 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
 
         <div className="hidden items-center gap-1 sm:flex">
           {STATUSES.map((s) => (
-            <button
+            <Button
               key={s}
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setStatus(s)}
               disabled={isPending || item.status === s}
               className={cn(
-                "rounded-md px-2.5 py-1.5 text-xs transition-colors disabled:cursor-default disabled:opacity-50",
+                "rounded-md px-2.5 py-1.5 disabled:cursor-default",
                 item.status === s
                   ? "bg-[--ct-surface-2] text-[--ct-text-primary]"
                   : "text-[--ct-text-muted] hover:bg-[--ct-surface-2] hover:text-[--ct-text-primary]",
@@ -108,7 +110,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
                 className="inline-block h-2 w-2 rounded-full"
                 style={{ background: statusDotColor(s) }}
               />
-            </button>
+            </Button>
           ))}
         </div>
 

@@ -183,31 +183,31 @@ export function NavSparkline({ output }: NavSparklineProps) {
 
       <div className="mb-3 flex flex-wrap items-end gap-6 text-sm">
         <div className="flex flex-col gap-0.5">
-          <span className="stat-label text-[--text-micro]">Low band</span>
+          <span className="stat-label text-micro">Low band</span>
           <span className="font-mono font-bold text-[--ct-text-body]">
             {last ? formatUsd(last.low) : "—"}
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="stat-label text-[--text-micro]">Midpoint</span>
+          <span className="stat-label text-micro">Midpoint</span>
           <span className="font-mono font-bold text-[--ct-text-strong]">
             {last ? formatUsd(last.mid) : "—"}
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="stat-label text-[--text-micro]">High band</span>
+          <span className="stat-label text-micro">High band</span>
           <span className="font-mono font-bold text-[--ct-text-body]">
             {last ? formatUsd(last.high) : "—"}
           </span>
         </div>
-        <div className="ml-auto text-[--text-micro] text-[--ct-text-muted]">
+        <div className="ml-auto text-micro text-[--ct-text-muted]">
           Notional $1M · 12 months
         </div>
       </div>
 
       <Sparkline series={series} />
 
-      <div className="mt-3 flex items-center gap-4 text-[--text-micro] text-[--ct-text-muted]">
+      <div className="mt-3 flex items-center gap-4 text-micro text-[--ct-text-muted]">
         <span className="flex items-center gap-1.5">
           <span
             className="inline-block h-0.5 w-4 rounded-full"

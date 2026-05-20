@@ -85,7 +85,7 @@ function NavChart({ points, provenance }: NavChartProps) {
       <CardHeader>
         <div className="flex flex-col gap-2">
           <CardTitle>Net Asset Value</CardTitle>
-          <p className="text-xs font-medium uppercase tracking-widest text-[--ct-text-muted]">
+          <p className="text-xs font-medium uppercase tracking-wide text-[--ct-text-muted]">
             Trailing 30 days · USDC
           </p>
         </div>
@@ -226,7 +226,7 @@ function ApyChart({ points, provenance }: ApyChartProps) {
       <CardHeader>
         <div className="flex flex-col gap-2">
           <CardTitle>APY Range</CardTitle>
-          <p className="text-xs font-medium uppercase tracking-widest text-[--ct-text-muted]">
+          <p className="text-xs font-medium uppercase tracking-wide text-[--ct-text-muted]">
             Trailing 30d · Target {METHODOLOGY_TARGET_APY.toFixed(0)}%
           </p>
         </div>
