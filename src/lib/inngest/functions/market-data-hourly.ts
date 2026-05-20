@@ -2,6 +2,8 @@ import "server-only";
 
 import { inngest } from "@/lib/inngest/client";
 import { fetchBtcPrice } from "@/lib/data/btc-price";
+import { fetchDefiLlama } from "@/lib/data/defillama";
+import { fetchFearGreed } from "@/lib/data/fear-greed";
 import { fetchHashprice } from "@/lib/data/hashprice";
 import { computeMiningRevenue } from "@/lib/engine/mining";
 import { prisma } from "@/lib/db";
@@ -40,6 +42,24 @@ async function marketDataHourlyHandler({
 
   const btc = await step.run("fetch-btc-price", () => fetchBtcPrice());
   const hp = await step.run("fetch-hashprice", () => fetchHashprice());
+
+  // External market context — logged only, no DB persist in this chantier
+  // (no `MarketSnapshot` table yet, out-of-scope per spec). Wired here so
+  // the pipeline runs the loaders once an hour and we get observability
+  // on freshness via the structured logger.
+  const defi = await step.run("fetch-defillama", () => fetchDefiLlama());
+  const fng = await step.run("fetch-fear-greed", () => fetchFearGreed());
+
+  logger.info("[market-data-hourly] external context", {
+    defiSource: defi.source,
+    defiStale: defi.stale,
+    apyTopPct: defi.apyTopPct,
+    apyMedianPct: defi.apyMedianPct,
+    fngSource: fng.source,
+    fngStale: fng.stale,
+    fngValue: fng.value,
+    fngClassification: fng.classification,
+  });
 
   if (btc.usd <= 0 || hp.usd_per_th_day <= 0) {
     logger.warn("[market-data-hourly] upstream data unavailable", {
