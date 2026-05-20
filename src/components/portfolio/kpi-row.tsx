@@ -33,13 +33,7 @@ export function PortfolioKpiRow({ data }: KpiRowProps) {
   const hasPositions = data.positions.length > 0;
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
-        gap: "var(--ct-space-4)",
-      }}
-    >
+    <div className="grid grid-cols-3 gap-4">
       {/* Portfolio Value */}
       <article className="dash-cell" aria-label="Portfolio value">
         <div className="dash-label">
@@ -66,10 +60,7 @@ export function PortfolioKpiRow({ data }: KpiRowProps) {
           </span>
           <span className="dash-unit">USDC</span>
         </div>
-        <p
-          className="body-xs ct-text-muted"
-          style={{ marginTop: "var(--ct-space-2)", fontStyle: "italic" }}
-        >
+        <p className="body-xs ct-text-muted mt-2 italic">
           Accrued + distributed. Not projected forward.
         </p>
       </article>
@@ -85,7 +76,7 @@ export function PortfolioKpiRow({ data }: KpiRowProps) {
             {monthDayFmt.format(data.nextDistributionAt)}
           </span>
         </div>
-        <p className="body-xs ct-text-muted mt-[var(--ct-space-2)]">
+        <p className="body-xs ct-text-muted mt-2">
           Monthly cadence · Day 1, T+5
         </p>
       </article>

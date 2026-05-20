@@ -12,6 +12,7 @@ import Link from "next/link";
 import { getVault } from "@/lib/demo/loaders";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { ApyRange } from "@/components/ui/apy-range";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { StepProgress } from "@/components/vaults/step-progress";
@@ -75,10 +76,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
         <div className="flex flex-wrap items-start gap-3">
           <h1 className="h1 flex-1">{vault.name}</h1>
           <div className="flex items-center gap-2 pt-1">
-            <span
-              className="ct-pill accent font-mono"
-              style={{ fontSize: "var(--ct-text-micro)" }}
-            >
+          <span className="ct-pill accent mono text-[length:var(--ct-text-micro)]">
               {vault.ticker}
             </span>
             <Badge variant={STATUS_VARIANT[vault.status] ?? "default"}>
@@ -93,7 +91,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
             <span className="stat-label">Target APY range</span>
             <ProvenanceBadge kind="estimated" />
           </div>
-          <span style={{ fontSize: "var(--ct-text-2xl)" }}>
+          <span className="text-[length:var(--ct-text-2xl)]">
             <ApyRange
               low={vault.apyLow}
               high={vault.apyHigh}
@@ -127,8 +125,8 @@ export default async function VaultDetailPage({ params }: PageProps) {
       </section>
 
       {/* Sticky CTA footer */}
-      <div
-        className="sticky bottom-6 flex items-center justify-between gap-4 ct-card border border-[--ct-border-strong] shadow-[var(--ct-shadow-elevated)]"
+      <Card
+        className="sticky bottom-6 flex items-center justify-between gap-4 border border-[--ct-border-strong] shadow-[var(--ct-shadow-elevated)]"
         role="navigation"
         aria-label="Invest flow actions"
       >
@@ -141,7 +139,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
               low={vault.apyLow}
               high={vault.apyHigh}
               precision={1}
-              className="body-sm font-mono"
+              className="body-sm mono"
             />
             <span className="body-xs ct-text-muted">·</span>
             <span className="body-xs ct-text-muted">
@@ -166,7 +164,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
             Coming soon
           </Button>
         )}
-      </div>
+      </Card>
 
       {/* Final disclaimer (#10 — "not guaranteed" mandatory) */}
       <footer>

@@ -108,7 +108,7 @@ export function InputsPanel({ inputs, onChange, disabled }: InputsPanelProps) {
               <div className="flex items-baseline gap-1.5">
                 <span
                   className={cn(
-                    "font-mono text-xl font-bold tabular-nums text-[--ct-text-primary]",
+                    "mono text-xl font-bold tabular-nums text-[--ct-text-primary]",
                     disabled && "opacity-50",
                   )}
                 >

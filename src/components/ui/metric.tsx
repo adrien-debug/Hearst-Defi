@@ -26,11 +26,11 @@ export function Metric({
   return (
     <div
       className={cn(
-        "glass-panel flex flex-col gap-3 p-5 relative overflow-hidden group",
+        "ct-kpi-card glass-panel flex flex-col gap-3 relative overflow-hidden group",
         className,
       )}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-[--ct-surface-0] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[--ct-surface-0] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-[var(--ct-dur-slow)] pointer-events-none" />
 
       <div className="flex items-center justify-between gap-2 relative z-10">
         <span className="stat-label text-[--ct-text-muted] group-hover:text-[--ct-text-body] transition-colors" title={tooltip}>
@@ -39,7 +39,7 @@ export function Metric({
         {provenance ? <ProvenanceBadge kind={provenance} /> : null}
       </div>
 
-      <span className="stat-value text-3xl tracking-tight leading-none relative z-10 text-[--ct-text-strong] drop-shadow-md">
+      <span className="stat-value relative z-10 text-[--ct-text-strong] drop-shadow-[var(--ct-glow-subtle)]">
         {value}
       </span>
 

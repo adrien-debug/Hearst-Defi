@@ -3,6 +3,7 @@
 // APY shown as range (#1). Provenance badge on each card (#2).
 // No forbidden words (#5): no "guarantee", "promise", "certain", "risk-free".
 
+import { Card } from "@/components/ui/card";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
 
@@ -138,28 +139,20 @@ function AllocationBar({ label, pct, tone }: AllocationBarProps) {
  */
 export function DynamicAllocationCards() {
   return (
-    <div
-      className="grid gap-4"
-      style={{
-        gridTemplateColumns: "repeat(auto-fit, minmax(var(--ct-regime-card-min-w), 1fr))",
-      }}
-    >
+    <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(var(--ct-regime-card-min-w),1fr))]">
       {REGIME_CARDS.map((card) => {
         const toneClass = TONE_CLASSES[card.tone];
         return (
-          <article
+          <Card
             key={card.id}
-            className={cn(
-              "ct-card flex flex-col gap-4 border",
-              toneClass.border,
-            )}
+            className={cn("flex flex-col gap-4 border", toneClass.border)}
             aria-label={`${card.label} regime allocation`}
           >
             {/* Regime header */}
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <span
-                  className={cn("text-lg font-bold", toneClass.text)}
+                  className={cn("stat-value tabular", toneClass.text)}
                   aria-hidden="true"
                 >
                   {card.icon}
@@ -174,7 +167,7 @@ export function DynamicAllocationCards() {
               <span className="stat-label">Expected APY range</span>
               <span
                 className={cn(
-                  "font-mono tabular-nums font-semibold text-lg",
+                  "mono tabular-nums font-semibold text-lg",
                   toneClass.text,
                 )}
                 aria-label={`APY range ${card.apyLow} to ${card.apyHigh} percent`}
@@ -225,7 +218,7 @@ export function DynamicAllocationCards() {
             <p className="body-xs ct-text-muted border-t border-[--ct-border-soft] pt-2">
               {card.pitch}
             </p>
-          </article>
+          </Card>
         );
       })}
     </div>

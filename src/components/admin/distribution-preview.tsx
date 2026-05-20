@@ -45,7 +45,7 @@ export function DistributionPreview({
         </div>
         <div className="text-right">
           <p className="body-xs ct-text-muted">Period</p>
-          <p className="stat-label font-mono">{period}</p>
+          <p className="stat-label mono">{period}</p>
         </div>
       </div>
 
@@ -71,7 +71,7 @@ export function DistributionPreview({
                 key={r.investorId}
                 className="border-t border-[--ct-border-soft] ct-hover-surface transition-colors"
               >
-                <td className="ct-table-cell font-mono text-xs ct-text-body">
+                <td className="ct-table-cell mono text-xs ct-text-body">
                   {abbrWallet(r.walletAddress)}
                 </td>
                 <td className="ct-table-cell text-right ct-text-muted tabular">

@@ -108,14 +108,12 @@ function PresetPicker({
         aria-expanded={open}
         aria-label={`Scenario ${side}: ${value ? labelFor(value) : "select a scenario"}`}
         className={cn(
-          "flex w-full items-center justify-between gap-3 rounded-[--radius-button]",
-          "border border-[--ct-border-strong] border-l-4",
+          "flex w-full items-center justify-between gap-3 glass-panel",
+          "border-l-4",
           sideAccent,
-          "bg-[--ct-surface-1] px-4 py-3 text-left",
-          "transition-[background-color,border-color] duration-150",
+          "px-4 py-3 text-left",
           "disabled:cursor-not-allowed disabled:opacity-40",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]",
-          !disabled && "hover:bg-[--ct-surface-3]",
+          "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
         )}
       >
         <span className="flex min-w-0 flex-col gap-0.5">
@@ -131,7 +129,7 @@ function PresetPicker({
         </span>
         <svg
           className={cn(
-            "h-4 w-4 shrink-0 text-[--ct-text-body] transition-transform duration-150",
+            "h-4 w-4 shrink-0 text-[--ct-text-body] transition-transform duration-[var(--ct-dur-fast)]",
             open && "rotate-180",
           )}
           xmlns="http://www.w3.org/2000/svg"
@@ -156,8 +154,8 @@ function PresetPicker({
           aria-label={`Pick a scenario for ${side}`}
           onKeyDown={onListKeyDown}
           className={cn(
-            "absolute z-20 mt-2 w-full overflow-hidden rounded-[--radius-button]",
-            "border border-[--ct-border-strong] bg-[--ct-surface-1]",
+            "absolute z-[var(--ct-z-dropdown)] mt-2 w-full overflow-hidden",
+            "glass-panel p-0",
             "shadow-[var(--ct-shadow-elevated)]",
           )}
         >
@@ -179,8 +177,8 @@ function PresetPicker({
                   title={p.description}
                   className={cn(
                     "flex w-full flex-col items-start gap-0.5 px-4 py-3 text-left",
-                    "transition-colors duration-150",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[--ct-text-strong]",
+                    "transition-colors duration-[var(--ct-dur-fast)]",
+                    "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
                     isSelected
                       ? "bg-[--ct-surface-1] text-[--ct-text-strong]"
                       : "text-[--ct-text-body] hover:bg-[--ct-surface-3] hover:text-[--ct-text-primary]",
@@ -213,15 +211,14 @@ function Placeholder({ side, pending }: PlaceholderProps) {
   return (
     <div
       className={cn(
-        // min-h-[28rem] conservé — 28rem = 448px (min-h-112 n'existe pas nativement en Tailwind v4, scale s'arrête à w-96=24rem)
-        "flex min-h-[28rem] flex-col items-center justify-center gap-3",
-        "rounded-[--radius-card] border border-dashed border-[--ct-border-soft]",
+        "flex min-h-80 flex-col items-center justify-center gap-3",
+        "glass-panel-subtle border-dashed",
         "border-l-4",
         side === "A"
           ? "border-l-[--ct-border-strong]"
           : "border-l-[--ct-text-strong]",
         "px-5 py-5",
-        "transition-opacity duration-150",
+        "transition-opacity duration-[var(--ct-dur-fast)]",
         pending && "opacity-50",
       )}
       aria-live="polite"

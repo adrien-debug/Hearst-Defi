@@ -13,6 +13,12 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
+import {
+  BUCKET_COLOR,
+  BUCKET_LABEL,
+  CONFIDENCE_VARIANT,
+  progressScoreFillClass,
+} from "@/components/scenario/output-panel-shared";
 import type { ScenarioNarrativeOutput } from "@/lib/agents/schemas";
 import type {
   AllocationBucket,
@@ -34,29 +40,6 @@ interface OutputPanelProps {
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
-
-const BUCKET_LABEL: Record<AllocationBucket, string> = {
-  mining: "Mining cashflow",
-  btc_tactical: "BTC tactical",
-  usdc_base: "USDC base yield",
-  stable_reserve: "Stable reserve",
-};
-
-const BUCKET_COLOR: Record<AllocationBucket, string> = {
-  mining: "var(--ct-text-strong)",
-  btc_tactical: "var(--ct-status-warning)",
-  usdc_base: "var(--ct-status-info)",
-  stable_reserve: "var(--ct-text-muted)",
-};
-
-const CONFIDENCE_VARIANT: Record<
-  ScenarioOutput["confidence"],
-  "danger" | "warning" | "success"
-> = {
-  low: "danger",
-  medium: "warning",
-  high: "success",
-};
 
 const MODE_LABEL: Record<ScenarioOutput["mode"], string> = {
   defensive: "Defensive",
@@ -89,20 +72,6 @@ const GUARDRAIL_KIND_LABEL: Record<BtcGuardrailKind, string> = {
   concentration: "Concentration",
   liquidity: "Liquidity",
 };
-
-/** Returns a Progress bar color class based on score value. */
-function scoreColorClass(score: number, invertedRisk = false): string {
-  if (invertedRisk) {
-    // higher score = worse (risk score)
-    if (score > 70) return "bg-[--ct-status-danger]";
-    if (score > 40) return "bg-[--ct-status-warning]";
-    return "bg-[--ct-status-success]";
-  }
-  // higher score = better (mining margin)
-  if (score < 30) return "bg-[--ct-status-danger]";
-  if (score < 60) return "bg-[--ct-status-warning]";
-  return "bg-[--ct-status-success]";
-}
 
 /**
  * Parses an assumption string. If it contains `=`, splits on first `=` and
@@ -145,7 +114,7 @@ function AssumptionsList({ assumptions }: { assumptions: string[] }) {
                     {key}
                   </span>
                   <span className="text-[--ct-text-muted]">: </span>
-                  <span className="font-mono text-[--ct-text-body]">
+                  <span className="mono text-[--ct-text-body]">
                     {value}
                   </span>
                 </span>
@@ -183,9 +152,10 @@ function AllocationBar({
       {allocations.map((a) => (
         <div
           key={a.bucket}
+          className="h-full bg-current"
           style={{
             width: `${a.pct}%`,
-            background: BUCKET_COLOR[a.bucket],
+            color: BUCKET_COLOR[a.bucket],
           }}
           title={`${BUCKET_LABEL[a.bucket]}: ${a.pct.toFixed(0)}%`}
         />
@@ -197,15 +167,15 @@ function AllocationBar({
 // ── main ──────────────────────────────────────────────────────────────────────
 
 export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) {
-  const riskColorClass = scoreColorClass(output.risk_score, true);
-  const miningColorClass = scoreColorClass(output.mining_margin_score, false);
+  const riskColorClass = progressScoreFillClass(output.risk_score, true);
+  const miningColorClass = progressScoreFillClass(output.mining_margin_score, false);
 
   const armedTriggers = output.btc_tactical.triggers.filter((t) => t.armed);
 
   return (
     <div
       className={cn(
-        "relative space-y-4 transition-opacity duration-150",
+        "relative space-y-4 transition-opacity duration-[var(--ct-dur-fast)]",
         isPending && "pointer-events-none opacity-50",
       )}
       aria-busy={isPending}
@@ -227,7 +197,7 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
           <ApyRange
             low={output.apy_range.low}
             high={output.apy_range.high}
-            className="font-mono text-5xl font-extrabold tabular-nums text-[--ct-text-strong] leading-none"
+            className="mono text-5xl font-extrabold tabular-nums text-[--ct-text-strong] leading-none"
           />
           <div className="flex flex-col items-end gap-1.5">
             <span className="stat-label">Confidence</span>
@@ -245,7 +215,7 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
             <span className="stat-label">Stressed APY</span>
             <ProvenanceBadge kind="estimated" />
           </div>
-          <span className="font-mono text-2xl font-extrabold tabular-nums text-[--ct-text-primary]">
+          <span className="mono text-2xl font-extrabold tabular-nums text-[--ct-text-primary]">
             {output.stressed_apy.toFixed(1)}%
           </span>
           <span className="ml-2 text-xs text-[--ct-text-muted]">
@@ -301,7 +271,7 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
             <ProvenanceBadge kind="estimated" />
           </div>
           <div className="mb-1 flex items-baseline gap-1">
-            <span className="font-mono text-2xl font-extrabold tabular-nums text-[--ct-text-primary]">
+            <span className="mono text-2xl font-extrabold tabular-nums text-[--ct-text-primary]">
               {output.risk_score.toFixed(0)}
             </span>
             <span className="text-sm text-[--ct-text-muted]">/100</span>
@@ -323,7 +293,7 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
             <ProvenanceBadge kind="estimated" />
           </div>
           <div className="mb-1 flex items-baseline gap-1">
-            <span className="font-mono text-2xl font-extrabold tabular-nums text-[--ct-text-primary]">
+            <span className="mono text-2xl font-extrabold tabular-nums text-[--ct-text-primary]">
               {output.mining_margin_score.toFixed(0)}
             </span>
             <span className="text-sm text-[--ct-text-muted]">/100</span>
@@ -384,16 +354,16 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
               >
                 <span className="flex items-center gap-2 text-[--ct-text-body]">
                   <span
-                    className="inline-block h-2 w-2 shrink-0 rounded-full"
-                    style={{ background: BUCKET_COLOR[a.bucket] }}
+                    className="inline-block h-2 w-2 shrink-0 rounded-full shadow-[var(--ct-glow-dot)] bg-current"
+                    style={{ color: BUCKET_COLOR[a.bucket] }}
                     aria-hidden
                   />
                   {BUCKET_LABEL[a.bucket]}
                 </span>
-                <span className="text-right font-mono tabular-nums text-[--ct-text-primary]">
+                <span className="text-right mono tabular-nums text-[--ct-text-primary]">
                   {a.pct.toFixed(0)}%
                 </span>
-                <span className="text-right font-mono tabular-nums text-[--ct-text-muted]">
+                <span className="text-right mono tabular-nums text-[--ct-text-muted]">
                   {a.yield_contribution_bps > 0
                     ? `+${a.yield_contribution_bps} bps`
                     : "P&L variable"}

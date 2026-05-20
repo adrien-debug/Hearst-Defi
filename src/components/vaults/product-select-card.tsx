@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ApyRange } from "@/components/ui/apy-range";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import type { VaultProduct } from "@/lib/data/vaults";
 
@@ -52,8 +53,8 @@ export function ProductSelectCard({ vault }: ProductSelectCardProps) {
   const href = `/vaults/${vault.ticker.toLowerCase()}`;
 
   return (
-    <article
-      className="ct-card flex flex-col gap-4"
+    <Card
+      className="flex flex-col gap-4"
       aria-label={`${vault.name} — ${STRATEGY_LABELS[vault.strategy]}`}
     >
       {/* Header row */}
@@ -61,7 +62,7 @@ export function ProductSelectCard({ vault }: ProductSelectCardProps) {
         <div className="flex flex-col gap-1 min-w-0">
           <h2 className="h3 truncate">{vault.name}</h2>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="ct-pill accent font-mono text-xs">
+            <span className="ct-pill accent mono text-xs">
               {vault.ticker}
             </span>
             <Badge variant={STATUS_VARIANT[vault.status]}>
@@ -149,6 +150,6 @@ export function ProductSelectCard({ vault }: ProductSelectCardProps) {
           </Button>
         )}
       </div>
-    </article>
+    </Card>
   );
 }

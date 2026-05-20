@@ -55,7 +55,7 @@ function AssumptionsList({ assumptions }: { assumptions: string[] }) {
                     {key}
                   </span>
                   <span className="text-[--ct-text-muted]">: </span>
-                  <span className="font-mono text-[--ct-text-body]">
+                  <span className="mono text-[--ct-text-body]">
                     {value}
                   </span>
                 </span>
@@ -91,7 +91,7 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
   return (
     <div
       className={cn(
-        "relative space-y-4 transition-opacity duration-150",
+        "relative space-y-4 transition-opacity duration-[var(--ct-dur-fast)]",
         isPending && "pointer-events-none opacity-50",
       )}
       aria-busy={isPending}

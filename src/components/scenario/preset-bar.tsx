@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 import type { Preset } from "@/lib/engine/types";
 
@@ -58,32 +59,21 @@ export function PresetBar({ selected, onSelect, disabled }: PresetBarProps) {
       {PRESETS.map((p) => {
         const isActive = selected === p.id;
         return (
-          <button
+          <Button
             key={p.id}
             type="button"
+            variant={isActive ? "primary" : "secondary"}
+            size="sm"
             disabled={disabled}
             onClick={() => onSelect(p.id)}
             title={p.description}
             aria-pressed={isActive}
             className={cn(
-              "rounded-[--radius-full] border px-4 py-2 text-sm font-semibold",
-              "transition-[background-color,color,border-color,box-shadow] duration-150",
-              "disabled:cursor-not-allowed disabled:opacity-40",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]",
-              isActive
-                ? [
-                    "border-[--ct-text-strong] bg-[--ct-text-strong] text-[--ct-bg-deep]",
-                    "shadow-[var(--ct-shadow-focus-ring)]",
-                  ]
-                : [
-                    "border-[--ct-border-strong] bg-[--ct-surface-1]",
-                    "text-[--ct-text-body]",
-                    "hover:border-[--ct-border-strong] hover:bg-[--ct-surface-3] hover:text-[--ct-text-primary]",
-                  ],
+              isActive && "shadow-[var(--ct-shadow-focus-ring)]",
             )}
           >
             {p.label}
-          </button>
+          </Button>
         );
       })}
     </nav>

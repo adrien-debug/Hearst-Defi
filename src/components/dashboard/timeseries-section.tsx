@@ -8,7 +8,7 @@ import type {
   NavPoint,
 } from "@/lib/data/dashboard";
 
-// matches --ct-text-xs (Recharts ne lit pas les CSS vars runtime)
+// 11px = --ct-text-xs (SVG cannot read CSS vars at runtime)
 const CHART_LABEL_SIZE = 11;
 
 const VIEWBOX_WIDTH = 600;
@@ -78,7 +78,7 @@ function ChartEmpty({ title, subtitle, provenance }: ChartEmptyProps) {
         </div>
         <ProvenanceBadge kind={provenance === "live" ? "stale" : provenance} />
       </CardHeader>
-      <div className="flex-1 min-h-[8.75rem] flex items-center justify-center text-center -mx-4 -mb-4 mt-4 rounded-b-[--radius-card] border border-dashed border-[--ct-border-soft] bg-[--ct-surface-1]">
+      <div className="flex-1 min-h-[var(--ct-chart-empty-h)] flex items-center justify-center text-center -mx-4 -mb-4 mt-4 rounded-b-[--radius-card] border border-dashed border-[--ct-border-soft] bg-[--ct-surface-1]">
         <p className="text-xs text-[--ct-text-muted] px-6 py-8">
           No historical data yet — first snapshot needed.
         </p>
@@ -125,7 +125,7 @@ function NavChart({ points, provenance }: NavChartProps) {
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <span className="text-3xl font-semibold tabular-nums leading-tight text-[--ct-text-primary] drop-shadow-sm">
+          <span className="text-3xl font-semibold tabular-nums leading-tight text-[--ct-text-primary] drop-shadow-[var(--ct-glow-subtle)]">
             {usdCompact.format(last)}
           </span>
           <div className="flex items-center gap-3">
@@ -145,8 +145,7 @@ function NavChart({ points, provenance }: NavChartProps) {
         </div>
       </CardHeader>
 
-      {/* min-h-[8.75rem] conservé — 8.75rem = 140px, pas de step natif Tailwind (min-h-36=144px trop haut, min-h-32=128px trop bas) */}
-      <div className="flex-1 min-h-[8.75rem] relative -mx-4 -mb-4 mt-4">
+      <div className="flex-1 min-h-[var(--ct-chart-empty-h)] relative -mx-4 -mb-4 mt-4">
         <svg
           viewBox={`0 0 ${VIEWBOX_WIDTH} ${CHART_HEIGHT}`}
           preserveAspectRatio="none"
@@ -156,8 +155,7 @@ function NavChart({ points, provenance }: NavChartProps) {
           aria-label={`AUM time-series from ${points[0]?.date ?? ""} to ${
             points[points.length - 1]?.date ?? ""
           }`}
-          style={{ display: "block" }}
-          className="absolute inset-0"
+          className="absolute inset-0 block"
         >
           <defs>
             <linearGradient id="nav-gradient" x1="0" y1="0" x2="0" y2="1">
@@ -285,8 +283,7 @@ function ApyChart({ points, provenance }: ApyChartProps) {
         </div>
       </CardHeader>
 
-      {/* min-h-[8.75rem] conservé — 8.75rem = 140px, pas de step natif Tailwind (min-h-36=144px trop haut, min-h-32=128px trop bas) */}
-      <div className="flex-1 min-h-[8.75rem] relative -mx-4 -mb-4 mt-4">
+      <div className="flex-1 min-h-[var(--ct-chart-empty-h)] relative -mx-4 -mb-4 mt-4">
         <svg
           viewBox={`0 0 ${VIEWBOX_WIDTH} ${CHART_HEIGHT}`}
           preserveAspectRatio="none"
@@ -296,8 +293,7 @@ function ApyChart({ points, provenance }: ApyChartProps) {
           aria-label={`APY range time-series from ${points[0]?.date ?? ""} to ${
             points[points.length - 1]?.date ?? ""
           }`}
-          style={{ display: "block" }}
-          className="absolute inset-0"
+          className="absolute inset-0 block"
         >
           <defs>
             <filter id="glow-green">

@@ -28,11 +28,7 @@ export function PositionKpis({ position }: PositionKpisProps) {
   return (
     <section
       aria-label="Position metrics"
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(var(--ct-card-min-w), 1fr))",
-        gap: "var(--ct-space-3)",
-      }}
+      className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(var(--ct-card-min-w),1fr))]"
     >
       {/* 1 — Principal */}
       <Metric

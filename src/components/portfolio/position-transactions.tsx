@@ -64,23 +64,11 @@ export function PositionTransactions({
   return (
     <section
       aria-label="Transaction history"
-      className="ct-card"
-      style={{ display: "flex", flexDirection: "column", gap: "var(--ct-space-4)" }}
+      className="ct-card flex flex-col gap-4"
     >
       {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "var(--ct-space-3)",
-        }}
-      >
-        <span
-          className="eyebrow"
-          style={{ color: "var(--ct-text-muted)" }}
-        >
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <span className="eyebrow text-[--ct-text-muted]">
           Transaction history
         </span>
         <ProvenanceBadge kind={provenance} />
@@ -88,18 +76,13 @@ export function PositionTransactions({
 
       {/* Visual filter chips — display only */}
       <div
-        style={{
-          display: "flex",
-          gap: "var(--ct-space-2)",
-          flexWrap: "wrap",
-        }}
+        className="flex gap-2 flex-wrap"
         aria-label="Filter options (display only)"
       >
         {chips.map((c) => (
           <span
             key={c}
-            className="ct-pill body-xs"
-            style={{ cursor: "default" }}
+            className="ct-pill body-xs cursor-default"
           >
             {TYPE_LABEL[c]}
           </span>
@@ -107,26 +90,14 @@ export function PositionTransactions({
       </div>
 
       {transactions.length === 0 ? (
-        <p
-          className="body-sm"
-          style={{ color: "var(--ct-text-muted)", marginTop: "var(--ct-space-2)" }}
-        >
+        <p className="body-sm text-[--ct-text-muted] mt-2">
           No transactions recorded yet.
         </p>
       ) : (
         <div
-          style={{
-            overflowX: "auto",
-            WebkitOverflowScrolling: "touch",
-          }}
+          className="overflow-x-auto overflow-y-hidden"
         >
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              fontSize: "var(--ct-text-sm)",
-            }}
-          >
+          <table className="w-full border-collapse text-[length:var(--ct-text-sm)]">
             <thead>
               <tr className="stat-label ct-text-muted border-b border-[--ct-border-soft]">
                 <th className="text-left pb-[var(--ct-space-2)] font-[inherit]">Date</th>
@@ -141,38 +112,16 @@ export function PositionTransactions({
                 return (
                   <tr
                     key={tx.id}
-                    style={{
-                      borderBottom: "1px solid var(--ct-border-soft)",
-                    }}
+                    className="border-b border-[--ct-border-soft]"
                   >
                     {/* Date */}
-                    <td
-                      className="tabular body-xs ct-text-muted"
-                      style={{
-                        padding: "var(--ct-space-2) 0",
-                        fontFamily: "var(--font-mono)",
-                        whiteSpace: "nowrap",
-                        paddingRight: "var(--ct-space-4)",
-                      }}
-                    >
+                    <td className="tabular body-xs ct-text-muted py-2 pr-4 mono whitespace-nowrap">
                       {dateFmt.format(tx.occurredAt)}
                     </td>
 
                     {/* Type + icon */}
-                    <td
-                      style={{
-                        padding: "var(--ct-space-2) 0",
-                        paddingRight: "var(--ct-space-4)",
-                      }}
-                    >
-                      <span
-                        className="body-xs ct-text-body"
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "var(--ct-space-1_5)",
-                        }}
-                      >
+                    <td className="py-2 pr-4">
+                      <span className="body-xs ct-text-body inline-flex items-center gap-1.5">
                         <span
                           aria-hidden="true"
                           className={incoming ? "ct-text-muted body-xs" : "ct-status-success body-xs"}
@@ -185,49 +134,26 @@ export function PositionTransactions({
 
                     {/* Amount — signed, accent for yield/dist, muted for deposits */}
                     <td
-                      className={`tabular body-md ${incoming ? "ct-text-primary" : "ct-status-success"}`}
-                      style={{
-                        padding: "var(--ct-space-2) 0",
-                        textAlign: "right",
-                        fontFamily: "var(--font-mono)",
-                        fontWeight: "var(--ct-font-semibold)",
-                        paddingRight: "var(--ct-space-4)",
-                        whiteSpace: "nowrap",
-                      }}
+                      className={`tabular body-md py-2 pr-4 text-right mono font-semibold whitespace-nowrap ${incoming ? "ct-text-primary" : "ct-status-success"}`}
                     >
                       {incoming ? "" : "+"}
                       {usdSigned.format(tx.amountUsdc)}
                     </td>
 
                     {/* Tx hash */}
-                    <td
-                      style={{
-                        padding: "var(--ct-space-2) 0",
-                        textAlign: "right",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
+                    <td className="py-2 text-right whitespace-nowrap">
                       {tx.txHash ? (
                         <a
                           href={`https://basescan.org/tx/${tx.txHash}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="tabular body-xs"
-                          style={{
-                            fontFamily: "var(--font-mono)",
-                            color: "var(--ct-accent-strong)",
-                            textDecoration: "none",
-                            transition: "opacity var(--ct-dur-fast) var(--ct-ease)",
-                          }}
+                          className="tabular body-xs mono text-[--ct-accent-strong] no-underline transition-opacity duration-[var(--ct-dur-fast)] hover:opacity-80"
                           title={tx.txHash}
                         >
                           {tx.txHash.slice(0, 6)}&hellip;{tx.txHash.slice(-4)} ↗
                         </a>
                       ) : (
-                        <span
-                          className="body-xs"
-                          style={{ color: "var(--ct-text-faint)" }}
-                        >
+                        <span className="body-xs text-[--ct-text-faint]">
                           —
                         </span>
                       )}

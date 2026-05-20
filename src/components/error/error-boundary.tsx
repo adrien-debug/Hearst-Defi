@@ -77,7 +77,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
               Refresh page
             </Button>
             {process.env.NODE_ENV === "development" && this.state.error && (
-              <pre className="mt-4 p-4 rounded-[--ct-radius-lg] ct-status-danger-bg text-left text-xs overflow-auto" style={{ color: "var(--ct-status-danger)" }}>
+              <pre className="mt-4 p-4 rounded-[--ct-radius-lg] ct-status-danger-bg text-[--ct-status-danger] text-left text-xs overflow-auto">
                 {this.state.error.message}
               </pre>
             )}

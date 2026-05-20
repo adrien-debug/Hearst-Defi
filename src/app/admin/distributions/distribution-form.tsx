@@ -115,7 +115,7 @@ export function DistributionForm() {
             value={period}
             onChange={(e) => setPeriod(e.target.value)}
             placeholder="2026-05"
-            className="ct-input w-full font-mono"
+            className="ct-input w-full mono"
             disabled={isPending}
           />
         </div>
@@ -174,7 +174,7 @@ export function DistributionForm() {
                   value={signerWallet}
                   onChange={(e) => setSignerWallet(e.target.value)}
                   placeholder="0x…"
-                  className="ct-input w-full font-mono"
+                  className="ct-input w-full mono"
                   disabled={isPending}
                 />
               </div>

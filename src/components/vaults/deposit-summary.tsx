@@ -4,6 +4,7 @@
 // Non-negotiable #5: no forbidden words.
 
 import { ApyRange } from "@/components/ui/apy-range";
+import { Card } from "@/components/ui/card";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
 import type { VaultProduct } from "@/lib/data/vaults";
@@ -42,7 +43,7 @@ export function DepositSummary({ vault, amount }: DepositSummaryProps) {
   const hurdleFee = vault.fees.hurdleBps > 0 ? vault.fees.hurdleBps / 100 : null;
 
   return (
-    <div className="ct-card flex flex-col gap-0">
+    <Card className="flex flex-col gap-0">
       <div className="flex items-center justify-between pb-3">
         <p className="eyebrow">Summary</p>
         <ProvenanceBadge kind="estimated" />
@@ -51,7 +52,7 @@ export function DepositSummary({ vault, amount }: DepositSummaryProps) {
       <div className="divide-y divide-[--ct-border-soft]">
         <SumRow label="You deposit">
           {amount > 0 ? (
-            <span className="tabular font-mono">
+            <span className="tabular mono">
               ${amount.toLocaleString("en-US")} USDC
             </span>
           ) : (
@@ -70,7 +71,7 @@ export function DepositSummary({ vault, amount }: DepositSummaryProps) {
 
         <SumRow label="Est. yearly yield">
           {yearlyYield !== null ? (
-            <span className="tabular font-mono">
+            <span className="tabular mono">
               ${yearlyYield.toLocaleString("en-US", { maximumFractionDigits: 0 })} USDC
             </span>
           ) : (
@@ -80,7 +81,7 @@ export function DepositSummary({ vault, amount }: DepositSummaryProps) {
 
         <SumRow label="Total at soft close">
           {totalAtClose !== null ? (
-            <span className="tabular font-mono">
+            <span className="tabular mono">
               ~${totalAtClose.toLocaleString("en-US", { maximumFractionDigits: 0 })} USDC
             </span>
           ) : (
@@ -105,6 +106,6 @@ export function DepositSummary({ vault, amount }: DepositSummaryProps) {
         range — not a projection of future returns. Subject to soft lock-up
         and fee terms. Not a projection of future returns.
       </p>
-    </div>
+    </Card>
   );
 }

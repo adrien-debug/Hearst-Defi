@@ -84,7 +84,7 @@ export default async function DistributionsPage() {
                     key={d.id}
                     className="border-t border-[--ct-border-soft] ct-hover-surface transition-colors"
                   >
-                    <td className="ct-table-cell font-mono text-xs ct-text-body">
+                    <td className="ct-table-cell mono text-xs ct-text-body">
                       {d.period}
                     </td>
                     <td className="ct-table-cell text-right ct-text-strong font-semibold tabular">
@@ -99,7 +99,7 @@ export default async function DistributionsPage() {
                     <td className="ct-table-cell text-right ct-text-muted">
                       {formatDate(d.distributedAt)}
                     </td>
-                    <td className="ct-table-cell text-right font-mono text-xs ct-text-faint">
+                    <td className="ct-table-cell text-right mono text-xs ct-text-faint">
                       {d.txHash
                         ? `${d.txHash.slice(0, 8)}…`
                         : <span className="ct-text-faint">—</span>}

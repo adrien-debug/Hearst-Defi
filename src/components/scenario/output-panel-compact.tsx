@@ -1,38 +1,15 @@
 import { ApyRange } from "@/components/ui/apy-range";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
-import type {
-  AllocationBucket,
-  ScenarioOutput,
-} from "@/lib/engine/types";
-
-// ── helpers ──────────────────────────────────────────────────────────────────
-
-const BUCKET_LABEL: Record<AllocationBucket, string> = {
-  mining: "Mining cashflow",
-  btc_tactical: "BTC tactical",
-  usdc_base: "USDC base yield",
-  stable_reserve: "Stable reserve",
-};
-
-const BUCKET_COLOR: Record<AllocationBucket, string> = {
-  mining: "var(--ct-text-strong)",
-  btc_tactical: "var(--ct-status-warning)",
-  usdc_base: "var(--ct-status-info)",
-  stable_reserve: "var(--ct-text-muted)",
-};
-
-const CONFIDENCE_VARIANT: Record<
-  ScenarioOutput["confidence"],
-  "danger" | "warning" | "success"
-> = {
-  low: "danger",
-  medium: "warning",
-  high: "success",
-};
+import {
+  BUCKET_COLOR,
+  BUCKET_LABEL,
+  CONFIDENCE_VARIANT,
+  progressScoreFillClass,
+} from "@/components/scenario/output-panel-shared";
+import type { ScenarioOutput } from "@/lib/engine/types";
 
 const MODE_LABEL: Record<ScenarioOutput["mode"], string> = {
   defensive: "Defensive",
@@ -48,17 +25,6 @@ const MODE_VARIANT: Record<
   balanced: "default",
   opportunistic: "success",
 };
-
-function scoreColorClass(score: number, invertedRisk = false): string {
-  if (invertedRisk) {
-    if (score > 70) return "bg-[--ct-status-danger]";
-    if (score > 40) return "bg-[--ct-status-warning]";
-    return "bg-[--ct-status-success]";
-  }
-  if (score < 30) return "bg-[--ct-status-danger]";
-  if (score < 60) return "bg-[--ct-status-warning]";
-  return "bg-[--ct-status-success]";
-}
 
 // ── delta helpers ────────────────────────────────────────────────────────────
 
@@ -117,8 +83,8 @@ export function OutputPanelCompact({
   vs,
   isPending,
 }: OutputPanelCompactProps) {
-  const riskColorClass = scoreColorClass(output.risk_score, true);
-  const miningColorClass = scoreColorClass(output.mining_margin_score, false);
+  const riskColorClass = progressScoreFillClass(output.risk_score, true);
+  const miningColorClass = progressScoreFillClass(output.mining_margin_score, false);
 
   const showDeltas = side === "B" && vs !== null && vs !== undefined;
   const apyDelta = showDeltas ? computeApyDelta(vs, output) : null;
@@ -145,14 +111,12 @@ export function OutputPanelCompact({
   return (
     <section
       className={cn(
-        "relative flex flex-col gap-4 rounded-[--radius-card]",
-        "border border-[--ct-border] bg-[--ct-surface-2]",
+        "relative flex flex-col gap-4 glass-panel p-5",
         "border-l-4",
         side === "A"
           ? "border-l-[--ct-border-strong]"
           : "border-l-[--ct-text-strong]",
-        "px-5 py-5",
-        "transition-opacity duration-150",
+        "transition-opacity duration-[var(--ct-dur-fast)]",
         isPending && "pointer-events-none opacity-50",
       )}
       aria-busy={isPending}
@@ -167,18 +131,18 @@ export function OutputPanelCompact({
       </header>
 
       {/* ── APY Hero ─────────────────────────────────────────────────── */}
-      <Card className="p-5">
-        <CardHeader className="mb-3">
-          <CardTitle className="text-base">Projected APY</CardTitle>
+      <div className="glass-panel-subtle p-5">
+        <div className="mb-3 flex items-start justify-between gap-4">
+          <h4 className="h4 text-[--ct-text-strong]">Projected APY</h4>
           <ProvenanceBadge kind="estimated" />
-        </CardHeader>
+        </div>
 
         <div className="flex flex-wrap items-end justify-between gap-3">
           <ApyRange
             low={output.apy_range.low}
             high={output.apy_range.high}
             className={cn(
-              "font-mono text-4xl font-extrabold tabular-nums",
+              "mono text-4xl font-extrabold tabular-nums",
               "text-[--ct-text-strong] leading-none",
             )}
           />
@@ -197,7 +161,7 @@ export function OutputPanelCompact({
         {apyDelta && (
           <p
             className={cn(
-              "mt-3 font-mono text-xs font-semibold tabular-nums",
+              "mt-3 mono text-xs font-semibold tabular-nums",
               apyDeltaToneClass,
             )}
             aria-label={`APY midpoint delta vs Scenario A: ${apyDelta.value.toFixed(2)} percentage points`}
@@ -208,18 +172,18 @@ export function OutputPanelCompact({
             </span>
           </p>
         )}
-      </Card>
+      </div>
 
       {/* ── Risk + Mining 2×1 ───────────────────────────────────────── */}
       <div className="grid gap-3 sm:grid-cols-2">
         {/* Risk Score */}
-        <Card className="p-4">
+        <div className="glass-panel-subtle p-4">
           <div className="mb-2 flex items-center justify-between gap-2">
             <span className="stat-label text-micro">Risk Score</span>
             <ProvenanceBadge kind="estimated" />
           </div>
           <div className="mb-1 flex items-baseline gap-1">
-            <span className="font-mono text-xl font-extrabold tabular-nums text-[--ct-text-primary]">
+            <span className="mono text-xl font-extrabold tabular-nums text-[--ct-text-primary]">
               {output.risk_score.toFixed(0)}
             </span>
             <span className="text-xs text-[--ct-text-muted]">/100</span>
@@ -233,7 +197,7 @@ export function OutputPanelCompact({
           {riskDelta && (
             <p
               className={cn(
-                "mt-2 font-mono text-micro font-semibold tabular-nums",
+                "mt-2 mono text-micro font-semibold tabular-nums",
                 riskDeltaToneClass,
               )}
               aria-label={`Risk score delta vs Scenario A: ${Math.round(riskDelta.value)}`}
@@ -244,10 +208,10 @@ export function OutputPanelCompact({
               </span>
             </p>
           )}
-        </Card>
+        </div>
 
         {/* Mining Margin */}
-        <Card className="p-4">
+        <div className="glass-panel-subtle p-4">
           <div className="mb-2 flex items-center justify-between gap-2">
             <span className="stat-label text-micro">
               Mining Margin
@@ -255,7 +219,7 @@ export function OutputPanelCompact({
             <ProvenanceBadge kind="estimated" />
           </div>
           <div className="mb-1 flex items-baseline gap-1">
-            <span className="font-mono text-xl font-extrabold tabular-nums text-[--ct-text-primary]">
+            <span className="mono text-xl font-extrabold tabular-nums text-[--ct-text-primary]">
               {output.mining_margin_score.toFixed(0)}
             </span>
             <span className="text-xs text-[--ct-text-muted]">/100</span>
@@ -268,11 +232,11 @@ export function OutputPanelCompact({
           <p className="mt-2 text-micro text-[--ct-text-muted]">
             Current vs target
           </p>
-        </Card>
+        </div>
       </div>
 
       {/* ── Vault Mode ───────────────────────────────────────────────── */}
-      <Card className="p-4">
+      <div className="glass-panel-subtle p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="stat-label text-micro">Vault Mode</p>
@@ -287,14 +251,14 @@ export function OutputPanelCompact({
             {MODE_LABEL[output.mode]}
           </Badge>
         </div>
-      </Card>
+      </div>
 
       {/* ── Allocation (compact table, no stacked bar) ────────────────── */}
-      <Card className="p-4">
-        <CardHeader className="mb-3">
-          <CardTitle className="text-base">Allocation</CardTitle>
+      <div className="glass-panel-subtle p-4">
+        <div className="mb-3 flex items-start justify-between gap-4">
+          <h4 className="h4 text-[--ct-text-strong]">Allocation</h4>
           <ProvenanceBadge kind="estimated" />
-        </CardHeader>
+        </div>
 
         <div>
           <div className="mb-1.5 grid grid-cols-[1fr_auto_auto] gap-x-3 text-micro font-semibold uppercase tracking-wide text-[--ct-text-muted]">
@@ -310,16 +274,16 @@ export function OutputPanelCompact({
               >
                 <span className="flex min-w-0 items-center gap-2 text-[--ct-text-body]">
                   <span
-                    className="inline-block h-2 w-2 shrink-0 rounded-full"
-                    style={{ background: BUCKET_COLOR[a.bucket] }}
+                    className="inline-block h-2 w-2 shrink-0 rounded-full shadow-[var(--ct-glow-dot)] bg-current"
+                    style={{ color: BUCKET_COLOR[a.bucket] }}
                     aria-hidden
                   />
                   <span className="truncate">{BUCKET_LABEL[a.bucket]}</span>
                 </span>
-                <span className="text-right font-mono tabular-nums text-[--ct-text-primary]">
+                <span className="text-right mono tabular-nums text-[--ct-text-primary]">
                   {a.pct.toFixed(0)}%
                 </span>
-                <span className="text-right font-mono text-xs tabular-nums text-[--ct-text-muted]">
+                <span className="text-right mono text-xs tabular-nums text-[--ct-text-muted]">
                   {a.yield_contribution_bps > 0
                     ? `+${a.yield_contribution_bps}bps`
                     : "P&L"}
@@ -328,7 +292,7 @@ export function OutputPanelCompact({
             ))}
           </ul>
         </div>
-      </Card>
+      </div>
     </section>
   );
 }

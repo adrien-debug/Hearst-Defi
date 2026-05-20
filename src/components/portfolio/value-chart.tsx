@@ -104,7 +104,7 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
         height="7.5rem"
         preserveAspectRatio="none"
         aria-hidden="true"
-        style={{ marginTop: "var(--ct-space-3)", display: "block" }}
+        className="mt-3 block"
       >
         <defs>
           <linearGradient id="pf-area-grad" x1="0" y1="0" x2="0" y2="1">
@@ -128,15 +128,7 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
       </svg>
 
       {/* Month labels */}
-      <div
-        className="stat-label ct-text-muted"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginTop: "var(--ct-space-1)",
-          fontFamily: "var(--font-mono)",
-        }}
-      >
+      <div className="stat-label ct-text-muted flex justify-between mt-1 mono">
         {series
           .filter((_, i) => i % 3 === 0 || i === series.length - 1)
           .map((s, i) => (
@@ -144,10 +136,7 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
           ))}
       </div>
 
-      <p
-        className="body-xs ct-text-muted"
-        style={{ marginTop: "var(--ct-space-2)", fontStyle: "italic" }}
-      >
+      <p className="body-xs ct-text-muted mt-2 italic">
         Indicative trend based on position history. Past performance does not predict future results.
       </p>
     </article>

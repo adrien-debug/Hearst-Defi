@@ -98,11 +98,7 @@ export function PositionActions({ position }: PositionActionsProps) {
   return (
     <section
       aria-label="Position actions"
-      style={{
-        display: "flex",
-        gap: "var(--ct-space-3)",
-        flexWrap: "wrap",
-      }}
+      className="flex flex-wrap gap-3"
     >
       {hasClaim && (
         <Button

@@ -64,7 +64,7 @@ function FeedbackRow({ item }: { item: FeedbackItem }) {
               <Badge variant="default">item: {item.itemId}</Badge>
             ) : null}
             {item.pathname ? (
-              <span className="font-mono">{item.pathname}</span>
+              <span className="mono">{item.pathname}</span>
             ) : null}
             {item.resolved ? <Badge variant="success">Resolved</Badge> : null}
           </div>

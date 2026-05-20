@@ -1,4 +1,4 @@
-import "../dashboard/dashboard.css";
+import "../product-bento.css";
 
 import Link from "next/link";
 import { loadPortfolio } from "@/lib/demo/loaders";

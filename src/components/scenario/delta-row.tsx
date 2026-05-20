@@ -81,8 +81,7 @@ export function DeltaRow({ a, b }: DeltaRowProps) {
   return (
     <div
       className={cn(
-        "rounded-[--radius-card] border border-[--ct-border]",
-        "bg-[--ct-surface-2] px-6 py-4",
+        "glass-panel px-6 py-4",
       )}
       aria-label="Scenario B vs A delta metrics"
     >
@@ -97,7 +96,7 @@ export function DeltaRow({ a, b }: DeltaRowProps) {
             <span className="stat-label text-micro">{m.label}</span>
             <span
               className={cn(
-                "font-mono text-2xl font-extrabold tabular-nums",
+                "mono text-2xl font-extrabold tabular-nums",
                 toneClass(m),
               )}
             >

@@ -58,10 +58,10 @@ const METHODOLOGY_VERSIONS = [{ id: "v1.0", label: "v1.0 (current)" }];
 
 // ─── Risk color helper (uses status tokens, no hardcoded hex) ─────────────────
 
-function riskColor(score: number): string {
-  if (score <= 35) return "var(--ct-status-success)";
-  if (score <= 65) return "var(--ct-status-warning)";
-  return "var(--ct-status-danger)";
+function riskTextClass(score: number): string {
+  if (score <= 35) return "text-[--ct-status-success]";
+  if (score <= 65) return "text-[--ct-status-warning]";
+  return "text-[--ct-status-danger]";
 }
 
 function riskBgClass(score: number): string {
@@ -232,17 +232,16 @@ function Heatmap({ cells, xAxis, yAxis, xValues, yValues, selectedRunId, onSelec
                 "border-[--ct-border-soft]",
                 isSelected && "ring-2 ring-offset-1 ring-offset-[--ct-bg-deep]",
                 isSelected && "ring-[--ct-accent]",
-                "hover:border-[--ct-border] hover:shadow-[--ct-shadow-elevated] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-accent]",
+                "hover:border-[--ct-border] hover:shadow-[var(--ct-shadow-elevated)] focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
               )}
             >
               <div className="flex flex-col gap-0.5">
                 <span
-                  className="mono tabular text-xs font-semibold leading-tight"
-                  style={{ color: riskColor(cell.riskScore) }}
+                  className={cn("mono tabular text-xs font-semibold leading-tight", riskTextClass(cell.riskScore))}
                 >
                   {cell.apyLow.toFixed(1)}–{cell.apyHigh.toFixed(1)}%
                 </span>
-                <span className="text-[length:var(--ct-text-micro)] text-[--ct-text-muted] font-mono">
+                <span className="text-[length:var(--ct-text-micro)] text-[--ct-text-muted] mono">
                   Risk {cell.riskScore}
                 </span>
               </div>
@@ -565,7 +564,7 @@ export function ProjectionStudio() {
                   label="Risk Score"
                   provenance="estimated"
                   value={
-                    <span style={{ color: riskColor(selectedCell.riskScore) }} className="tabular">
+                    <span className={cn("tabular", riskTextClass(selectedCell.riskScore))}>
                       {selectedCell.riskScore}
                     </span>
                   }
@@ -605,7 +604,7 @@ export function ProjectionStudio() {
                   label="Risk Score"
                   provenance="estimated"
                   value={
-                    <span style={{ color: riskColor(selectedCell.riskScore) }} className="tabular">
+                    <span className={cn("tabular", riskTextClass(selectedCell.riskScore))}>
                       {selectedCell.riskScore}
                     </span>
                   }

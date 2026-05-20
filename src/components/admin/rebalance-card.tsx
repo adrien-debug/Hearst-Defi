@@ -138,7 +138,7 @@ function AllocationDiffTable({
                 key={bucket}
                 className="border-t border-[--ct-border-soft] ct-hover-surface transition-colors"
               >
-                <td className="ct-table-cell ct-text-body font-mono text-xs capitalize">
+                <td className="ct-table-cell ct-text-body mono text-xs capitalize">
                   {bucket.replace(/_/g, " ")}
                 </td>
                 <td className="ct-table-cell text-right ct-text-muted tabular">
@@ -236,7 +236,7 @@ export function RebalanceCard({
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="ct-pill accent font-mono text-xs">
+            <span className="ct-pill accent mono text-xs">
               {event.ruleId}
             </span>
             <Badge variant={statusVariant(event.status)}>
@@ -252,7 +252,7 @@ export function RebalanceCard({
             {signerCount}/{requiredSigners} sigs
           </p>
           {event.txHash && (
-            <p className="body-xs font-mono ct-text-muted">
+            <p className="body-xs mono ct-text-muted">
               tx: {abbrWallet(event.txHash)}
             </p>
           )}
@@ -288,7 +288,7 @@ export function RebalanceCard({
           <p className="stat-label">Signers</p>
           <ul className="space-y-0.5">
             {signers.map((w) => (
-              <li key={w} className="body-xs font-mono ct-text-muted">
+              <li key={w} className="body-xs mono ct-text-muted">
                 {abbrWallet(w)}
               </li>
             ))}
@@ -313,7 +313,7 @@ export function RebalanceCard({
                 value={signerWallet}
                 onChange={(e) => setSignerWallet(e.target.value)}
                 placeholder="Signer wallet (0x…)"
-                className="ct-input flex-1 font-mono text-sm"
+                className="ct-input flex-1 mono text-sm"
                 disabled={isPending}
               />
             </div>
@@ -376,7 +376,7 @@ export function RebalanceCard({
               Executed {formatDate(event.executedAt)}
             </p>
             {event.txHash && (
-              <p className="body-xs font-mono ct-text-muted">
+              <p className="body-xs mono ct-text-muted">
                 tx: {event.txHash}
               </p>
             )}

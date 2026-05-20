@@ -20,10 +20,10 @@ const STATUS_LABELS: Record<string, string> = {
   exited: "Exited",
 };
 
-const STATUS_TONES: Record<string, string> = {
-  active: "color-primary",
-  matured: "color-muted",
-  exited: "color-accent",
+const STATUS_LEGEND_TONE: Record<string, "primary" | "accent" | "muted"> = {
+  active: "primary",
+  matured: "muted",
+  exited: "accent",
 };
 
 interface AllocationDonutProps {
@@ -69,16 +69,8 @@ export function AllocationDonut({
         <ProvenanceBadge kind={provenance} />
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "var(--ct-space-4)",
-          marginTop: "var(--ct-space-2)",
-        }}
-      >
-        <div className="dash-chart-container" style={{ marginTop: 0, width: "var(--ct-donut-size)", height: "var(--ct-donut-size)" }}>
+      <div className="flex flex-col items-center gap-4 mt-2">
+        <div className="dash-chart-container mt-0 w-[var(--ct-donut-size)] h-[var(--ct-donut-size)]">
           <svg
             className="dash-chart-svg"
             viewBox="0 0 42 42"
@@ -97,7 +89,7 @@ export function AllocationDonut({
             {segments.map((s) => (
               <circle
                 key={s.status}
-                className={`dash-chart-circle ${STATUS_TONES[s.status] ?? "color-muted"}`}
+                className={`dash-chart-circle color-${STATUS_LEGEND_TONE[s.status] ?? "muted"}`}
                 cx="21"
                 cy="21"
                 r="15.9155"
@@ -114,20 +106,12 @@ export function AllocationDonut({
           </div>
         </div>
 
-        <div className="dash-legend" style={{ width: "100%", marginTop: 0 }}>
+        <div className="dash-legend w-full mt-0">
           {segments.map((s) => (
             <div key={s.status} className="dash-legend-row">
               <span className="dash-legend-left">
                 <span
-                  className="dash-legend-dot"
-                  style={{
-                    background:
-                      s.status === "active"
-                        ? "var(--ct-text-strong)"
-                        : s.status === "matured"
-                          ? "var(--ct-surface-3)"
-                          : "var(--ct-accent-strong)",
-                  }}
+                  className={`dash-legend-dot dot-${STATUS_LEGEND_TONE[s.status] ?? "muted"}`}
                 />
                 {STATUS_LABELS[s.status] ?? s.status}
               </span>
@@ -137,7 +121,7 @@ export function AllocationDonut({
             </div>
           ))}
           {segments.length === 0 && (
-            <span className="dash-legend-left" style={{ color: "var(--ct-text-muted)" }}>
+            <span className="dash-legend-left text-[--ct-text-muted]">
               No positions
             </span>
           )}

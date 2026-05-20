@@ -39,12 +39,9 @@ export default async function SpecPage({
                 className={cn(
                   "block rounded-[--ct-radius-lg] px-2 py-1.5 text-sm transition-colors",
                   active
-                    ? "glass-panel-subtle"
-                    : "hover:glass-panel-subtle",
+                    ? "glass-panel-subtle text-[--ct-text-primary]"
+                    : "text-[--ct-text-muted] hover:glass-panel-subtle",
                 )}
-                style={{
-                  color: active ? "var(--ct-text-primary)" : "var(--ct-text-muted)",
-                }}
               >
                 <span className="mono tabular mr-2 text-xs text-[--ct-text-faint]">
                   {String(entry.order).padStart(2, "0")}

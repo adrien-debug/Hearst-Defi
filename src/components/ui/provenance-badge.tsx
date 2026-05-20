@@ -32,23 +32,12 @@ const variants: Record<
   stale: "danger",
 };
 
-const dotColor: Record<Provenance, string> = {
-  live: "var(--ct-status-success)",
-  oracle: "var(--ct-text-strong)",
-  attested: "var(--ct-text-strong)",
-  estimated: "var(--ct-status-warning)",
-  partial: "var(--ct-status-warning)",
-  manual: "var(--ct-text-muted)",
-  stale: "var(--ct-status-danger)",
-};
-
 export function ProvenanceBadge({ kind }: { kind: Provenance }) {
   return (
     <Badge variant={variants[kind]} title={`Data provenance: ${labels[kind]}`}>
       <span
         aria-hidden
-        className="inline-block h-[var(--ct-space-1_5)] w-[var(--ct-space-1_5)] rounded-full"
-        style={{ background: dotColor[kind] }}
+        className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-current"
       />
       {labels[kind]}
     </Badge>

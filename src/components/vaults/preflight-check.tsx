@@ -6,6 +6,7 @@
 
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { stubApprove, stubEpoch, abbreviateAddress, type EpochStatus } from "@/lib/onchain";
 
 interface CheckRowProps {
@@ -84,7 +85,7 @@ export function PreFlightCheck({
   const epochOk = epoch.status === "ACTIVE";
 
   return (
-    <div className="ct-card divide-y divide-[--ct-border-soft]">
+    <Card className="divide-y divide-[--ct-border-soft]">
       <p className="eyebrow py-3">Pre-flight check</p>
 
       {/* 1 — Wallet */}

@@ -119,7 +119,7 @@ export function PorSummary({ attestation }: PorSummaryProps) {
               href={`${EXPLORER_ADDRESS_BASE}${attestation.attestor}`}
               target="_blank"
               rel="noreferrer noopener"
-              className="mono tabular text-xs text-[--ct-text-primary] hover:text-[--ct-text-strong] transition-colors duration-[150ms]"
+              className="mono tabular text-xs text-[--ct-text-primary] hover:text-[--ct-text-strong] transition-colors duration-[var(--ct-dur-fast)]"
               title={attestation.attestor}
             >
               {truncateAddress(attestation.attestor)}
@@ -151,8 +151,8 @@ export function PorSummary({ attestation }: PorSummaryProps) {
           className={cn(
             "rounded-[--radius-button] border border-[--ct-text-strong] bg-[--ct-surface-1]",
             "px-3 py-1.5 text-xs text-[--ct-text-strong]",
-            "transition-colors duration-[150ms] hover:bg-[--ct-surface-2]",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]",
+            "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-2]",
+            "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
           )}
         >
           View attestation tx on Base Sepolia
@@ -171,8 +171,8 @@ export function PorSummary({ attestation }: PorSummaryProps) {
             className={cn(
               "rounded-[--radius-button] border border-[--ct-border-strong] bg-[--ct-surface-1]",
               "px-3 py-1.5 text-xs text-[--ct-text-primary]",
-              "transition-colors duration-[150ms] hover:bg-[--ct-surface-3]",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]",
+              "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-3]",
+              "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
             )}
           >
             View evidence (IPFS)

@@ -14,6 +14,7 @@ import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { Ptai } from "@/components/ui/ptai";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { DepositSummary } from "@/components/vaults/deposit-summary";
 import { PreFlightCheck, isPreFlightReady } from "@/components/vaults/preflight-check";
 import { TimeToTargetChart } from "@/components/vaults/time-to-target-chart";
@@ -187,7 +188,7 @@ export function InvestForm({ vault }: InvestFormProps) {
           <div className="relative">
             <span
               aria-hidden
-              className="absolute left-4 top-1/2 -translate-y-1/2 font-mono font-semibold ct-text-muted select-none"
+              className="absolute left-4 top-1/2 -translate-y-1/2 mono font-semibold ct-text-muted select-none"
             >
               $
             </span>
@@ -206,7 +207,7 @@ export function InvestForm({ vault }: InvestFormProps) {
               aria-describedby="amt-helper"
               aria-invalid={amount > 0 && !amountValid}
               className={cn(
-                "ct-input tabular w-full pl-8 pr-4 py-3 font-mono text-lg",
+                "ct-input tabular w-full pl-8 pr-4 py-3 mono text-lg",
                 amount > 0 && !amountValid
                   ? "border-[--ct-status-warning-border] focus:ring-[--ct-status-warning]"
                   : "",
@@ -306,10 +307,10 @@ export function InvestForm({ vault }: InvestFormProps) {
 
         {/* Time-to-target chart — only when amount is set */}
         {deferredAmount > 0 && (
-          <div className="ct-card mt-1">
+          <Card className="mt-1">
             <p className="eyebrow mb-3">Projected NAV — 24 month horizon</p>
             <TimeToTargetChart amount={deferredAmount} vault={vault} />
-          </div>
+          </Card>
         )}
 
         {/* PTAI block — mandatory (#3) */}

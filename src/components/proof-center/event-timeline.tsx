@@ -151,7 +151,7 @@ export function EventTimeline({ events }: EventTimelineProps) {
                       href={`${EXPLORER_TX_BASE}${event.txHash}`}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="hover:text-[--ct-text-strong] transition-colors duration-[150ms]"
+                      className="hover:text-[--ct-text-strong] transition-colors duration-[var(--ct-dur-fast)]"
                     >
                       {truncateHash(event.txHash)}
                     </a>
@@ -175,8 +175,8 @@ export function EventTimeline({ events }: EventTimelineProps) {
                       className={cn(
                         "rounded-[--radius-button] border border-[--ct-border-strong] bg-[--ct-surface-1]",
                         "px-3 py-1 text-xs text-[--ct-text-primary]",
-                        "transition-colors duration-[150ms] hover:bg-[--ct-surface-3]",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]",
+                        "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-3]",
+                        "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
                       )}
                     >
                       View payload (IPFS)

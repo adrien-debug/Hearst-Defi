@@ -21,8 +21,6 @@ const TARGET_CUMULATIVE_PCT = 10; // 10% cumulative yield as "milestone"
 const W = 560;
 const H = 160;
 const PAD = { top: 12, right: 16, bottom: 32, left: 56 };
-// Named constant so magic-number lint and future DS token updates touch one place.
-const CHART_LABEL_SIZE = "var(--ct-text-micro)"; // 10px — matches .eyebrow / .stat-label micro scale
 
 export function TimeToTargetChart({ amount, vault }: TimeToTargetChartProps) {
   const series = useMemo(
@@ -74,8 +72,7 @@ export function TimeToTargetChart({ amount, vault }: TimeToTargetChartProps) {
         viewBox={`0 0 ${W} ${H}`}
         aria-label="Projected NAV growth chart"
         role="img"
-        className="w-full h-auto"
-        style={{ maxHeight: `${H}px` }}
+        className="w-full h-auto max-h-[160px]"
       >
         <defs>
           {/* Accent gradient — vars only, no hex */}
@@ -100,12 +97,7 @@ export function TimeToTargetChart({ amount, vault }: TimeToTargetChartProps) {
               x={PAD.left - 6}
               y={yOf(nav) + 4}
               textAnchor="end"
-              className="tabular"
-              style={{
-                fill: "var(--ct-text-faint)",
-                fontSize: CHART_LABEL_SIZE,
-                fontVariantNumeric: "tabular-nums",
-              }}
+              className="tabular fill-[--ct-text-faint] text-[length:var(--ct-text-micro)]"
             >
               ${(nav / 1000).toFixed(0)}k
             </text>
@@ -119,7 +111,7 @@ export function TimeToTargetChart({ amount, vault }: TimeToTargetChartProps) {
             x={xOf(m)}
             y={H - 6}
             textAnchor="middle"
-            style={{ fill: "var(--ct-text-faint)", fontSize: CHART_LABEL_SIZE }}
+            className="fill-[--ct-text-faint] text-[length:var(--ct-text-micro)]"
           >
             m{m}
           </text>
@@ -175,10 +167,7 @@ export function TimeToTargetChart({ amount, vault }: TimeToTargetChartProps) {
             <text
               x={xOf(months10pct) + 4}
               y={PAD.top + 12}
-              style={{
-                fill: "var(--ct-status-success)",
-                fontSize: CHART_LABEL_SIZE,
-              }}
+              className="fill-[--ct-status-success] text-[length:var(--ct-text-micro)]"
             >
               +{TARGET_CUMULATIVE_PCT}% @m{months10pct}
             </text>

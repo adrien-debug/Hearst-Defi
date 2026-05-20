@@ -20,10 +20,9 @@ export function ApyRange({
   return (
     <span
       className={cn(
-        "font-mono tabular-nums font-semibold ct-status-glow-success",
+        "mono tabular-nums font-semibold text-[--ct-text-strong]",
         className,
       )}
-      style={{ color: "var(--ct-status-success)" }}
       aria-label={`APY range ${fmt(a)} to ${fmt(b)} ${suffix}`}
     >
       {fmt(a)}
@@ -32,8 +31,7 @@ export function ApyRange({
       </span>
       {fmt(b)}
       <span
-        className="ml-0.5"
-        style={{ color: "var(--ct-status-success)", opacity: 0.8 }}
+        className="ml-0.5 opacity-80"
       >
         {suffix}
       </span>

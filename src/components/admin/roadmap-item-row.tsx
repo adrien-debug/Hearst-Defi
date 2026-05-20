@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 import {
-  statusDotColor,
+  statusDotClass,
   statusLabel,
   type RoadmapItemWithState,
   type RoadmapStatus,
@@ -60,8 +60,10 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
         <span
           role="img"
           aria-label={statusLabel(item.status)}
-          className="inline-block h-2.5 w-2.5 shrink-0 rounded-[--ct-radius-full]"
-          style={{ background: statusDotColor(item.status) }}
+          className={cn(
+            "inline-block h-2.5 w-2.5 shrink-0 rounded-[--ct-radius-full]",
+            statusDotClass(item.status),
+          )}
           title={statusLabel(item.status)}
         />
         <div className="min-w-0 flex-1">
@@ -83,9 +85,9 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
             {item.blockers ? <Badge variant="danger">Blocker</Badge> : null}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[--ct-text-muted]">
-            <span className="font-mono">{item.id}</span>
+            <span className="mono">{item.id}</span>
             {item.spec_ref ? (
-              <span className="font-mono text-[--ct-text-faint]">
+              <span className="mono text-[--ct-text-faint]">
                 · {item.spec_ref}
               </span>
             ) : null}
@@ -120,8 +122,10 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
             >
               <span
                 aria-hidden
-                className="inline-block h-2 w-2 rounded-[--ct-radius-full]"
-                style={{ background: statusDotColor(s) }}
+                className={cn(
+                  "inline-block h-2 w-2 rounded-[--ct-radius-full]",
+                  statusDotClass(s),
+                )}
               />
             </Button>
           ))}
@@ -185,7 +189,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
               type="url"
               defaultValue={item.evidenceUrl ?? ""}
               placeholder="https://… preview, PR, screenshot"
-              className="ct-input font-mono"
+              className="ct-input mono"
             />
           </label>
 

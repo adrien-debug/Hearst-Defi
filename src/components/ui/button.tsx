@@ -4,14 +4,14 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/cn";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-[--ct-radius-full] text-sm font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-border-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep] active:scale-[0.98]",
+  "inline-flex items-center justify-center gap-2 rounded-[--ct-radius-full] text-sm font-medium transition-all duration-[var(--ct-dur-base)] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)] active:scale-[0.98]",
   {
     variants: {
       variant: {
         primary:
-          "bg-[--ct-text-strong] text-[--ct-bg-deep] hover:bg-[--ct-text-primary] shadow-[var(--ct-glow-subtle)] hover:shadow-[var(--ct-glow-soft)]",
+          "font-bold bg-[--ct-text-strong] text-[--ct-bg-deep] hover:bg-[--ct-text-primary] shadow-[var(--ct-glow-subtle)] hover:shadow-[var(--ct-glow-soft)]",
         secondary:
-          "bg-[--ct-surface-0] backdrop-blur-[20px] border border-[--ct-border-soft] text-[--ct-text-primary] hover:bg-[--ct-surface-2] hover:border-[--ct-border-strong] hover:text-[--ct-text-strong] shadow-sm",
+          "bg-[--ct-surface-0] backdrop-blur-xl border border-[--ct-border-soft] text-[--ct-text-primary] hover:bg-[--ct-surface-2] hover:border-[--ct-border-strong] hover:text-[--ct-text-strong] shadow-[var(--ct-shadow-soft)]",
         ghost:
           "text-[--ct-text-muted] hover:bg-[--ct-surface-1] hover:text-[--ct-text-strong]",
         danger:

@@ -53,16 +53,17 @@
     sans-serif;
   --font-mono: "Satoshi", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 
-  --text-micro: 0.6875rem;
-  --text-xs: 0.75rem;
+  /* Aligned with cockpit.css --ct-text-* (design-lock stage 0). */
+  --text-micro: 0.625rem;
+  --text-xs: 0.6875rem;
   --text-sm: 0.875rem;
   --text-md: 1rem;
   --text-lg: 1.125rem;
-  --text-xl: 1.375rem;
+  --text-xl: 1.25rem;
   --text-2xl: 1.75rem;
-  --text-3xl: 2.25rem;
-  --text-4xl: 3rem;
-  --text-5xl: 3.75rem;
+  --text-3xl: 2rem;
+  --text-4xl: 2.75rem;
+  --text-5xl: 2.75rem;
   --text-xxl: var(--text-3xl);
 
   /* Font weights */

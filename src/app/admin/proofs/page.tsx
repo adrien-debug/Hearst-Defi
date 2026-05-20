@@ -27,7 +27,7 @@ export default async function ProofsPage() {
 
       <p className="body-sm ct-text-muted">
         New attestations are ingested via the{" "}
-        <code className="font-mono ct-text-body">ingestProof()</code>{" "}
+        <code className="mono ct-text-body">ingestProof()</code>{" "}
         Server Action. On-chain submission UI is available in Phase 2.
       </p>
     </div>

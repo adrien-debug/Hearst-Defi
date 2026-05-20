@@ -103,13 +103,13 @@ function TabBar({ active, onChange }: TabBarProps) {
   return (
     <nav
       aria-label="Scenario Lab tabs"
-      className="flex gap-1 rounded-[--radius-button] border border-[--ct-border] bg-[--ct-surface-1] p-1 w-fit"
+      className="flex gap-1 glass-panel-subtle p-1 w-fit"
       onKeyDown={handleKeyDown}
     >
       {(["scenario", "backtest"] as Tab[]).map((tab) => {
         const isActive = active === tab;
         return (
-          <button
+          <Button
             key={tab}
             type="button"
             role="tab"
@@ -117,18 +117,18 @@ function TabBar({ active, onChange }: TabBarProps) {
             aria-controls={`tabpanel-${tab}`}
             aria-selected={isActive}
             tabIndex={isActive ? 0 : -1}
+            variant="ghost"
+            size="sm"
             onClick={() => onChange(tab)}
             className={cn(
-              "rounded-[--radius-sm] px-5 py-2 text-sm font-semibold capitalize",
-              "transition-[background-color,color] duration-150",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-surface-1]",
+              "rounded-[--ct-radius-sm] px-5 py-2 text-sm font-semibold capitalize shadow-none active:scale-100",
               isActive
-                ? "bg-[--ct-text-strong] text-[--ct-bg-deep]"
+                ? "bg-[--ct-text-strong] text-[--ct-bg-deep] hover:bg-[--ct-text-strong] hover:text-[--ct-bg-deep]"
                 : "text-[--ct-text-body] hover:text-[--ct-text-primary]",
             )}
           >
             {tab === "scenario" ? "Scenario" : "Backtest"}
-          </button>
+          </Button>
         );
       })}
     </nav>
@@ -147,12 +147,12 @@ function ScenarioModeToggle({ active, onChange }: ScenarioModeToggleProps) {
     <div
       role="tablist"
       aria-label="Scenario mode"
-      className="inline-flex gap-1 rounded-[--radius-button] border border-[--ct-border] bg-[--ct-surface-1] p-1"
+      className="inline-flex gap-1 glass-panel-subtle p-1"
     >
       {(["single", "compare"] as ScenarioMode[]).map((mode) => {
         const isActive = active === mode;
         return (
-          <button
+          <Button
             key={mode}
             type="button"
             role="tab"
@@ -160,18 +160,18 @@ function ScenarioModeToggle({ active, onChange }: ScenarioModeToggleProps) {
             aria-controls={`tabpanel-mode-${mode}`}
             aria-selected={isActive}
             tabIndex={isActive ? 0 : -1}
+            variant="ghost"
+            size="sm"
             onClick={() => onChange(mode)}
             className={cn(
-              "rounded-[--radius-sm] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide",
-              "transition-[background-color,color] duration-150",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-surface-1]",
+              "rounded-[--ct-radius-sm] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide shadow-none active:scale-100",
               isActive
-                ? "bg-[--ct-text-strong] text-[--ct-bg-deep]"
+                ? "bg-[--ct-text-strong] text-[--ct-bg-deep] hover:bg-[--ct-text-strong] hover:text-[--ct-bg-deep]"
                 : "text-[--ct-text-body] hover:text-[--ct-text-primary]",
             )}
           >
             {mode}
-          </button>
+          </Button>
         );
       })}
     </div>
@@ -231,9 +231,9 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
               aria-pressed={isActive}
               className={cn(
                 "flex flex-col items-start gap-0.5 rounded-[--radius-button] border px-4 py-3 text-left",
-                "transition-[background-color,color,border-color,box-shadow] duration-150",
+                "transition-[background-color,color,border-color,box-shadow] duration-[var(--ct-dur-fast)]",
                 "disabled:cursor-not-allowed disabled:opacity-40",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ct-text-strong] focus-visible:ring-offset-2 focus-visible:ring-offset-[--ct-bg-deep]",
+                "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
                 isActive
                   ? [
                       "border-[--ct-text-strong] bg-[--ct-text-strong] text-[--ct-bg-deep]",
@@ -270,7 +270,7 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
           {BACKTEST_PERIODS.map((p) => (
             <div
               key={p.key}
-              className="rounded-[--radius-card] border border-[--ct-border-soft] bg-[--ct-surface-2] px-5 py-4"
+              className="glass-panel-subtle px-5 py-4"
             >
               <p className="text-sm font-semibold text-[--ct-text-body]">
                 {p.label}
@@ -298,7 +298,7 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
         <div
           className={cn(
             "flex min-h-64 flex-col items-center justify-center gap-3",
-            "rounded-[--radius-card] border border-dashed border-[--ct-border-soft]",
+            "glass-panel-subtle border-dashed",
           )}
         >
           <Spinner />
@@ -512,7 +512,7 @@ function SingleMode({
 
       <div className="grid gap-8 lg:grid-cols-[minmax(var(--ct-input-panel-min,360px),var(--ct-input-panel-max,420px))_1fr]">
         {/* Left: Inputs panel */}
-        <div className="flex flex-col gap-0 rounded-[--radius-card] border border-[--ct-border] bg-[--ct-surface-2]">
+        <div className="flex flex-col gap-0 glass-panel p-0 overflow-hidden">
           <div className="border-b border-[--ct-border-soft] px-6 py-4">
             <h3 className="h4">Inputs</h3>
             <p className="mt-0.5 text-xs text-[--ct-text-muted]">
@@ -576,8 +576,8 @@ function SingleMode({
             <div
               className={cn(
                 "flex min-h-80 flex-col items-center justify-center gap-3",
-                "rounded-[--radius-card] border border-dashed border-[--ct-border-soft]",
-                "transition-opacity duration-150",
+                "glass-panel-subtle border-dashed",
+                "transition-opacity duration-[var(--ct-dur-fast)]",
                 scenarioPending && "opacity-50",
               )}
             >

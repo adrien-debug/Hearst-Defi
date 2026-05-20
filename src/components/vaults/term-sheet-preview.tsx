@@ -5,6 +5,7 @@
 
 import { ApyRange } from "@/components/ui/apy-range";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import type { VaultProduct } from "@/lib/data/vaults";
 
@@ -116,7 +117,7 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
     <div className="flex flex-col gap-8">
       {/* ── 1. KPIs ─────────────────────────────────────────────────── */}
       <Section id="sec-kpis" title="Key metrics">
-        <div className="ct-card flex flex-col gap-0">
+        <Card className="flex flex-col gap-0">
           {/* APY range — mandatory primitive (#1), provenance badge (#2) */}
           <div className="flex items-center justify-between gap-4 py-3 border-b border-[--ct-border-soft]">
             <span className="stat-label flex-1">Target APY range</span>
@@ -171,12 +172,12 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
             value="v1.0 (active)"
             provenance="attested"
           />
-        </div>
+        </Card>
       </Section>
 
       {/* ── 2. Strategy ─────────────────────────────────────────────── */}
       <Section id="sec-strategy" title="Strategy & provenance">
-        <div className="ct-card flex flex-col gap-3">
+        <Card className="flex flex-col gap-3">
           <p className="body-md ct-text-body">{vault.description}</p>
           <div className="flex flex-wrap gap-2 pt-2 border-t border-[--ct-border-soft]">
             <Badge variant="brand">Mining-backed</Badge>
@@ -188,19 +189,19 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
             <p className="body-sm ct-text-muted">
               <strong className="ct-text-body">Methodology:</strong> Yield
               projections follow{" "}
-              <span className="font-mono">v1.0</span> — a weighted-bucket model
+              <span className="mono">v1.0</span> — a weighted-bucket model
               combining mining net distributable yield, USDC base lending, BTC
               tactical P&L, and stable reserve yield. APY ranges use
               ±10–30% assumption risk factors. Published and immutable; any
               change requires a version bump and an Architecture Decision Record.
             </p>
           </div>
-        </div>
+        </Card>
       </Section>
 
       {/* ── 3. Allocation policy ────────────────────────────────────── */}
       <Section id="sec-alloc" title="Allocation policy">
-        <div className="ct-card flex flex-col gap-0">
+        <Card className="flex flex-col gap-0">
           {allocRows.map((row, i) => (
             <div
               key={row.label}
@@ -214,19 +215,19 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
                 <span className="body-md font-semibold ct-text-primary">
                   {row.label}
                 </span>
-                <span className="tabular font-mono font-semibold text-sm ct-text-strong">
+                <span className="tabular mono font-semibold text-sm ct-text-strong">
                   {(row.bps / 100).toFixed(0)}%
                 </span>
               </div>
               <p className="body-sm ct-text-muted">{row.description}</p>
             </div>
           ))}
-        </div>
+        </Card>
       </Section>
 
       {/* ── 4. Legal ────────────────────────────────────────────────── */}
       <Section id="sec-legal" title="Legal & structure">
-        <div className="ct-card flex flex-col gap-0">
+        <Card className="flex flex-col gap-0">
           <KpiRow
             label="SPV structure"
             value={SPV_LABELS[vault.spvJurisdiction] ?? vault.spvJurisdiction}
@@ -257,13 +258,13 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
             value="Spearbit · Q1 2026"
             provenance="attested"
           />
-        </div>
+        </Card>
       </Section>
 
       {/* ── 5. Disclaimers (#10 — mandatory "not guaranteed") ────────── */}
       <Section id="sec-disclaimers" title="Disclaimers">
-        <div
-          className="ct-card border border-[--ct-border-strong]"
+        <Card
+          className="border border-[--ct-border-strong]"
           role="note"
           aria-label="Important disclaimers"
         >
@@ -276,7 +277,7 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
             deviate. This document is informational only and does not constitute
             an offer or solicitation where prohibited by law.
           </p>
-        </div>
+        </Card>
       </Section>
     </div>
   );

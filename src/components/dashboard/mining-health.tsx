@@ -40,10 +40,10 @@ const TONE_BAR: Record<Tone, string> = {
   bad: "ct-status-dot-danger",
 };
 
-const TONE_DOT_COLOR: Record<Tone, string> = {
-  good: "var(--ct-status-success)",
-  warn: "var(--ct-status-warning)",
-  bad: "var(--ct-status-danger)",
+const TONE_DOT_CLASS: Record<Tone, string> = {
+  good: "ct-status-dot-success",
+  warn: "ct-status-dot-warning",
+  bad: "ct-status-dot-danger",
 };
 
 interface ScoreRowProps {
@@ -62,8 +62,10 @@ function ScoreRow({ label, hint, value, tone, bar }: ScoreRowProps) {
           <div className="flex items-center gap-2">
             <span
               aria-hidden
-              className="inline-block h-2 w-2 rounded-full shadow-[--ct-glow-dot]"
-              style={{ background: TONE_DOT_COLOR[tone], color: TONE_DOT_COLOR[tone] }}
+              className={cn(
+                "inline-block h-2 w-2 shrink-0 rounded-full",
+                TONE_DOT_CLASS[tone],
+              )}
             />
             <span className="text-sm font-medium text-[--ct-text-primary] group-hover:text-[--ct-text-body] transition-colors">{label}</span>
           </div>

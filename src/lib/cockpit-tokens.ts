@@ -81,8 +81,9 @@ export const CT_PDF = {
   statusDangerSoft: "#fee2e2",
 } as const;
 
-// ── Allocation palette (used by PDF + dashboard charts) ────────────────────
-// Keep these as semantic role colours, not raw hex anywhere else in the code.
+// ── Allocation palette (PDF / light print only) ───────────────────────────
+// Web UI strokes: `ALLOCATION_STROKE` in `src/lib/allocation-colors.ts`
+// (dark Cockpit: accent-strong, accent-maroon, surface-3 — not these hex).
 export const CT_ALLOCATION = {
   mining: CT_PDF.textPrimary, // mining = anchor / strongest ink
   usdc_base: CT_PDF.textMuted,

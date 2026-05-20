@@ -17,8 +17,8 @@ const dateFmt = new Intl.DateTimeFormat("en-US", {
 });
 
 const STATUS_DOT: Record<string, string> = {
-  active: "var(--ct-status-success)",
-  matured: "var(--ct-text-muted)",
+  active: "var(--ct-text-strong)",
+  matured: "var(--ct-surface-3)",
   exited: "var(--ct-accent-strong)",
 };
 
@@ -46,58 +46,31 @@ export function PositionsList({ positions, source }: PositionsListProps) {
       </div>
 
       {positions.length === 0 ? (
-        <p className="body-sm ct-text-muted" style={{ marginTop: "var(--ct-space-4)" }}>
+        <p className="body-sm ct-text-muted mt-4">
           No open positions.
         </p>
       ) : (
-        <div
-          style={{
-            marginTop: "var(--ct-space-3)",
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--ct-space-2)",
-          }}
-        >
+        <div className="flex flex-col gap-2 mt-3">
           {/* Header row */}
-          <div
-            className="stat-label"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr auto auto auto auto",
-              gap: "var(--ct-space-4)",
-              paddingBottom: "var(--ct-space-2)",
-              borderBottom: "1px solid var(--ct-border-soft)",
-            }}
-          >
+          <div className="stat-label grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 pb-2 border-b border-[--ct-border-soft]">
             <span>Vault</span>
-            <span style={{ textAlign: "right" }}>Principal</span>
-            <span style={{ textAlign: "right" }}>Value</span>
-            <span style={{ textAlign: "right" }}>Target APY</span>
-            <span style={{ textAlign: "right" }}>Since</span>
+            <span className="text-right">Principal</span>
+            <span className="text-right">Value</span>
+            <span className="text-right">Target APY</span>
+            <span className="text-right">Since</span>
           </div>
 
           {positions.map((p) => (
             <div
               key={p.id}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr auto auto auto auto",
-                gap: "var(--ct-space-4)",
-                alignItems: "center",
-                paddingBottom: "var(--ct-space-2)",
-                borderBottom: "1px solid var(--ct-border-soft)",
-              }}
+              className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 items-center pb-2 border-b border-[--ct-border-soft]"
             >
               {/* Vault name + status */}
-              <div style={{ display: "flex", alignItems: "center", gap: "var(--ct-space-2)", minWidth: 0 }}>
+              <div className="flex items-center gap-2 min-w-0">
                 <span
+                  className="w-2 h-2 shrink-0 rounded-full"
                   style={{
-                    display: "inline-block",
-                    width: "var(--ct-space-2)",
-                    height: "var(--ct-space-2)",
-                    borderRadius: "50%",
                     background: STATUS_DOT[p.status] ?? "var(--ct-text-muted)",
-                    flexShrink: 0,
                   }}
                 />
                 <span className="body-md ct-text-primary min-w-0 truncate">
@@ -111,30 +84,17 @@ export function PositionsList({ positions, source }: PositionsListProps) {
               </span>
 
               {/* Current value */}
-              <span
-                className="tabular body-md ct-text-strong"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontWeight: "var(--ct-font-semibold)",
-                  textAlign: "right",
-                }}
-              >
+              <span className="tabular body-md ct-text-strong mono font-semibold text-right">
                 {usdCompact.format(p.valueUsdc)}
               </span>
 
               {/* APY range — non-negotiable #1 */}
-              <div style={{ textAlign: "right" }}>
+              <div className="text-right">
                 <ApyRange low={p.apyLow} high={p.apyHigh} precision={1} />
               </div>
 
               {/* Subscribed date */}
-              <span
-                className="body-xs tabular ct-text-muted"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  textAlign: "right",
-                }}
-              >
+              <span className="body-xs tabular ct-text-muted mono text-right">
                 {dateFmt.format(p.subscribedAt)}
               </span>
             </div>

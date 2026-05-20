@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
+import { cn } from "@/lib/cn";
 import type { PositionDetail } from "@/lib/data/portfolio";
 
 const usdFull = new Intl.NumberFormat("en-US", {
@@ -48,55 +49,22 @@ export function PositionHeader({ position }: PositionHeaderProps) {
   const provenance = position.source === "live" ? "live" : "stale";
 
   return (
-    <header
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "var(--ct-space-4)",
-      }}
-    >
+    <header className="flex flex-col gap-4">
       {/* Back link */}
       <Link
         href="/portfolio"
-        className="body-sm ct-text-muted"
-        style={{
-          textDecoration: "none",
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "var(--ct-space-1)",
-          transition: "color var(--ct-dur-fast) var(--ct-ease)",
-        }}
+        className="body-sm ct-text-muted hover:ct-text-primary transition-colors inline-flex items-center gap-1 no-underline"
       >
         ← Portfolio
       </Link>
 
       {/* Title row */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "var(--ct-space-3)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--ct-space-1)",
-          }}
-        >
-          <h2
-            className="h2 ct-text-strong"
-            style={{ margin: 0 }}
-          >
+      <div className="flex items-start justify-between flex-wrap gap-3">
+        <div className="flex flex-col gap-1">
+          <h2 className="h2 ct-text-strong m-0">
             {position.vaultName}
           </h2>
-          <span
-            className="eyebrow tabular ct-text-muted"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
+          <span className="eyebrow tabular ct-text-muted mono">
             {position.vaultTicker} ·{" "}
             <span title={position.id}>{position.id.slice(0, 8)}&hellip;</span>
           </span>
@@ -108,42 +76,20 @@ export function PositionHeader({ position }: PositionHeaderProps) {
       </div>
 
       {/* Total value */}
-      <div
-        className="ct-card"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "var(--ct-space-4)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--ct-space-1)",
-          }}
-        >
+      <div className="ct-card flex items-center justify-between flex-wrap gap-4">
+        <div className="flex flex-col gap-1">
           <span className="eyebrow ct-text-muted">
             Total value
           </span>
-          <span
-            className="stat-value tabular ct-text-strong"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
+          <span className="stat-value tabular ct-text-strong mono">
             {usdFull.format(totalValue)}
           </span>
           {delta !== 0 && (
             <span
-              className="body-sm tabular"
-              style={{
-                color:
-                  delta >= 0
-                    ? "var(--ct-status-success)"
-                    : "var(--ct-status-danger)",
-                fontFamily: "var(--font-mono)",
-              }}
+              className={cn(
+                "body-sm tabular mono",
+                delta >= 0 ? "text-[--ct-status-success]" : "text-[--ct-status-danger]"
+              )}
             >
               {deltaSign}
               {usdFull.format(delta)} · {deltaSign}

@@ -26,10 +26,10 @@ const SEVERITY_BAR: Record<RiskSeverity, string> = {
   high: "ct-status-dot-danger",
 };
 
-const SEVERITY_DOT: Record<RiskSeverity, string> = {
-  low: "var(--ct-status-success)",
-  medium: "var(--ct-status-warning)",
-  high: "var(--ct-status-danger)",
+const SEVERITY_DOT_CLASS: Record<RiskSeverity, string> = {
+  low: "ct-status-dot-success",
+  medium: "ct-status-dot-warning",
+  high: "ct-status-dot-danger",
 };
 
 const SEVERITY_VARIANT: Record<
@@ -113,7 +113,7 @@ function CompositeHeader({ composite, band, bandLabel }: CompositeHeaderProps) {
     <div className="flex flex-col gap-4 rounded-[--ct-radius-xl] glass-panel-subtle px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-baseline gap-3">
         <span className="stat-label">Composite</span>
-        <span className={cn("text-4xl font-semibold tracking-tight tabular-nums", BAND_TEXT[band])}>
+        <span className={cn("text-3xl font-semibold tracking-tight tabular-nums", BAND_TEXT[band])}>
           {composite}
           <span className="text-[--ct-text-faint] text-lg font-normal ml-1">
             / 100
@@ -144,8 +144,10 @@ function RiskRow({ dimension }: RiskRowProps) {
       <div className="flex min-w-0 flex-1 items-start gap-3">
         <span
           aria-hidden
-          className="mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full shadow-[--ct-glow-dot]"
-          style={{ background: SEVERITY_DOT[severity], color: SEVERITY_DOT[severity] }}
+          className={cn(
+            "mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full",
+            SEVERITY_DOT_CLASS[severity],
+          )}
         />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">

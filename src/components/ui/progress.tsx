@@ -40,7 +40,7 @@ export function Progress({
     >
       <div
         className={cn(
-          "h-full transition-[width] duration-700 ease-out relative",
+          "h-full transition-[width] duration-[var(--ct-dur-slow)] ease-[var(--ct-ease)] relative",
           fillClassName ?? "bg-[--ct-text-strong]",
         )}
         style={{ width: `${pct}%` }}

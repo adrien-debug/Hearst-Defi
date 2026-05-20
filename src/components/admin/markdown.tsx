@@ -41,13 +41,13 @@ export function Markdown({ content }: { content: string }) {
           code: ({ children, className }) => {
             if (className?.startsWith("language-")) {
               return (
-                <code className="font-mono text-xs text-[--ct-text-strong]">
+                <code className="mono text-xs text-[--ct-text-strong]">
                   {children}
                 </code>
               );
             }
             return (
-              <code className="rounded-[--ct-radius-sm] bg-[--ct-surface-1] px-1 py-0.5 font-mono text-xs text-[--ct-text-primary]">
+              <code className="rounded-[--ct-radius-sm] bg-[--ct-surface-1] px-1 py-0.5 mono text-xs text-[--ct-text-primary]">
                 {children}
               </code>
             );

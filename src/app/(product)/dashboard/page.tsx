@@ -1,9 +1,17 @@
 import "./dashboard.css";
 
+import { MiningHealthSection } from "@/components/dashboard/mining-health";
+import { RiskFrameworkSection } from "@/components/dashboard/risk-framework";
+import { TimeseriesSection } from "@/components/dashboard/timeseries-section";
 import {
   ProvenanceBadge,
   type Provenance,
 } from "@/components/ui/provenance-badge";
+import {
+  allocationDashToneFor,
+  allocationLabelFor,
+} from "@/lib/allocation-colors";
+import { toHashpriceRow, toMiningHealth } from "@/lib/dashboard-adapters";
 import {
   fetchHashprice,
   loadDashboardData,
@@ -66,20 +74,6 @@ function provenanceFor(
 ): Provenance {
   return loaderSource === "fallback" ? "stale" : intrinsic;
 }
-
-const ALLOCATION_TONES: Record<string, "primary" | "accent" | "maroon" | "muted"> = {
-  mining: "primary",
-  btc_tactical: "accent",
-  usdc_base: "maroon",
-  stable_reserve: "muted",
-};
-
-const ALLOCATION_LABELS: Record<string, string> = {
-  mining: "Mining",
-  btc_tactical: "BTC Tactical",
-  usdc_base: "USDC Base",
-  stable_reserve: "Stable Reserve",
-};
 
 /** Generate a deterministic sparkline path from current value + delta30d. */
 function buildSparklinePath(currentValue: number, delta30d: number): string {
@@ -166,7 +160,7 @@ export default async function DashboardPage() {
       const dashOffset = -cumulative;
       segs.push({
         bucket: a.bucket,
-        tone: ALLOCATION_TONES[a.bucket] ?? "muted",
+        tone: allocationDashToneFor(a.bucket),
         pct: a.pct,
         valueUsdc: a.valueUsdc,
         dashArray,
@@ -192,51 +186,10 @@ export default async function DashboardPage() {
       ? "stale"
       : provenanceFor("oracle", data.source);
   const allocationProvenance = provenanceFor("live", data.source);
-  const riskProvenance = provenanceFor("estimated", riskFramework.source);
-  const miningProvenance = provenanceFor("attested", data.source);
   const opConfProvenance = provenanceFor("estimated", data.source);
   const activityProvenance: Provenance =
     data.recentEvents.length === 0 ? "stale" : provenanceFor("live", data.source);
   const distributionProvenance = provenanceFor("live", data.source);
-
-  /** Mining sub-metrics as depth chart bars. */
-  const miningBars = [
-    {
-      key: "margin",
-      label: "Margin Score",
-      pct: data.vault.miningMarginScore,
-      val: `${data.vault.miningMarginScore}/100`,
-      tone: "primary" as const,
-    },
-    {
-      key: "uptime",
-      label: "Uptime",
-      pct: 98.5,
-      val: "98.5%",
-      tone: "primary" as const,
-    },
-    {
-      key: "confidence",
-      label: "Op Confidence",
-      pct: data.operationalConfidence,
-      val: `${data.operationalConfidence}%`,
-      tone: data.operationalConfidence >= 70 ? ("primary" as const) : ("accent" as const),
-    },
-    {
-      key: "hashprice",
-      label: "Hashprice",
-      pct: Math.min(100, hashprice.usd_per_th_day * 1000),
-      val: `$${hashprice.usd_per_th_day.toFixed(3)}/TH·d`,
-      tone: "maroon" as const,
-    },
-    {
-      key: "hashtrend",
-      label: "Hash Trend 7d",
-      pct: Math.min(100, Math.max(0, 50 + data.hashpriceTrendPct * 5)),
-      val: `${data.hashpriceTrendPct >= 0 ? "+" : ""}${data.hashpriceTrendPct.toFixed(1)}%`,
-      tone: data.hashpriceTrendPct >= 0 ? ("primary" as const) : ("accent" as const),
-    },
-  ];
 
   /** Operational confidence gauge */
   const opConf = data.operationalConfidence;
@@ -411,7 +364,7 @@ export default async function DashboardPage() {
               <span className="dash-value">{usdCompact.format(btcSleeveUsd)}</span>
               <span className="dash-unit">{btcSleevePct.toFixed(0)}% alloc</span>
             </div>
-            <div className="dash-legend" style={{ marginTop: "var(--ct-space-3)" }}>
+            <div className="dash-legend mt-3">
               <div className="dash-legend-row">
                 <span className="dash-legend-left">BTC held</span>
                 <span className="dash-legend-val">{btcPriceAvailable ? `${btcHeld.toFixed(2)} BTC` : "—"}</span>
@@ -444,13 +397,13 @@ export default async function DashboardPage() {
               <ProvenanceBadge kind={allocationProvenance} />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "var(--ct-donut-size) 1fr", gap: "var(--ct-space-6)", alignItems: "center", marginTop: "var(--ct-space-2)" }}>
-              <div className="dash-chart-container" style={{ height: "var(--ct-donut-size)", marginTop: 0 }}>
+            <div className="grid grid-cols-[var(--ct-donut-size)_1fr] gap-6 items-center mt-2">
+              <div className="dash-chart-container h-[var(--ct-donut-size)] mt-0">
                 <svg
                   className="dash-chart-svg"
                   viewBox="0 0 42 42"
-                  width="180"
-                  height="180"
+                  width="100%"
+                  height="100%"
                   aria-hidden="true"
                 >
                   <circle
@@ -483,15 +436,15 @@ export default async function DashboardPage() {
                   <div key={s.bucket} className="dash-legend-row">
                     <span className="dash-legend-left">
                       <span className={`dash-legend-dot dot-${s.tone}`} />
-                      {ALLOCATION_LABELS[s.bucket] ?? s.bucket}
+                      {allocationLabelFor(s.bucket)}
                     </span>
                     <span className="dash-legend-val">
                       {s.pct.toFixed(0)}% · {usdCompact.format(s.valueUsdc)}
                     </span>
                   </div>
                 ))}
-                <div className="dash-legend-row" style={{ marginTop: "var(--ct-space-2)", paddingTop: "var(--ct-space-2)", borderTop: "1px solid var(--ct-border-soft)" }}>
-                  <span className="dash-legend-left" style={{ color: "var(--ct-text-muted)" }}>
+                <div className="dash-legend-row mt-2 pt-2 border-t border-[--ct-border-soft]">
+                  <span className="dash-legend-left text-[--ct-text-muted]">
                     Blended target
                   </span>
                   <span className="dash-legend-val">
@@ -501,104 +454,20 @@ export default async function DashboardPage() {
               </div>
             </div>
           </article>
-
-          {/* W5 — Risk concentric rings (source: kpi-elegant) */}
-          <article className="dash-cell col-4" aria-label="Risk framework">
-            <div className="dash-label">
-              <span>Risk framework</span>
-              <span className="dash-label-meta">
-                <ProvenanceBadge kind={riskProvenance} />
-                <span className={`dash-trend ${riskFramework.composite <= 50 ? "up" : riskFramework.composite <= 66 ? "flat" : "down"}`}>
-                  {riskFramework.bandLabel}
-                </span>
-              </span>
-            </div>
-            <div className="dash-value-group">
-              <span className="dash-value-range">{riskFramework.composite}</span>
-              <span className="dash-unit">/ 100 composite</span>
-            </div>
-            <div className="dash-rings-box">
-              <svg width="80" height="80" viewBox="0 0 80 80" aria-hidden="true">
-                <circle className="ring-bg" cx="40" cy="40" r="36" />
-                <circle
-                  className="ring-fg"
-                  cx="40"
-                  cy="40"
-                  r="36"
-                  strokeDasharray={`${(riskFramework.composite / 100) * 226} ${226 - (riskFramework.composite / 100) * 226}`}
-                  strokeDashoffset="0"
-                  transform="rotate(-90 40 40)"
-                />
-                {riskFramework.dimensions[0] && (
-                  <>
-                    <circle className="ring-bg" cx="40" cy="40" r="28" />
-                    <circle
-                      className="ring-fg muted"
-                      cx="40"
-                      cy="40"
-                      r="28"
-                      strokeDasharray={`${(riskFramework.dimensions[0].score / 100) * 175} ${175 - (riskFramework.dimensions[0].score / 100) * 175}`}
-                      strokeDashoffset="0"
-                      transform="rotate(-90 40 40)"
-                    />
-                  </>
-                )}
-                {riskFramework.dimensions[1] && (
-                  <>
-                    <circle className="ring-bg" cx="40" cy="40" r="20" />
-                    <circle
-                      className="ring-fg accent"
-                      cx="40"
-                      cy="40"
-                      r="20"
-                      strokeDasharray={`${(riskFramework.dimensions[1].score / 100) * 125} ${125 - (riskFramework.dimensions[1].score / 100) * 125}`}
-                      strokeDashoffset="0"
-                      transform="rotate(-90 40 40)"
-                    />
-                  </>
-                )}
-              </svg>
-            </div>
-            <div className="dash-legend" style={{ marginTop: "var(--ct-space-4)" }}>
-              {riskFramework.dimensions.slice(0, 3).map((d, i) => (
-                <div key={d.id} className="dash-legend-row">
-                  <span className="dash-legend-left">
-                    <span className={`dash-legend-dot ${i === 0 ? "dot-primary" : i === 1 ? "dot-muted" : "dot-accent"}`} />
-                    {d.label}
-                  </span>
-                  <span className="dash-legend-val">{d.score}/100</span>
-                </div>
-              ))}
-            </div>
-          </article>
         </div>
+        <RiskFrameworkSection data={riskFramework} />
       </section>
 
       {/* === Section 3 — Mining & Operations === */}
       <section className="dash-section" aria-labelledby="sec-mining">
         <h2 id="sec-mining" className="dash-section-title">Mining &amp; Operations</h2>
         <div className="dash-bento">
-          {/* W6 — Mining sub-metrics depth chart (source: kpi-elegant) */}
-          <article className="dash-cell col-8" aria-label="Mining health metrics">
-            <div className="dash-label">
-              <span>Mining health metrics</span>
-              <ProvenanceBadge kind={miningProvenance} />
-            </div>
-            <div className="depth-chart">
-              {miningBars.map((bar) => (
-                <div key={bar.key} className="depth-row">
-                  <span className="depth-label">{bar.label}</span>
-                  <div className="depth-bar-container">
-                    <div
-                      className={`depth-bar ${bar.tone === "accent" ? "accent" : bar.tone === "maroon" ? "maroon" : ""}`}
-                      style={{ width: `${Math.min(100, Math.max(0, bar.pct))}%` }}
-                    />
-                  </div>
-                  <span className="depth-val">{bar.val}</span>
-                </div>
-              ))}
-            </div>
-          </article>
+          <div className="bento-col-8 min-w-0">
+            <MiningHealthSection
+              miningHealth={toMiningHealth(data, data.source)}
+              hashprice={toHashpriceRow(hashprice)}
+            />
+          </div>
 
           {/* W7 — Operational confidence gauge (source: kpi-charts gauge) */}
           <article className="dash-cell col-4" aria-label="Operational confidence">
@@ -646,6 +515,14 @@ export default async function DashboardPage() {
         </div>
       </section>
 
+      {/* === Section 3b — Trailing time-series === */}
+      <section className="dash-section" aria-labelledby="sec-ts">
+        <h2 id="sec-ts" className="dash-section-title">
+          30-day trailing
+        </h2>
+        <TimeseriesSection data={data.timeseries} />
+      </section>
+
       {/* === Section 4 — Activity & Distributions === */}
       <section className="dash-section" aria-labelledby="sec-activity">
         <h2 id="sec-activity" className="dash-section-title">Activity &amp; Distributions</h2>
@@ -667,7 +544,7 @@ export default async function DashboardPage() {
                 />
               ))}
             </div>
-            <div className="mt-2 flex justify-between font-mono text-[length:var(--ct-text-micro)] text-[--ct-text-muted] tracking-loose">
+            <div className="mt-2 flex justify-between mono text-[length:var(--ct-text-micro)] text-[--ct-text-muted] tracking-wide">
               <span>120d ago</span>
               <span>60d ago</span>
               <span>Today</span>

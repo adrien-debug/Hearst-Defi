@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { CT_PRODUCT_CONNECT_HEX } from "@/lib/cockpit-tokens";
 import { cn } from "@/lib/cn";
 import { PRODUCT_NAV } from "@/components/nav/product-nav-items";
 
@@ -17,8 +16,7 @@ export function ConnectBottomNav() {
     >
       <span className="ct-hub-bar-label">
         <span
-          className="ct-chat-ctx-dot"
-          style={{ background: CT_PRODUCT_CONNECT_HEX }}
+          className="ct-chat-ctx-dot bg-[var(--ct-product-connect)]"
         />
         Hearst Connect
       </span>

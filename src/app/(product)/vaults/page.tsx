@@ -38,12 +38,7 @@ export default async function VaultsPage() {
           Available products
         </h2>
 
-        <div
-          className="grid gap-4"
-          style={{
-            gridTemplateColumns: "repeat(auto-fit, minmax(var(--ct-vault-card-min-w), 1fr))",
-          }}
-        >
+        <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(var(--ct-vault-card-min-w),1fr))]">
           {vaults.map((vault) => (
             <ProductSelectCard key={vault.id} vault={vault} />
           ))}

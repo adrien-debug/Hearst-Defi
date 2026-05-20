@@ -35,7 +35,7 @@ export function FeedbackForm() {
             name="itemId"
             type="text"
             placeholder="e.g. dash-hero"
-            className="ct-input font-mono"
+            className="ct-input mono"
           />
         </label>
         <label className="block text-xs" htmlFor="feedback-author">
@@ -61,7 +61,7 @@ export function FeedbackForm() {
           name="pathname"
           type="text"
           placeholder="/admin/roadmap"
-          className="ct-input font-mono"
+          className="ct-input mono"
         />
       </label>
 

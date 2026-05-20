@@ -4,8 +4,8 @@ interface BacktestChartProps {
   series: MonthlyPoint[];
 }
 
-// matches --ct-text-micro (Recharts ne lit pas les CSS vars runtime)
-const CHART_LABEL_SIZE = 9;
+// 10px = --ct-text-micro (SVG cannot read CSS vars at runtime)
+const CHART_LABEL_SIZE = 10;
 
 /** Inline SVG bar chart — no external chart library. */
 export function BacktestChart({ series }: BacktestChartProps) {
@@ -13,7 +13,7 @@ export function BacktestChart({ series }: BacktestChartProps) {
     return (
       <div
         role="status"
-        className="flex min-h-[10rem] items-center justify-center rounded-[--radius-card] border border-dashed border-[--ct-border-soft] bg-[--ct-surface-1] px-6 py-8 text-center text-xs text-[--ct-text-muted]"
+        className="flex min-h-[var(--ct-chart-empty-h)] items-center justify-center glass-panel-subtle border-dashed px-6 py-8 text-center text-xs text-[--ct-text-muted]"
       >
         No backtest data available for this period.
       </div>
@@ -40,7 +40,7 @@ export function BacktestChart({ series }: BacktestChartProps) {
       height={SVG_HEIGHT}
       aria-label="Monthly vault value chart"
       role="img"
-      style={{ display: "block" }}
+      className="block"
     >
       {series.map((point, i) => {
         const barWidth = 100 - BAR_GAP * 2;

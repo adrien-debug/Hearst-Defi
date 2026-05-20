@@ -1,0 +1,161 @@
+/*
+ * Product bento layout + KPI primitives — shared by Dashboard, Portfolio, etc.
+ * Chart donuts/legends: charts-shared.css. Dashboard-only widgets stay in dashboard.css.
+ */
+
+@import "./charts-shared.css";
+
+/* === Bento grid 12-col === */
+.dash-bento {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--ct-space-4);
+  background: transparent;
+}
+
+.dash-cell {
+  background: var(--ct-surface-1);
+  border: 1px solid var(--ct-border);
+  border-radius: var(--ct-radius-lg);
+  box-shadow: var(--ct-shadow-depth);
+  padding: var(--ct-space-6);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: var(--ct-cell-min-h, 200px);
+}
+
+.dash-cell.col-3 { grid-column: span 3; }
+.dash-cell.col-4 { grid-column: span 4; }
+.dash-cell.col-6 { grid-column: span 6; }
+.dash-cell.col-8 { grid-column: span 8; }
+.dash-cell.col-12 { grid-column: span 12; }
+
+/* Grid children that are not .dash-cell (e.g. Card primitives) */
+.dash-bento > .bento-col-8 { grid-column: span 8; }
+.dash-bento > .bento-col-12 { grid-column: span 12; }
+
+/* === KPI label / value (kpi-elegant) === */
+.dash-label {
+  font-size: var(--ct-text-xs);
+  font-weight: var(--ct-font-medium);
+  color: var(--ct-text-muted);
+  letter-spacing: var(--ct-tracking-wider);
+  margin-bottom: var(--ct-space-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-transform: uppercase;
+}
+
+.dash-value-group {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ct-space-2);
+  margin-top: auto;
+}
+
+.dash-value {
+  font-size: var(--ct-text-5xl);
+  font-weight: var(--ct-font-light);
+  color: var(--ct-text-strong);
+  letter-spacing: var(--ct-tracking-tight);
+  line-height: var(--ct-leading-none);
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-value-range {
+  font-size: var(--ct-text-2xl);
+  font-weight: var(--ct-font-light);
+  color: var(--ct-text-strong);
+  letter-spacing: -0.02em;
+  line-height: var(--ct-leading-none);
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-unit {
+  font-size: var(--ct-text-sm);
+  color: var(--ct-text-muted);
+  font-weight: var(--ct-font-normal);
+}
+
+.dash-trend {
+  font-family: var(--font-mono);
+  font-size: var(--ct-text-xs);
+  padding: var(--ct-space-0_5) var(--ct-space-1_5);
+  border-radius: 0.125rem;
+  background: var(--ct-surface-1);
+}
+
+.dash-trend.up { color: var(--ct-status-success); }
+.dash-trend.down { color: var(--ct-accent-strong); }
+.dash-trend.flat { color: var(--ct-text-muted); }
+
+.dash-label-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ct-space-2);
+  flex-shrink: 0;
+}
+
+/* === Section stack === */
+.dash-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-2);
+}
+
+.dash-section-title {
+  font-size: var(--ct-text-micro);
+  font-weight: var(--ct-font-bold);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ct-text-muted);
+}
+
+/* === Page shell === */
+.dash-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-3);
+  padding-bottom: var(--ct-space-2);
+}
+
+.dash-header h1 {
+  font-size: var(--ct-text-2xl);
+  font-weight: var(--ct-font-extrabold);
+  letter-spacing: -0.02em;
+  color: var(--ct-text-primary);
+  line-height: 1.15;
+  margin: 0;
+}
+
+.dash-header .eyebrow {
+  font-size: var(--ct-text-micro);
+  font-weight: var(--ct-font-bold);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ct-accent-strong);
+}
+
+.dash-header .sub {
+  font-size: var(--ct-text-sm);
+  color: var(--ct-text-muted);
+  font-family: var(--font-mono);
+}
+
+.dash-disclaimer {
+  font-size: var(--ct-text-xs);
+  color: var(--ct-text-muted);
+  text-align: center;
+  padding: var(--ct-space-6) 0;
+  border-top: 1px solid var(--ct-border-soft);
+  margin-top: var(--ct-space-2);
+  font-style: italic;
+}
+
+.dash-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-6);
+}

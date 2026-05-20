@@ -287,9 +287,7 @@ function OnChainAttestationCard({
         <div className="flex items-baseline justify-between gap-3">
           <dt className="body-xs">Source</dt>
           <dd className="body-xs">
-            <span className="rounded-[--radius-full] border border-[--ct-status-success-border] bg-[--ct-status-success-soft] px-1.5 py-0.5 text-[length:var(--ct-text-micro)] uppercase tracking-wide text-[--ct-status-success]">
-              On-chain
-            </span>
+            <Badge variant="success">On-chain</Badge>
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">

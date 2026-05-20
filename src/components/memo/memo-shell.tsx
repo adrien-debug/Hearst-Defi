@@ -154,7 +154,7 @@ export function MemoShell() {
       {error ? (
         <div className="rounded-[--ct-radius-md] border border-[--ct-status-danger] bg-[--ct-status-danger-soft] px-4 py-3">
           <p className="stat-label text-[--ct-status-danger]">Generation failed</p>
-          <p className="mt-1 font-mono text-xs text-[--ct-status-danger] break-words">
+          <p className="mt-1 mono text-xs text-[--ct-status-danger] break-words">
             {error}
           </p>
         </div>

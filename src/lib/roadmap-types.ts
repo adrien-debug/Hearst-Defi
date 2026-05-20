@@ -70,18 +70,19 @@ export function statusLabel(status: RoadmapStatus): string {
   }
 }
 
-export function statusDotColor(status: RoadmapStatus): string {
+/** CSS class for roadmap status indicator dots (admin UI). */
+export function statusDotClass(status: RoadmapStatus): string {
   switch (status) {
     case "todo":
-      return "var(--ct-text-muted)";
+      return "bg-[--ct-text-muted]";
     case "in_progress":
-      return "var(--ct-status-warning)";
+      return "ct-status-dot-warning";
     case "done":
-      return "var(--ct-status-success)";
+      return "ct-status-dot-success";
     case "blocked":
-      return "var(--ct-status-danger)";
+      return "ct-status-dot-danger";
     case "validated":
-      return "var(--ct-text-strong)";
+      return "bg-[--ct-text-strong]";
   }
 }
 

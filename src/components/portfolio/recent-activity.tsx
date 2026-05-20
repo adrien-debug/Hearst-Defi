@@ -112,59 +112,33 @@ export function RecentActivity({ transactions, source }: RecentActivityProps) {
       </div>
 
       {displayed.length === 0 ? (
-        <p className="body-sm ct-text-muted" style={{ marginTop: "var(--ct-space-4)" }}>
+        <p className="body-sm ct-text-muted mt-4">
           No transactions yet.
         </p>
       ) : (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--ct-space-1_5)",
-            marginTop: "var(--ct-space-3)",
-          }}
-        >
+        <div className="flex flex-col gap-1.5 mt-3">
           {displayed.map((tx) => (
             <div
               key={tx.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "var(--ct-space-3)",
-                padding: "var(--ct-space-2) 0",
-                borderBottom: "1px solid var(--ct-border-soft)",
-              }}
+              className="flex items-center gap-3 py-2 border-b border-[--ct-border-soft]"
             >
               <TxIcon type={tx.type} />
 
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="body-xs ct-text-primary" style={{ fontWeight: "var(--ct-font-semibold)" }}>
+              <div className="flex-1 min-w-0">
+                <div className="body-xs ct-text-primary font-semibold">
                   {TYPE_LABELS[tx.type] ?? tx.type}
                   {tx.positionVaultName && (
-                    <span className="ct-text-muted" style={{ fontWeight: "normal" }}>
+                    <span className="ct-text-muted font-normal">
                       {" "}· {tx.positionVaultName}
                     </span>
                   )}
                 </div>
-                <div
-                  className="stat-label ct-text-muted"
-                  style={{
-                    marginTop: "var(--ct-space-0_5)",
-                    fontFamily: "var(--font-mono)",
-                  }}
-                >
+                <div className="stat-label ct-text-muted mt-0.5 mono">
                   {relativeTime(tx.occurredAt, asOf)}
                 </div>
               </div>
 
-              <span
-                className="tabular body-md ct-text-strong"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontWeight: "var(--ct-font-semibold)",
-                  flexShrink: 0,
-                }}
-              >
+              <span className="tabular body-md ct-text-strong mono font-semibold shrink-0">
                 {usdFmt.format(tx.amountUsdc)}
               </span>
             </div>

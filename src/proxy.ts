@@ -1,5 +1,5 @@
 /**
- * src/middleware.ts — Edge middleware guarding /admin/* and customer routes.
+ * src/proxy.ts — Edge proxy guarding /admin/* and customer routes.
  *
  * Runs in the Edge runtime (no Node.js APIs). Uses `jose` for JWT
  * verification against Privy's public JWKS endpoint so we never need
@@ -7,18 +7,20 @@
  *
  * Flow — /admin/* :
  *  1. Request matches /admin/* → read `privy-token` cookie.
- *  2. No cookie / invalid JWT → redirect to `/` (unauthenticated).
+ *  2. No cookie / invalid JWT → redirect to `/login?from=<path>`.
  *  3. JWT valid but wallet not in ADMIN_ADDRESSES → rewrite to `/not-found`
  *     (Next.js serves its global 404 page — returns 404 to the client).
  *  4. JWT valid + admin → let the request through.
  *
- * Flow — /portfolio/* | /vaults/* | /activity/* :
- *  1. No cookie / invalid JWT → redirect to `/?login=true&from=<path>`.
+ * Flow — /dashboard | /scenario-lab | /proof-center | /investor-memo |
+ *         /portfolio/* | /vaults/* :
+ *  1. No cookie / invalid JWT → redirect to `/login?from=<path>`.
  *  2. JWT valid (any authenticated Privy user) → let the request through.
  */
 
 import { type NextRequest, NextResponse } from "next/server";
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
+import { safeFrom } from "@/lib/safe-redirect";
 
 // ---------------------------------------------------------------------------
 // JWKS — Privy's public key set, fetched and cached by jose at the edge.
@@ -109,19 +111,16 @@ async function verifyPrivyToken(req: NextRequest): Promise<VerifyResult> {
 // ---------------------------------------------------------------------------
 
 /**
- * Build a redirect URL to `/` that carries the original path in `?from=` so
- * the home page can route the user back after successful login.
+ * Build a redirect URL to `/login` that carries the original path in `?from=`
+ * so the login page can route the user back after successful authentication.
  *
  * The `from` value is whitelisted to absolute, same-origin paths to prevent
  * open-redirect on third-party domains.
  */
 function loginRedirect(req: NextRequest): NextResponse {
-  const target = new URL("/", req.url);
-  const from = `${req.nextUrl.pathname}${req.nextUrl.search}`;
-  if (from.startsWith("/") && !from.startsWith("//")) {
-    target.searchParams.set("login", "true");
-    target.searchParams.set("from", from);
-  }
+  const target = new URL("/login", req.url);
+  const raw = `${req.nextUrl.pathname}${req.nextUrl.search}`;
+  target.searchParams.set("from", safeFrom(raw));
   return NextResponse.redirect(target);
 }
 
@@ -129,8 +128,9 @@ function loginRedirect(req: NextRequest): NextResponse {
 // Middleware
 // ---------------------------------------------------------------------------
 
-export async function middleware(req: NextRequest): Promise<NextResponse> {
+export default async function proxy(req: NextRequest): Promise<NextResponse> {
   const { pathname } = req.nextUrl;
+  console.warn(`[proxy] ENTER pathname=${pathname} cookies=${req.cookies.getAll().map(c => c.name).join(",") || "(none)"}`);
 
   // ------------------------------------------------------------------
   // Branch A — /admin/*
@@ -153,7 +153,8 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
   }
 
   // ------------------------------------------------------------------
-  // Branch B — /portfolio/* | /vaults/* | /activity/*
+  // Branch B — product routes (dashboard + scenario-lab + proof-center +
+  // investor-memo + portfolio/* + vaults/*)
   // Requires any valid Privy JWT (authenticated investor).
   // ------------------------------------------------------------------
   const { ok } = await verifyPrivyToken(req);
@@ -171,8 +172,11 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
 export const config = {
   matcher: [
     "/admin/:path*",
+    "/dashboard/:path*",
+    "/scenario-lab/:path*",
+    "/proof-center/:path*",
+    "/investor-memo/:path*",
     "/portfolio/:path*",
     "/vaults/:path*",
-    "/activity/:path*",
   ],
 };

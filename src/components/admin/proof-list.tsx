@@ -79,8 +79,8 @@ function ProofRow({ item }: { item: ProofItem }) {
             {item.period ? (
               <Badge variant="default">{item.period}</Badge>
             ) : null}
-            <time className="font-mono">{postedAtDisplay}</time>
-            <span className="font-mono text-[--ct-text-body]">
+            <time className="mono">{postedAtDisplay}</time>
+            <span className="mono text-[--ct-text-body]">
               by {postedByDisplay}
             </span>
           </div>
@@ -88,7 +88,7 @@ function ProofRow({ item }: { item: ProofItem }) {
           <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-[--ct-text-muted]">
             <span>
               <span className="text-[--ct-text-muted]">hash </span>
-              <span className="font-mono text-[--ct-text-body]">
+              <span className="mono text-[--ct-text-body]">
                 {hashDisplay}
               </span>
             </span>
@@ -98,7 +98,7 @@ function ProofRow({ item }: { item: ProofItem }) {
                 href={item.uri}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono text-[--ct-text-body] hover:text-[--ct-text-strong] underline underline-offset-2"
+                className="mono text-[--ct-text-body] hover:text-[--ct-text-strong] underline underline-offset-2"
               >
                 {uriDisplay} ↗
               </a>
@@ -106,7 +106,7 @@ function ProofRow({ item }: { item: ProofItem }) {
             {item.txHash ? (
               <span>
                 <span className="text-[--ct-text-muted]">tx </span>
-                <span className="font-mono text-[--ct-text-body]">
+                <span className="mono text-[--ct-text-body]">
                   {truncate(item.txHash, 8, 4)}
                 </span>
               </span>

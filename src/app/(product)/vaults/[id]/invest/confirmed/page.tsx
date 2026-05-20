@@ -53,50 +53,16 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
     : "https://basescan.org";
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "var(--ct-space-8)",
-        padding: "var(--ct-space-10) var(--ct-space-6)",
-        maxWidth: "40rem",
-        margin: "0 auto",
-        width: "100%",
-      }}
-    >
+    <div className="flex flex-col items-center gap-8 px-6 py-10 max-w-2xl mx-auto w-full">
       {/* Step wizard — step 4 active, all previous marked done */}
       <StepProgress active="confirmed" />
 
       {/* Confirmation card */}
-      <div
-        className="ct-card"
-        style={{
-          width: "100%",
-          maxWidth: "30rem",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "var(--ct-space-6)",
-          textAlign: "center",
-        }}
-      >
+      <div className="ct-card w-full max-w-lg flex flex-col items-center gap-6 text-center">
         {/* Success icon */}
         <span
           aria-hidden="true"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "var(--ct-space-12)",
-            height: "var(--ct-space-12)",
-            borderRadius: "var(--ct-radius-full)",
-            background: "var(--ct-status-success-soft)",
-            border: "1px solid var(--ct-status-success-border)",
-            boxShadow: "0 0 10px var(--ct-status-success-glow)",
-            color: "var(--ct-status-success)",
-            flexShrink: 0,
-          }}
+          className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[--ct-status-success-soft] border border-[--ct-status-success-border] shadow-[var(--ct-glow-soft)] text-[--ct-status-success] shrink-0"
         >
           <svg
             width="28"
@@ -127,48 +93,16 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
         </div>
 
         {/* Transaction row */}
-        <div
-          style={{
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--ct-space-2)",
-            padding: "var(--ct-space-4)",
-            borderRadius: "var(--ct-radius-md)",
-            background: "var(--ct-surface-1)",
-            border: "1px solid var(--ct-border-soft)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "var(--ct-space-3)",
-            }}
-          >
-            <span className="eyebrow" style={{ color: "var(--ct-text-muted)" }}>
+        <div className="w-full flex flex-col gap-2 p-4 rounded-[--ct-radius-md] bg-[--ct-surface-1] border border-[--ct-border-soft]">
+          <div className="flex items-center justify-between gap-3">
+            <span className="eyebrow text-[--ct-text-muted]">
               Transaction
             </span>
             <ProvenanceBadge kind="attested" />
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "var(--ct-space-3)",
-            }}
-          >
-            <span
-              className="tabular"
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--ct-text-sm)",
-                color: "var(--ct-text-primary)",
-              }}
-            >
+          <div className="flex items-center justify-between gap-3">
+            <span className="tabular mono text-sm text-[--ct-text-primary]">
               {hasHash ? abbreviateTx(txHash) : "Pending on-chain confirmation"}
             </span>
             {hasHash && (
@@ -176,14 +110,7 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
                 href={baseScanHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="body-xs"
-                style={{
-                  color: "var(--ct-accent-strong)",
-                  textDecoration: "none",
-                  fontWeight: "var(--ct-font-medium)",
-                  flexShrink: 0,
-                  transition: "opacity var(--ct-dur-fast) var(--ct-ease)",
-                }}
+                className="body-xs text-[--ct-accent-strong] no-underline font-medium shrink-0 transition-opacity duration-150 hover:opacity-80"
               >
                 View on BaseScan ↗
               </a>
@@ -192,28 +119,11 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
         </div>
 
         {/* What's next */}
-        <div
-          style={{
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--ct-space-3)",
-            textAlign: "left",
-          }}
-        >
-          <span className="eyebrow" style={{ color: "var(--ct-text-muted)" }}>
+        <div className="w-full flex flex-col gap-3 text-left">
+          <span className="eyebrow text-[--ct-text-muted]">
             What&apos;s next
           </span>
-          <ul
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "var(--ct-space-2)",
-              listStyle: "none",
-              padding: 0,
-              margin: 0,
-            }}
-          >
+          <ul className="flex flex-col gap-2 list-none p-0 m-0">
             {[
               "Yield begins accruing next epoch (UTC midnight)",
               "First distribution ≈ end of month",
@@ -221,25 +131,11 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
             ].map((item) => (
               <li
                 key={item}
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "var(--ct-space-2)",
-                  fontSize: "var(--ct-text-sm)",
-                  color: "var(--ct-text-body)",
-                }}
+                className="flex items-start gap-2 text-sm text-[--ct-text-body]"
               >
                 <span
                   aria-hidden="true"
-                  style={{
-                    marginTop: "var(--ct-space-0_5)",
-                    width: "var(--ct-space-1_5)",
-                    height: "var(--ct-space-1_5)",
-                    borderRadius: "var(--ct-radius-full)",
-                    background: "var(--ct-accent)",
-                    flexShrink: 0,
-                    display: "inline-block",
-                  }}
+                  className="inline-block mt-0.5 w-1.5 h-1.5 rounded-full bg-[--ct-accent] shrink-0"
                 />
                 {item}
               </li>
@@ -248,14 +144,7 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
         </div>
 
         {/* CTA buttons */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--ct-space-3)",
-            width: "100%",
-          }}
-        >
+        <div className="flex flex-col gap-3 w-full">
           <Button variant="primary" size="lg" asChild className="w-full font-bold">
             <Link href={positionId ? `/portfolio/${positionId}` : "/portfolio"}>
               Go to Portfolio
@@ -267,13 +156,7 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
         </div>
 
         {/* Disclaimer — non-negotiable #10 */}
-        <p
-          className="body-xs"
-          style={{
-            color: "var(--ct-text-faint)",
-            textAlign: "center",
-          }}
-        >
+        <p className="body-xs text-[--ct-text-faint] text-center">
           APY ranges are target projections — not a commitment of future returns.
           Subject to vault conditions and Methodology v1.0 assumptions.
         </p>
@@ -281,15 +164,9 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
 
       {/* Suppress unused id param warning — id used for back-navigation context */}
       {/* Route: /vaults/{id}/invest/confirmed */}
-      <p
-        className="body-xs"
-        style={{ color: "var(--ct-text-faint)", textAlign: "center" }}
-      >
+      <p className="body-xs text-[--ct-text-faint] text-center">
         Vault{" "}
-        <span
-          className="tabular"
-          style={{ fontFamily: "var(--font-mono)", color: "var(--ct-text-muted)" }}
-        >
+        <span className="tabular mono text-[--ct-text-muted]">
           {id}
         </span>{" "}
         · Hearst Yield Vault

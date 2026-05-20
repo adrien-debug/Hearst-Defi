@@ -7,12 +7,12 @@ export function Card({
   return (
     <div
       className={cn(
-        "glass-panel p-8 relative overflow-hidden group",
+        "ct-card glass-panel relative overflow-hidden group",
         className,
       )}
       {...props}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-[--ct-surface-0] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[--ct-surface-0] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-[var(--ct-dur-slow)] pointer-events-none" />
       <div className="relative z-10">{props.children}</div>
     </div>
   );
@@ -47,7 +47,7 @@ export function CardTitle({
   return (
     <h3
       className={cn(
-        "text-2xl font-semibold tracking-tight text-[--ct-text-strong] drop-shadow-sm",
+        "text-2xl font-semibold tracking-tight text-[--ct-text-strong] drop-shadow-[var(--ct-glow-subtle)]",
         className,
       )}
       {...props}

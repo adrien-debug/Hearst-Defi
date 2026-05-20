@@ -1,27 +1,33 @@
 "use client";
 
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { usePrivy, useWallets, useLogin } from "@privy-io/react-auth";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { safeFrom } from "@/lib/safe-redirect";
 
-/**
- * HeaderConnect — address pill + disconnect button.
- *
- * Two-tier guard to avoid "useWallets called outside the PrivyProvider"
- * warnings during the hydration window: the PrivyProvider is mounted
- * via `dynamic({ ssr: false })`, so for ~50ms after first paint there
- * is no Privy context yet. The outer component only consumes `usePrivy`
- * (which tolerates a missing context); `useWallets` is deferred to the
- * inner component, mounted only when `ready && authenticated`.
- *
- * Address format: `0xAB…CD` (first 6 chars + last 4 chars).
- * Wallet address source: `useWallets()[0].address` (first linked wallet).
- * Falls back to user.email if no wallet is linked (email-only Privy accounts).
- */
 export function HeaderConnect() {
   const { ready, authenticated } = usePrivy();
-  if (!ready || !authenticated) return null;
+  if (!ready) return null;
+  if (!authenticated) return <HeaderConnectGuest />;
   return <HeaderConnectAuthed />;
+}
+
+function HeaderConnectGuest() {
+  const router = useRouter();
+  const { login } = useLogin({
+    // useRouter + window.location.search: header is in root layout without Suspense — useSearchParams would warn
+    onComplete: () => {
+      const from = new URLSearchParams(window.location.search).get("from");
+      router.push(safeFrom(from, window.location.pathname));
+    },
+  });
+
+  return (
+    <Button variant="primary" size="sm" onClick={() => login()}>
+      Connect Wallet
+    </Button>
+  );
 }
 
 function HeaderConnectAuthed() {
@@ -35,25 +41,16 @@ function HeaderConnectAuthed() {
 
   return (
     <div className="flex items-center gap-2">
-      {/* Status + address pill */}
-      <span className="ct-pill flex items-center gap-1.5">
+      <span className="ct-pill">
         <span
-          className="ct-status-dot-success"
-          style={{
-            display: "inline-block",
-            width: "var(--ct-space-1_5)",
-            height: "var(--ct-space-1_5)",
-            borderRadius: "var(--ct-radius-full)",
-            flexShrink: 0,
-          }}
+          className="ct-status-dot-success w-1.5 h-1.5 shrink-0 rounded-full"
           aria-hidden="true"
         />
-        <span className="eyebrow" style={{ textTransform: "none", marginBottom: 0 }}>
+        <span className="tabular">
           {displayAddress}
         </span>
       </span>
 
-      {/* Disconnect */}
       <Button
         variant="ghost"
         size="sm"
