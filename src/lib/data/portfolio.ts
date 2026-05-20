@@ -123,12 +123,28 @@ export async function loadPortfolio(): Promise<PortfolioData> {
     };
   }
 
-  // Fetch positions with optional VaultDeployment join for APY targets.
-  const rawPositions = await prisma.position.findMany({
-    where: { investorId: investor.id },
-    include: { vaultDeployment: true },
-    orderBy: { subscribedAt: "desc" },
-  });
+  // Fetch positions and both transaction queries in parallel — all 3 are independent.
+  const ytdStart = new Date(Date.UTC(new Date().getUTCFullYear(), 0, 1));
+  const [rawPositions, ytdTxs, rawTxs] = await Promise.all([
+    prisma.position.findMany({
+      where: { investorId: investor.id },
+      include: { vaultDeployment: true },
+      orderBy: { subscribedAt: "desc" },
+    }),
+    prisma.investorTransaction.findMany({
+      where: {
+        investorId: investor.id,
+        type: { in: ["claim", "distribution"] },
+        occurredAt: { gte: ytdStart },
+      },
+      select: { amountUsdc: true },
+    }),
+    prisma.investorTransaction.findMany({
+      where: { investorId: investor.id },
+      orderBy: { occurredAt: "desc" },
+      take: 5,
+    }),
+  ]);
 
   const positions: PortfolioPosition[] = rawPositions.map((p) => {
     const principal = toNumber(p.principalUsdc);
@@ -159,25 +175,9 @@ export async function loadPortfolio(): Promise<PortfolioData> {
   const totalValueUsdc = positions.reduce((sum, p) => sum + p.valueUsdc, 0);
 
   // YTD yield: sum of accrued + distributed (all transaction types) from Jan 1 UTC.
-  const ytdStart = new Date(Date.UTC(new Date().getUTCFullYear(), 0, 1));
-  const ytdTxs = await prisma.investorTransaction.findMany({
-    where: {
-      investorId: investor.id,
-      type: { in: ["claim", "distribution"] },
-      occurredAt: { gte: ytdStart },
-    },
-    select: { amountUsdc: true },
-  });
   const totalYieldYtdUsdc =
     ytdTxs.reduce((sum, t) => sum + toNumber(t.amountUsdc), 0) +
     positions.reduce((sum, p) => sum + p.accruedYieldUsdc, 0);
-
-  // Latest 5 transactions (any type).
-  const rawTxs = await prisma.investorTransaction.findMany({
-    where: { investorId: investor.id },
-    orderBy: { occurredAt: "desc" },
-    take: 5,
-  });
 
   // Map positionId → vaultName for activity labels.
   const positionVaultMap = new Map(

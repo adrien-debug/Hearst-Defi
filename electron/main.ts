@@ -59,6 +59,7 @@ function createSplash(): void {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
     },
   });
   const splashPath = app.isPackaged
@@ -85,7 +86,8 @@ function createMainWindow(env: "local" | "prod"): void {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
-      webSecurity: env === "prod",
+      webSecurity: true,
+      sandbox: true,
     },
   });
 
