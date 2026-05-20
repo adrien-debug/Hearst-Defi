@@ -5,6 +5,7 @@ import { inngest } from "@/lib/inngest/client";
 import { investorMemoMonthly } from "@/lib/inngest/functions/investor-memo-monthly";
 import { marketDataHourly } from "@/lib/inngest/functions/market-data-hourly";
 import { miningHealthDaily } from "@/lib/inngest/functions/mining-health-daily";
+import { rebalancingSignal } from "@/lib/inngest/functions/rebalancing-signal";
 import { riskDaily } from "@/lib/inngest/functions/risk-daily";
 
 /**
@@ -19,6 +20,7 @@ import { riskDaily } from "@/lib/inngest/functions/risk-daily";
  *   - mining-health-daily (08:00 UTC daily)
  *   - risk-daily          (09:30 UTC daily)
  *   - investor-memo-monthly (1st of month 09:00 UTC)
+ *   - rebalancing-signal  (event-driven: risk.daily.completed, rebalance.signal.requested)
  *
  * Security — request signature verification (P0):
  *
@@ -56,7 +58,13 @@ if (
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
-  functions: [marketDataHourly, miningHealthDaily, riskDaily, investorMemoMonthly],
+  functions: [
+    marketDataHourly,
+    miningHealthDaily,
+    riskDaily,
+    investorMemoMonthly,
+    rebalancingSignal,
+  ],
   // Pass the validated signing key explicitly to `serve()`. inngest@4 would
   // otherwise fall back to reading INNGEST_SIGNING_KEY itself, but wiring it
   // here makes signature verification load-bearing and explicit for this
