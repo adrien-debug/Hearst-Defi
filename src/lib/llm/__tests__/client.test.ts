@@ -4,6 +4,7 @@ import Anthropic from "@anthropic-ai/sdk";
 
 import { prisma } from "@/lib/db";
 import { callLlm } from "@/lib/llm/client";
+import { withRequestContext } from "@/lib/request-context";
 
 function apiError(status: number, message: string) {
   return new Anthropic.APIError(status, undefined, message, undefined);
@@ -235,6 +236,55 @@ describe("callLlm", () => {
         ((200 + 5000) * SONNET_INPUT_PER_M + 100 * SONNET_OUTPUT_PER_M) /
         1_000_000;
       expect(row.costUsd).toBeLessThan(baselineCost);
+    });
+  });
+
+  describe("userId propagation from request context", () => {
+    const successResponse = {
+      content: [{ type: "text" as const, text: "{}" }],
+      usage: { input_tokens: 10, output_tokens: 5 },
+    };
+
+    it("persists userId when callLlm runs inside a request context", async () => {
+      const mockClient = {
+        messages: { create: vi.fn().mockResolvedValue(successResponse) },
+      };
+
+      const { runId } = await withRequestContext(
+        { requestId: "req-test-1", userId: "user_123" },
+        () =>
+          callLlm(
+            "test-userid-set",
+            {
+              model: "claude-sonnet-4-6",
+              max_tokens: 1024,
+              messages: [{ role: "user" as const, content: "hello" }],
+            },
+            { client: mockClient },
+          ),
+      );
+
+      const row = await prisma.llmRun.findUniqueOrThrow({ where: { id: runId } });
+      expect(row.userId).toBe("user_123");
+    });
+
+    it("persists userId as null when callLlm runs outside any request context", async () => {
+      const mockClient = {
+        messages: { create: vi.fn().mockResolvedValue(successResponse) },
+      };
+
+      const { runId } = await callLlm(
+        "test-userid-null",
+        {
+          model: "claude-sonnet-4-6",
+          max_tokens: 1024,
+          messages: [{ role: "user" as const, content: "hello" }],
+        },
+        { client: mockClient },
+      );
+
+      const row = await prisma.llmRun.findUniqueOrThrow({ where: { id: runId } });
+      expect(row.userId).toBeNull();
     });
   });
 
