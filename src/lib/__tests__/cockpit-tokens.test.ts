@@ -51,12 +51,12 @@ describe("cockpit-tokens — web/PDF status drift is intentional", () => {
 });
 
 describe("cockpit-tokens — accent + product chip stay in sync with package", () => {
-  it("CT_ACCENT_HEX mirrors the Connect bordeaux", () => {
-    expect(CT_ACCENT_HEX).toBe("#8A1538");
+  it("CT_ACCENT_HEX mirrors the Connect site accent", () => {
+    expect(CT_ACCENT_HEX).toBe("#A7FB90");
   });
 
-  it("CT_PRODUCT_CONNECT_HEX is the Hearst maroon accent (not the reference repo green)", () => {
-    expect(CT_PRODUCT_CONNECT_HEX).toBe("#8A1538");
+  it("CT_PRODUCT_CONNECT_HEX matches the marketing site green", () => {
+    expect(CT_PRODUCT_CONNECT_HEX).toBe("#A7FB90");
   });
 });
 

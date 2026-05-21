@@ -1,7 +1,6 @@
 // All product routes require auth data and live vault state — disable static prerendering.
 export const dynamic = "force-dynamic";
 
-import { DemoBanner } from "@/components/demo/demo-banner";
 import { DemoModeToggleSlot } from "@/components/demo/demo-mode-toggle-slot";
 import { HubModeStyles } from "@/components/hub-mode-styles";
 import { HeaderConnect } from "@/components/connect/header-connect";
@@ -13,7 +12,6 @@ export default function ProductLayout({
 }) {
   return (
     <>
-      <DemoBanner />
       <HubModeStyles />
       {/* Navigation is the floating bottom bar (ConnectBottomNav) only —
           the intra-app left rail is intentionally removed. */}

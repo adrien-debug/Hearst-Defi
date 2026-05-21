@@ -20,7 +20,7 @@ export function ApyRange({
   return (
     <span
       className={cn(
-        "mono tabular-nums font-semibold text-[--ct-text-strong]",
+        "tabular font-semibold text-[--ct-text-strong]",
         className,
       )}
       aria-label={`APY range ${fmt(a)} to ${fmt(b)} ${suffix}`}

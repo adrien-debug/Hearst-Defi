@@ -1,11 +1,5 @@
 import type { PortfolioData } from "@/lib/data/portfolio";
-
-const usdCompact = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
+import { formatUsdCompact } from "@/lib/format/usd-compact";
 
 /** Relative time string for the recap line ("today", "3 days ago", "1 month ago"). */
 function relativeTime(date: Date, asOf: Date): string {
@@ -30,13 +24,13 @@ interface PortfolioGreetingProps {
  */
 export function PortfolioGreeting({ name, data }: PortfolioGreetingProps) {
   const count = data.positions.length;
-  const asOf = new Date();
+  const asOf = new Date("2026-05-20T09:00:00Z");
   const last = data.recentTransactions[0];
 
   const recap =
     count === 0
       ? "No active positions yet — subscribe to a vault to get started."
-      : `${count} active position${count > 1 ? "s" : ""} · ${usdCompact.format(
+      : `${count} active position${count > 1 ? "s" : ""} · ${formatUsdCompact(
           data.totalValueUsdc,
         )} deployed${last ? ` · last activity ${relativeTime(last.occurredAt, asOf)}` : ""}`;
 

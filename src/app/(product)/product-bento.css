@@ -56,24 +56,29 @@
 }
 
 .dash-value {
+  font-family: var(--font-sans);
   font-size: var(--ct-text-5xl);
   font-weight: var(--ct-font-light);
   color: var(--ct-text-strong);
   letter-spacing: var(--ct-tracking-tight);
   line-height: var(--ct-leading-none);
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum", "ss01";
 }
 
 .dash-value-range {
+  font-family: var(--font-sans);
   font-size: var(--ct-text-2xl);
   font-weight: var(--ct-font-light);
   color: var(--ct-text-strong);
   letter-spacing: -0.02em;
   line-height: var(--ct-leading-none);
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum", "ss01";
 }
 
 .dash-unit {
+  font-family: var(--font-sans);
   font-size: var(--ct-text-sm);
   color: var(--ct-text-muted);
   font-weight: var(--ct-font-normal);
@@ -88,7 +93,7 @@
 }
 
 .dash-trend.up { color: var(--ct-status-success); }
-.dash-trend.down { color: var(--ct-accent-strong); }
+.dash-trend.down { color: var(--ct-status-danger); }
 .dash-trend.flat { color: var(--ct-text-muted); }
 
 .dash-label-meta {
@@ -158,4 +163,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--ct-space-6);
+  /* Breathing room so the top KPI boxes don't sit flush against the shell edge. */
+  padding-top: var(--ct-space-8);
 }

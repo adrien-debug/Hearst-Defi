@@ -20,6 +20,13 @@
    height:100% chain. Force it to fill — scoped to the portfolio only. */
 .ct-page-area:has(.pf-fixed) > main {
   height: 100%;
+  min-height: 0;
+}
+
+/* Single wrapper between <main> and .pf-fixed (portfolio page or debug repro). */
+.ct-page-area:has(.pf-fixed) > main > * {
+  height: 100%;
+  min-height: 0;
 }
 
 .pf-fixed {
@@ -34,6 +41,13 @@
 
 .pf-fixed-kpis {
   flex-shrink: 0;
+}
+
+/* KPI band — 3-up desktop, stacks on narrow viewports. */
+.pf-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ct-space-4);
 }
 
 /* === Welcome line (above the KPI band) === */
@@ -73,33 +87,52 @@
   font-size: var(--ct-text-3xl);
 }
 
-/* Body — vertical zones stacked in ONE column: charts row (auto) · lower row
-   (fills) · CTA (auto). Single explicit column so rows always stack vertically;
-   in subscribe mode the body holds a single full-width panel. */
+/* Body — charts pinned top; positions + activity fill to the page footer and
+   grow when the centre panel gets taller. */
 .pf-fixed-body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, auto) minmax(0, 1fr);
-  gap: var(--ct-space-4);
+  display: flex;
+  flex-direction: column;
   min-height: 0;
+  gap: var(--ct-space-4);
 }
 
 /* Row 2 — donut (left, sized to content) + portfolio value (rest of width). */
 .pf-row-charts {
+  flex: 0 0 auto;
   display: grid;
-  grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: var(--ct-space-4);
   min-height: 0;
 }
 
-/* Row 3 — positions (≈60%) + recent activity (≈40% of the width).
-   Both columns minmax(0,...) so the row always fits the centre (Section 2) and
-   never pushes content under the chat rail (Section 3). */
+.pf-row-charts > :first-child {
+  grid-column: span 4;
+}
+
+.pf-row-charts > :last-child {
+  grid-column: span 8;
+}
+
+/* Row 3 — anchored to the footer (bottom padding of .ct-page-area); grows with
+   viewport height. Both columns minmax(0,…) so the row never underflows the chat
+   rail. */
 .pf-row-lower {
+  flex: 1 1 0;
+  margin-top: auto;
+  align-self: stretch;
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
   gap: var(--ct-space-4);
   min-height: 0;
+}
+
+.pf-row-lower > :first-child {
+  grid-column: span 8;
+}
+
+.pf-row-lower > :last-child {
+  grid-column: span 4;
 }
 
 /* Subscribe CTA row — pinned below. */
@@ -142,6 +175,8 @@
   height: 100%;
   grid-column: auto; /* neutralise the col-4/col-8 spans from shared components */
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 /* The positions wrapper is a grid item — make it fill its row, and let its
    inner cell fill the wrapper. */
@@ -269,4 +304,64 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--ct-text-muted);
+}
+
+/* ── Mobile / narrow centre panel (≤768px) ── */
+@media (max-width: 48rem) {
+  .ct-page-area:has(.pf-fixed) {
+    height: 100%;
+    overflow-y: auto;
+    padding: var(--ct-space-4) var(--ct-space-4) var(--ct-space-6);
+  }
+
+  .ct-page-area:has(.pf-fixed) > main {
+    height: 100%;
+  }
+
+  .pf-fixed {
+    height: 100%;
+    min-height: 0;
+    grid-template-rows: auto auto 1fr;
+  }
+
+  .pf-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pf-row-charts {
+    grid-template-columns: 1fr;
+  }
+
+  .pf-row-charts > :first-child,
+  .pf-row-charts > :last-child {
+    grid-column: 1 / -1;
+  }
+
+  .pf-row-lower {
+    grid-template-columns: 1fr;
+    flex: 1 1 0;
+    margin-top: auto;
+    min-height: 10rem;
+  }
+
+  .pf-row-lower > :first-child,
+  .pf-row-lower > :last-child {
+    grid-column: 1 / -1;
+  }
+
+  .pf-row-charts > .dash-cell,
+  .pf-row-lower > .dash-cell,
+  .pf-fixed-positions > .dash-cell {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .pf-fixed-kpis .dash-value {
+    font-size: var(--ct-text-2xl);
+  }
+
+  .pf-row-charts .dash-chart-container {
+    width: 7rem;
+    height: 7rem;
+  }
 }

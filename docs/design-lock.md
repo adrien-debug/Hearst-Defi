@@ -29,8 +29,8 @@ Corollaire :
 
 | Catégorie | Tokens autorisés |
 |---|---|
-| **Fond global** | `--ct-bg-deep` (`#1A050B`) |
-| **Accent produit** | `--ct-accent` (`#8A1538`), `--ct-accent-maroon`, `--ct-accent-strong`, `--ct-accent-soft`, `--ct-border-accent` |
+| **Fond global** | `--ct-bg-deep` (`#050A05`) |
+| **Accent produit** | `--ct-accent` (`#A7FB90`), `--ct-accent-maroon`, `--ct-accent-strong`, `--ct-accent-soft`, `--ct-border-accent` |
 | **Surfaces (élévation 0→3)** | `--ct-surface-0`, `--ct-surface-1`, `--ct-surface-2`, `--ct-surface-3` |
 | **Texte** | `--ct-text-strong` (#fff), `--ct-text-primary`, `--ct-text-body`, `--ct-text-muted`, `--ct-text-faint` |
 | **Bordures** | `--ct-border-soft`, `--ct-border`, `--ct-border-strong` |

@@ -1,0 +1,254 @@
+@import "../product-bento.css";
+
+/*
+ * Profile page — 2×2 bento grid, fixed inside the page-area.
+ * No new tokens (design-lock). Tokens: --ct-* only.
+ */
+
+/* Give the page-area a resolved height when it hosts the profile page. */
+.ct-page-area:has(.prof-page) {
+  height: 100%;
+}
+.ct-page-area:has(.prof-page) > main {
+  height: 100%;
+}
+
+/* ── Page shell ── */
+.prof-page {
+  height: 100%;
+  min-height: 30rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--ct-space-4);
+}
+
+/* Identity card spans full width at the top */
+.prof-card-identity {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--ct-space-5);
+  min-height: 0;
+  padding: var(--ct-space-5) var(--ct-space-6);
+}
+
+/* Details: bottom-left */
+.prof-card-details {
+  grid-column: 1;
+}
+
+/* Summary: bottom-right, top row */
+.prof-card-summary {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+/* Security: spans full width at the bottom */
+.prof-card-security {
+  grid-column: 1 / -1;
+  grid-row: 3;
+}
+
+/* ── Avatar ── */
+.prof-avatar {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--ct-radius-full);
+  background: var(--ct-surface-3);
+  border: 1px solid var(--ct-border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--ct-text-xl);
+  font-weight: var(--ct-font-semibold);
+  color: var(--ct-text-strong);
+  flex-shrink: 0;
+  letter-spacing: -0.01em;
+}
+
+/* ── Identity text ── */
+.prof-identity-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-1);
+  min-width: 0;
+  flex: 1;
+}
+
+.prof-name {
+  font-size: var(--ct-text-xl);
+  font-weight: var(--ct-font-semibold);
+  color: var(--ct-text-strong);
+  letter-spacing: -0.01em;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prof-role {
+  font-size: var(--ct-text-xs);
+  font-weight: var(--ct-font-medium);
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ct-text-muted);
+}
+
+.prof-identity-badges {
+  display: flex;
+  align-items: center;
+  gap: var(--ct-space-2);
+  flex-shrink: 0;
+}
+
+/* ── Definition list ── */
+.prof-dl {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: var(--ct-space-3) 0 0;
+}
+
+.prof-dl-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ct-space-4);
+  padding: var(--ct-space-3) 0;
+  border-bottom: 1px solid var(--ct-border-soft);
+}
+
+.prof-dl-row:last-child {
+  border-bottom: none;
+}
+
+.prof-dl-row dt {
+  font-size: var(--ct-text-xs);
+  font-weight: var(--ct-font-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ct-text-muted);
+  flex-shrink: 0;
+}
+
+.prof-dl-row dd {
+  font-size: var(--ct-text-sm);
+  color: var(--ct-text-primary);
+  text-align: right;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.prof-empty {
+  color: var(--ct-text-faint);
+  font-style: italic;
+}
+
+/* ── Investment stats ── */
+.prof-stats {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-top: var(--ct-space-3);
+  flex: 1;
+}
+
+.prof-stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-1);
+  flex: 1;
+  padding: var(--ct-space-4);
+}
+
+.prof-stat-sep {
+  width: 1px;
+  background: var(--ct-border-soft);
+  flex-shrink: 0;
+}
+
+.prof-stat-value {
+  font-size: var(--ct-text-2xl);
+  font-weight: var(--ct-font-light);
+  color: var(--ct-text-strong);
+  letter-spacing: -0.02em;
+  line-height: var(--ct-leading-none, 1);
+  font-variant-numeric: tabular-nums;
+}
+
+.prof-stat-label {
+  font-size: var(--ct-text-micro);
+  font-weight: var(--ct-font-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ct-text-muted);
+}
+
+/* ── Security list ── */
+.prof-security-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--ct-space-3) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.prof-security-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ct-space-4);
+  padding: var(--ct-space-4) 0;
+  border-bottom: 1px solid var(--ct-border-soft);
+}
+
+.prof-security-row:last-child {
+  border-bottom: none;
+}
+
+.prof-security-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--ct-radius-full);
+  flex-shrink: 0;
+  box-shadow: var(--ct-glow-dot);
+}
+
+.prof-security-dot[data-status="ok"] {
+  background: var(--ct-status-success);
+  color: var(--ct-status-success);
+}
+
+.prof-security-dot[data-status="warn"] {
+  background: var(--ct-status-warning);
+  color: var(--ct-status-warning);
+}
+
+.prof-security-dot[data-status="off"] {
+  background: var(--ct-text-faint);
+  color: var(--ct-text-faint);
+  box-shadow: none;
+}
+
+.prof-security-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-space-0_5);
+  flex: 1;
+  min-width: 0;
+}
+
+.prof-security-name {
+  font-size: var(--ct-text-sm);
+  font-weight: var(--ct-font-medium);
+  color: var(--ct-text-primary);
+}
+
+.prof-security-desc {
+  font-size: var(--ct-text-xs);
+  color: var(--ct-text-muted);
+}

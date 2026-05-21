@@ -24,9 +24,9 @@ dans `cockpit.css` (pattern établi : Sonner, rails).
 
 | Token | Valeur | Usage |
 |---|---|---|
-| `--ct-bg-deep` | `#1A050B` | Fond global, rails, cellules |
-| `--ct-accent` | `#8A1538` | Accent produit (piloté ThemeAccent) |
-| `--ct-accent-maroon` | `accent 70% + #1A050B` | Halo ambiant, charts maroon |
+| `--ct-bg-deep` | `#050A05` | Fond global, rails, cellules |
+| `--ct-accent` | `#A7FB90` | Accent produit (piloté ThemeAccent) |
+| `--ct-accent-maroon` | `accent 70% + #050A05` | Halo ambiant, charts maroon |
 | `--ct-accent-strong` | `accent 78% + #fff` | Arc actif jauges/charts |
 | `--ct-accent-soft` | `accent 18% + transparent` | Fills légers |
 | `--ct-surface-0..3` | `rgba(255,255,255,.02→.09)` | Verre dépoli (élévation croissante) |

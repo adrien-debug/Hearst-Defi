@@ -1,13 +1,7 @@
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { ApyRange } from "@/components/ui/apy-range";
 import type { PortfolioPosition } from "@/lib/data/portfolio";
-
-const usdCompact = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
+import { formatUsdCompact } from "@/lib/format/usd-compact";
 
 const dateFmt = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -79,13 +73,13 @@ export function PositionsList({ positions, source }: PositionsListProps) {
               </div>
 
               {/* Principal */}
-              <span className="tabular body-md mono text-right text-[--ct-text-body]">
-                {usdCompact.format(p.principalUsdc)}
+              <span className="tabular body-md text-right text-[--ct-text-body]">
+                {formatUsdCompact(p.principalUsdc)}
               </span>
 
               {/* Current value */}
-              <span className="tabular body-md ct-text-strong mono font-semibold text-right">
-                {usdCompact.format(p.valueUsdc)}
+              <span className="tabular body-md ct-text-strong font-semibold text-right">
+                {formatUsdCompact(p.valueUsdc)}
               </span>
 
               {/* APY range — non-negotiable #1 */}
@@ -94,7 +88,7 @@ export function PositionsList({ positions, source }: PositionsListProps) {
               </div>
 
               {/* Subscribed date */}
-              <span className="body-xs tabular ct-text-muted mono text-right">
+              <span className="body-xs tabular ct-text-muted text-right">
                 {dateFmt.format(p.subscribedAt)}
               </span>
             </div>

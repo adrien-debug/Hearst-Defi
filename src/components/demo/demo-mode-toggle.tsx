@@ -4,6 +4,7 @@ import { useTransition } from "react";
 
 import { toggleDemoMode } from "@/app/actions/demo";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/cn";
 
 interface DemoModeToggleProps {
   /** Current demo-mode state — passed from a parent Server Component. */
@@ -25,6 +26,7 @@ export function DemoModeToggle({ active }: DemoModeToggleProps) {
     <Button
       variant="ghost"
       size="sm"
+      className={cn(active && "bg-[--ct-accent-soft] text-[--ct-text-strong] border border-[--ct-border-accent]")}
       aria-pressed={active}
       disabled={pending}
       onClick={() =>

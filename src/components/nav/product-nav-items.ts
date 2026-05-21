@@ -39,6 +39,12 @@ export const PRODUCT_NAV: NavItem[] = [
     href: "/vaults",
     icon: "Vault",
   },
+  {
+    id: "profile",
+    label: "Profile",
+    href: "/profile",
+    icon: "User",
+  },
 ];
 
 /**

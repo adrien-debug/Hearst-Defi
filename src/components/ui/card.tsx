@@ -13,7 +13,7 @@ export function Card({
       {...props}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-[--ct-surface-0] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-[var(--ct-dur-slow)] pointer-events-none" />
-      <div className="relative z-10">{props.children}</div>
+      <div className="relative z-[var(--ct-z-base)]">{props.children}</div>
     </div>
   );
 }

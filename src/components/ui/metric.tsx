@@ -32,19 +32,19 @@ export function Metric({
     >
       <div className="absolute inset-0 bg-gradient-to-br from-[--ct-surface-0] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-[var(--ct-dur-slow)] pointer-events-none" />
 
-      <div className="flex items-center justify-between gap-2 relative z-10">
+      <div className="flex items-center justify-between gap-2 relative z-[var(--ct-z-raised)]">
         <span className="stat-label text-[--ct-text-muted] group-hover:text-[--ct-text-body] transition-colors" title={tooltip}>
           {label}
         </span>
         {provenance ? <ProvenanceBadge kind={provenance} /> : null}
       </div>
 
-      <span className="stat-value relative z-10 text-[--ct-text-strong] drop-shadow-[var(--ct-glow-subtle)]">
+      <span className="stat-value relative z-[var(--ct-z-raised)] text-[--ct-text-strong] drop-shadow-[var(--ct-glow-subtle)]">
         {value}
       </span>
 
       {(sublabel || trend) && (
-        <div className="flex min-w-0 items-center gap-2 text-xs text-[--ct-text-muted] relative z-10 mt-auto pt-1">
+        <div className="flex min-w-0 items-center gap-2 text-xs text-[--ct-text-muted] relative z-[var(--ct-z-raised)] mt-auto pt-1">
           {trend ? (
             <span
               className={cn(

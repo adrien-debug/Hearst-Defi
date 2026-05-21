@@ -82,7 +82,7 @@ const SA = {
     margin: 0,
     background: CT_CHROME.bgDeep,
     color: CT_CHROME.textPrimary,
-    fontFamily: "system-ui, sans-serif",
+    fontFamily: '"Satoshi Variable", sans-serif',
     display: "flex",
     alignItems: "center",
     justifyContent: "center",

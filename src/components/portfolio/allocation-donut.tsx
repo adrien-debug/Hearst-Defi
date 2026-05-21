@@ -1,5 +1,6 @@
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import type { PortfolioPosition } from "@/lib/data/portfolio";
+import { formatUsdCompact } from "@/lib/format/usd-compact";
 
 /**
  * Allocation donut — SVG with r=15.9155 (C≈100) convention.
@@ -7,23 +8,16 @@ import type { PortfolioPosition } from "@/lib/data/portfolio";
  * SVG is square (viewBox 42×42, rendered 200×200) — no ellipse distortion.
  */
 
-const usdCompact = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
-
 const STATUS_LABELS: Record<string, string> = {
   active: "Active",
   matured: "Matured",
   exited: "Exited",
 };
 
-const STATUS_LEGEND_TONE: Record<string, "primary" | "accent" | "muted"> = {
+const STATUS_LEGEND_TONE: Record<string, "primary" | "accent" | "accent-raw"> = {
   active: "primary",
-  matured: "muted",
-  exited: "accent",
+  matured: "accent",
+  exited: "accent-raw",
 };
 
 interface AllocationDonutProps {
@@ -100,7 +94,7 @@ export function AllocationDonut({
           </svg>
           <div className="donut-center">
             <span className="donut-val">
-              {totalValueUsdc > 0 ? usdCompact.format(totalValueUsdc) : "—"}
+              {totalValueUsdc > 0 ? formatUsdCompact(totalValueUsdc) : "—"}
             </span>
             <span className="donut-lbl">Portfolio</span>
           </div>
@@ -116,7 +110,7 @@ export function AllocationDonut({
                 {STATUS_LABELS[s.status] ?? s.status}
               </span>
               <span className="dash-legend-val">
-                {s.pct.toFixed(0)}% · {usdCompact.format(s.valueUsdc)}
+                {s.pct.toFixed(0)}% · {formatUsdCompact(s.valueUsdc)}
               </span>
             </div>
           ))}

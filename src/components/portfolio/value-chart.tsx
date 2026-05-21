@@ -1,5 +1,6 @@
 import { ProvenanceBadge, type Provenance } from "@/components/ui/provenance-badge";
 import type { PortfolioPosition } from "@/lib/data/portfolio";
+import { formatUsdCompact } from "@/lib/format/usd-compact";
 
 /**
  * 12-month value chart (SVG area, accent gradient).
@@ -8,13 +9,6 @@ import type { PortfolioPosition } from "@/lib/data/portfolio";
  * start = sum of principals (subscribed month), end = totalValueUsdc today.
  * Pure function — no fetch, no Date.now().
  */
-
-const usdCompact = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -93,7 +87,7 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
         <span className="dash-label-meta">
           <ProvenanceBadge kind={provenance} />
           <span className="dash-trend flat">
-            {totalValueUsdc > 0 ? usdCompact.format(totalValueUsdc) : "—"}
+            {totalValueUsdc > 0 ? formatUsdCompact(totalValueUsdc) : "—"}
           </span>
         </span>
       </div>
@@ -108,8 +102,9 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
       >
         <defs>
           <linearGradient id="pf-area-grad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--ct-accent-strong)" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="var(--ct-accent-strong)" stopOpacity="0.02" />
+            <stop offset="0%" stopColor="var(--ct-accent)" stopOpacity="0.34" />
+            <stop offset="55%" stopColor="var(--ct-accent-strong)" stopOpacity="0.14" />
+            <stop offset="100%" stopColor="var(--ct-accent-strong)" stopOpacity="0.03" />
           </linearGradient>
         </defs>
         {/* Area fill */}
@@ -121,8 +116,8 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
         <path
           d={toSvgPath(series, W, H)}
           fill="none"
-          stroke="var(--ct-accent-strong)"
-          strokeWidth="1.5"
+          stroke="var(--ct-accent)"
+          strokeWidth="1.75"
           vectorEffect="non-scaling-stroke"
         />
       </svg>
