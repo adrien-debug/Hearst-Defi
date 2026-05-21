@@ -3,6 +3,8 @@
 import { useTransition } from "react";
 import { toast } from "sonner";
 
+import { safeUrl } from "@/lib/safe-url";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -95,7 +97,7 @@ function ProofRow({ item }: { item: ProofItem }) {
             <span>
               <span className="text-[--ct-text-muted]">uri </span>
               <a
-                href={item.uri}
+                href={safeUrl(item.uri)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mono text-[--ct-text-body] hover:text-[--ct-text-strong] underline underline-offset-2"

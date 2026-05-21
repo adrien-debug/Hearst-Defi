@@ -275,19 +275,20 @@ async function buildVault(
 
   // Compute 30d AUM delta by finding a snapshot ~30 days older.
   const thirtyDaysAgo = new Date(snapshot.takenAt.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const prior = await prisma.vaultSnapshot.findFirst({
-    where: { takenAt: { lte: thirtyDaysAgo } },
-    orderBy: { takenAt: "desc" },
-    select: { aumUsdc: true },
-  });
+  const [prior, oldest] = await Promise.all([
+    prisma.vaultSnapshot.findFirst({
+      where: { takenAt: { lte: thirtyDaysAgo } },
+      orderBy: { takenAt: "desc" },
+      select: { aumUsdc: true },
+    }),
+    prisma.vaultSnapshot.findFirst({
+      orderBy: { takenAt: "asc" },
+      select: { aumUsdc: true },
+    }),
+  ]);
   // If there is no snapshot far enough back, fall back to the oldest one we
   // have. The delta becomes ~"AUM growth across the series".
-  const oldestFallback = prior
-    ? prior
-    : await prisma.vaultSnapshot.findFirst({
-        orderBy: { takenAt: "asc" },
-        select: { aumUsdc: true },
-      });
+  const oldestFallback = prior ?? oldest;
 
   // Decimal → number at the read boundary before arithmetic.
   const oldestAum = oldestFallback ? oldestFallback.aumUsdc.toNumber() : null;
@@ -360,14 +361,16 @@ async function safeLoadLatestMining(): Promise<{
   operationalConfidence: number;
 } | null> {
   try {
-    const m = await loadLatestMiningMetrics();
-    // `loadLatestMiningMetrics` returns the agent-shaped input; we need the
-    // raw row's `hashpriceTrendPct` + `operationalConfidence`. Pull the row
-    // directly to keep the two values aligned with the latest record.
-    const row = await prisma.miningMetric.findFirst({
-      orderBy: { takenAt: "desc" },
-      select: { hashpriceTrendPct: true, operationalConfidence: true },
-    });
+    const [m, row] = await Promise.all([
+      loadLatestMiningMetrics(),
+      // `loadLatestMiningMetrics` returns the agent-shaped input; we need the
+      // raw row's `hashpriceTrendPct` + `operationalConfidence`. Pull the row
+      // directly to keep the two values aligned with the latest record.
+      prisma.miningMetric.findFirst({
+        orderBy: { takenAt: "desc" },
+        select: { hashpriceTrendPct: true, operationalConfidence: true },
+      }),
+    ]);
     if (row === null) {
       // `loadLatestMiningMetrics` would have thrown, but guard for type safety.
       return { hashpriceTrendPct: m.difficulty_change_pct, operationalConfidence: 81 };

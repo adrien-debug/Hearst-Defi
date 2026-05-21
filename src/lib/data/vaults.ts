@@ -178,14 +178,16 @@ export async function getVault(
     idOrTicker === "hyv-a"
   ) {
     try {
-      const row = await prisma.vaultDeployment.findFirst({
-        where: { ticker: "HYV-A" },
-      });
+      const [row, snapshot] = await Promise.all([
+        prisma.vaultDeployment.findFirst({
+          where: { ticker: "HYV-A" },
+        }),
+        prisma.vaultSnapshot.findFirst({
+          orderBy: { takenAt: "desc" },
+        }),
+      ]);
       if (!row) return HEARST_YIELD_VAULT_FIXTURE;
 
-      const snapshot = await prisma.vaultSnapshot.findFirst({
-        orderBy: { takenAt: "desc" },
-      });
       return toVaultProduct(
         row,
         snapshot?.aumUsdc?.toNumber() ?? 0,
@@ -196,16 +198,18 @@ export async function getVault(
   }
 
   try {
-    const row = await prisma.vaultDeployment.findFirst({
-      where: {
-        OR: [{ id: idOrTicker }, { ticker: idOrTicker }],
-      },
-    });
+    const [row, snapshot] = await Promise.all([
+      prisma.vaultDeployment.findFirst({
+        where: {
+          OR: [{ id: idOrTicker }, { ticker: idOrTicker }],
+        },
+      }),
+      prisma.vaultSnapshot.findFirst({
+        orderBy: { takenAt: "desc" },
+      }),
+    ]);
     if (!row) return null;
 
-    const snapshot = await prisma.vaultSnapshot.findFirst({
-      orderBy: { takenAt: "desc" },
-    });
     return toVaultProduct(
       row,
       snapshot?.aumUsdc?.toNumber() ?? 0,

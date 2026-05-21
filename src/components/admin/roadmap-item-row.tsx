@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { safeUrl } from "@/lib/safe-url";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
@@ -74,7 +76,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
             <Badge variant="default">{item.owner}</Badge>
             {item.evidenceUrl ? (
               <a
-                href={item.evidenceUrl}
+                href={safeUrl(item.evidenceUrl)}
                 target="_blank"
                 rel="noreferrer"
                 className="text-sm font-medium text-[--ct-accent] underline-offset-2 hover:underline"

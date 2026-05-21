@@ -5,7 +5,13 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { safeUrl } from "@/lib/safe-url";
 import type { RoadmapStatus } from "@/lib/roadmap-types";
+
+// Field length caps (defensive — UI textareas are already bounded by these)
+const MAX_NOTES = 2000;
+const MAX_BLOCKERS = 1000;
+const MAX_VALIDATED_BY = 200;
 
 const VALID_STATUS: RoadmapStatus[] = [
   "todo",
@@ -38,10 +44,34 @@ export async function updateRoadmapItem(formData: FormData): Promise<void> {
     const status = parseStatus(formData.get("status"));
     if (!status) return;
 
-    const evidenceUrl = asString(formData.get("evidenceUrl"));
-    const notes = asString(formData.get("notes"));
-    const blockers = asString(formData.get("blockers"));
-    const validatedBy = asString(formData.get("validatedBy"));
+    // evidenceUrl: must be empty OR a safe http(s) URL
+    const rawEvidenceUrl = asString(formData.get("evidenceUrl"));
+    const evidenceUrl = rawEvidenceUrl !== null
+      ? (rawEvidenceUrl.toLowerCase().startsWith("https://") ||
+         rawEvidenceUrl.toLowerCase().startsWith("http://")
+          ? safeUrl(rawEvidenceUrl) || null
+          : null)
+      : null;
+    if (rawEvidenceUrl !== null && evidenceUrl === null) {
+      throw new Error("Evidence URL must be a valid https:// or http:// URL.");
+    }
+
+    // Length-bounded fields
+    const notes = asString(
+      typeof formData.get("notes") === "string"
+        ? (formData.get("notes") as string).slice(0, MAX_NOTES)
+        : formData.get("notes"),
+    );
+    const blockers = asString(
+      typeof formData.get("blockers") === "string"
+        ? (formData.get("blockers") as string).slice(0, MAX_BLOCKERS)
+        : formData.get("blockers"),
+    );
+    const validatedBy = asString(
+      typeof formData.get("validatedBy") === "string"
+        ? (formData.get("validatedBy") as string).slice(0, MAX_VALIDATED_BY)
+        : formData.get("validatedBy"),
+    );
 
     const validatedAt =
       status === "validated"

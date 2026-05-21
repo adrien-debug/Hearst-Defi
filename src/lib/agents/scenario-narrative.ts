@@ -18,6 +18,7 @@ import {
 } from "@/lib/agents/user-context";
 import { logger } from "@/lib/logger";
 import type { ScenarioOutput } from "@/lib/engine/types";
+import { formatApyRange } from "@/lib/format/apy";
 
 /**
  * Default model id for the Scenario Narrative Agent.
@@ -74,10 +75,6 @@ ${DISCLAIMER_PROJECTION}
 Methodology (immutable, do not contradict):
 ${METHODOLOGY_MD}`;
 
-function formatApyRange(range: { low: number; high: number }): string {
-  return `${range.low.toFixed(2)}-${range.high.toFixed(2)}%`;
-}
-
 function buildUserPrompt(input: ScenarioNarrativeInput): string {
   const out = input.scenario_output;
   return [
@@ -89,7 +86,7 @@ function buildUserPrompt(input: ScenarioNarrativeInput): string {
     JSON.stringify(out, null, 2),
     "",
     "Pre-computed fields for convenience (use these verbatim where applicable):",
-    `- apy_range (formatted, use verbatim when quoting APY): ${formatApyRange(out.apy_range)}`,
+    `- apy_range (formatted, use verbatim when quoting APY): ${formatApyRange(out.apy_range, 2)}`,
     `- stressed_apy: ${out.stressed_apy.toFixed(2)}%`,
     `- risk_score: ${out.risk_score}`,
     `- mining_margin_score: ${out.mining_margin_score}`,

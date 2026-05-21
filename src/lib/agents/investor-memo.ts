@@ -18,6 +18,7 @@ import {
 } from "@/lib/agents/user-context";
 import { logger } from "@/lib/logger";
 import type { BacktestOutput, ScenarioOutput } from "@/lib/engine/types";
+import { formatApyRange } from "@/lib/format/apy";
 
 /**
  * Default model id for the Investor Memo Agent.
@@ -97,10 +98,6 @@ ${DISCLAIMER_PROJECTION}
 Methodology (immutable, do not contradict):
 ${METHODOLOGY_MD}`;
 
-function formatApyRange(range: { low: number; high: number }): string {
-  return `${range.low.toFixed(2)}-${range.high.toFixed(2)}%`;
-}
-
 function buildScenarioBlock(scenario: ScenarioOutput, idx: number): string {
   const allocLines = scenario.allocations
     .map((a) => `    - ${a.bucket}: ${a.pct}% (yield_contribution=${a.yield_contribution_bps}bps)`)
@@ -108,7 +105,7 @@ function buildScenarioBlock(scenario: ScenarioOutput, idx: number): string {
   const assumptionLines = scenario.assumptions.map((a) => `    - ${a}`).join("\n");
   return [
     `Scenario #${idx + 1} — mode=${scenario.mode}, confidence=${scenario.confidence}`,
-    `  apy_range: ${formatApyRange(scenario.apy_range)}`,
+    `  apy_range: ${formatApyRange(scenario.apy_range, 2)}`,
     `  stressed_apy: ${scenario.stressed_apy.toFixed(2)}%`,
     `  risk_score: ${scenario.risk_score}`,
     `  mining_margin_score: ${scenario.mining_margin_score}`,
@@ -144,7 +141,7 @@ function buildUserPrompt(input: InvestorMemoInput): string {
     "",
     "Vault state:",
     `  aumUsdc: ${input.vault.aumUsdc}`,
-    `  apyRange (use verbatim when quoting headline APY): ${formatApyRange(input.vault.apyRange)}`,
+    `  apyRange (use verbatim when quoting headline APY): ${formatApyRange(input.vault.apyRange, 2)}`,
     `  mode: ${input.vault.mode}`,
     `  riskScore: ${input.vault.riskScore}`,
     "",

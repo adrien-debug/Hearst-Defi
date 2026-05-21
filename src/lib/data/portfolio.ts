@@ -218,10 +218,18 @@ export async function loadPosition(
   const investor = await getInvestor();
   if (!investor) return null;
 
-  const raw = await prisma.position.findFirst({
-    where: { id: positionId, investorId: investor.id },
-    include: { vaultDeployment: true },
-  });
+  const [raw, rawTxs] = await Promise.all([
+    prisma.position.findFirst({
+      where: { id: positionId, investorId: investor.id },
+      include: { vaultDeployment: true },
+    }),
+    // Load all transactions for this position (positionId + investorId are
+    // already known — independent of the position row itself)
+    prisma.investorTransaction.findMany({
+      where: { investorId: investor.id, positionId },
+      orderBy: { occurredAt: "desc" },
+    }),
+  ]);
   if (!raw) return null;
 
   const principal = toNumber(raw.principalUsdc);
@@ -232,12 +240,6 @@ export async function loadPosition(
   const apyHighBps = raw.vaultDeployment?.targetApyHighBps ?? 1280;
   const vaultName = raw.vaultDeployment?.name ?? "Hearst Yield Vault";
   const vaultTicker = "HYV-A";
-
-  // Load all transactions for this position
-  const rawTxs = await prisma.investorTransaction.findMany({
-    where: { investorId: investor.id, positionId },
-    orderBy: { occurredAt: "desc" },
-  });
 
   const transactions: PositionDetailTransaction[] = rawTxs.map((t) => ({
     id: t.id,

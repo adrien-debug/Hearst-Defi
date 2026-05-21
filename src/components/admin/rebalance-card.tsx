@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { z } from "zod";
 import type { RebalanceEvent } from "@prisma/client";
 
 import { cn } from "@/lib/cn";
@@ -23,6 +24,14 @@ interface AllocationBucket {
   bps?: number;
 }
 
+const AllocationBucketSchema = z.object({
+  bucket: z.string(),
+  pct: z.number().optional(),
+  bps: z.number().optional(),
+});
+
+const AllocationBucketArraySchema = z.array(AllocationBucketSchema);
+
 interface RebalanceCardProps {
   event: RebalanceEvent;
   /** Required multisig threshold (default 2) */
@@ -36,8 +45,8 @@ interface RebalanceCardProps {
 function parseAllocation(raw: string): AllocationBucket[] {
   try {
     const parsed: unknown = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed as AllocationBucket[];
-    return [];
+    const result = AllocationBucketArraySchema.safeParse(parsed);
+    return result.success ? result.data : [];
   } catch {
     return [];
   }
