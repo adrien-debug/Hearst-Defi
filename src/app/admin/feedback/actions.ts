@@ -22,12 +22,21 @@ export async function postFeedback(formData: FormData): Promise<void> {
     // Rate limit: 5 feedback submissions per minute per user
     await assertRateLimit(`post-feedback:${userId}`, 5, 60_000);
 
-    const message = asString(formData.get("message"));
+    const rawMessage = formData.get("message");
+    const message = asString(
+      typeof rawMessage === "string" ? rawMessage.slice(0, 5000) : rawMessage,
+    );
     if (!message) return;
 
     const itemId = asString(formData.get("itemId"));
-    const pathname = asString(formData.get("pathname"));
-    const author = asString(formData.get("author"));
+    const rawPathname = formData.get("pathname");
+    const pathname = asString(
+      typeof rawPathname === "string" ? rawPathname.slice(0, 500) : rawPathname,
+    );
+    const rawAuthor = formData.get("author");
+    const author = asString(
+      typeof rawAuthor === "string" ? rawAuthor.slice(0, 200) : rawAuthor,
+    );
 
     await prisma.feedback.create({
       data: {

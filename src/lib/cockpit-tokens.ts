@@ -17,22 +17,20 @@
  */
 
 // ── Accent (Connect product colour — mirrors --ct-accent) ──────────────────
-export const CT_ACCENT_HEX = "#8A1538" as const;
-export const CT_ACCENT_STRONG_HEX = "#A03B57" as const; // ≈ accent 78% + white 22%
+export const CT_ACCENT_HEX = "#A7FB90" as const;
+export const CT_ACCENT_STRONG_HEX = "#C8FDB8" as const; // ≈ accent 78% + white 22%
 
 // Connect product colour (CockpitShell registry, Privy theme, error pages).
-// Hearst maroon — mirrors the Cockpit chrome accent (--ct-accent). The DeFi
-// product identity is bordeaux, never the reference repo's green.
-export const CT_PRODUCT_CONNECT_HEX = "#8A1538" as const;
+export const CT_PRODUCT_CONNECT_HEX = "#A7FB90" as const;
 
 // Foreground colour for content rendered on top of CT_PRODUCT_CONNECT_HEX
-// (e.g. CTA button label on maroon). White for AA contrast on the dark accent.
-export const CT_PRODUCT_CONNECT_FG_HEX = "#ffffff" as const;
+// (e.g. CTA button label on maroon). Dark for AA contrast on the light accent.
+export const CT_PRODUCT_CONNECT_FG_HEX = "#0A0A0A" as const;
 
 // ── Cockpit chrome base (dark) — minimal hex mirror for surfaces that
 //    cannot rely on the global CSS (Next.js standalone error pages, etc.) ──
 export const CT_CHROME = {
-  bgDeep: "#1A050B", // mirror of --ct-bg-deep
+  bgDeep: "#030603", // mirror of --ct-bg-deep
   textPrimary: "#ededed", // approx mirror of --ct-text-primary (light on dark)
 } as const;
 

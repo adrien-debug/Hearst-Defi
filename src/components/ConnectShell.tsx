@@ -2,9 +2,11 @@
 
 import { CockpitShell } from "@hearst/cockpit-shell";
 import type { ChatConfig } from "@hearst/cockpit-shell";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { ConnectBottomNav } from "@/components/nav/connect-bottom-nav";
+import { AmbientLights } from "@/components/ambient-lights";
 import { CT_PRODUCT_CONNECT_HEX } from "@/lib/cockpit-tokens";
 
 const CONNECT_PRODUCTS = [
@@ -17,8 +19,12 @@ const CHAT_CONFIG: ChatConfig = {
 };
 
 export function ConnectShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const showBottomNav = !pathname.startsWith("/debug");
+
   return (
     <>
+      <AmbientLights />
       <CockpitShell
         products={CONNECT_PRODUCTS}
         appId="connect"
@@ -26,7 +32,7 @@ export function ConnectShell({ children }: { children: ReactNode }) {
       >
         {children}
       </CockpitShell>
-      <ConnectBottomNav />
+      {showBottomNav ? <ConnectBottomNav /> : null}
     </>
   );
 }

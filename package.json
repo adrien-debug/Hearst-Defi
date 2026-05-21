@@ -108,11 +108,14 @@
     "viem": "^2.48.11",
     "zod": "^4.4.3"
   },
+  "pnpm": {
+    "overrides": {
+      "ws": ">=8.20.1"
+    }
+  },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4.3.0",
-    "@types/dompurify": "^3.2.0",
-    "@types/electron": "^1.6.12",
     "@types/node": "^25.7.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

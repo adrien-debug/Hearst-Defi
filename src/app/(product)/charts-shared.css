@@ -25,6 +25,7 @@
 
 .dash-chart-circle.color-primary { stroke: var(--ct-text-strong); }
 .dash-chart-circle.color-accent { stroke: var(--ct-accent-strong); }
+.dash-chart-circle.color-accent-raw { stroke: var(--ct-accent); }
 .dash-chart-circle.color-maroon { stroke: var(--ct-accent-maroon); }
 .dash-chart-circle.color-muted { stroke: var(--ct-surface-3); }
 
@@ -37,7 +38,7 @@
   flex-direction: column;
   align-items: center;
   pointer-events: none;
-  z-index: 1;
+  z-index: var(--ct-z-base);
 }
 
 .donut-val {
@@ -87,6 +88,7 @@
 
 .dash-legend-dot.dot-primary { background: var(--ct-text-strong); }
 .dash-legend-dot.dot-accent { background: var(--ct-accent-strong); }
+.dash-legend-dot.dot-accent-raw { background: var(--ct-accent); }
 .dash-legend-dot.dot-maroon { background: var(--ct-accent-maroon); }
 .dash-legend-dot.dot-muted { background: var(--ct-surface-3); }
 

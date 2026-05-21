@@ -85,10 +85,7 @@ export async function loadMemoPdfExtras(): Promise<{
 
 export type { DistributionSnapshot, MiningOpsSnapshot, VaultMonthlyRow };
 
-/** Stable label for an APY range field. */
-export function formatApyRange(range: { low: number; high: number }): string {
-  return `${range.low.toFixed(1)}-${range.high.toFixed(1)}%`;
-}
+export { formatApyRange } from "@/lib/format/apy";
 
 export function formatUsd(value: number): string {
   if (value >= 1_000_000) {

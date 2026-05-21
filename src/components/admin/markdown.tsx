@@ -1,11 +1,14 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+import { safeUrl } from "@/lib/safe-url";
+
 export function Markdown({ content }: { content: string }) {
   return (
     <div className="prose-spec">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        urlTransform={safeUrl}
         components={{
           h1: ({ children }) => (
             <h1 className="mt-8 mb-4 h1 first:mt-0">
@@ -74,16 +77,19 @@ export function Markdown({ content }: { content: string }) {
               {children}
             </td>
           ),
-          a: ({ children, href }) => (
-            <a
-              href={href}
-              className="text-[--ct-text-strong] underline-offset-2 hover:underline"
-              target={href?.startsWith("http") ? "_blank" : undefined}
-              rel={href?.startsWith("http") ? "noreferrer" : undefined}
-            >
-              {children}
-            </a>
-          ),
+          a: ({ children, href }) => {
+            const safeHref = safeUrl(href);
+            return (
+              <a
+                href={safeHref}
+                className="text-[--ct-text-strong] underline-offset-2 hover:underline"
+                target={safeHref.startsWith("http") ? "_blank" : undefined}
+                rel={safeHref.startsWith("http") ? "noreferrer" : undefined}
+              >
+                {children}
+              </a>
+            );
+          },
           blockquote: ({ children }) => (
             <blockquote className="my-4 border-l-2 border-[--ct-text-strong] pl-4 text-sm italic text-[--ct-text-body]">
               {children}

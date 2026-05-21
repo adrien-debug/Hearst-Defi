@@ -1,12 +1,6 @@
 import { ProvenanceBadge, type Provenance } from "@/components/ui/provenance-badge";
 import type { PortfolioData } from "@/lib/data/portfolio";
-
-const usdCompact = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
+import { formatUsdCompact } from "@/lib/format/usd-compact";
 
 const monthDayFmt = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -33,7 +27,7 @@ export function PortfolioKpiRow({ data }: KpiRowProps) {
   const hasPositions = data.positions.length > 0;
 
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="pf-kpi-grid">
       {/* Portfolio Value */}
       <article className="dash-cell" aria-label="Portfolio value">
         <div className="dash-label">
@@ -42,7 +36,7 @@ export function PortfolioKpiRow({ data }: KpiRowProps) {
         </div>
         <div className="dash-value-group">
           <span className="dash-value">
-            {hasPositions ? usdCompact.format(data.totalValueUsdc) : "—"}
+            {hasPositions ? formatUsdCompact(data.totalValueUsdc) : "—"}
           </span>
           <span className="dash-unit">USDC</span>
         </div>
@@ -56,7 +50,7 @@ export function PortfolioKpiRow({ data }: KpiRowProps) {
         </div>
         <div className="dash-value-group">
           <span className="dash-value">
-            {hasPositions ? usdCompact.format(data.totalYieldYtdUsdc) : "—"}
+            {hasPositions ? formatUsdCompact(data.totalYieldYtdUsdc) : "—"}
           </span>
           <span className="dash-unit">USDC</span>
         </div>

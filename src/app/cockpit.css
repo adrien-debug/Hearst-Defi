@@ -10,9 +10,23 @@
 
 /* ── TOKENS COMPLÉMENTAIRES manquants dans tokens.css du package ── */
 :root {
+  /* Override du fond global (remplace le bordeaux #1A050B du package) */
+  --ct-bg-deep: #050A05;
+  
+  /* On force l'accent ici avec !important pour écraser le ThemeAccent du package
+     qui a pu garder l'ancienne couleur en cache Next.js */
+  --ct-accent: #A7FB90 !important;
+  
+  /* Override des dérivés qui hardcodent #1A050B dans le package */
+  --ct-accent-maroon: color-mix(in srgb, var(--ct-accent) 20%, var(--ct-bg-deep));
+  --ct-accent-strong: color-mix(in srgb, var(--ct-accent) 78%, #ffffff);
+  --ct-accent-soft: color-mix(in srgb, var(--ct-accent) 18%, transparent);
+  --ct-border-accent: color-mix(in srgb, var(--ct-accent) 55%, transparent);
+
   --ct-text-faint: rgba(245, 245, 245, 0.40);
 
   /* Status semantic colors (source of truth — tokens.css n'en a pas) */
+  --ct-product-connect: var(--ct-accent);
   --ct-status-success: #4ade80;
   --ct-status-success-soft: rgba(74, 222, 128, 0.10);
   --ct-status-success-border: rgba(74, 222, 128, 0.20);
@@ -32,8 +46,6 @@
   --ct-status-info-soft: rgba(96, 165, 250, 0.10);
   --ct-status-info-border: rgba(96, 165, 250, 0.20);
 
-  /* Connect product colour — Hearst maroon (mirror CT_PRODUCT_CONNECT_HEX). Never the ref-repo green. */
-  --ct-product-connect: #8A1538;
 
   /* Radius tokens (alignés sur le DS) */
   --ct-radius-sm: 0.375rem;
@@ -55,6 +67,7 @@
   /* Shadows */
   --ct-shadow-soft: 0 4px 24px -4px rgba(0, 0, 0, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.10);
   --ct-shadow-elevated: 0 12px 48px -12px rgba(0, 0, 0, 0.60), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  --ct-shadow-depth: 0 8px 32px -8px rgba(0, 0, 0, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.10);
   --ct-glow-subtle: 0 0 15px rgba(255, 255, 255, 0.10);
   --ct-glow-soft:   0 0 10px rgba(255, 255, 255, 0.50);
   --ct-glow-strong: 0 0 10px rgba(255, 255, 255, 0.80);
@@ -478,30 +491,54 @@
 
 /* ── SHELL — rails en deep plat (gauche + chat droit) ──
    Le package met les rails sur --ct-surface-2 (plus clair). On les
-   aligne sur le fond deep #1A050B, bordures fines pour délimiter. */
+   aligne sur le fond deep #050A05, bordures fines pour délimiter. */
 .ct-rail-left {
-  background: var(--ct-bg-deep) !important;
-  border-right: 1px solid var(--ct-border-soft);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--ct-text-strong) 3%, transparent) 0%,
+      color-mix(in srgb, var(--ct-bg-deep) 34%, var(--ct-surface-1)) 28%,
+      color-mix(in srgb, var(--ct-bg-deep) 64%, var(--ct-surface-0)) 100%
+    ) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-right: 1px solid color-mix(in srgb, var(--ct-text-strong) 7%, var(--ct-border-soft));
   /* Rail verrouillé en position fermée — largeur fixe, jamais déployé. */
   width: 88px !important;
   min-width: 88px !important;
   max-width: 88px !important;
 }
 
-.ct-rail-right,
-.ct-rail-right-header,
-.ct-rail-right-body {
-  background: var(--ct-bg-deep) !important;
+.ct-rail-right {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--ct-text-strong) 3%, transparent) 0%,
+      color-mix(in srgb, var(--ct-bg-deep) 34%, var(--ct-surface-1)) 28%,
+      color-mix(in srgb, var(--ct-bg-deep) 64%, var(--ct-surface-0)) 100%
+    ) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-left: 1px solid color-mix(in srgb, var(--ct-text-strong) 7%, var(--ct-border-soft));
 }
 
-.ct-rail-right {
-  border-left: 1px solid var(--ct-border-soft);
+.ct-rail-right-header,
+.ct-rail-right-body {
+  background: transparent !important;
+}
+
+/* ── SUPPRESSION DES FONDS OPAQUES DU SHELL ──
+   Le package @hearst/cockpit-shell injecte des fonds par défaut (ct-ambient-deep)
+   qui bloquent la vue des halos placés derrière. On les rend transparents. */
+.ct-ambient-deep,
+.ct-ambient-glow {
+  display: none !important;
 }
 
 /* ── SECTION CENTRALE — halo lumineux centré, bords noirs ──
    .ct-page-area est la zone de contenu (transparente par défaut).
    Dégradé radial : teinté --ct-accent-maroon au centre → deep
-   #1A050B noir vers tous les bords (haut, bas, gauche, droite). */
+   #050A05 noir vers tous les bords (haut, bas, gauche, droite). */
 .ct-page-area {
   background: radial-gradient(
     ellipse 80% 70% at 50% 45%,
@@ -645,7 +682,7 @@
   bottom: 24px;
   left: calc((var(--connect-rail-left-eff) + 100vw - var(--connect-rail-right-eff)) / 2);
   transform: translateX(-50%);
-  z-index: 35;
+  z-index: var(--ct-z-bottom-bar);
 }
 
 /* ── Identity slot docked in the left rail (Section 1) ──
@@ -660,7 +697,7 @@
   bottom: 88px;
   left: 0;
   width: 88px;
-  z-index: 36;
+  z-index: var(--ct-z-rail);
 
   display: flex;
   flex-direction: column;
@@ -759,8 +796,30 @@
 .ct-chat-list                              { padding-bottom: 12px; }
 .ct-chat-msg                               { padding: 12px 14px; }
 .ct-chat-msg.assistant code                { padding: 1px 5px; }
-.ct-chat-form                              { padding: 10px 10px 10px 14px; }
-.ct-chat-input                             { padding: 6px 0; }
+
+/* Formulaire de chat - on enlève la lourdeur du package */
+.ct-chat-form {
+  padding: 10px 10px 10px 14px;
+  background: color-mix(in srgb, var(--ct-surface-1) 50%, transparent) !important;
+  border: 1px solid var(--ct-border-soft) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.ct-chat-form:focus-within {
+  border-color: var(--ct-border-accent) !important;
+  box-shadow: 0 0 0 1px var(--ct-border-accent) !important;
+}
+
+.ct-chat-input {
+  padding: 6px 0;
+  outline: none !important;
+  background: transparent !important;
+  border: none !important;
+}
+.ct-chat-input:focus {
+  outline: none !important;
+}
+
 .ct-chat-thinking                          { padding-left: 14px; }
 
 /* Chat settings */

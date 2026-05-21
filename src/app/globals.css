@@ -5,7 +5,7 @@
 @import "tailwindcss";
 
 @font-face {
-  font-family: "Satoshi";
+  font-family: "Satoshi Variable";
   src: url("/fonts/Satoshi-Variable.woff2") format("woff2-variations");
   font-weight: 300 900;
   font-style: normal;
@@ -48,10 +48,9 @@
   --color-danger: var(--ct-status-danger);
   --color-info: var(--ct-status-info);
 
-  /* ---- Typography ---- */
-  --font-sans: "Satoshi", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    sans-serif;
-  --font-mono: "Satoshi", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  /* ---- Typography — Satoshi Variable only (design-lock) ---- */
+  --font-sans: "Satoshi Variable", sans-serif;
+  --font-mono: "Satoshi Variable", sans-serif;
 
   /* Aligned with cockpit.css --ct-text-* (design-lock stage 0). */
   --text-micro: 0.625rem;
@@ -107,6 +106,9 @@
 }
 
 :root {
+  --font-sans: "Satoshi Variable", sans-serif;
+  --font-mono: "Satoshi Variable", sans-serif;
+
   /* Accent dim/glow tints — derived from Cockpit accent (color-mix). */
   --color-accent: var(--ct-accent);
   --color-accent-dim: color-mix(in srgb, var(--ct-accent) 10%, transparent);
@@ -134,7 +136,8 @@
   color-scheme: dark;
 }
 
-html, body {
+html,
+body {
   background: var(--ct-bg-deep);
   color: var(--ct-text-primary);
   font-family: var(--font-sans);
@@ -147,6 +150,18 @@ html, body {
   min-height: 100vh;
 }
 
+.ct-root,
+.ct-hub-bar {
+  font-family: var(--font-sans);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
 * {
   border-color: var(--ct-border);
 }
@@ -156,16 +171,16 @@ html, body {
   color: var(--ct-text-strong);
 }
 
-.tabular {
-  font-variant-numeric: tabular-nums;
-}
-
 /* Typographic roles (.h1/.h2/.h3/.h4, .eyebrow, .stat-value/.stat-label,
    .body-*) are defined in cockpit.css against --ct-* tokens. */
 
-code, .mono {
-  font-family: var(--font-mono);
-  font-feature-settings: "tnum", "zero", "ss01";
+/* Numeric UI — Satoshi Variable + tabular figures (not a separate mono face) */
+code,
+.mono,
+.tabular {
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum", "ss01";
 }
 
 .slider-track {
@@ -222,4 +237,64 @@ code, .mono {
 @keyframes shimmer {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
+}
+
+/* ── AMBIENT LIGHTS (Cockpit halos) ── */
+.ct-ambient-lights {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ct-ambient-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.15;
+  background: var(--ct-accent-maroon);
+  animation: ambient-drift 20s infinite alternate ease-in-out;
+}
+
+.ct-ambient-blob.blob-1 {
+  width: 40vw;
+  height: 40vw;
+  top: -10vw;
+  left: -10vw;
+  animation-duration: 25s;
+}
+
+.ct-ambient-blob.blob-2 {
+  width: 35vw;
+  height: 35vw;
+  bottom: -5vw;
+  right: -5vw;
+  animation-duration: 22s;
+  animation-delay: -5s;
+}
+
+.ct-ambient-blob.blob-3 {
+  width: 30vw;
+  height: 30vw;
+  top: 40%;
+  left: 30%;
+  animation-duration: 28s;
+  animation-delay: -10s;
+  opacity: 0.1;
+}
+
+@keyframes ambient-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(3vw, -5vw) scale(1.05);
+  }
+  66% {
+    transform: translate(-2vw, 4vw) scale(0.95);
+  }
+  100% {
+    transform: translate(4vw, 2vw) scale(1.1);
+  }
 }

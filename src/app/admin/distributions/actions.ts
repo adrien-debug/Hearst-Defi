@@ -23,7 +23,9 @@ const ComputeSchema = z.object({
 
 const ConfirmSchema = z.object({
   period: PeriodSchema,
-  signerWallet: z.string().min(1),
+  signerWallet: z
+    .string()
+    .regex(/^0x[a-fA-F0-9]{40}$/, "Must be a valid Ethereum address"),
   totalUsdc: z.number().positive(),
 });
 
@@ -202,23 +204,36 @@ export async function confirmDistribution(
         },
       });
 
-      // Create one InvestorTransaction per recipient
-      for (const r of computed.recipients) {
-        const position = await tx.position.findFirst({
-          where: { investorId: r.investorId, status: "active" },
-          select: { id: true },
-        });
+      // Create one InvestorTransaction per recipient — single batch, no N+1.
+      // Fetch all active positions for the affected investors in one query, then
+      // build a Map so each recipient gets the correct positionId (or null when
+      // no active position exists, matching the original per-row behaviour).
+      const investorIds = computed.recipients.map((r) => r.investorId);
 
-        await tx.investorTransaction.create({
-          data: {
-            investorId: r.investorId,
-            positionId: position?.id ?? null,
-            type: "distribution",
-            amountUsdc: r.payoutUsdc,
-            occurredAt: new Date(),
-          },
-        });
+      const activePositions = await tx.position.findMany({
+        where: { investorId: { in: investorIds }, status: "active" },
+        select: { id: true, investorId: true },
+      });
+
+      // When multiple active positions exist per investor (shouldn't happen at
+      // MVP but defensive), keep the first one found — same as findFirst would.
+      const positionByInvestor = new Map<string, string>();
+      for (const pos of activePositions) {
+        if (!positionByInvestor.has(pos.investorId)) {
+          positionByInvestor.set(pos.investorId, pos.id);
+        }
       }
+
+      const now = new Date();
+      await tx.investorTransaction.createMany({
+        data: computed.recipients.map((r) => ({
+          investorId: r.investorId,
+          positionId: positionByInvestor.get(r.investorId) ?? null,
+          type: "distribution",
+          amountUsdc: r.payoutUsdc,
+          occurredAt: now,
+        })),
+      });
 
       await recordAdminAudit({
         actorWallet: admin.walletAddress ?? admin.userId,

@@ -8,7 +8,7 @@
  *   - cockpit-template.html (status badges, ct-card)
  *
  * Aucun nouveau token. Tout passe par var(--ct-*) du package @hearst/cockpit-shell.
- * --ct-accent est injecté par <ThemeAccent /> selon le produit actif (#8A1538 pour Connect).
+ * --ct-accent est injecté par <ThemeAccent /> selon le produit actif (#A7FB90 pour Connect).
  */
 
 /* Bento layout + KPI primitives → product-bento.css */
@@ -165,7 +165,7 @@
   flex-direction: column;
   align-items: center;
   /* Above the SVG gauge arc (z=0 by default). */
-  z-index: 1;
+  z-index: var(--ct-z-base);
 }
 
 .gauge-val {

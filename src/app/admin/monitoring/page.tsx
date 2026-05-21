@@ -127,7 +127,7 @@ export default async function MonitoringPage() {
 function KpiCard({ title, value }: { title: string; value: string }) {
   return (
     <div className="glass-panel p-6 relative overflow-hidden">
-      <div className="relative z-10">
+      <div className="relative z-[var(--ct-z-raised)]">
         <p className="stat-label mb-1">{title}</p>
         <p className="stat-value text-[--ct-text-strong]">{value}</p>
       </div>

@@ -4,6 +4,13 @@
     <meta charset="utf-8" />
     <title>Hearst Connect</title>
     <style>
+      @font-face {
+        font-family: "Satoshi Variable";
+        src: url("../public/fonts/Satoshi-Variable.woff2") format("woff2-variations");
+        font-weight: 300 900;
+        font-style: normal;
+        font-display: swap;
+      }
       * { box-sizing: border-box; margin: 0; padding: 0; }
       html, body {
         width: 100%;
@@ -12,7 +19,7 @@
         backdrop-filter: blur(40px) saturate(110%);
         -webkit-backdrop-filter: blur(40px) saturate(110%);
         color: rgba(245, 245, 245, 0.92);
-        font-family: -apple-system, BlinkMacSystemFont, "Inter", ui-sans-serif, system-ui, sans-serif;
+        font-family: "Satoshi Variable", sans-serif;
         overflow: hidden;
         -webkit-app-region: drag;
       }
@@ -82,7 +89,7 @@
         display: block;
         font-size: 11px;
         color: rgba(245, 245, 245, 0.48);
-        font-family: ui-monospace, "SF Mono", Menlo, Monaco, monospace;
+        font-family: "Satoshi Variable", sans-serif;
       }
       .footer {
         margin-top: 32px;

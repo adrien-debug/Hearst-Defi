@@ -21,6 +21,9 @@ import { getVault } from "@/lib/data/vaults";
  * No forbidden words, no returns promised — this only records the deposit.
  */
 
+/** Hard ceiling on a single subscription amount (1 billion USDC). */
+const MAX_SUBSCRIBE_USDC = 1_000_000_000;
+
 export type SubscribeResult =
   | { ok: true; positionId: string }
   | { ok: false; error: string };
@@ -32,6 +35,10 @@ export async function subscribe(
   const investor = await getInvestor();
   if (!investor) {
     return { ok: false, error: "Sign in to subscribe." };
+  }
+
+  if (amountUsdc > MAX_SUBSCRIBE_USDC) {
+    return { ok: false, error: "Amount too large." };
   }
 
   const vault = await getVault(vaultId);

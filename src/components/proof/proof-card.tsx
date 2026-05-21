@@ -4,6 +4,8 @@ import { Card } from "@/components/ui/card";
 import { EXPLORER_ADDRESS_BASE, EXPLORER_TX_BASE } from "@/lib/chain/client";
 import type { ProofType } from "@/lib/mock/proof-center";
 
+import { safeUrl } from "@/lib/safe-url";
+
 import type { UnifiedProof } from "./proof-types";
 
 interface ProofCardProps {
@@ -134,7 +136,7 @@ function PaperProofCard({
       <div className="mt-auto flex flex-wrap items-center gap-2 pt-2">
         <Button asChild variant="secondary" size="sm">
           <a
-            href={proof.uri}
+            href={safeUrl(proof.uri)}
             target="_blank"
             rel="noreferrer noopener"
           >
