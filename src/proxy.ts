@@ -29,6 +29,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { safeFrom } from "@/lib/safe-redirect";
+import { isDevAuthBypass } from "@/lib/dev-bypass";
 
 const SESSION_COOKIE = "hc_session";
 
@@ -90,6 +91,13 @@ export default async function proxy(
 
   // --- 2. Auth gate ----------------------------------------------------------
   const { pathname } = request.nextUrl;
+
+  // Dev-only bypass (double-gated, never active in production): skip the gate
+  // entirely so a developer can reach protected routes directly. getSession()
+  // resolves a seeded dev investor server-side.
+  if (isDevAuthBypass()) {
+    return next();
+  }
 
   if (isProtected(pathname)) {
     const hasSession = Boolean(request.cookies.get(SESSION_COOKIE)?.value);

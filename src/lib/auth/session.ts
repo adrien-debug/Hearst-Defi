@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import type { Investor } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
+import { isDevAuthBypass, DEV_USER_EMAIL } from "@/lib/dev-bypass";
 
 /**
  * Database-backed session layer for email/password authentication.
@@ -51,6 +52,37 @@ function normaliseRole(role: string): UserRole {
   return role === "admin" ? "admin" : "investor";
 }
 
+/**
+ * Dev-only bypass session. Resolves (and lazily provisions) a seeded dev
+ * investor so a developer can reach protected pages without logging in.
+ * Only ever called when `isDevAuthBypass()` is true (never in production).
+ * The dev account's password hash is intentionally unusable, so it cannot be
+ * logged into through the normal email/password flow.
+ */
+async function getDevBypassSession(): Promise<SessionUser> {
+  const user =
+    (await prisma.user.findUnique({
+      where: { email: DEV_USER_EMAIL },
+      include: { investor: true },
+    })) ??
+    (await prisma.user.create({
+      data: {
+        email: DEV_USER_EMAIL,
+        passwordHash: "!dev-bypass-no-password-login!",
+        role: "investor",
+        investor: { create: {} },
+      },
+      include: { investor: true },
+    }));
+
+  return {
+    userId: user.id,
+    email: user.email,
+    role: normaliseRole(user.role),
+    walletAddress: user.investor?.walletAddress ?? null,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Session lifecycle
 // ---------------------------------------------------------------------------
@@ -94,7 +126,11 @@ export async function setSessionCookie(
 export async function getSession(): Promise<SessionUser | null> {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
-  if (!token) return null;
+  if (!token) {
+    // Dev-only bypass: no cookie + double-gated flag → seeded dev investor.
+    if (isDevAuthBypass()) return getDevBypassSession();
+    return null;
+  }
 
   const session = await prisma.session.findUnique({
     where: { id: token },
