@@ -55,8 +55,8 @@ describe("cockpit-tokens — accent + product chip stay in sync with package", (
     expect(CT_ACCENT_HEX).toBe("#8A1538");
   });
 
-  it("CT_PRODUCT_CONNECT_HEX mirrors the Connect green identity chip", () => {
-    expect(CT_PRODUCT_CONNECT_HEX).toBe("#A7FB90");
+  it("CT_PRODUCT_CONNECT_HEX is the Hearst maroon accent (not the reference repo green)", () => {
+    expect(CT_PRODUCT_CONNECT_HEX).toBe("#8A1538");
   });
 });
 

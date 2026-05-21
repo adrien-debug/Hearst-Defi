@@ -20,13 +20,14 @@
 export const CT_ACCENT_HEX = "#8A1538" as const;
 export const CT_ACCENT_STRONG_HEX = "#A03B57" as const; // ≈ accent 78% + white 22%
 
-// Connect product chip (CockpitShell registry) — green identity tag for the
-// "Hearst Connect" launcher tile. Distinct from the Cockpit chrome accent.
-export const CT_PRODUCT_CONNECT_HEX = "#A7FB90" as const;
+// Connect product colour (CockpitShell registry, Privy theme, error pages).
+// Hearst maroon — mirrors the Cockpit chrome accent (--ct-accent). The DeFi
+// product identity is bordeaux, never the reference repo's green.
+export const CT_PRODUCT_CONNECT_HEX = "#8A1538" as const;
 
 // Foreground colour for content rendered on top of CT_PRODUCT_CONNECT_HEX
-// (e.g. CTA button label on Connect green). Dark grey for AA contrast.
-export const CT_PRODUCT_CONNECT_FG_HEX = "#0a0a0a" as const;
+// (e.g. CTA button label on maroon). White for AA contrast on the dark accent.
+export const CT_PRODUCT_CONNECT_FG_HEX = "#ffffff" as const;
 
 // ── Cockpit chrome base (dark) — minimal hex mirror for surfaces that
 //    cannot rely on the global CSS (Next.js standalone error pages, etc.) ──
