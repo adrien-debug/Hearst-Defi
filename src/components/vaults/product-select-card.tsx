@@ -103,25 +103,25 @@ export function ProductSelectCard({ vault }: ProductSelectCardProps) {
       <div className="flex flex-wrap gap-x-6 gap-y-2 pt-1 border-t border-[--ct-border-soft]">
         <div className="flex flex-col gap-0.5">
           <span className="stat-label">Min. ticket</span>
-          <span className="stat-value tabular text-sm">
+          <span className="tabular text-sm font-semibold ct-text-strong">
             {USD_COMPACT.format(vault.minTicketUsdc)}
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
           <span className="stat-label">Soft lock-up</span>
-          <span className="stat-value tabular text-sm">
+          <span className="tabular text-sm font-semibold ct-text-strong">
             {vault.softLockupDays}d
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
           <span className="stat-label">Risk level</span>
-          <span className="stat-value text-sm">
+          <span className="text-sm font-semibold ct-text-strong">
             {RISK_LABELS[vault.riskLevel]}
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
           <span className="stat-label">AUM</span>
-          <span className="stat-value tabular text-sm">
+          <span className="tabular text-sm font-semibold ct-text-strong">
             {USD_COMPACT.format(vault.currentAumUsdc)}
           </span>
         </div>

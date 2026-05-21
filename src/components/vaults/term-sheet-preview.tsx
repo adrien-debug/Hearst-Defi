@@ -91,7 +91,7 @@ function KpiRow({ label, value, provenance = "manual" }: KpiRowProps) {
       <span className="stat-label flex-1">{label}</span>
       <div className="flex items-center gap-2 flex-shrink-0">
         <ProvenanceBadge kind={provenance} />
-        <span className="stat-value tabular text-sm text-right">
+        <span className="tabular text-sm font-semibold ct-text-strong text-right">
           {value}
         </span>
       </div>
@@ -127,7 +127,7 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
                 low={vault.apyLow}
                 high={vault.apyHigh}
                 precision={1}
-                className="stat-value text-sm"
+                className="text-sm"
               />
             </div>
           </div>
