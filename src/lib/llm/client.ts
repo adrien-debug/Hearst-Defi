@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db";
 import { env } from "@/lib/env";
 import { kimi, KIMI_MODEL } from "@/lib/llm/kimi";
 import { logger } from "@/lib/logger";
+import { getRequestContext } from "@/lib/request-context";
 
 /**
  * Thin, auditable wrapper around the Anthropic SDK.
@@ -96,6 +97,9 @@ export async function callLlm(
   // prompt is supplied.
   const systemPromptHash = hashSystemPrompt(params.system);
 
+  // Capture userId from the current async request context (null outside request scope, e.g. cron).
+  const userId = getRequestContext()?.userId ?? null;
+
   const run = await prisma.llmRun.create({
     data: {
       agentName,
@@ -103,6 +107,7 @@ export async function callLlm(
       promptHash,
       systemPromptHash,
       status: "queued",
+      userId,
     },
   });
 
