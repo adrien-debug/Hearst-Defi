@@ -183,5 +183,7 @@ export async function devLoginAdmin(from?: string): Promise<void> {
   logger.info("dev admin sign-in", { userId: user.id });
 
   // Outside try/catch: redirect throws NEXT_REDIRECT which must propagate.
-  redirect(safeFrom(from));
+  // Default an admin sign-in to the admin area (not the investor /portfolio
+  // fallback); an explicit `from` is still honoured when present.
+  redirect(safeFrom(from, "/admin"));
 }
