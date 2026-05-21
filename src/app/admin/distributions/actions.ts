@@ -106,7 +106,9 @@ export async function computeDistribution(
     const payoutUsdc = (principal / totalPrincipal) * totalUsdc;
     return {
       investorId: pos.investorId,
-      walletAddress: pos.investor.walletAddress,
+      // walletAddress is nullable now (set only when the investor connects a
+      // wallet for payment). Empty string = no wallet on file yet.
+      walletAddress: pos.investor.walletAddress ?? "",
       sharesPct: Math.round(sharesPct * 10000) / 10000,
       payoutUsdc: Math.round(payoutUsdc * 100) / 100,
     };

@@ -1,0 +1,51 @@
+import type { PortfolioData } from "@/lib/data/portfolio";
+
+const usdCompact = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+/** Relative time string for the recap line ("today", "3 days ago", "1 month ago"). */
+function relativeTime(date: Date, asOf: Date): string {
+  const days = Math.floor((asOf.getTime() - date.getTime()) / 86_400_000);
+  if (days < 1) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 30) return `${days} days ago`;
+  const months = Math.floor(days / 30);
+  return months === 1 ? "1 month ago" : `${months} months ago`;
+}
+
+interface PortfolioGreetingProps {
+  /** Display name — email local-part or shortened wallet. */
+  name: string;
+  data: PortfolioData;
+}
+
+/**
+ * Welcome line above the KPI band: greeting + a one-glance activity recap.
+ * Server Component. Pure derivation from already-loaded portfolio data — no
+ * extra fetch. Tokens/classes only (design-lock respected).
+ */
+export function PortfolioGreeting({ name, data }: PortfolioGreetingProps) {
+  const count = data.positions.length;
+  const asOf = new Date();
+  const last = data.recentTransactions[0];
+
+  const recap =
+    count === 0
+      ? "No active positions yet — subscribe to a vault to get started."
+      : `${count} active position${count > 1 ? "s" : ""} · ${usdCompact.format(
+          data.totalValueUsdc,
+        )} deployed${last ? ` · last activity ${relativeTime(last.occurredAt, asOf)}` : ""}`;
+
+  return (
+    <div className="pf-greeting">
+      <h1 className="pf-greeting-title">
+        Welcome back, <span className="pf-greeting-name">{name}</span>
+      </h1>
+      <p className="pf-greeting-recap">{recap}</p>
+    </div>
+  );
+}

@@ -36,7 +36,7 @@ export function PositionsList({ positions, source }: PositionsListProps) {
   const provenance = source === "fallback" ? "stale" : "live";
 
   return (
-    <article className="dash-cell col-8" aria-label="Open positions">
+    <article className="dash-cell" aria-label="Open positions">
       <div className="dash-label">
         <span>Positions</span>
         <span className="dash-label-meta">

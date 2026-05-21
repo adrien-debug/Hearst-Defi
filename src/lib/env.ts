@@ -21,11 +21,19 @@ const serverEnvSchema = z.object({
     .min(1)
     .startsWith("sk-ant", "ANTHROPIC_API_KEY must start with sk-ant")
     .optional(),
+  // Privy — reserved for the USDC subscription/payment flow (wallet connect at
+  // deposit time), NOT for authentication. Optional everywhere: the app boots
+  // and authenticates (email/password) without it.
   PRIVY_APP_SECRET: z.string().optional(),
   NEXT_PUBLIC_PRIVY_APP_ID: z.string().optional(),
   NEXT_PUBLIC_CHAIN_RPC_URL: z.string().url().optional(),
   NEXT_PUBLIC_EVENT_LOGGER_ADDRESS: z.string().optional(),
   NEXT_PUBLIC_POR_REGISTRY_ADDRESS: z.string().optional(),
+  // Admin provisioning — comma-separated emails seeded as role=admin, plus the
+  // initial password applied to those accounts by `prisma/seed.ts`. Optional;
+  // the seed is a no-op when unset.
+  ADMIN_EMAILS: z.string().optional(),
+  ADMIN_INITIAL_PASSWORD: z.string().optional(),
   ADMIN_ADDRESSES: z.string().optional(),
   HEARST_PUBLISHER: z.string().optional(),
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
@@ -75,12 +83,9 @@ const IS_RUNTIME_PRODUCTION =
 
 if (IS_RUNTIME_PRODUCTION && parsed.success) {
   const d = parsed.data;
-  if (!d.PRIVY_APP_SECRET || !d.NEXT_PUBLIC_PRIVY_APP_ID) {
-    throw new Error(
-      "PRIVY_APP_SECRET and NEXT_PUBLIC_PRIVY_APP_ID are required in production. " +
-        "Without them, the auth gate is completely disabled and all routes are open.",
-    );
-  }
+  // NOTE: Privy is NOT required for auth — authentication is database-backed
+  // (email/password, `hc_session` cookie). Privy only powers the optional USDC
+  // payment/subscription flow, so its absence no longer disables the gate.
   if (!d.INNGEST_SIGNING_KEY) {
     throw new Error(
       "INNGEST_SIGNING_KEY is required in production. " +

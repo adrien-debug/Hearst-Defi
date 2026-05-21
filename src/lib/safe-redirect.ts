@@ -7,11 +7,12 @@
  *  - not `/\` (browsers normalize `\` → `/`, becoming `//`)
  *  - no backslash or control character anywhere (CWE-601 defense-in-depth)
  *
- * Otherwise returns the fallback (default `/dashboard`).
+ * Otherwise returns the fallback (default `/portfolio` — the investor's own
+ * dashboard, i.e. where a signed-in user should land by default).
  */
 const UNSAFE_CHARS = /[\x00-\x1f\\]/;
 
-export function safeFrom(from: string | null | undefined, fallback = "/dashboard"): string {
+export function safeFrom(from: string | null | undefined, fallback = "/portfolio"): string {
   if (!from) return fallback;
   if (!from.startsWith("/")) return fallback;
   if (from.startsWith("//")) return fallback;

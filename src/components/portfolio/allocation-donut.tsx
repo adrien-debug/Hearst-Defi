@@ -63,7 +63,7 @@ export function AllocationDonut({
   }
 
   return (
-    <article className="dash-cell col-4" aria-label="Portfolio allocation">
+    <article className="dash-cell" aria-label="Portfolio allocation">
       <div className="dash-label">
         <span>Allocation by status</span>
         <ProvenanceBadge kind={provenance} />

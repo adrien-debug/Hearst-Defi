@@ -249,13 +249,44 @@ model CockpitMessage {
 }
 
 // =============================================================================
+// AUTH — database email/password identity + opaque server sessions
+// =============================================================================
+//
+// Authentication (dashboard access) is email + password, backed by these
+// tables. Privy is NOT part of auth — it is reserved for the USDC subscription
+// /payment flow only (wallet connect at deposit time). The session token is the
+// opaque `Session.id` (a cuid), stored in the httpOnly `hc_session` cookie.
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  role         String    @default("investor") // investor | admin
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  sessions     Session[]
+  investor     Investor?
+}
+
+model Session {
+  id        String   @id @default(cuid()) // opaque session token (cuid)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// =============================================================================
 // CUSTOMER — investors, positions, transactions
 // =============================================================================
 
 model Investor {
   id            String   @id @default(cuid())
-  userId        String   @unique // Privy DID
-  walletAddress String   @unique
+  userId        String   @unique // FK → User.id (auth identity)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  walletAddress String?  @unique // nullable — set when the investor connects a wallet for payment
   email         String?
   kycStatus     String   @default("pending") // pending|approved|rejected
   createdAt     DateTime @default(now())

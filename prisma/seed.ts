@@ -1,4 +1,8 @@
 import { PrismaClient } from "@prisma/client";
+// `@node-rs/argon2` is imported directly here (not via src/lib/auth/password.ts)
+// because that module is `server-only` and would throw under `tsx`. Params must
+// stay in sync with password.ts (OWASP argon2id: 19 MiB, t=2, p=1, Argon2id=2).
+import { hash } from "@node-rs/argon2";
 import { computeMiningRevenue } from "../src/lib/engine/mining";
 import { runBacktest } from "../src/lib/engine/backtest";
 import { getPresetInputs, runScenario } from "../src/lib/engine/scenario";
@@ -560,8 +564,52 @@ function round6(n: number): number {
   return Math.round(n * 1_000_000) / 1_000_000;
 }
 
+// ---------------------------------------------------------------------------
+// Admin users — idempotent. Reads ADMIN_EMAILS (CSV) + ADMIN_INITIAL_PASSWORD.
+// Upserts a role="admin" User per email. Does NOT create an Investor for the
+// admin. No-op when either env var is unset. Intentionally OUTSIDE resetTables()
+// so re-seeding fixtures never wipes admin credentials.
+// ---------------------------------------------------------------------------
+const ARGON2_OPTIONS = {
+  algorithm: 2, // Argon2id
+  memoryCost: 19_456,
+  timeCost: 2,
+  parallelism: 1,
+} as const;
+
+async function seedAdminUsers(): Promise<number> {
+  const raw = process.env.ADMIN_EMAILS ?? "";
+  const password = process.env.ADMIN_INITIAL_PASSWORD ?? "";
+  const emails = raw
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (emails.length === 0 || password.length === 0) {
+    console.log(
+      "  AdminUser:       0 (set ADMIN_EMAILS + ADMIN_INITIAL_PASSWORD to seed admins)",
+    );
+    return 0;
+  }
+
+  const passwordHash = await hash(password, ARGON2_OPTIONS);
+  let count = 0;
+  for (const email of emails) {
+    await prisma.user.upsert({
+      where: { email },
+      // Idempotent: keep existing accounts as admins, refresh the password to
+      // the configured initial password (operator-controlled bootstrap).
+      update: { role: "admin", passwordHash },
+      create: { email, role: "admin", passwordHash },
+    });
+    count++;
+  }
+  return count;
+}
+
 async function main(): Promise<void> {
   await resetTables();
+  const admins = await seedAdminUsers();
   const presetVault = await seedPresetVaultSnapshots();
   const dailyVault = await seedDailyVaultTimeline();
   const scenarios = await seedScenarioRuns();
@@ -572,6 +620,7 @@ async function main(): Promise<void> {
   const proofs = await seedProofs();
 
   console.log("Hearst Connect seed complete:");
+  console.log(`  AdminUser:       ${admins}`);
   console.log(`  VaultSnapshot:   ${presetVault.snapshots + dailyVault.snapshots} (${presetVault.snapshots} preset + ${dailyVault.snapshots} daily)`);
   console.log(`  Allocation:      ${presetVault.allocations + dailyVault.allocations}`);
   console.log(`  ScenarioRun:     ${scenarios}`);

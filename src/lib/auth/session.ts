@@ -1,154 +1,159 @@
 import "server-only";
 
 import { cookies } from "next/headers";
-import { jwtVerify, createRemoteJWKSet } from "jose";
+import type { Investor } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 
+/**
+ * Database-backed session layer for email/password authentication.
+ *
+ * The session token is the opaque `Session.id` (a cuid) stored in the httpOnly
+ * `hc_session` cookie. Every privileged read/mutation resolves the row from the
+ * DB and checks expiry — there is no JWT, no Privy, no edge crypto here.
+ *
+ * Privy is NOT involved in authentication. It is reserved for the USDC
+ * subscription/payment flow (wallet connect at deposit time).
+ *
+ * Server-side only (touches `prisma` + `next/headers`). NOT edge-compatible —
+ * the edge `proxy.ts` only checks cookie *presence*; the authoritative lookup
+ * happens here in RSC / Server Actions / Route Handlers.
+ */
+
 // ---------------------------------------------------------------------------
-// JWKS — Privy's public key set, fetched and cached lazily (Node runtime only).
+// Constants
 // ---------------------------------------------------------------------------
 
-const PRIVY_JWKS_URL = "https://auth.privy.io/api/v1/jwks";
-const PRIVY_ISSUER = "privy.io";
+export const SESSION_COOKIE = "hc_session";
 
-let JWKS: ReturnType<typeof createRemoteJWKSet> | null = null;
-
-function getJwks(): ReturnType<typeof createRemoteJWKSet> {
-  if (!JWKS) JWKS = createRemoteJWKSet(new URL(PRIVY_JWKS_URL));
-  return JWKS;
-}
+/** Session lifetime: 30 days. */
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
+export type UserRole = "investor" | "admin";
+
 export interface SessionUser {
-  /** Privy DID — e.g. "did:privy:abc123" */
+  /** User.id (cuid) — the auth identity primary key. */
   userId: string;
-  /** Primary embedded wallet address, or null if none present in the token. */
+  /** Login email (unique). */
+  email: string;
+  /** Coarse role used for the admin gate. */
+  role: UserRole;
+  /** Investor wallet address, or null until a wallet is connected for payment. */
   walletAddress: string | null;
 }
 
-// ---------------------------------------------------------------------------
-// Wallet extraction — mirrors the pattern in middleware.ts
-// ---------------------------------------------------------------------------
-
-/**
- * Probe common Privy JWT claim shapes for an EVM wallet address.
- *
- * NOTE: Privy does NOT always embed `walletAddress` at the top level of the
- * JWT payload. The field is present only when the user has a single embedded
- * wallet selected as primary. For users whose wallet lives in `linked_accounts`
- * (e.g. external connectors), the payload claim may be absent.
- *
- * Out-of-scope for S2: resolving `linked_accounts` via the Privy Server SDK
- * (`PrivyClient.getUser(did)`). If `walletAddress` is null here and the
- * caller needs the full wallet list, call `verifyAuthToken` from `./verify`
- * which uses the SDK and can access linked accounts.
- */
-function extractWalletAddress(
-  payload: Record<string, unknown>,
-): string | null {
-  // Shape 1 — top-level `walletAddress` claim (snake_case variant).
-  if (typeof payload["wallet_address"] === "string") {
-    return payload["wallet_address"];
-  }
-  // Shape 2 — top-level camelCase (observed in some Privy app configurations).
-  if (typeof payload["walletAddress"] === "string") {
-    return payload["walletAddress"];
-  }
-  // Shape 3 — nested `wallet.address` object.
-  const wallet = payload["wallet"];
-  if (
-    wallet !== null &&
-    typeof wallet === "object" &&
-    !Array.isArray(wallet) &&
-    typeof (wallet as Record<string, unknown>)["address"] === "string"
-  ) {
-    return (wallet as Record<string, unknown>)["address"] as string;
-  }
-  return null;
+/** Normalise a free-form role string from the DB to the closed union. */
+function normaliseRole(role: string): UserRole {
+  return role === "admin" ? "admin" : "investor";
 }
 
 // ---------------------------------------------------------------------------
-// Core API
+// Session lifecycle
 // ---------------------------------------------------------------------------
 
 /**
- * Reads and verifies the Privy session cookie using jose + JWKS.
- *
- * Server-side only. Returns null when the cookie is absent or the token fails
- * signature / issuer / audience checks. Does NOT call Prisma.
- *
- * Edge-incompatible: relies on Node crypto (via `jose` remote JWKS fetch) and
- * `next/headers`. Use only in RSC, Server Actions, or Route Handlers — NOT in
- * `middleware.ts` (which already does its own lightweight verification).
+ * Create a new `Session` row for the given user and return its opaque token
+ * (the row id) plus the absolute expiry. Caller is responsible for writing the
+ * cookie via `setSessionCookie`.
+ */
+export async function createSession(
+  userId: string,
+): Promise<{ token: string; expiresAt: Date }> {
+  const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
+  const session = await prisma.session.create({
+    data: { userId, expiresAt },
+    select: { id: true, expiresAt: true },
+  });
+  return { token: session.id, expiresAt: session.expiresAt };
+}
+
+/** Write the session cookie. httpOnly, lax, Secure in production. */
+export async function setSessionCookie(
+  token: string,
+  expiresAt: Date,
+): Promise<void> {
+  const store = await cookies();
+  store.set(SESSION_COOKIE, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    expires: expiresAt,
+  });
+}
+
+/**
+ * Reads the `hc_session` cookie, resolves the session + user from the DB, and
+ * verifies it has not expired. Returns null when absent / unknown / expired.
+ * Expired sessions are deleted opportunistically.
  */
 export async function getSession(): Promise<SessionUser | null> {
   const store = await cookies();
-  const token = store.get("privy-token")?.value;
+  const token = store.get(SESSION_COOKIE)?.value;
   if (!token) return null;
 
-  const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
-  if (!appId) return null;
+  const session = await prisma.session.findUnique({
+    where: { id: token },
+    include: { user: { include: { investor: true } } },
+  });
 
-  try {
-    const { payload } = await jwtVerify(token, getJwks(), {
-      issuer: PRIVY_ISSUER,
-      audience: appId,
-    });
+  if (!session) return null;
 
-    const userId =
-      typeof payload.sub === "string" && payload.sub.length > 0
-        ? payload.sub
-        : null;
-    if (!userId) return null;
-
-    const walletAddress = extractWalletAddress(
-      payload as Record<string, unknown>,
-    );
-
-    return { userId, walletAddress };
-  } catch {
-    // Invalid signature, expired token, wrong issuer/audience — treat as unauthenticated.
+  if (session.expiresAt.getTime() <= Date.now()) {
+    // Expired — clean up the stale row and treat as unauthenticated.
+    await prisma.session.delete({ where: { id: session.id } }).catch(() => {});
     return null;
   }
+
+  return {
+    userId: session.user.id,
+    email: session.user.email,
+    role: normaliseRole(session.user.role),
+    walletAddress: session.user.investor?.walletAddress ?? null,
+  };
 }
 
 /**
- * Resolves (and lazily creates) the `Investor` row for the authenticated user.
- *
- * - If no valid session exists → returns null.
- * - If a session exists but no `Investor` row → creates one **only when a
- *   walletAddress is present in the JWT payload** (first-visit upsert).
- * - If `walletAddress` is null and no row exists → returns null (incomplete
- *   profile; caller should prompt wallet connection).
+ * Destroys the current session: deletes the DB row (if present) and clears the
+ * cookie. Safe to call when already signed out.
  */
-export async function getInvestor() {
+export async function destroySession(): Promise<void> {
+  const store = await cookies();
+  const token = store.get(SESSION_COOKIE)?.value;
+  if (token) {
+    await prisma.session.delete({ where: { id: token } }).catch(() => {});
+  }
+  store.delete(SESSION_COOKIE);
+}
+
+// ---------------------------------------------------------------------------
+// Convenience accessors
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolves the `Investor` row for the authenticated user.
+ *
+ * Returns null when there is no valid session or the user has no linked
+ * Investor profile (e.g. an admin account, or a user who has not yet been
+ * provisioned as an investor). Does NOT create a row from a wallet/JWT — the
+ * Investor↔User link is established at provisioning time.
+ */
+export async function getInvestor(): Promise<Investor | null> {
   const session = await getSession();
   if (!session) return null;
 
-  let investor = await prisma.investor.findUnique({
+  return prisma.investor.findUnique({
     where: { userId: session.userId },
   });
-
-  if (!investor && session.walletAddress) {
-    investor = await prisma.investor.create({
-      data: {
-        userId: session.userId,
-        walletAddress: session.walletAddress.toLowerCase(),
-      },
-    });
-  }
-
-  return investor;
 }
 
 /**
  * Strict variant of `getSession`. Throws when no valid session is found.
- *
- * Use inside Server Actions that are gated behind authentication.
+ * Use inside Server Actions gated behind authentication.
  */
 export async function requireSession(): Promise<SessionUser> {
   const session = await getSession();

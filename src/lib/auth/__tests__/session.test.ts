@@ -1,41 +1,29 @@
 /**
- * Tests for src/lib/auth/session.ts
+ * Tests for src/lib/auth/session.ts (database-backed sessions).
  *
- * Strategy: mock `next/headers` (cookies), `jose` (jwtVerify), and
- * `@/lib/db` (prisma) so the tests run in a pure Node/Vitest environment
- * without a real DB or Privy endpoint.
+ * Strategy: mock `next/headers` (cookies) and `@/lib/db` (prisma) so the tests
+ * run in a pure Node/Vitest environment without a real DB. The session token is
+ * the opaque `Session.id` carried in the `hc_session` cookie.
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ---------------------------------------------------------------------------
-// Mocks — must be hoisted before the module under test is imported
+// Mocks — hoisted before the module under test is imported
 // ---------------------------------------------------------------------------
 
-// Mock next/headers so `cookies()` returns a controllable store.
 vi.mock("next/headers", () => ({
   cookies: vi.fn(),
 }));
 
-// Mock jose — we control what jwtVerify resolves or rejects.
-vi.mock("jose", async (importOriginal) => {
-  const original =
-    await importOriginal<typeof import("jose")>();
-  return {
-    ...original,
-    jwtVerify: vi.fn(),
-    // createRemoteJWKSet must return a stable function reference so the lazy
-    // JWKS singleton in session.ts can be initialised without network calls.
-    createRemoteJWKSet: vi.fn(() => vi.fn()),
-  };
-});
-
-// Mock Prisma so no real DB is touched.
 vi.mock("@/lib/db", () => ({
   prisma: {
+    session: {
+      findUnique: vi.fn(),
+      delete: vi.fn(),
+    },
     investor: {
       findUnique: vi.fn(),
-      create: vi.fn(),
     },
   },
 }));
@@ -45,56 +33,92 @@ vi.mock("@/lib/db", () => ({
 // ---------------------------------------------------------------------------
 
 import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/db";
-import { getSession, getInvestor, requireSession } from "../session";
+import {
+  getSession,
+  getInvestor,
+  requireSession,
+  SESSION_COOKIE,
+} from "../session";
 
-// Typed helpers for the mocks.
 const mockCookies = vi.mocked(cookies);
-const mockJwtVerify = vi.mocked(jwtVerify);
-const mockFindUnique = vi.mocked(prisma.investor.findUnique);
-const mockCreate = vi.mocked(prisma.investor.create);
+const mockSessionFind = vi.mocked(prisma.session.findUnique);
+const mockSessionDelete = vi.mocked(prisma.session.delete);
+const mockInvestorFind = vi.mocked(prisma.investor.findUnique);
 
-// Minimal cookie store factory.
+/** Minimal cookie store carrying (or not) the hc_session token. */
 function makeCookieStore(token?: string) {
   return {
     get: (name: string) =>
-      name === "privy-token" && token ? { value: token } : undefined,
-  } as Awaited<ReturnType<typeof cookies>>;
+      name === SESSION_COOKIE && token ? { value: token } : undefined,
+    delete: vi.fn(),
+  } as unknown as Awaited<ReturnType<typeof cookies>>;
 }
 
-// ---------------------------------------------------------------------------
-// Setup
-// ---------------------------------------------------------------------------
+/** Build a session row joined with user (+ optional investor). */
+function sessionRow(opts: {
+  id?: string;
+  userId?: string;
+  email?: string;
+  role?: string;
+  walletAddress?: string | null;
+  expiresAt?: Date;
+}) {
+  const userId = opts.userId ?? "user_1";
+  return {
+    id: opts.id ?? "sess_1",
+    userId,
+    expiresAt: opts.expiresAt ?? new Date(Date.now() + 60_000),
+    createdAt: new Date(),
+    user: {
+      id: userId,
+      email: opts.email ?? "investor@example.com",
+      passwordHash: "$argon2id$irrelevant",
+      role: opts.role ?? "investor",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      investor:
+        opts.walletAddress === undefined
+          ? null
+          : {
+              id: "inv_1",
+              userId,
+              walletAddress: opts.walletAddress,
+              email: null,
+              kycStatus: "pending",
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+    },
+  };
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // Provide a minimal app ID so the env guard passes.
-  process.env.NEXT_PUBLIC_PRIVY_APP_ID = "test-app-id";
 });
 
 // ---------------------------------------------------------------------------
-// Case A — cookie absent → null
+// getSession — Case A: cookie absent → null
 // ---------------------------------------------------------------------------
 
 describe("getSession — Case A: cookie absent", () => {
-  it("returns null when the privy-token cookie is not set", async () => {
+  it("returns null when the hc_session cookie is not set", async () => {
     mockCookies.mockResolvedValue(makeCookieStore());
 
     const result = await getSession();
     expect(result).toBeNull();
-    expect(mockJwtVerify).not.toHaveBeenCalled();
+    expect(mockSessionFind).not.toHaveBeenCalled();
   });
 });
 
 // ---------------------------------------------------------------------------
-// Case B — token invalid → null
+// getSession — Case B: unknown token → null
 // ---------------------------------------------------------------------------
 
-describe("getSession — Case B: invalid token", () => {
-  it("returns null when jwtVerify throws (bad signature / expired)", async () => {
-    mockCookies.mockResolvedValue(makeCookieStore("bad.token.here"));
-    mockJwtVerify.mockRejectedValue(new Error("JWSInvalid"));
+describe("getSession — Case B: unknown token", () => {
+  it("returns null when the session row does not exist", async () => {
+    mockCookies.mockResolvedValue(makeCookieStore("ghost-token"));
+    mockSessionFind.mockResolvedValue(null);
 
     const result = await getSession();
     expect(result).toBeNull();
@@ -102,114 +126,99 @@ describe("getSession — Case B: invalid token", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Case C — valid token, investor already exists → return investor
+// getSession — Case C: expired session → delete + null
 // ---------------------------------------------------------------------------
 
-describe("getInvestor — Case C: existing investor", () => {
-  it("returns the existing Investor row without creating a new one", async () => {
-    const fakeDid = "did:privy:existing-user";
-    const fakeWallet = "0xabc123";
+describe("getSession — Case C: expired session", () => {
+  it("deletes the stale row and returns null", async () => {
+    mockCookies.mockResolvedValue(makeCookieStore("sess_expired"));
+    mockSessionFind.mockResolvedValue(
+      sessionRow({ id: "sess_expired", expiresAt: new Date(Date.now() - 1) }),
+    );
+    mockSessionDelete.mockResolvedValue(
+      sessionRow({ id: "sess_expired" }) as never,
+    );
 
-    mockCookies.mockResolvedValue(makeCookieStore("valid.jwt.token"));
-    mockJwtVerify.mockResolvedValue({
-      payload: {
-        sub: fakeDid,
-        walletAddress: fakeWallet,
-        iss: "privy.io",
-        aud: "test-app-id",
-      },
-      protectedHeader: { alg: "ES256" },
-      key: {} as CryptoKey,
-    } as unknown as Awaited<ReturnType<typeof jwtVerify>>);
-
-    const existingInvestor = {
-      id: "inv_001",
-      userId: fakeDid,
-      walletAddress: fakeWallet.toLowerCase(),
-      email: null,
-      kycStatus: "pending",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    mockFindUnique.mockResolvedValue(existingInvestor);
-
-    const result = await getInvestor();
-
-    expect(result).toEqual(existingInvestor);
-    expect(mockFindUnique).toHaveBeenCalledWith({
-      where: { userId: fakeDid },
+    const result = await getSession();
+    expect(result).toBeNull();
+    expect(mockSessionDelete).toHaveBeenCalledWith({
+      where: { id: "sess_expired" },
     });
-    expect(mockCreate).not.toHaveBeenCalled();
   });
 });
 
 // ---------------------------------------------------------------------------
-// Case D — valid token + walletAddress, investor absent → create + return
+// getSession — Case D: valid session → SessionUser
 // ---------------------------------------------------------------------------
 
-describe("getInvestor — Case D: first-visit upsert", () => {
-  it("creates an Investor row when the user authenticates for the first time", async () => {
-    const fakeDid = "did:privy:new-user";
-    const fakeWallet = "0xDEAD";
+describe("getSession — Case D: valid session", () => {
+  it("returns the SessionUser with role + wallet from the joined user", async () => {
+    mockCookies.mockResolvedValue(makeCookieStore("sess_ok"));
+    mockSessionFind.mockResolvedValue(
+      sessionRow({
+        id: "sess_ok",
+        userId: "user_42",
+        email: "admin@hearst.connect",
+        role: "admin",
+        walletAddress: "0xabc",
+      }),
+    );
 
-    mockCookies.mockResolvedValue(makeCookieStore("valid.jwt.token"));
-    mockJwtVerify.mockResolvedValue({
-      payload: {
-        sub: fakeDid,
-        wallet_address: fakeWallet,
-        iss: "privy.io",
-        aud: "test-app-id",
-      },
-      protectedHeader: { alg: "ES256" },
-      key: {} as CryptoKey,
-    } as unknown as Awaited<ReturnType<typeof jwtVerify>>);
+    const result = await getSession();
+    expect(result).toEqual({
+      userId: "user_42",
+      email: "admin@hearst.connect",
+      role: "admin",
+      walletAddress: "0xabc",
+    });
+    expect(mockSessionDelete).not.toHaveBeenCalled();
+  });
 
-    // No existing row.
-    mockFindUnique.mockResolvedValue(null);
+  it("maps an unknown role to 'investor' and a missing investor to null wallet", async () => {
+    mockCookies.mockResolvedValue(makeCookieStore("sess_ok"));
+    mockSessionFind.mockResolvedValue(
+      sessionRow({ role: "something-else" }), // no investor relation
+    );
 
-    const createdInvestor = {
-      id: "inv_002",
-      userId: fakeDid,
-      walletAddress: fakeWallet.toLowerCase(),
+    const result = await getSession();
+    expect(result?.role).toBe("investor");
+    expect(result?.walletAddress).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getInvestor — resolves the Investor row for the session user
+// ---------------------------------------------------------------------------
+
+describe("getInvestor", () => {
+  it("returns null when there is no session", async () => {
+    mockCookies.mockResolvedValue(makeCookieStore());
+
+    const result = await getInvestor();
+    expect(result).toBeNull();
+    expect(mockInvestorFind).not.toHaveBeenCalled();
+  });
+
+  it("looks up the Investor by the session userId", async () => {
+    mockCookies.mockResolvedValue(makeCookieStore("sess_ok"));
+    mockSessionFind.mockResolvedValue(sessionRow({ userId: "user_77" }));
+
+    const investor = {
+      id: "inv_77",
+      userId: "user_77",
+      walletAddress: null,
       email: null,
       kycStatus: "pending",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    mockCreate.mockResolvedValue(createdInvestor);
+    mockInvestorFind.mockResolvedValue(investor);
 
     const result = await getInvestor();
-
-    expect(mockCreate).toHaveBeenCalledWith({
-      data: {
-        userId: fakeDid,
-        walletAddress: fakeWallet.toLowerCase(),
-      },
+    expect(mockInvestorFind).toHaveBeenCalledWith({
+      where: { userId: "user_77" },
     });
-    expect(result).toEqual(createdInvestor);
-  });
-
-  it("returns null when walletAddress is absent and no investor row exists", async () => {
-    const fakeDid = "did:privy:no-wallet";
-
-    mockCookies.mockResolvedValue(makeCookieStore("valid.jwt.token"));
-    mockJwtVerify.mockResolvedValue({
-      payload: {
-        sub: fakeDid,
-        iss: "privy.io",
-        aud: "test-app-id",
-        // No wallet claim — user connected via email only.
-      },
-      protectedHeader: { alg: "ES256" },
-      key: {} as CryptoKey,
-    } as unknown as Awaited<ReturnType<typeof jwtVerify>>);
-
-    mockFindUnique.mockResolvedValue(null);
-
-    const result = await getInvestor();
-
-    expect(mockCreate).not.toHaveBeenCalled();
-    expect(result).toBeNull();
+    expect(result).toEqual(investor);
   });
 });
 
@@ -223,21 +232,11 @@ describe("requireSession", () => {
     await expect(requireSession()).rejects.toThrow("Authentication required");
   });
 
-  it("returns the session when token is valid", async () => {
-    const fakeDid = "did:privy:valid-user";
-
-    mockCookies.mockResolvedValue(makeCookieStore("valid.jwt.token"));
-    mockJwtVerify.mockResolvedValue({
-      payload: {
-        sub: fakeDid,
-        iss: "privy.io",
-        aud: "test-app-id",
-      },
-      protectedHeader: { alg: "ES256" },
-      key: {} as CryptoKey,
-    } as unknown as Awaited<ReturnType<typeof jwtVerify>>);
+  it("returns the session when the token is valid", async () => {
+    mockCookies.mockResolvedValue(makeCookieStore("sess_ok"));
+    mockSessionFind.mockResolvedValue(sessionRow({ userId: "user_9" }));
 
     const session = await requireSession();
-    expect(session.userId).toBe(fakeDid);
+    expect(session.userId).toBe("user_9");
   });
 });

@@ -105,7 +105,7 @@ export function RecentActivity({ transactions, source }: RecentActivityProps) {
   const displayed = transactions.slice(0, 5);
 
   return (
-    <article className="dash-cell col-4" aria-label="Recent account activity">
+    <article className="dash-cell" aria-label="Recent account activity">
       <div className="dash-label">
         <span>Recent Activity</span>
         <ProvenanceBadge kind={provenance} />

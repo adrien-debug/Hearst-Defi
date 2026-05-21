@@ -3,7 +3,7 @@ import "./tokens-layer.css";
 import "./globals.css";
 import "./cockpit.css";
 
-import { ConnectShell } from "@/components/ConnectShell";
+import { AppChrome } from "@/components/app-chrome";
 import { Analytics } from "@/components/analytics";
 import { PrivyProvider } from "@/components/auth/privy-provider";
 import { ClientToaster } from "@/components/ui/client-toaster";
@@ -38,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>
-        <ConnectShell>
+        <AppChrome>
           <a
             href="#main-content"
             className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[var(--ct-z-overlay)] focus:rounded-[--ct-radius-lg] focus:bg-[--ct-text-strong] focus:px-4 focus:py-2 focus:text-[--ct-bg-deep]"
@@ -50,7 +50,7 @@ export default function RootLayout({
             <ClientToaster />
           </PrivyProvider>
           <Analytics />
-        </ConnectShell>
+        </AppChrome>
       </body>
     </html>
   );

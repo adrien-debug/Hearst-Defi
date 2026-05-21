@@ -19,7 +19,33 @@ export type NavItem = {
   icon: string;
 };
 
+/**
+ * Investor-facing navigation. A signed-in user only sees their own space:
+ * their portfolio (positions, distributions) and the vaults they can invest
+ * in. The analytics surfaces (Dashboard, Scenario Lab, Proof Center, Investor
+ * Memo) are operator/analyst tools — see ANALYTICS_NAV — and are kept out of
+ * the investor rail (still reachable by URL + gated by the proxy).
+ */
 export const PRODUCT_NAV: NavItem[] = [
+  {
+    id: "portfolio",
+    label: "Portfolio",
+    href: "/portfolio",
+    icon: "Wallet",
+  },
+  {
+    id: "vaults",
+    label: "Vaults",
+    href: "/vaults",
+    icon: "Vault",
+  },
+];
+
+/**
+ * Analyst / operator tools. Surfaced inside the admin rail, not the investor
+ * rail. These read vault-wide state, not a single investor's position.
+ */
+export const ANALYTICS_NAV: NavItem[] = [
   {
     id: "dashboard",
     label: "Dashboard",

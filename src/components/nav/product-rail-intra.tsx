@@ -8,12 +8,14 @@ import {
   ShieldCheck,
   FileText,
   Settings2,
+  Wallet,
+  Vault,
   LucideIcon,
 } from "lucide-react";
 
 import { cn } from "@/lib/cn";
 import type { NavItem } from "./product-nav-items";
-import { PRODUCT_NAV, ADMIN_NAV } from "./product-nav-items";
+import { PRODUCT_NAV, ANALYTICS_NAV, ADMIN_NAV } from "./product-nav-items";
 
 // ---------------------------------------------------------------------------
 // Icon registry — avoids dynamic imports while keeping product-nav-items.ts
@@ -25,6 +27,8 @@ const ICON_MAP: Record<string, LucideIcon> = {
   ShieldCheck,
   FileText,
   Settings2,
+  Wallet,
+  Vault,
 };
 
 interface Props {
@@ -44,9 +48,7 @@ export function ProductRailIntra({ items = PRODUCT_NAV }: Props) {
       {items.map((item) => {
         const Icon = ICON_MAP[item.icon];
         const isActive =
-          item.href === "/dashboard"
-            ? pathname === "/dashboard"
-            : pathname.startsWith(item.href);
+          pathname === item.href || pathname.startsWith(`${item.href}/`);
 
         return (
           <Link
@@ -66,7 +68,11 @@ export function ProductRailIntra({ items = PRODUCT_NAV }: Props) {
   );
 }
 
-/** Convenience alias for admin layouts — uses ADMIN_NAV + PRODUCT_NAV shortcut. */
+/**
+ * Admin/operator rail — full surface: the admin entry plus the analyst tools
+ * (Dashboard, Scenario Lab, Proof Center, Investor Memo). Operators still reach
+ * everything; investors (PRODUCT_NAV) only see Portfolio + Vaults.
+ */
 export function AdminRailIntra() {
-  return <ProductRailIntra items={[...ADMIN_NAV, ...PRODUCT_NAV]} />;
+  return <ProductRailIntra items={[...ADMIN_NAV, ...ANALYTICS_NAV]} />;
 }

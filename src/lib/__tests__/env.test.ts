@@ -22,6 +22,8 @@ const serverEnvSchema = z.object({
   NEXT_PUBLIC_CHAIN_RPC_URL: z.string().url().optional(),
   NEXT_PUBLIC_EVENT_LOGGER_ADDRESS: z.string().optional(),
   NEXT_PUBLIC_POR_REGISTRY_ADDRESS: z.string().optional(),
+  ADMIN_EMAILS: z.string().optional(),
+  ADMIN_INITIAL_PASSWORD: z.string().optional(),
   ADMIN_ADDRESSES: z.string().optional(),
   HEARST_PUBLISHER: z.string().optional(),
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
@@ -87,6 +89,22 @@ describe("env validation", () => {
   });
 
   // ── New variables added in the WIP branch ──────────────────────────────────
+
+  it("accepts ADMIN_EMAILS + ADMIN_INITIAL_PASSWORD (admin bootstrap, optional)", () => {
+    const parsed = serverEnvSchema.safeParse({
+      DATABASE_URL: "file:./prisma/dev.db",
+      ADMIN_EMAILS: "ops@hearst.connect,founder@hearst.connect",
+      ADMIN_INITIAL_PASSWORD: "change-me-now",
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it("allows ADMIN_EMAILS to be absent (seed becomes a no-op)", () => {
+    const parsed = serverEnvSchema.safeParse({
+      DATABASE_URL: "file:./prisma/dev.db",
+    });
+    expect(parsed.success).toBe(true);
+  });
 
   it("accepts valid UPSTASH_REDIS_REST_URL", () => {
     const parsed = serverEnvSchema.safeParse({

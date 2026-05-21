@@ -1,34 +1,34 @@
 import "server-only";
 
-import { cookies } from "next/headers";
-
-import { verifyAuthToken } from "./verify";
+import { getSession } from "./session";
 import { enterRequestContext } from "@/lib/request-context";
 
 /**
  * Asserts that the current request is authenticated.
  *
- * Reads the `privy-token` cookie and verifies the JWT signature.
- * Throws a clear 401 error if authentication fails.
+ * Resolves the database-backed session (`hc_session` cookie). Throws a clear
+ * 401-style error when no valid session exists.
  *
- * Use this at the top of any Server Action that requires an authenticated
- * user (but not necessarily an admin).
+ * Use this at the top of any Server Action that requires an authenticated user
+ * (but not necessarily an admin).
  */
-export async function requireAuth(): Promise<{ userId: string; walletAddress?: string }> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("privy-token")?.value;
-
-  if (!token) {
+export async function requireAuth(): Promise<{
+  userId: string;
+  walletAddress?: string;
+}> {
+  const session = await getSession();
+  if (!session) {
     throw new Error("Authentication required. Please log in.");
   }
 
-  const user = await verifyAuthToken(token);
-  if (!user) {
-    throw new Error("Invalid or expired session. Please log in again.");
-  }
+  // Propagate the real user id into the request context for logging/tracing.
+  enterRequestContext({
+    requestId: crypto.randomUUID(),
+    userId: session.userId,
+  });
 
-  // Propagate user ID into the request context for logging
-  enterRequestContext({ requestId: crypto.randomUUID(), userId: user.walletAddress ?? user.userId });
-
-  return user;
+  return {
+    userId: session.userId,
+    ...(session.walletAddress ? { walletAddress: session.walletAddress } : {}),
+  };
 }

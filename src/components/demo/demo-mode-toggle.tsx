@@ -33,7 +33,7 @@ export function DemoModeToggle({ active }: DemoModeToggleProps) {
         })
       }
     >
-      {active ? "Exit demo mode" : "Enter demo mode"}
+      Démo
     </Button>
   );
 }

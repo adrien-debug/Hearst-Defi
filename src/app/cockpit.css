@@ -482,6 +482,10 @@
 .ct-rail-left {
   background: var(--ct-bg-deep) !important;
   border-right: 1px solid var(--ct-border-soft);
+  /* Rail verrouillé en position fermée — largeur fixe, jamais déployé. */
+  width: 88px !important;
+  min-width: 88px !important;
+  max-width: 88px !important;
 }
 
 .ct-rail-right,
@@ -644,6 +648,44 @@
   z-index: 35;
 }
 
+/* ── Identity slot docked in the left rail (Section 1) ──
+   HeaderConnect (wallet pill / Connect button) + demo toggle, moved out of the
+   former top-right floating slot — which overlapped the chat header controls in
+   Section 3 — into the bottom of the rail, just above the user badge (.ct-avatar).
+   Anchored fixed to the rail column (width = collapsed rail), stacked vertically
+   and centred. Sits above the avatar: rail bottom padding 32px + avatar 40px +
+   gap → bottom ≈ 88px. */
+.connect-rail-identity {
+  position: fixed;
+  bottom: 88px;
+  left: 0;
+  width: 88px;
+  z-index: 36;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+}
+/* The wallet pill / connect button are full-width in the narrow rail and shrink
+   their type so the truncated address still fits the 88px column. */
+.connect-rail-identity > * {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.connect-rail-identity .ct-pill,
+.connect-rail-identity button {
+  max-width: 100%;
+  font-size: 11px;
+}
+.connect-rail-identity .ct-pill .tabular {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Custom nav: <a> segments instead of <button>, kill default link styling.
    Active state colour follows the shell convention (.active class). */
 .ct-hub-bar.connect-nav a.ct-hub-bar-seg {
@@ -662,12 +704,25 @@
    no !important needed. ── */
 
 /* Rail gauche */
-.ct-rail-left                              { padding: 32px 0; }
+.ct-rail-left                              { padding: 32px 0; align-items: center; }
 .ct-rail-left.launcher                     { padding: clamp(20px, 2.4vh, 32px) clamp(12px, 0.8vw, 16px); }
+
+/* Badge user recentré sur l'axe du rail (88px) — sans override il dérive de
+   ~10px vers la gauche dans la largeur réduite. */
+.ct-avatar                                 { margin: 0 auto; }
 
 /* Rail gauche — nav */
 .ct-rail-top                               { padding: 8px; }
 .ct-rail-left:not(.launcher) .ct-rail-top  { padding: 8px 0; }
+
+/* Launcher verrouillé en position repliée — un seul produit (Connect), le
+   panneau lanceur n'a rien à afficher. On neutralise le toggle pour qu'il
+   ne puisse plus déployer le rail. Le badge reste visible (identité produit),
+   mais inerte au clic et sans affordance d'ouverture. */
+.ct-rail-top {
+  pointer-events: none;
+  cursor: default;
+}
 .ct-rail-list                              { padding: 6px 0; }
 .ct-rail-row                               { padding: clamp(10px, 1.3vh, 16px) 14px; }
 

@@ -87,7 +87,7 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
   const H = 120;
 
   return (
-    <article className="dash-cell col-8" aria-label="Portfolio value — 12-month trend">
+    <article className="dash-cell" aria-label="Portfolio value — 12-month trend">
       <div className="dash-label">
         <span>Portfolio value · 12-month trend</span>
         <span className="dash-label-meta">

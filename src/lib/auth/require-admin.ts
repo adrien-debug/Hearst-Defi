@@ -1,41 +1,41 @@
 import "server-only";
 
-import { cookies } from "next/headers";
-
-import { isAdmin, verifyAuthToken } from "./verify";
-import { withRequestContext } from "@/lib/request-context";
+import { getSession } from "./session";
+import { enterRequestContext } from "@/lib/request-context";
 
 /**
  * Asserts that the current request is authenticated as an admin.
  *
- * Reads the `privy-token` cookie, verifies the JWT signature, and checks
- * that the wallet address is in the admin whitelist.
+ * Resolves the database-backed session (`hc_session` cookie) and checks that
+ * the user's role is `admin`. Admin status lives on `User.role` in the DB
+ * (seeded from `ADMIN_EMAILS`) — there is no wallet allowlist anymore.
  *
- * Throws a clear 401/403 error if any step fails. Use this at the top of
- * every admin Server Action.
+ * Throws a clear 401/403 error if any step fails. Use this at the top of every
+ * admin Server Action AND in the `/admin` layout (the edge proxy can only check
+ * cookie presence, not the role, so this is the authoritative admin gate).
  */
-export async function requireAdmin(): Promise<{ userId: string; walletAddress?: string }> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("privy-token")?.value;
+export async function requireAdmin(): Promise<{
+  userId: string;
+  walletAddress?: string;
+}> {
+  const session = await getSession();
 
-  if (!token) {
+  if (!session) {
     throw new Error("Authentication required. Please log in.");
   }
 
-  const user = await verifyAuthToken(token);
-  if (!user) {
-    throw new Error("Invalid or expired session. Please log in again.");
-  }
-
-  if (!isAdmin(user.walletAddress)) {
+  if (session.role !== "admin") {
     throw new Error("Admin access required.");
   }
 
-  // Propagate user ID into the request context for logging
-  await withRequestContext(
-    { requestId: crypto.randomUUID(), userId: user.walletAddress ?? user.userId },
-    async () => {},
-  );
+  // Propagate the real user id into the request context for logging/tracing.
+  enterRequestContext({
+    requestId: crypto.randomUUID(),
+    userId: session.userId,
+  });
 
-  return user;
+  return {
+    userId: session.userId,
+    ...(session.walletAddress ? { walletAddress: session.walletAddress } : {}),
+  };
 }
