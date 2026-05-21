@@ -16,6 +16,7 @@ import {
   loadUserMemory,
   buildUserContextSystemBlock,
 } from "@/lib/agents/user-context";
+import { logger } from "@/lib/logger";
 import type { BacktestOutput, ScenarioOutput } from "@/lib/engine/types";
 
 /**
@@ -221,14 +222,25 @@ export async function runInvestorMemo(
     },
   ];
 
+  // P1 — best-effort enrichment: if the personalisation layer throws (DB down,
+  // forbidden word in customInstructions, etc.) we log a warning and continue
+  // with the single methodology block so the memo is never silently blocked.
   if (opts.userId !== undefined) {
-    const [profile, memory] = await Promise.all([
-      loadUserAgentProfile(opts.userId, "investor-memo"),
-      loadUserMemory(opts.userId, "investor-memo"),
-    ]);
-    const ctxBlock = buildUserContextSystemBlock({ profile, memory });
-    if (ctxBlock !== null) {
-      systemBlocks.push(ctxBlock);
+    try {
+      const [profile, memory] = await Promise.all([
+        loadUserAgentProfile(opts.userId, "investor-memo"),
+        loadUserMemory(opts.userId, "investor-memo"),
+      ]);
+      const ctxBlock = buildUserContextSystemBlock({ profile, memory });
+      if (ctxBlock !== null) {
+        systemBlocks.push(ctxBlock);
+      }
+    } catch (enrichErr) {
+      logger.warn(
+        "investor-memo: per-user enrichment failed — continuing with base methodology block",
+        { userId: opts.userId },
+        enrichErr instanceof Error ? enrichErr : undefined,
+      );
     }
   }
 

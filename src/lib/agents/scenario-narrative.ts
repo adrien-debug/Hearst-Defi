@@ -16,6 +16,7 @@ import {
   loadUserMemory,
   buildUserContextSystemBlock,
 } from "@/lib/agents/user-context";
+import { logger } from "@/lib/logger";
 import type { ScenarioOutput } from "@/lib/engine/types";
 
 /**
@@ -157,14 +158,24 @@ export async function runScenarioNarrative(
     },
   ];
 
+  // P1 — best-effort enrichment (defence-in-depth / symmetry with investor-memo):
+  // if the personalisation layer throws we log and continue with 1 block only.
   if (opts.userId !== undefined) {
-    const [profile, memory] = await Promise.all([
-      loadUserAgentProfile(opts.userId, "scenario-narrative"),
-      loadUserMemory(opts.userId, "scenario-narrative"),
-    ]);
-    const ctxBlock = buildUserContextSystemBlock({ profile, memory });
-    if (ctxBlock !== null) {
-      systemBlocks.push(ctxBlock);
+    try {
+      const [profile, memory] = await Promise.all([
+        loadUserAgentProfile(opts.userId, "scenario-narrative"),
+        loadUserMemory(opts.userId, "scenario-narrative"),
+      ]);
+      const ctxBlock = buildUserContextSystemBlock({ profile, memory });
+      if (ctxBlock !== null) {
+        systemBlocks.push(ctxBlock);
+      }
+    } catch (enrichErr) {
+      logger.warn(
+        "scenario-narrative: per-user enrichment failed — continuing with base methodology block",
+        { userId: opts.userId },
+        enrichErr instanceof Error ? enrichErr : undefined,
+      );
     }
   }
 

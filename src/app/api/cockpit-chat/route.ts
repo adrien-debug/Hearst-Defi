@@ -36,6 +36,11 @@ const MAX_OUTPUT_TOKENS = 2048;
 const MAX_CONTENT_LEN = 8_000;
 const MAX_MESSAGES = 30;
 const MAX_SYSTEM_LEN = 4_000;
+// Cap on the enriched system prompt (base + user-context block).
+// Must be > MAX_SYSTEM_LEN to leave room for the base prompt + context header.
+// customInstructions is user-influenced free text — an unbounded concat would
+// allow a malicious user to inflate the system prompt arbitrarily.
+const MAX_ENRICHED_SYSTEM_LEN = 6_000;
 
 const HTML_TAG_RE = /<[^>]*>/g;
 
@@ -251,7 +256,12 @@ export async function POST(req: NextRequest): Promise<Response> {
     ]);
     const ctxBlock = buildUserContextSystemBlock({ profile, memory });
     if (ctxBlock !== null) {
-      enrichedSystemPrompt = SYSTEM_PROMPT + "\n\n" + ctxBlock.text;
+      // Clamp to MAX_ENRICHED_SYSTEM_LEN: customInstructions is user-influenced
+      // free text and must not bloat the system prompt beyond a safe bound.
+      enrichedSystemPrompt = (SYSTEM_PROMPT + "\n\n" + ctxBlock.text).slice(
+        0,
+        MAX_ENRICHED_SYSTEM_LEN,
+      );
     }
   } catch (ctxErr) {
     logger.warn(

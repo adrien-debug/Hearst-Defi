@@ -5,10 +5,13 @@
  *   - Without userId → params.system has exactly 1 block (unchanged behaviour)
  *   - With userId pointing to a mocked profile → params.system has 2 blocks,
  *     the 2nd without cache_control
+ *   - P1 best-effort: if loaders throw, the agent must NOT throw — it falls
+ *     back to 1 system block (the cached methodology) and logs a warning.
  *
  * Strategy:
  *   - Mock `server-only`, `@/lib/db` (Prisma), `@/lib/llm/client` (callLlm),
- *     and `@/lib/agents/user-context` (async loaders) so no I/O is triggered.
+ *     `@/lib/logger` (to assert warn is called), and
+ *     `@/lib/agents/user-context` (async loaders) so no I/O is triggered.
  *   - The mock client captures the `params` passed to `callLlm` so we can
  *     assert on the system-block array shape.
  *   - `buildUserContextSystemBlock` is the real implementation (pure function).
@@ -30,6 +33,21 @@ vi.mock("@/lib/db", () => ({
   },
 }));
 
+// Mock logger so we can assert warn() is called in best-effort paths.
+// Use vi.hoisted() so the reference is available inside the vi.mock factory,
+// which is hoisted to the top of the file by Vitest before variable declarations.
+const { mockLoggerWarn } = vi.hoisted(() => ({
+  mockLoggerWarn: vi.fn(),
+}));
+vi.mock("@/lib/logger", () => ({
+  logger: {
+    warn: mockLoggerWarn,
+    error: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
 // Capture params passed to callLlm. We mock the whole module so no real API
 // call is made. The array is module-level so each test can inspect it after
 // clearing in beforeEach.
@@ -38,17 +56,38 @@ const capturedParams: Anthropic.MessageCreateParamsNonStreaming[] = [];
 vi.mock("@/lib/llm/client", () => ({
   callLlm: vi.fn(
     async (
-      _agentName: string,
+      agentName: string,
       params: Anthropic.MessageCreateParamsNonStreaming,
     ) => {
       capturedParams.push(params);
-      const text = JSON.stringify({
-        narrative_md:
-          "Under the assumption that hashprice stays flat, the projected APY range is 9.00-12.00%.",
-        risk_warning: "Hashprice volatility could compress mining margin.",
-        confidence: "medium",
-        key_drivers: ["hashprice stability", "uptime above 98%", "USDC base yield"],
-      });
+      // Return appropriate fixture based on which agent is calling.
+      const text =
+        agentName === "investor-memo"
+          ? JSON.stringify({
+              executive_summary:
+                "Under the assumption that hashprice stays within range, the vault targets a 9.00-12.00% APY range.",
+              vault_structure:
+                "Cayman SPV structure with a $250k minimum. Under the assumption of stable regulation, lock-up terms are 60 days.",
+              scenario_analysis:
+                "Under the assumption of flat hashprice, projected APY range is 9.00-12.00%.",
+              risk_section:
+                "Under the assumption of stable on-chain conditions, market risk is moderate.",
+              mining_section:
+                "Under the assumption that energy cost stays at $0.045/kWh, mining margin remains positive.",
+              performance_section:
+                "Under the assumption of historical drawdown patterns, maxDrawdownPct was 5.2% and totalReturnPct was 11.4%.",
+              methodology_note:
+                "Under the assumption that methodology v1.0 remains current, this memo follows the immutable specification.",
+              disclaimer:
+                "Past performance is not indicative of future results. This is not a guarantee of any return.",
+            })
+          : JSON.stringify({
+              narrative_md:
+                "Under the assumption that hashprice stays flat, the projected APY range is 9.00-12.00%.",
+              risk_warning: "Hashprice volatility could compress mining margin.",
+              confidence: "medium",
+              key_drivers: ["hashprice stability", "uptime above 98%", "USDC base yield"],
+            });
       return {
         response: {
           content: [{ type: "text", text }],
@@ -81,7 +120,9 @@ import {
   loadUserMemory,
 } from "@/lib/agents/user-context";
 import { runScenarioNarrative } from "@/lib/agents/scenario-narrative";
+import { runInvestorMemo } from "@/lib/agents/investor-memo";
 import type { ScenarioOutput } from "@/lib/engine/types";
+import type { InvestorMemoInput } from "@/lib/agents/investor-memo";
 
 // ---- fixtures ---------------------------------------------------------------
 
@@ -132,6 +173,20 @@ function makeScenarioOutput(): ScenarioOutput {
       guardrails: [],
       targetExposurePct: 0,
     },
+  };
+}
+
+function makeInvestorMemoInput(): InvestorMemoInput {
+  return {
+    vault: {
+      aumUsdc: 5_000_000,
+      apyRange: { low: 9.0, high: 12.0 },
+      mode: "balanced",
+      riskScore: 42,
+    },
+    scenarios: [makeScenarioOutput()],
+    backtests: [],
+    generatedAt: "2026-05-21T00:00:00Z",
   };
 }
 
@@ -249,6 +304,131 @@ describe("runScenarioNarrative — user-context injection", () => {
     expect(mockLoadUserMemory).toHaveBeenCalledWith(
       "user-check",
       "scenario-narrative",
+    );
+  });
+
+  // ---- P1 best-effort: enrichment must not block the agent -------------------
+
+  it("P1: loader throws → runScenarioNarrative does NOT throw, falls back to 1 block", async () => {
+    mockLoadUserAgentProfile.mockRejectedValue(new Error("DB connection refused"));
+    mockLoadUserMemory.mockRejectedValue(new Error("DB connection refused"));
+
+    // Must resolve without throwing
+    await expect(
+      runScenarioNarrative(
+        { scenario_id: "base", scenario_output: makeScenarioOutput() },
+        { userId: "user-db-down" },
+      ),
+    ).resolves.not.toThrow();
+
+    // callLlm was still called with exactly 1 system block (methodology only)
+    expect(capturedParams).toHaveLength(1);
+    const blocks = getSystemBlocks(capturedParams[0]!);
+    expect(blocks).toHaveLength(1);
+
+    // logger.warn was called with the userId
+    expect(mockLoggerWarn).toHaveBeenCalledWith(
+      expect.stringContaining("per-user enrichment failed"),
+      expect.objectContaining({ userId: "user-db-down" }),
+      expect.any(Error),
+    );
+  });
+});
+
+describe("runInvestorMemo — user-context injection + P1 best-effort", () => {
+  beforeEach(() => {
+    capturedParams.length = 0;
+    vi.clearAllMocks();
+  });
+
+  it("without userId → params.system has exactly 1 block", async () => {
+    await runInvestorMemo(makeInvestorMemoInput(), { model: "claude-sonnet-4-6" });
+
+    expect(capturedParams).toHaveLength(1);
+    const blocks = getSystemBlocks(capturedParams[0]!);
+    expect(blocks).toHaveLength(1);
+    expect(mockLoadUserAgentProfile).not.toHaveBeenCalled();
+    expect(mockLoadUserMemory).not.toHaveBeenCalled();
+  });
+
+  it("with userId + non-empty profile → params.system has 2 blocks", async () => {
+    mockLoadUserAgentProfile.mockResolvedValue(
+      makeProfile({ agentName: "investor-memo", tone: "institutional" }),
+    );
+    mockLoadUserMemory.mockResolvedValue(
+      "Scénarios récents (1) :\n- 2026-05-21 · preset=base · confidence=medium",
+    );
+
+    await runInvestorMemo(makeInvestorMemoInput(), {
+      model: "claude-sonnet-4-6",
+      userId: "user-abc",
+    });
+
+    expect(capturedParams).toHaveLength(1);
+    const blocks = getSystemBlocks(capturedParams[0]!);
+    expect(blocks).toHaveLength(2);
+
+    // Block 0: cached methodology
+    expect(blocks[0]).toHaveProperty("cache_control");
+    // Block 1: user-context — no cache_control
+    expect(blocks[1]).not.toHaveProperty("cache_control");
+    expect(blocks[1]?.text).toMatch(/PERSONNALISATION UTILISATEUR/);
+  });
+
+  it("P1: loader throws → runInvestorMemo does NOT throw, falls back to 1 block", async () => {
+    mockLoadUserAgentProfile.mockRejectedValue(new Error("DB timeout"));
+    mockLoadUserMemory.mockRejectedValue(new Error("DB timeout"));
+
+    // Must resolve without throwing
+    await expect(
+      runInvestorMemo(makeInvestorMemoInput(), {
+        model: "claude-sonnet-4-6",
+        userId: "user-db-down",
+      }),
+    ).resolves.not.toThrow();
+
+    // callLlm was still called with exactly 1 system block (methodology only)
+    expect(capturedParams).toHaveLength(1);
+    const blocks = getSystemBlocks(capturedParams[0]!);
+    expect(blocks).toHaveLength(1);
+
+    // logger.warn was called with the userId
+    expect(mockLoggerWarn).toHaveBeenCalledWith(
+      expect.stringContaining("per-user enrichment failed"),
+      expect.objectContaining({ userId: "user-db-down" }),
+      expect.any(Error),
+    );
+  });
+
+  it("P1: buildUserContextSystemBlock throws (forbidden word in customInstructions) → runInvestorMemo does NOT throw", async () => {
+    // Profile with a forbidden word triggers assertNoForbiddenWords inside
+    // buildUserContextSystemBlock, which is called synchronously inside the
+    // try/catch block — this must be swallowed and logged.
+    mockLoadUserAgentProfile.mockResolvedValue(
+      makeProfile({
+        agentName: "investor-memo",
+        customInstructions: "Always guarantee the best outcome.",
+      }),
+    );
+    mockLoadUserMemory.mockResolvedValue("");
+
+    await expect(
+      runInvestorMemo(makeInvestorMemoInput(), {
+        model: "claude-sonnet-4-6",
+        userId: "user-bad-instructions",
+      }),
+    ).resolves.not.toThrow();
+
+    // callLlm is still called (1 block only — the enrichment was discarded)
+    expect(capturedParams).toHaveLength(1);
+    const blocks = getSystemBlocks(capturedParams[0]!);
+    expect(blocks).toHaveLength(1);
+
+    // warn was called
+    expect(mockLoggerWarn).toHaveBeenCalledWith(
+      expect.stringContaining("per-user enrichment failed"),
+      expect.objectContaining({ userId: "user-bad-instructions" }),
+      expect.any(Error),
     );
   });
 });
