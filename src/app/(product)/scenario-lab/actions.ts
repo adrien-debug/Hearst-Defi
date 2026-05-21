@@ -113,10 +113,13 @@ export async function runScenarioAction(
     let narrative: ScenarioNarrativeOutput | null = null;
     if (runId !== null) {
       try {
-        narrative = await runScenarioNarrative({
-          scenario_id: scenarioId,
-          scenario_output: outputs,
-        });
+        narrative = await runScenarioNarrative(
+          {
+            scenario_id: scenarioId,
+            scenario_output: outputs,
+          },
+          { userId },
+        );
 
         // Persist narrative on the same run row. A failure here is non-fatal:
         // narrative was produced, just couldn't be stored.

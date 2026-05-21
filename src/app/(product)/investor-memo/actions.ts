@@ -17,7 +17,7 @@ export async function generateMemoAction(): Promise<InvestorMemoOutput> {
   try {
     await assertRateLimit(`generate-memo:${userId}`, 5, 60_000);
     const input = await loadMemoInput();
-    return await runInvestorMemo(input);
+    return await runInvestorMemo(input, { userId });
   } catch (err) {
     logger.error("generateMemoAction failed", { userId }, err);
     throw err;

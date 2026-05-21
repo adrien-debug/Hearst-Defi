@@ -11,6 +11,11 @@ import {
   DISCLAIMER_PROJECTION,
 } from "@/lib/agents/system-prompts/disclaimers";
 import { assertCitesAssumption, assertNoForbiddenWords } from "@/lib/agents/validators";
+import {
+  loadUserAgentProfile,
+  loadUserMemory,
+  buildUserContextSystemBlock,
+} from "@/lib/agents/user-context";
 import type { ScenarioOutput } from "@/lib/engine/types";
 
 /**
@@ -39,6 +44,13 @@ export interface RunScenarioNarrativeOptions {
   client?: LlmClientLike;
   /** Override the default model. Default: claude-sonnet-4-6. */
   model?: string;
+  /**
+   * Authenticated user identifier. When provided, the per-user persona
+   * profile and recent activity are loaded and injected as a second system
+   * block (after the cached methodology block). When absent, behaviour is
+   * strictly unchanged.
+   */
+  userId?: string;
 }
 
 const SYSTEM_INSTRUCTIONS = `You are the Scenario Narrative Agent for Hearst Connect.
@@ -130,18 +142,38 @@ export async function runScenarioNarrative(
 ): Promise<ScenarioNarrativeOutput> {
   const model = opts.model ?? SCENARIO_NARRATIVE_MODEL;
 
+  // Build system blocks: first block is the cached methodology (always present).
+  // If a userId is provided, load per-user persona and inject a second block
+  // WITHOUT cache_control (user-specific data must not pollute the shared cache).
+  type SystemBlock =
+    | { type: "text"; text: string; cache_control: { type: "ephemeral" } }
+    | { type: "text"; text: string };
+
+  const systemBlocks: SystemBlock[] = [
+    {
+      type: "text",
+      text: SYSTEM_INSTRUCTIONS,
+      cache_control: { type: "ephemeral" },
+    },
+  ];
+
+  if (opts.userId !== undefined) {
+    const [profile, memory] = await Promise.all([
+      loadUserAgentProfile(opts.userId, "scenario-narrative"),
+      loadUserMemory(opts.userId, "scenario-narrative"),
+    ]);
+    const ctxBlock = buildUserContextSystemBlock({ profile, memory });
+    if (ctxBlock !== null) {
+      systemBlocks.push(ctxBlock);
+    }
+  }
+
   const { response } = await callLlm(
     "scenario-narrative",
     {
       model,
       max_tokens: 1024,
-      system: [
-        {
-          type: "text",
-          text: SYSTEM_INSTRUCTIONS,
-          cache_control: { type: "ephemeral" },
-        },
-      ],
+      system: systemBlocks,
       messages: [
         {
           role: "user",

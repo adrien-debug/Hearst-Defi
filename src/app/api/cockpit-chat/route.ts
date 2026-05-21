@@ -9,6 +9,11 @@ import { requireAuth } from "@/lib/auth/require-auth";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import {
+  loadUserAgentProfile,
+  loadUserMemory,
+  buildUserContextSystemBlock,
+} from "@/lib/agents/user-context";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -236,10 +241,30 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   // 4. Build a per-request handler bound to this user (rate-limit key +
   //    persistence are both userId-scoped).
+  //    Enrich the system prompt with per-user persona + memory when available.
+  //    A failure here must not block the chat — graceful degradation to base prompt.
+  let enrichedSystemPrompt = SYSTEM_PROMPT;
+  try {
+    const [profile, memory] = await Promise.all([
+      loadUserAgentProfile(userId, "cockpit-chat"),
+      loadUserMemory(userId, "cockpit-chat"),
+    ]);
+    const ctxBlock = buildUserContextSystemBlock({ profile, memory });
+    if (ctxBlock !== null) {
+      enrichedSystemPrompt = SYSTEM_PROMPT + "\n\n" + ctxBlock.text;
+    }
+  } catch (ctxErr) {
+    logger.warn(
+      "cockpit-chat user-context enrichment failed — using base prompt",
+      { userId },
+      ctxErr instanceof Error ? ctxErr : undefined,
+    );
+  }
+
   const handler = createCockpitChatHandler({
     llmClient: kimi,
     model: KIMI_MODEL,
-    systemPrompt: SYSTEM_PROMPT,
+    systemPrompt: enrichedSystemPrompt,
     userId,
     persistence: createUserScopedPersistence(userId),
     rateLimitMax: CHAT_RATE_MAX,
