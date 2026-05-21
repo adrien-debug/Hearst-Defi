@@ -172,7 +172,11 @@ export function InvestForm({ vault }: InvestFormProps) {
 
   // Step 2 — second explicit action: actually execute the deposit
   const handleConfirm = useCallback(async () => {
-    if (depositing) return;
+    if (!ctaEnabled || depositing) {
+      setAwaitingConfirm(false);
+      setDepositError(null);
+      return;
+    }
     setDepositing(true);
     setDepositError(null);
     try {
@@ -183,7 +187,7 @@ export function InvestForm({ vault }: InvestFormProps) {
       setDepositing(false);
       setAwaitingConfirm(false);
     }
-  }, [depositing, vault, amount, router]);
+  }, [ctaEnabled, depositing, vault, amount, router]);
 
   // Cancel — return to form without executing
   const handleCancelConfirm = useCallback(() => {
@@ -220,6 +224,7 @@ export function InvestForm({ vault }: InvestFormProps) {
                 setRawAmount(e.target.value);
                 // Reset allowance when amount changes
                 setAllowanceApproved(false);
+                setAwaitingConfirm(false);
               }}
               placeholder={vault.minTicketUsdc.toLocaleString("en-US")}
               aria-describedby="amt-helper"
@@ -252,7 +257,10 @@ export function InvestForm({ vault }: InvestFormProps) {
             <input
               type="checkbox"
               checked={agreedToTermSheet}
-              onChange={(e) => setAgreedToTermSheet(e.target.checked)}
+              onChange={(e) => {
+                setAgreedToTermSheet(e.target.checked);
+                setAwaitingConfirm(false);
+              }}
               className="sr-only"
             />
             <span
@@ -340,7 +348,7 @@ export function InvestForm({ vault }: InvestFormProps) {
                 variant="primary"
                 size="md"
                 onClick={handleConfirm}
-                disabled={depositing}
+                disabled={!ctaEnabled || depositing}
                 className="font-bold flex-1"
               >
                 {depositing ? "Confirming…" : `Confirm ${formatUsd(amount)} deposit`}
@@ -396,12 +404,12 @@ export function InvestForm({ vault }: InvestFormProps) {
       {/* ── RIGHT COLUMN ─────────────────────────────── */}
       <div className="flex flex-col gap-5">
         {/* Deposit summary */}
-        <DepositSummary vault={vault} amount={deferredAmount} />
+        <DepositSummary vault={vault} amount={amount} />
 
         {/* Pre-flight check */}
         <PreFlightCheck
           walletAddress={walletAddress}
-          amount={deferredAmount}
+          amount={amount}
           vaultId={vault.id}
           onAllowanceApproved={() => setAllowanceApproved(true)}
           allowanceApproved={allowanceApproved}

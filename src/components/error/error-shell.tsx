@@ -96,7 +96,6 @@ export { SA as STANDALONE_STYLES };
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface ErrorShellLayoutProps {
-  variant: "layout";
   /** Eyebrow label colour: "danger" | "warning" */
   tone?: "danger" | "warning";
   /** Eyebrow label text, e.g. "Dashboard · Error" */
@@ -112,14 +111,6 @@ interface ErrorShellLayoutProps {
   actions: React.ReactNode;
 }
 
-interface ErrorShellStandaloneProps {
-  // Standalone pages manage their own <html><body> and use SA constants directly.
-  // This variant is intentionally empty — it exists only as a type marker.
-  variant: "standalone";
-}
-
-export type ErrorShellProps = ErrorShellLayoutProps | ErrorShellStandaloneProps;
-
 // ── Layout variant (under Cockpit shell, CSS vars available) ──────────────────
 
 export function ErrorShellLayout({
@@ -130,7 +121,7 @@ export function ErrorShellLayout({
   digest,
   errorMessage,
   actions,
-}: Omit<ErrorShellLayoutProps, "variant">) {
+}: ErrorShellLayoutProps) {
   const eyebrowColor =
     tone === "danger"
       ? "text-[var(--ct-status-danger)]"

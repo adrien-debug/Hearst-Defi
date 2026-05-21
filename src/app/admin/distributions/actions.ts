@@ -24,6 +24,7 @@ const ComputeSchema = z.object({
 const ConfirmSchema = z.object({
   period: PeriodSchema,
   signerWallet: z.string().min(1),
+  totalUsdc: z.number().positive(),
 });
 
 // ---------------------------------------------------------------------------
@@ -53,7 +54,17 @@ const REQUIRED_SIGNERS = 2;
 // We track pending confirmations in-memory (MVP: process restarts reset it —
 // acceptable for admin ops that complete within a single session).
 // Production: persist in a table row like DistributionApproval.
-const pendingSigners = new Map<string, string[]>();
+//
+// Each entry stores:
+//   - signers: wallets that have signed so far
+//   - totalUsdc: the amount locked in by the FIRST signer (reference amount).
+//     Any subsequent signer submitting a different amount is REJECTED — the
+//     multisig must protect the amount, not just the count.
+interface PendingConfirmation {
+  signers: string[];
+  totalUsdc: number;
+}
+const pendingSigners = new Map<string, PendingConfirmation>();
 
 // ---------------------------------------------------------------------------
 // computeDistribution — pure dry-run, no DB writes
@@ -122,7 +133,7 @@ export async function confirmDistribution(
 ): Promise<{ confirmed: boolean; signersCount: number; required: number }> {
   const admin = await requireAdmin();
 
-  const parsed = ConfirmSchema.safeParse({ period, signerWallet });
+  const parsed = ConfirmSchema.safeParse({ period, signerWallet, totalUsdc });
   if (!parsed.success) {
     throw new Error(`Invalid input: ${parsed.error.message}`);
   }
@@ -137,14 +148,32 @@ export async function confirmDistribution(
     );
   }
 
-  // Accumulate signer
-  const signers = pendingSigners.get(period) ?? [];
-  if (!signers.includes(signerWallet)) {
-    signers.push(signerWallet);
-    pendingSigners.set(period, signers);
+  // Accumulate signer — amount is locked in by the first signer
+  const pending = pendingSigners.get(period);
+
+  if (pending === undefined) {
+    // First signer: initialise and lock in the reference amount
+    pendingSigners.set(period, { signers: [signerWallet], totalUsdc });
+  } else {
+    // Subsequent signer: reject if the submitted amount differs from reference
+    if (totalUsdc !== pending.totalUsdc) {
+      throw new Error(
+        `Distribution amount mismatch for period "${period}": ` +
+          `first signer approved $${pending.totalUsdc}, this signer submitted $${totalUsdc}. ` +
+          `All signers must approve the same amount.`,
+      );
+    }
+    if (!pending.signers.includes(signerWallet)) {
+      pending.signers.push(signerWallet);
+    }
   }
 
+  // Re-read from the map so the rest of the function always uses the reference amount
+  const confirmed = pendingSigners.get(period)!;
+  const signers = confirmed.signers;
   const signersCount = signers.length;
+  // Use the locked-in reference amount, not the caller's argument
+  const lockedUsdc = confirmed.totalUsdc;
 
   logger.info("[distributions] confirm partial", {
     period,
@@ -157,8 +186,8 @@ export async function confirmDistribution(
     return { confirmed: false, signersCount, required: REQUIRED_SIGNERS };
   }
 
-  // Threshold reached — execute
-  const computed = await computeDistribution(period, totalUsdc);
+  // Threshold reached — execute using the REFERENCE amount (first signer's)
+  const computed = await computeDistribution(period, lockedUsdc);
 
   try {
     await prisma.$transaction(async (tx) => {
