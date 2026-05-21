@@ -50,7 +50,9 @@ export function LoginForm() {
   function onDevAdminSignIn() {
     setError(null);
     startTransition(async () => {
-      await devLoginAdmin(from);
+      // Pass the RAW ?from= (not the investor-defaulted `from`, which resolves
+      // to /portfolio) so devLoginAdmin can default to /admin when absent.
+      await devLoginAdmin(searchParams.get("from") ?? undefined);
     });
   }
 
