@@ -6,6 +6,9 @@ import type { Investor } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { isDevAuthBypass, DEV_USER_EMAIL } from "@/lib/dev-bypass";
 
+/** Email of the auto-provisioned dev admin used by the dev admin sign-in. */
+export const DEV_ADMIN_EMAIL = "admin-dev@hearst.local";
+
 /**
  * Database-backed session layer for email/password authentication.
  *
@@ -76,6 +79,33 @@ export async function ensureDevUser() {
         investor: { create: {} },
       },
       include: { investor: true },
+    }))
+  );
+}
+
+/**
+ * Resolves (and lazily provisions) the seeded dev admin. The dev account's
+ * password hash is intentionally unusable, so it can never be logged into via
+ * the normal email/password flow — only through the dev admin sign-in button.
+ *
+ * No `Investor` relation is created: admin accounts are not investors.
+ *
+ * Defence-in-depth: hard-refuses in production even if a caller forgets to gate.
+ */
+export async function ensureDevAdminUser() {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Dev admin user is unavailable in production");
+  }
+  return (
+    (await prisma.user.findUnique({
+      where: { email: DEV_ADMIN_EMAIL },
+    })) ??
+    (await prisma.user.create({
+      data: {
+        email: DEV_ADMIN_EMAIL,
+        passwordHash: "!dev-bypass-no-password-login!",
+        role: "admin",
+      },
     }))
   );
 }

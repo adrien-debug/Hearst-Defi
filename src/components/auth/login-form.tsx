@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
-import { login, devLogin } from "@/lib/auth/actions";
+import { login, devLogin, devLoginAdmin } from "@/lib/auth/actions";
 import { safeFrom } from "@/lib/safe-redirect";
 
 /** Dev-only one-click sign-in is shown only outside production builds. */
@@ -44,6 +44,13 @@ export function LoginForm() {
     setError(null);
     startTransition(async () => {
       await devLogin(from);
+    });
+  }
+
+  function onDevAdminSignIn() {
+    setError(null);
+    startTransition(async () => {
+      await devLoginAdmin(from);
     });
   }
 
@@ -119,6 +126,19 @@ export function LoginForm() {
           </Button>
           <p className="mt-2 text-center text-[length:var(--ct-text-micro)] text-[--ct-text-faint]">
             Development only · creates a session as the dev investor
+          </p>
+          <Button
+            type="button"
+            variant="secondary"
+            size="md"
+            className="mt-3 w-full"
+            onClick={onDevAdminSignIn}
+            disabled={isPending}
+          >
+            Dev sign-in (admin)
+          </Button>
+          <p className="mt-2 text-center text-[length:var(--ct-text-micro)] text-[--ct-text-faint]">
+            Development only · creates an ADMIN session
           </p>
         </div>
       ) : null}
