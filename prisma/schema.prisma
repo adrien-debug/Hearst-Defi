@@ -425,6 +425,25 @@ model AdminAudit {
 }
 
 // =============================================================================
+// CUSTOMER — per-user agent persona + memory preferences
+// =============================================================================
+
+model UserAgentProfile {
+  id                 String   @id @default(cuid())
+  userId             String
+  agentName          String   // "scenario-narrative" | "investor-memo" | "mining-health" | "risk-explanation" | "cockpit-chat"
+  tone               String?  // ex: "concise" | "detailed" | "technical"
+  language           String?  // ex: "fr" | "en"
+  verbosity          String?  // ex: "low" | "medium" | "high"
+  customInstructions String?  // texte libre, validé forbidden-words avant injection
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([userId, agentName])
+  @@index([userId])
+}
+
+// =============================================================================
 // LLM OBSERVABILITY — every agent call is traced here
 // =============================================================================
 
