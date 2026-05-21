@@ -53,14 +53,17 @@ function normaliseRole(role: string): UserRole {
 }
 
 /**
- * Dev-only bypass session. Resolves (and lazily provisions) a seeded dev
- * investor so a developer can reach protected pages without logging in.
- * Only ever called when `isDevAuthBypass()` is true (never in production).
- * The dev account's password hash is intentionally unusable, so it cannot be
- * logged into through the normal email/password flow.
+ * Resolves (and lazily provisions) the seeded dev investor. The dev account's
+ * password hash is intentionally unusable, so it can never be logged into via
+ * the normal email/password flow — only through the dev bypass or dev sign-in.
+ *
+ * Defence-in-depth: hard-refuses in production even if a caller forgets to gate.
  */
-async function getDevBypassSession(): Promise<SessionUser> {
-  const user =
+export async function ensureDevUser() {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Dev user is unavailable in production");
+  }
+  return (
     (await prisma.user.findUnique({
       where: { email: DEV_USER_EMAIL },
       include: { investor: true },
@@ -73,8 +76,16 @@ async function getDevBypassSession(): Promise<SessionUser> {
         investor: { create: {} },
       },
       include: { investor: true },
-    }));
+    }))
+  );
+}
 
+/**
+ * Dev-only bypass session: returns the dev investor as a `SessionUser` without
+ * any cookie. Only ever called when `isDevAuthBypass()` is true.
+ */
+async function getDevBypassSession(): Promise<SessionUser> {
+  const user = await ensureDevUser();
   return {
     userId: user.id,
     email: user.email,

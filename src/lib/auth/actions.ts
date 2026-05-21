@@ -10,6 +10,7 @@ import {
   createSession,
   setSessionCookie,
   destroySession,
+  ensureDevUser,
 } from "@/lib/auth/session";
 import { safeFrom } from "@/lib/safe-redirect";
 import { assertRateLimit } from "@/lib/rate-limit";
@@ -135,4 +136,27 @@ export async function login(
 export async function logout(): Promise<void> {
   await destroySession();
   redirect("/login");
+}
+
+/**
+ * DEV ONLY — one-click sign-in as the seeded dev investor.
+ *
+ * Creates a REAL DB session (so logout, sessions list, and every gate behave
+ * normally) and redirects. Hard-gated by NODE_ENV: in a production build this
+ * is a no-op that immediately redirects to /login, and `ensureDevUser` also
+ * refuses in production as defence-in-depth. Surfaced via a dev-only button on
+ * the login screen.
+ */
+export async function devLogin(from?: string): Promise<void> {
+  if (process.env.NODE_ENV === "production") {
+    redirect("/login");
+  }
+
+  const user = await ensureDevUser();
+  const { token, expiresAt } = await createSession(user.id);
+  await setSessionCookie(token, expiresAt);
+  logger.info("dev sign-in", { userId: user.id });
+
+  // Outside try/catch: redirect throws NEXT_REDIRECT which must propagate.
+  redirect(safeFrom(from));
 }
