@@ -7,7 +7,7 @@ import { ApyRange } from "@/components/ui/apy-range";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { createDraftVault, updateDraftVault, type CreateDraftInput } from "./actions";
+import { createDraftVault, updateDraftVault, type CreateDraftInput, type VaultActionResult } from "./actions";
 
 // ---------------------------------------------------------------------------
 // Step types
@@ -149,6 +149,10 @@ export function VaultForm(props: VaultFormProps) {
     };
   }
 
+  function formatIssues(issues: Extract<VaultActionResult, { ok: false }>["issues"]): string {
+    return typeof issues === "string" ? issues : issues.map((i) => i.message).join(", ");
+  }
+
   function handleSubmit() {
     setError(null);
     startTransition(async () => {
@@ -156,25 +160,11 @@ export function VaultForm(props: VaultFormProps) {
 
       if (props.mode === "create") {
         const result = await createDraftVault(input);
-        if (!result.ok) {
-          const msg =
-            typeof result.issues === "string"
-              ? result.issues
-              : result.issues.map((i) => i.message).join(", ");
-          setError(msg);
-          return;
-        }
+        if (!result.ok) { setError(formatIssues(result.issues)); return; }
         router.push(`/admin/vaults/${result.id}`);
       } else {
         const result = await updateDraftVault(props.vaultId, input);
-        if (!result.ok) {
-          const msg =
-            typeof result.issues === "string"
-              ? result.issues
-              : result.issues.map((i) => i.message).join(", ");
-          setError(msg);
-          return;
-        }
+        if (!result.ok) { setError(formatIssues(result.issues)); return; }
         router.push(`/admin/vaults/${props.vaultId}`);
       }
     });

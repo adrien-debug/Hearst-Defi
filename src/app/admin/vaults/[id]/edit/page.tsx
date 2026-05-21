@@ -25,7 +25,9 @@ export default async function EditVaultPage({ params }: PageProps) {
   }
 
   // Map DB row → FormState for pre-population
-  const signersWhitelist = JSON.parse(vault.signersWhitelist) as string[];
+  const stored = JSON.parse(vault.signersWhitelist) as string[];
+  const signersWhitelist =
+    stored.length >= 2 ? stored : [...stored, ...Array(2 - stored.length).fill("")];
 
   const initial: FormState = {
     ticker: vault.ticker,
@@ -48,7 +50,7 @@ export default async function EditVaultPage({ params }: PageProps) {
     targetBtcTacticalBps: vault.targetBtcTacticalBps,
     targetUsdcBaseBps: vault.targetUsdcBaseBps,
     targetStableReserveBps: vault.targetStableReserveBps,
-    signersWhitelist: signersWhitelist.length >= 2 ? signersWhitelist : [...signersWhitelist, ""],
+    signersWhitelist,
   };
 
   return (
