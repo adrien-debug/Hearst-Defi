@@ -78,7 +78,7 @@ function ChartEmpty({ title, subtitle, provenance }: ChartEmptyProps) {
         </div>
         <ProvenanceBadge kind={provenance === "live" ? "stale" : provenance} />
       </CardHeader>
-      <div className="flex-1 min-h-[var(--ct-chart-empty-h)] flex items-center justify-center text-center -mx-4 -mb-4 mt-4 rounded-b-[--radius-card] border border-dashed border-[--ct-border-soft] bg-[--ct-surface-1]">
+      <div className="flex-1 min-h-[var(--ct-chart-empty-h)] flex items-center justify-center text-center -mx-4 -mb-4 mt-4 rounded-b-[--ct-radius-lg] border border-dashed border-[--ct-border-soft] bg-[--ct-surface-1]">
         <p className="text-xs text-[--ct-text-muted] px-6 py-8">
           No historical data yet — first snapshot needed.
         </p>

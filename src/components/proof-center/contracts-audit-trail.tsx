@@ -96,7 +96,7 @@ export function ContractsAuditTrail() {
           {DEPLOYED_CONTRACTS.map((contract) => (
             <article
               key={contract.address}
-              className="rounded-[--radius-md] border border-[--ct-border-soft] bg-[--ct-surface-1] p-5"
+              className="rounded-[--ct-radius-md] border border-[--ct-border-soft] bg-[--ct-surface-1] p-5"
             >
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h4 className="h4">{contract.name}</h4>
@@ -154,7 +154,7 @@ export function ContractsAuditTrail() {
                   target="_blank"
                   rel="noreferrer noopener"
                   className={cn(
-                    "rounded-[--radius-button] border border-[--ct-text-strong] bg-[--ct-surface-1]",
+                    "rounded-[--ct-radius-full] border border-[--ct-text-strong] bg-[--ct-surface-1]",
                     "px-3 py-1.5 text-xs text-[--ct-text-strong]",
                     "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-2]",
                     "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
@@ -167,7 +167,7 @@ export function ContractsAuditTrail() {
                   target="_blank"
                   rel="noreferrer noopener"
                   className={cn(
-                    "rounded-[--radius-button] border border-[--ct-border-strong] bg-[--ct-surface-1]",
+                    "rounded-[--ct-radius-full] border border-[--ct-border-strong] bg-[--ct-surface-1]",
                     "px-3 py-1.5 text-xs text-[--ct-text-primary]",
                     "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-3]",
                     "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
@@ -194,7 +194,7 @@ export function ContractsAuditTrail() {
           {AUDIT_ENTRIES.map((entry) => (
             <li
               key={entry.label}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-[--radius-md] border border-[--ct-border-soft] bg-[--ct-surface-1] px-4 py-3"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-[--ct-radius-md] border border-[--ct-border-soft] bg-[--ct-surface-1] px-4 py-3"
             >
               <div className="flex flex-col gap-0.5">
                 <span className="text-sm font-medium text-[--ct-text-primary]">
@@ -207,7 +207,7 @@ export function ContractsAuditTrail() {
               <div className="flex items-center gap-2">
                 <span
                   className={cn(
-                    "inline-flex items-center rounded-[--radius-full] border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide leading-none",
+                    "inline-flex items-center rounded-[--ct-radius-full] border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide leading-none",
                     variantStyles[entry.variant],
                   )}
                 >
@@ -223,7 +223,7 @@ export function ContractsAuditTrail() {
                     target="_blank"
                     rel="noreferrer noopener"
                     className={cn(
-                      "rounded-[--radius-button] border border-[--ct-border-strong] bg-[--ct-surface-1]",
+                      "rounded-[--ct-radius-full] border border-[--ct-border-strong] bg-[--ct-surface-1]",
                       "px-3 py-1 text-xs text-[--ct-text-primary]",
                       "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-3]",
                       "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",

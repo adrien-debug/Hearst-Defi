@@ -180,7 +180,7 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
       aria-busy={isPending}
     >
       {isPending && (
-        <div className="pointer-events-none absolute inset-0 z-[--ct-z-overlay] flex items-center justify-center rounded-[--radius-card] bg-[--ct-surface-2]/60 backdrop-blur-sm">
+        <div className="pointer-events-none absolute inset-0 z-[--ct-z-overlay] flex items-center justify-center rounded-[--ct-radius-lg] bg-[--ct-surface-2]/60 backdrop-blur-sm">
           <span className="text-sm text-[--ct-text-body]">Computing…</span>
         </div>
       )}
@@ -236,7 +236,7 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
             </CardHeader>
             <Markdown content={narrative.narrative_md} />
             {narrative.risk_warning ? (
-              <div className="mt-4 rounded-[--radius-button] border border-[--ct-status-warning] bg-[--ct-status-warning-soft] px-4 py-3">
+              <div className="mt-4 rounded-[--ct-radius-full] border border-[--ct-status-warning] bg-[--ct-status-warning-soft] px-4 py-3">
                 <p className="stat-label mb-1 text-[--ct-status-warning]">
                   Risk warning
                 </p>

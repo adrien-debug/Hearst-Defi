@@ -230,7 +230,7 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
               onClick={() => onSelect(p.key)}
               aria-pressed={isActive}
               className={cn(
-                "flex flex-col items-start gap-0.5 rounded-[--radius-button] border px-4 py-3 text-left",
+                "flex flex-col items-start gap-0.5 rounded-[--ct-radius-full] border px-4 py-3 text-left",
                 "transition-[background-color,color,border-color,box-shadow] duration-[var(--ct-dur-fast)]",
                 "disabled:cursor-not-allowed disabled:opacity-40",
                 "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
@@ -288,7 +288,7 @@ function BacktestTab({ state, isPending, error, onSelect }: BacktestTabProps) {
 
       {/* Error banner */}
       {error && (
-        <p className="rounded-[--radius-button] border border-[--ct-status-danger] bg-[--ct-status-danger-soft] px-4 py-2.5 text-sm text-[--ct-status-danger]">
+        <p className="rounded-[--ct-radius-full] border border-[--ct-status-danger] bg-[--ct-status-danger-soft] px-4 py-2.5 text-sm text-[--ct-status-danger]">
           {error}
         </p>
       )}
@@ -505,7 +505,7 @@ function SingleMode({
       />
 
       {scenarioError && (
-        <p className="rounded-[--radius-button] border border-[--ct-status-danger] bg-[--ct-status-danger-soft] px-4 py-2.5 text-sm text-[--ct-status-danger]">
+        <p className="rounded-[--ct-radius-full] border border-[--ct-status-danger] bg-[--ct-status-danger-soft] px-4 py-2.5 text-sm text-[--ct-status-danger]">
           {scenarioError}
         </p>
       )}

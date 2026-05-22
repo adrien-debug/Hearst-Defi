@@ -116,7 +116,7 @@ export function RebalancingActions({ output }: RebalancingActionsProps) {
           <CardTitle>Rebalancing Actions</CardTitle>
           <span className="eyebrow">Max 4 · Rule-based</span>
         </CardHeader>
-        <div className="flex items-center gap-3 rounded-[--radius-sm] glass-panel-subtle px-4 py-3">
+        <div className="flex items-center gap-3 rounded-[--ct-radius-sm] glass-panel-subtle px-4 py-3">
           <span
             className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[--ct-status-success]"
             aria-hidden
@@ -141,7 +141,7 @@ export function RebalancingActions({ output }: RebalancingActionsProps) {
           <li
             key={action.ruleId}
             className={cn(
-              "flex gap-4 rounded-[--radius-sm] glass-panel-subtle",
+              "flex gap-4 rounded-[--ct-radius-sm] glass-panel-subtle",
               "px-4 py-3",
             )}
           >

@@ -7,7 +7,7 @@ interface MemoSectionProps {
 
 export function MemoSection({ title, body }: MemoSectionProps) {
   return (
-    <section className="rounded-[--radius-card] border border-[--ct-border] bg-[--ct-surface-2] p-6">
+    <section className="rounded-[--ct-radius-lg] border border-[--ct-border] bg-[--ct-surface-2] p-6">
       <h2 className="h2 mb-4">{title}</h2>
       <Markdown content={body} />
     </section>

@@ -149,7 +149,7 @@ export function PorSummary({ attestation }: PorSummaryProps) {
           target="_blank"
           rel="noreferrer noopener"
           className={cn(
-            "rounded-[--radius-button] border border-[--ct-text-strong] bg-[--ct-surface-1]",
+            "rounded-[--ct-radius-full] border border-[--ct-text-strong] bg-[--ct-surface-1]",
             "px-3 py-1.5 text-xs text-[--ct-text-strong]",
             "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-2]",
             "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
@@ -169,7 +169,7 @@ export function PorSummary({ attestation }: PorSummaryProps) {
             target="_blank"
             rel="noreferrer noopener"
             className={cn(
-              "rounded-[--radius-button] border border-[--ct-border-strong] bg-[--ct-surface-1]",
+              "rounded-[--ct-radius-full] border border-[--ct-border-strong] bg-[--ct-surface-1]",
               "px-3 py-1.5 text-xs text-[--ct-text-primary]",
               "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-3]",
               "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",

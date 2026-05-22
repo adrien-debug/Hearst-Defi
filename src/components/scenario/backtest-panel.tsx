@@ -97,7 +97,7 @@ export function BacktestPanel({ output, isPending }: BacktestPanelProps) {
       aria-busy={isPending}
     >
       {isPending && (
-        <div className="pointer-events-none absolute inset-0 z-[var(--ct-z-overlay)] flex items-center justify-center rounded-[--radius-card] bg-[--ct-surface-2]/60 backdrop-blur-sm">
+        <div className="pointer-events-none absolute inset-0 z-[var(--ct-z-overlay)] flex items-center justify-center rounded-[--ct-radius-lg] bg-[--ct-surface-2]/60 backdrop-blur-sm">
           <span className="text-sm text-[--ct-text-body]">Computing backtest…</span>
         </div>
       )}

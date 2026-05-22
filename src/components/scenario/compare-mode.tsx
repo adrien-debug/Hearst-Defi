@@ -368,7 +368,7 @@ export function CompareMode({ active = true }: { active?: boolean }) {
       {error && (
         <p
           role="alert"
-          className="rounded-[--radius-button] border border-[--ct-status-danger] bg-[--ct-status-danger-soft] px-4 py-2.5 text-sm text-[--ct-status-danger]"
+          className="rounded-[--ct-radius-full] border border-[--ct-status-danger] bg-[--ct-status-danger-soft] px-4 py-2.5 text-sm text-[--ct-status-danger]"
         >
           {error}
         </p>
