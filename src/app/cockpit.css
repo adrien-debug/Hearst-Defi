@@ -563,7 +563,7 @@
   align-items: center;
   gap: var(--ct-space-1);
   padding: var(--ct-space-3) 0;
-  z-index: var(--ct-z-overlay);
+  z-index: 1001; /* Au-dessus du shell cockpit */
   pointer-events: auto;
 }
 
