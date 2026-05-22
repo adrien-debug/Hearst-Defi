@@ -118,9 +118,10 @@ function NavChart({ points, provenance }: NavChartProps) {
         </div>
       </CardHeader>
 
-      <div className="flex-1 min-h-[var(--ct-chart-empty-h)] relative -mx-4 -mb-4 mt-4 ct-empty-state">
-        Chart placeholder
-      </div>
+      <LineChart
+        values={values}
+        ariaLabel={`Net asset value, ${values.length} points, ${deltaPct >= 0 ? "up" : "down"} ${Math.abs(deltaPct).toFixed(1)} percent over 30 days`}
+      />
     </Card>
   );
 }
@@ -148,6 +149,8 @@ function ApyChart({ points, provenance }: ApyChartProps) {
   }
 
   const lastPoint = points[points.length - 1];
+  const lows = points.map((p) => p.apy_low);
+  const highs = points.map((p) => p.apy_high);
 
   return (
     <Card className="flex flex-col">
@@ -170,9 +173,123 @@ function ApyChart({ points, provenance }: ApyChartProps) {
         </div>
       </CardHeader>
 
-      <div className="flex-1 min-h-[var(--ct-chart-empty-h)] relative -mx-4 -mb-4 mt-4 ct-empty-state">
-        Chart placeholder
-      </div>
+      <BandChart
+        low={lows}
+        high={highs}
+        ariaLabel={`APY range band over 30 days, latest ${lastPoint ? `${lastPoint.apy_low.toFixed(1)} to ${lastPoint.apy_high.toFixed(1)} percent` : "n/a"}`}
+      />
     </Card>
+  );
+}
+
+// ── SVG chart primitives ───────────────────────────────────────────────────
+// Pure, deterministic, token-only. viewBox is a fixed 100×40 grid; series are
+// normalised into it so any range renders without overflow or NaN.
+
+const VB_W = 100;
+const VB_H = 40;
+const PAD = 2;
+
+/** Map a value series onto evenly-spaced x and a normalised y in the viewBox. */
+function toXY(values: number[]): Array<{ x: number; y: number }> {
+  const n = values.length;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1; // flat series → centre line, never divide by 0
+  const innerH = VB_H - PAD * 2;
+  return values.map((v, i) => ({
+    x: n === 1 ? VB_W / 2 : (i / (n - 1)) * VB_W,
+    y: PAD + innerH - ((v - min) / span) * innerH,
+  }));
+}
+
+function polyline(pts: Array<{ x: number; y: number }>): string {
+  return pts.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ");
+}
+
+interface LineChartProps {
+  values: number[];
+  ariaLabel: string;
+}
+
+function LineChart({ values, ariaLabel }: LineChartProps) {
+  const pts = toXY(values);
+  const line = polyline(pts);
+  const area = `${line} ${VB_W},${VB_H} 0,${VB_H}`;
+  return (
+    <div className="flex-1 min-h-[var(--ct-chart-empty-h)] -mx-4 -mb-4 mt-4">
+      <svg
+        viewBox={`0 0 ${VB_W} ${VB_H}`}
+        preserveAspectRatio="none"
+        className="w-full h-full"
+        role="img"
+        aria-label={ariaLabel}
+      >
+        <polygon points={area} fill="var(--ct-accent-soft)" opacity="0.25" />
+        <polyline
+          points={line}
+          fill="none"
+          stroke="var(--ct-accent)"
+          strokeWidth="0.8"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+    </div>
+  );
+}
+
+interface BandChartProps {
+  low: number[];
+  high: number[];
+  ariaLabel: string;
+}
+
+function BandChart({ low, high, ariaLabel }: BandChartProps) {
+  // Normalise low+high together so the band keeps its relative thickness.
+  const all = [...low, ...high];
+  const min = Math.min(...all);
+  const max = Math.max(...all);
+  const span = max - min || 1;
+  const innerH = VB_H - PAD * 2;
+  const n = low.length;
+  const xAt = (i: number) => (n === 1 ? VB_W / 2 : (i / (n - 1)) * VB_W);
+  const yAt = (v: number) => PAD + innerH - ((v - min) / span) * innerH;
+
+  const highPts = high.map((v, i) => ({ x: xAt(i), y: yAt(v) }));
+  const lowPts = low.map((v, i) => ({ x: xAt(i), y: yAt(v) }));
+  // Band polygon: high (left→right) then low (right→left).
+  const band = `${polyline(highPts)} ${polyline([...lowPts].reverse())}`;
+
+  return (
+    <div className="flex-1 min-h-[var(--ct-chart-empty-h)] -mx-4 -mb-4 mt-4">
+      <svg
+        viewBox={`0 0 ${VB_W} ${VB_H}`}
+        preserveAspectRatio="none"
+        className="w-full h-full"
+        role="img"
+        aria-label={ariaLabel}
+      >
+        <polygon points={band} fill="var(--ct-accent-soft)" opacity="0.3" />
+        <polyline
+          points={polyline(highPts)}
+          fill="none"
+          stroke="var(--ct-accent)"
+          strokeWidth="0.8"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+        />
+        <polyline
+          points={polyline(lowPts)}
+          fill="none"
+          stroke="var(--ct-accent)"
+          strokeWidth="0.6"
+          strokeOpacity="0.5"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+    </div>
   );
 }

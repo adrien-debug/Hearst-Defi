@@ -87,7 +87,8 @@ describe("runMonteCarlo determinism", () => {
   });
 
   it("defaults to 10,000 paths when unspecified", () => {
-    const { paths: _omit, ...rest } = BASE_INPUT;
+    const rest = { ...BASE_INPUT };
+    delete rest.paths;
     const out = runMonteCarlo(rest);
     expect(out.paths).toBe(10_000);
   });
