@@ -89,7 +89,11 @@
   --ct-dur-base: 220ms;
   --ct-dur-slow: 400ms;
   --ct-dur-slower: 500ms; /* page/skeleton fade-in (loading.tsx) — pure ms for duration-* utility */
+  --ct-dur-pulse: 2s;     /* dash-pulse animation cycle (dashboard status dot) */
   --ct-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* Gradients */
+  --ct-gradient-surface: linear-gradient(135deg, var(--ct-surface-3), var(--ct-surface-1));
 
   /* Spacing scale (rem-based, mirrors Tailwind v4 — adopté comme source de
      vérité Cockpit pour gaps/paddings/margins/positionnement). */
@@ -192,6 +196,27 @@
 
 .ct-divide-soft > * + * { border-top: 1px solid var(--ct-border-soft); }
 .ct-divide-base > * + * { border-top: 1px solid var(--ct-border); }
+
+/* ── UTILITAIRES RÉCURRENTS (factorise les patterns dupliqués) ── */
+
+/* État vide — dashed border, centré, muted text */
+.ct-empty-state {
+  border-radius: var(--ct-radius-md);
+  border: 1px dashed var(--ct-border);
+  padding: var(--ct-space-8) var(--ct-space-4);
+  text-align: center;
+  font-size: var(--ct-text-sm);
+  color: var(--ct-text-muted);
+}
+
+/* Label de formulaire — uppercase, muted, tracked */
+.ct-form-label {
+  display: block;
+  margin-bottom: var(--ct-space-1);
+  color: var(--ct-text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--ct-tracking-wide);
+}
 
 /* ── ALIASES HERITAGE — remappe les classes Connect aux tokens Cockpit ──
    Permet aux ~30 composants métier d'afficher le look Cockpit

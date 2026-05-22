@@ -58,7 +58,7 @@ export default async function DistributionsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm tabular border border-[var(--ct-border-soft)] rounded-[var(--ct-radius-lg)] overflow-hidden">
+            <table className="w-full text-sm tabular ct-border-soft rounded-[var(--ct-radius-lg)] overflow-hidden">
               <thead>
                 <tr className="ct-surface-1">
                   <th className="text-left ct-table-header body-xs ct-text-muted font-medium">
@@ -82,7 +82,7 @@ export default async function DistributionsPage() {
                 {history.map((d) => (
                   <tr
                     key={d.id}
-                    className="border-t border-[var(--ct-border-soft)] ct-hover-surface transition-colors"
+                    className="border-t ct-border-soft ct-hover-surface transition-colors"
                   >
                     <td className="ct-table-cell mono text-xs ct-text-body">
                       {d.period}

@@ -309,7 +309,7 @@ export function RebalanceCard({
       {signers.length > 0 && (
         <div className="space-y-1">
           <p className="stat-label">Signers</p>
-          <ul className="space-y-0.5">
+          <ul className="space-y-[var(--ct-space-0_5)]">
             {signers.map((w) => (
               <li key={w} className="body-xs mono ct-text-muted">
                 {abbrWallet(w)}

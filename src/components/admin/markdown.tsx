@@ -16,7 +16,7 @@ export function Markdown({ content }: { content: string }) {
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="mt-7 mb-3 h2">
+            <h2 className="mt-6 mb-3 h2">
               {children}
             </h2>
           ),
@@ -26,7 +26,7 @@ export function Markdown({ content }: { content: string }) {
             </h3>
           ),
           p: ({ children }) => (
-            <p className="my-3 text-sm leading-relaxed text-[var(--ct-text-body)]">
+            <p className="my-3 text-sm leading-[var(--ct-leading-relaxed)] text-[var(--ct-text-body)]">
               {children}
             </p>
           ),
@@ -68,7 +68,7 @@ export function Markdown({ content }: { content: string }) {
             </div>
           ),
           th: ({ children }) => (
-            <th className="border-b border-[var(--ct-border)] ct-table-header text-left text-[var(--ct-text-body)] uppercase tracking-wide">
+            <th className="border-b border-[var(--ct-border)] ct-table-header text-left text-[var(--ct-text-body)] uppercase tracking-[var(--ct-tracking-wide)]">
               {children}
             </th>
           ),

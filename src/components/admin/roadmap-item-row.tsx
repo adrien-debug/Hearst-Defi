@@ -152,7 +152,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
 
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block text-xs">
-              <span className="mb-1 block text-[var(--ct-text-muted)] uppercase tracking-wide">
+              <span className="ct-form-label">
                 Status
               </span>
               <select
@@ -169,7 +169,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
             </label>
 
             <label className="block text-xs">
-              <span className="mb-1 block text-[var(--ct-text-muted)] uppercase tracking-wide">
+              <span className="ct-form-label">
                 Validated by
               </span>
               <input

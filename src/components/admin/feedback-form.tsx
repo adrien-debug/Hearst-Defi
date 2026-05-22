@@ -27,7 +27,7 @@ export function FeedbackForm() {
     <form ref={formRef} action={onSubmit} className="space-y-3" aria-label="Feedback form">
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block text-xs" htmlFor="feedback-itemId">
-          <span className="mb-1 block text-[var(--ct-text-muted)] uppercase tracking-wide">
+          <span className="ct-form-label">
             Roadmap item ID (optional)
           </span>
           <input
@@ -39,7 +39,7 @@ export function FeedbackForm() {
           />
         </label>
         <label className="block text-xs" htmlFor="feedback-author">
-          <span className="mb-1 block text-[var(--ct-text-muted)] uppercase tracking-wide">
+          <span className="ct-form-label">
             Your name (optional)
           </span>
           <input

@@ -271,7 +271,7 @@
   align-items: center;
   gap: var(--ct-space-1_5);
   padding: var(--ct-space-1) var(--ct-space-2_5);
-  background: linear-gradient(135deg, var(--ct-surface-3), var(--ct-surface-1));
+  background: var(--ct-gradient-surface);
   border: 1px solid var(--ct-border-strong);
   border-radius: var(--ct-radius-full);
   font-size: var(--ct-text-micro);
@@ -302,7 +302,7 @@
 .dash-status-dot.success { background: var(--ct-status-success); }
 
 .dash-status-dot.live {
-  animation: dash-pulse 2s infinite;
+  animation: dash-pulse var(--ct-dur-pulse) infinite;
 }
 
 @keyframes dash-pulse {

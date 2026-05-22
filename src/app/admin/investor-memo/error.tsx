@@ -10,7 +10,7 @@ export default function InvestorMemoError(props: {
     <SegmentError
       {...props}
       scope="Investor Memo · Error"
-      homeHref="/investor-memo"
+      homeHref="/admin/investor-memo"
       homeLabel="Reload Investor Memo"
     />
   );
