@@ -49,6 +49,11 @@ const serverEnvSchema = z.object({
   INNGEST_SIGNING_KEY: z.string().optional(),
   INNGEST_EVENT_KEY: z.string().optional(),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).optional(),
+  // Primary LLM provider for agents + chat. "hypercli" (Kimi K2.6, default)
+  // routes every agent through the OpenAI-compatible Hypercli endpoint;
+  // "anthropic" uses the Claude SDK directly. Agents are provider-agnostic —
+  // they call `callLlm`, which resolves the client from this switch.
+  LLM_PROVIDER: z.enum(["hypercli", "anthropic"]).default("hypercli"),
   HYPERCLI_API_KEY: z.string().min(1).optional(),
   HYPERCLI_BASE_URL: z.string().url().optional(),
   HYPERCLI_DEFAULT_MODEL: z.string().min(1).default("kimi-k2.6"),
@@ -145,6 +150,7 @@ function resolveEnv(): ServerEnv {
       const data: ServerEnv = {
         ...lenient.data,
         DATABASE_URL: lenient.data.DATABASE_URL ?? "",
+        LLM_PROVIDER: lenient.data.LLM_PROVIDER ?? "hypercli",
         HYPERCLI_DEFAULT_MODEL: lenient.data.HYPERCLI_DEFAULT_MODEL ?? "kimi-k2.6",
         HYPERCLI_ANTHROPIC_MODEL:
           lenient.data.HYPERCLI_ANTHROPIC_MODEL ?? "kimi-k2.6-anthropic",

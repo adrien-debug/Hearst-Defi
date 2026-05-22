@@ -288,12 +288,18 @@ describe("callLlm", () => {
     });
   });
 
-  it("throws when api key is missing and no client is injected", async () => {
-    // Temporarily remove the API key from the cached env module
+  it("throws when provider=anthropic and api key is missing (no client injected)", async () => {
+    // Temporarily force the Anthropic provider with no API key.
     const envModule = await import("@/lib/env");
     const savedKey = envModule.env.ANTHROPIC_API_KEY;
+    const savedProvider = envModule.env.LLM_PROVIDER;
     Object.defineProperty(envModule.env, "ANTHROPIC_API_KEY", {
       value: undefined,
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(envModule.env, "LLM_PROVIDER", {
+      value: "anthropic",
       writable: true,
       configurable: true,
     });
@@ -308,6 +314,11 @@ describe("callLlm", () => {
     } finally {
       Object.defineProperty(envModule.env, "ANTHROPIC_API_KEY", {
         value: savedKey,
+        writable: true,
+        configurable: true,
+      });
+      Object.defineProperty(envModule.env, "LLM_PROVIDER", {
+        value: savedProvider,
         writable: true,
         configurable: true,
       });

@@ -75,15 +75,31 @@ export async function callLlm(
     disableFallback?: boolean;
   },
 ): Promise<LlmCallResult> {
+  // Provider resolution. Default backend is Hypercli (Kimi K2.6) — agents are
+  // provider-agnostic and only ever talk to this wrapper. Anthropic is used
+  // only when LLM_PROVIDER === "anthropic". An injected client (tests/canaries)
+  // always wins regardless of provider.
+  const provider = env.LLM_PROVIDER;
   const apiKey = env.ANTHROPIC_API_KEY;
-  if (!opts?.client && !apiKey) {
-    throw new Error(
-      "ANTHROPIC_API_KEY is not configured. " +
-        "Set it in your environment to use LLM features.",
-    );
+
+  if (!opts?.client) {
+    if (provider === "anthropic" && !apiKey) {
+      throw new Error(
+        "LLM_PROVIDER=anthropic but ANTHROPIC_API_KEY is not configured.",
+      );
+    }
+    if (provider === "hypercli" && !env.HYPERCLI_API_KEY) {
+      throw new Error(
+        "LLM_PROVIDER=hypercli but HYPERCLI_API_KEY is not configured.",
+      );
+    }
   }
 
-  const client = opts?.client ?? new Anthropic({ apiKey });
+  const client: LlmClientLike =
+    opts?.client ??
+    (provider === "hypercli"
+      ? kimiAsAnthropicClient()
+      : new Anthropic({ apiKey }));
   const timeoutMs = opts?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const maxRetries = opts?.maxRetries ?? DEFAULT_MAX_RETRIES;
 
@@ -273,6 +289,22 @@ function flattenContent(content: Anthropic.MessageParam["content"]): string {
     .map((block) => (block.type === "text" ? block.text : ""))
     .filter((s) => s.length > 0)
     .join("\n\n");
+}
+
+/**
+ * Wraps the Kimi (Hypercli) endpoint as an `LlmClientLike` so it can be the
+ * PRIMARY backend, not just the fallback. Exposes the same
+ * `messages.create(params)` surface the Anthropic SDK does; internally it
+ * adapts to the OpenAI-compatible chat endpoint via `callKimiFallback`. This
+ * keeps `callLlm` (retry, breaker, LlmRun persistence) provider-agnostic.
+ */
+function kimiAsAnthropicClient(): LlmClientLike {
+  return {
+    messages: {
+      create: (body, options) =>
+        callKimiFallback(body, options?.timeout ?? DEFAULT_TIMEOUT_MS),
+    },
+  };
 }
 
 /**
