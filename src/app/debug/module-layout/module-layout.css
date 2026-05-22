@@ -10,7 +10,7 @@
     linear-gradient(
       180deg,
       color-mix(in srgb, var(--ct-bg-deep) 82%, black) 0%,
-      #010301 100%
+      var(--ct-bg-deep) 100%
     );
 }
 

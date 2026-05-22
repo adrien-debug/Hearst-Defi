@@ -71,7 +71,7 @@ export function StepProgress({ active }: StepProgressProps) {
             <span
               aria-current={isActive ? "step" : undefined}
               className={cn(
-                "relative z-[1] inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold border transition-colors",
+                "relative z-[var(--ct-z-base)] inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold border transition-colors",
                 isDone && "border-[var(--ct-border-accent)] bg-[var(--ct-accent)]",
                 isDone && "ct-text-strong",
                 isActive &&
