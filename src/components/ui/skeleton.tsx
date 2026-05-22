@@ -25,7 +25,7 @@ export function Skeleton({ className, variant = "rect" }: SkeletonProps) {
       className={cn(baseClasses, variantClasses[variant], className)}
       aria-hidden="true"
     >
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-[var(--ct-surface-1)] to-transparent" />
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_var(--ct-dur-shimmer)_infinite] bg-gradient-to-r from-transparent via-[var(--ct-surface-1)] to-transparent" />
     </div>
   );
 }

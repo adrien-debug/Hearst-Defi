@@ -90,6 +90,7 @@
   --ct-dur-slow: 400ms;
   --ct-dur-slower: 500ms; /* page/skeleton fade-in (loading.tsx) — pure ms for duration-* utility */
   --ct-dur-pulse: 2s;     /* dash-pulse animation cycle (dashboard status dot) */
+  --ct-dur-shimmer: 2s;   /* shimmer sweep (progress bars, skeletons) */
   --ct-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 
   /* Gradients */
