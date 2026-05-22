@@ -11,9 +11,9 @@ export default async function NewVaultPage() {
       <header className="space-y-1">
         <p className="eyebrow">Admin / Vaults</p>
         <h1 className="h1">New Vault Deployment</h1>
-        <p className="body-md text-[--ct-text-muted] max-w-xl">
+        <p className="body-md ct-text-muted max-w-xl">
           5-step wizard. Nothing is persisted until you click{" "}
-          <span className="text-[--ct-text-primary]">Create Draft</span> on the last step.
+          <span className="ct-text-primary">Create Draft</span> on the last step.
         </p>
       </header>
 

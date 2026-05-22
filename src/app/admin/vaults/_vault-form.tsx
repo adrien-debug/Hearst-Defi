@@ -189,10 +189,10 @@ export function VaultForm(props: VaultFormProps) {
               key={s.key}
               className={
                 i === stepIndex
-                  ? "body-sm font-semibold text-[--ct-text-strong]"
+                  ? "body-sm font-semibold ct-text-strong"
                   : i < stepIndex
-                    ? "body-sm text-[--ct-text-muted]"
-                    : "body-sm text-[--ct-text-faint]"
+                    ? "body-sm ct-text-muted"
+                    : "body-sm ct-text-faint"
               }
             >
               {s.label}
@@ -217,7 +217,7 @@ export function VaultForm(props: VaultFormProps) {
                 placeholder="HYV-A"
                 maxLength={12}
               />
-              <span className="body-xs text-[--ct-text-faint]">
+              <span className="body-xs ct-text-faint">
                 3-12 uppercase letters, digits, hyphens
               </span>
             </label>
@@ -301,7 +301,7 @@ export function VaultForm(props: VaultFormProps) {
                   min={0}
                   max={500}
                 />
-                <span className="body-xs text-[--ct-text-faint]">
+                <span className="body-xs ct-text-faint">
                   {pct(form.mgmtFeeBps)}% annually
                 </span>
               </label>
@@ -316,7 +316,7 @@ export function VaultForm(props: VaultFormProps) {
                   min={0}
                   max={3000}
                 />
-                <span className="body-xs text-[--ct-text-faint]">
+                <span className="body-xs ct-text-faint">
                   {pct(form.perfFeeBps)}% of profits
                 </span>
               </label>
@@ -344,7 +344,7 @@ export function VaultForm(props: VaultFormProps) {
                   onChange={(e) => setNumber("targetApyLowBps", e.target.value)}
                   min={0}
                 />
-                <span className="body-xs text-[--ct-text-faint]">{pct(form.targetApyLowBps)}%</span>
+                <span className="body-xs ct-text-faint">{pct(form.targetApyLowBps)}%</span>
               </label>
 
               <label className="block space-y-1.5">
@@ -356,11 +356,11 @@ export function VaultForm(props: VaultFormProps) {
                   onChange={(e) => setNumber("targetApyHighBps", e.target.value)}
                   min={0}
                 />
-                <span className="body-xs text-[--ct-text-faint]">{pct(form.targetApyHighBps)}%</span>
+                <span className="body-xs ct-text-faint">{pct(form.targetApyHighBps)}%</span>
               </label>
             </div>
 
-            <div className="p-4 rounded-[--ct-radius-lg] bg-[--ct-surface-2] border border-[--ct-border-soft]">
+            <div className="p-4 rounded-[var(--ct-radius-lg)] ct-surface-2 border border-[var(--ct-border-soft)]">
               <span className="stat-label block mb-1">APY Range Preview</span>
               <ApyRange
                 low={form.targetApyLowBps / 100}
@@ -429,7 +429,7 @@ export function VaultForm(props: VaultFormProps) {
                 rows={6}
                 placeholder="Required legal disclaimers. Must include 'not guaranteed' and assumptions..."
               />
-              <span className="body-xs text-[--ct-text-faint]">
+              <span className="body-xs ct-text-faint">
                 {form.disclaimers.length} chars — restricted terms will be flagged on submit
               </span>
             </label>
@@ -440,13 +440,13 @@ export function VaultForm(props: VaultFormProps) {
         {step === "allocations" && (
           <div className="space-y-6">
             <CardTitle>Allocations</CardTitle>
-            <p className="body-sm text-[--ct-text-muted]">
+            <p className="body-sm ct-text-muted">
               Must sum to exactly 10 000 bps (100%). Currently:{" "}
               <span
                 className={
                   allocTotal() === 10000
-                    ? "font-semibold text-[--ct-status-success]"
-                    : "font-semibold text-[--ct-status-danger]"
+                    ? "font-semibold ct-status-success"
+                    : "font-semibold ct-status-danger"
                 }
               >
                 {allocTotal()} / 10 000
@@ -464,7 +464,7 @@ export function VaultForm(props: VaultFormProps) {
               <div key={key} className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="stat-label">{label}</span>
-                  <span className="mono tabular text-sm text-[--ct-text-primary]">
+                  <span className="mono tabular text-sm ct-text-primary">
                     {pct(form[key])}%
                   </span>
                 </div>
@@ -492,11 +492,11 @@ export function VaultForm(props: VaultFormProps) {
             <div className="space-y-3 divide-y divide-border-subtle">
               <div className="grid grid-cols-2 gap-2 pb-3">
                 <span className="stat-label">Ticker</span>
-                <span className="mono tabular text-sm text-[--ct-text-strong]">{form.ticker}</span>
+                <span className="mono tabular text-sm ct-text-strong">{form.ticker}</span>
                 <span className="stat-label">Name</span>
-                <span className="body-sm text-[--ct-text-primary]">{form.name}</span>
+                <span className="body-sm ct-text-primary">{form.name}</span>
                 <span className="stat-label">Strategy</span>
-                <span className="body-sm text-[--ct-text-primary]">{form.strategy}</span>
+                <span className="body-sm ct-text-primary">{form.strategy}</span>
               </div>
 
               <div className="grid grid-cols-2 gap-2 py-3">
@@ -520,7 +520,7 @@ export function VaultForm(props: VaultFormProps) {
 
               <div className="grid grid-cols-2 gap-2 py-3">
                 <span className="stat-label">SPV</span>
-                <span className="body-sm text-[--ct-text-primary]">{form.spvJurisdiction}</span>
+                <span className="body-sm ct-text-primary">{form.spvJurisdiction}</span>
                 <span className="stat-label">Share Class</span>
                 <span className="body-sm">{form.shareClass}</span>
                 <span className="stat-label">Reg Exemption</span>
@@ -540,8 +540,8 @@ export function VaultForm(props: VaultFormProps) {
                 <span
                   className={
                     allocTotal() === 10000
-                      ? "mono tabular text-sm text-[--ct-status-success] font-semibold"
-                      : "mono tabular text-sm text-[--ct-status-danger] font-semibold"
+                      ? "mono tabular text-sm ct-status-success font-semibold"
+                      : "mono tabular text-sm ct-status-danger font-semibold"
                   }
                 >
                   {pct(allocTotal())}%
@@ -592,7 +592,7 @@ export function VaultForm(props: VaultFormProps) {
               )}
             </div>
 
-            <p className="body-xs text-[--ct-text-faint] border-t border-[--ct-border-soft] pt-3">
+            <p className="body-xs ct-text-faint border-t border-[var(--ct-border-soft)] pt-3">
               Assumptions: mining yields, BTC price, network difficulty, energy costs are
               projected based on historical ranges. Target APY is not guaranteed and may vary.
               Past performance is not indicative of future results.
@@ -602,8 +602,8 @@ export function VaultForm(props: VaultFormProps) {
 
         {/* Navigation */}
         {error && (
-          <div className="mt-4 p-3 rounded-[--ct-radius-lg] bg-[--ct-status-danger-soft] border border-[--ct-status-danger]">
-            <p className="body-sm text-[--ct-status-danger]">{error}</p>
+          <div className="mt-4 p-3 rounded-[var(--ct-radius-lg)] ct-status-danger-bg">
+            <p className="body-sm ct-status-danger">{error}</p>
           </div>
         )}
 

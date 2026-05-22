@@ -58,10 +58,10 @@ export default async function EditVaultPage({ params }: PageProps) {
       <header className="space-y-1">
         <p className="eyebrow">Admin / Vaults / {vault.ticker}</p>
         <h1 className="h1">Edit Vault Draft</h1>
-        <p className="body-md text-[--ct-text-muted] max-w-xl">
+        <p className="body-md ct-text-muted max-w-xl">
           Update the draft for{" "}
-          <span className="text-[--ct-text-primary]">{vault.name}</span>. Changes are saved when
-          you click <span className="text-[--ct-text-primary]">Save Changes</span> on the last
+          <span className="ct-text-primary">{vault.name}</span>. Changes are saved when
+          you click <span className="ct-text-primary">Save Changes</span> on the last
           step.
         </p>
       </header>

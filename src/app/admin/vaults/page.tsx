@@ -93,9 +93,9 @@ export default async function VaultsPage({ searchParams }: PageProps) {
       {/* List */}
       {vaults.length === 0 ? (
         <Card>
-          <p className="body-md text-[--ct-text-muted] text-center py-8">
+          <p className="body-md ct-text-muted text-center py-8">
             No deployments found.{" "}
-            <Link href="/admin/vaults/new" className="text-[--ct-text-primary] underline underline-offset-2">
+            <Link href="/admin/vaults/new" className="ct-text-primary underline underline-offset-2">
               Create the first one.
             </Link>
           </p>
@@ -119,15 +119,15 @@ export default async function VaultsPage({ searchParams }: PageProps) {
                   <div className="flex items-center gap-4 min-w-0">
                     <div className="space-y-0.5 min-w-0">
                       <div className="flex items-center gap-3">
-                        <span className="mono tabular text-sm font-semibold text-[--ct-text-strong]">
+                        <span className="mono tabular text-sm font-semibold ct-text-strong">
                           {vault.ticker}
                         </span>
                         <VaultStatusPill status={vault.status} />
                       </div>
-                      <p className="body-sm text-[--ct-text-muted] truncate max-w-xs">
+                      <p className="body-sm ct-text-muted truncate max-w-xs">
                         {vault.name}
                       </p>
-                      <p className="body-xs text-[--ct-text-faint]">
+                      <p className="body-xs ct-text-faint">
                         {STRATEGY_LABELS[vault.strategy] ?? vault.strategy}
                       </p>
                     </div>
@@ -137,7 +137,7 @@ export default async function VaultsPage({ searchParams }: PageProps) {
                   <div className="flex flex-col gap-1 min-w-36">
                     <span className="stat-label">AUM vs Capacity</span>
                     <Progress value={aumPct} label="AUM vs capacity" />
-                    <span className="mono tabular text-xs text-[--ct-text-muted]">
+                    <span className="mono tabular text-xs ct-text-muted">
                       ${aumUsdc.toLocaleString()} / ${capacityUsdc.toLocaleString()}
                     </span>
                   </div>

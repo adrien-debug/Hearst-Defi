@@ -113,14 +113,14 @@ export default async function VaultDetailPage({ params }: PageProps) {
             </Button>
           </div>
           <div className="flex items-center gap-4 mt-1">
-            <span className="mono tabular text-lg font-semibold text-[--ct-text-strong]">
+            <span className="mono tabular text-lg font-semibold ct-text-strong">
               {vault.ticker}
             </span>
             <VaultStatusPill status={vault.status} />
           </div>
           <h1 className="h1">{vault.name}</h1>
           {vault.description && (
-            <p className="body-md text-[--ct-text-muted] max-w-xl">{vault.description}</p>
+            <p className="body-md ct-text-muted max-w-xl">{vault.description}</p>
           )}
         </div>
 
@@ -227,7 +227,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
                   description: (
                     <>
                       Cette action est{" "}
-                      <strong className="text-[--ct-status-danger]">
+                      <strong className="ct-status-danger">
                         irréversible
                       </strong>
                       . Une fois clôturé, le vault ne pourra plus jamais être
@@ -249,35 +249,35 @@ export default async function VaultDetailPage({ params }: PageProps) {
         <Card>
           <span className="stat-label block mb-1">Target APY</span>
           <ApyRange low={apyLow} high={apyHigh} precision={1} />
-          <p className="body-xs text-[--ct-text-faint] mt-1">Not guaranteed — estimated</p>
+          <p className="body-xs ct-text-faint mt-1">Not guaranteed — estimated</p>
         </Card>
 
         <Card>
           <span className="stat-label block mb-1">Fees</span>
-          <span className="mono tabular text-base font-semibold text-[--ct-text-strong]">
+          <span className="mono tabular text-base font-semibold ct-text-strong">
             {pct(vault.mgmtFeeBps)}% / {pct(vault.perfFeeBps)}%
           </span>
-          <p className="body-xs text-[--ct-text-faint] mt-1">Mgmt / Perf</p>
+          <p className="body-xs ct-text-faint mt-1">Mgmt / Perf</p>
         </Card>
 
         <Card>
           <span className="stat-label block mb-1">Lock-up</span>
-          <span className="mono tabular text-base font-semibold text-[--ct-text-strong]">
+          <span className="mono tabular text-base font-semibold ct-text-strong">
             {vault.softLockupDays}d
           </span>
-          <p className="body-xs text-[--ct-text-faint] mt-1">Soft lock-up</p>
+          <p className="body-xs ct-text-faint mt-1">Soft lock-up</p>
         </Card>
 
         {vault.status === "live" && (
           <Card>
             <span className="stat-label block mb-1">AUM</span>
-            <span className="mono tabular text-base font-semibold text-[--ct-text-strong]">
+            <span className="mono tabular text-base font-semibold ct-text-strong">
               ${aumUsdc.toLocaleString()}
             </span>
             <div className="mt-2">
               <Progress value={aumPct} label="AUM vs capacity" />
             </div>
-            <p className="body-xs text-[--ct-text-faint] mt-1">
+            <p className="body-xs ct-text-faint mt-1">
               / ${capacityUsdc.toLocaleString()} capacity
             </p>
           </Card>
@@ -303,7 +303,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
             ).map(([label, value]) => (
               <div key={label} className="flex items-start justify-between gap-3">
                 <dt className="stat-label">{label}</dt>
-                <dd className="body-sm text-[--ct-text-primary] text-right">{value}</dd>
+                <dd className="body-sm ct-text-primary text-right">{value}</dd>
               </div>
             ))}
           </dl>
@@ -326,7 +326,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
               <div key={label} className="space-y-1">
                 <div className="flex items-center justify-between">
                   <span className="stat-label">{label}</span>
-                  <span className="mono tabular text-sm text-[--ct-text-primary]">
+                  <span className="mono tabular text-sm ct-text-primary">
                     {pct(bps)}%
                   </span>
                 </div>
@@ -341,18 +341,18 @@ export default async function VaultDetailPage({ params }: PageProps) {
       <Card>
         <CardHeader>
           <CardTitle>Approvals</CardTitle>
-          <span className="mono tabular text-sm text-[--ct-text-muted]">
+          <span className="mono tabular text-sm ct-text-muted">
             {approveCount} / {vault.requiredSigners} required
           </span>
         </CardHeader>
 
         {vault.approvals.length === 0 ? (
-          <p className="body-sm text-[--ct-text-muted]">No signatures yet.</p>
+          <p className="body-sm ct-text-muted">No signatures yet.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[--ct-border-soft]">
+                <tr className="border-b border-[var(--ct-border-soft)]">
                   <th className="stat-label text-left pb-2">Signer</th>
                   <th className="stat-label text-left pb-2">Decision</th>
                   <th className="stat-label text-left pb-2">Reason</th>
@@ -362,7 +362,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
               <tbody className="divide-y divide-border-subtle">
                 {vault.approvals.map((approval) => (
                   <tr key={approval.id}>
-                    <td className="py-2 pr-4 mono tabular text-xs text-[--ct-text-muted] truncate max-w-xs">
+                    <td className="py-2 pr-4 mono tabular text-xs ct-text-muted truncate max-w-xs">
                       {approval.signerWallet}
                     </td>
                     <td className="py-2 pr-4">
@@ -376,10 +376,10 @@ export default async function VaultDetailPage({ params }: PageProps) {
                         {approval.decision}
                       </span>
                     </td>
-                    <td className="py-2 pr-4 body-xs text-[--ct-text-muted]">
+                    <td className="py-2 pr-4 body-xs ct-text-muted">
                       {approval.reason ?? "—"}
                     </td>
-                    <td className="py-2 pr-4 body-xs text-[--ct-text-faint] tabular mono">
+                    <td className="py-2 pr-4 body-xs ct-text-faint tabular mono">
                       {approval.signedAt.toISOString().slice(0, 10)}
                     </td>
                   </tr>
@@ -395,7 +395,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
         <CardHeader>
           <CardTitle>Disclaimers</CardTitle>
         </CardHeader>
-        <p className="body-sm text-[--ct-text-muted] whitespace-pre-wrap">{vault.disclaimers}</p>
+        <p className="body-sm ct-text-muted whitespace-pre-wrap">{vault.disclaimers}</p>
       </Card>
     </section>
   );
