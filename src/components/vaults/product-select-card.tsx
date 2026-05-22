@@ -60,12 +60,12 @@ export function ProductSelectCard({ vault }: ProductSelectCardProps) {
         otherwise `flex md:flex-row` would apply to [hover-overlay, wrapper]
         instead of the two columns, and the layout silently collapses.
       */}
-      <div className="flex flex-col gap-8 md:flex-row md:items-stretch md:gap-10">
+      <div className="flex flex-row items-stretch gap-8">
       {/* Left column — identity, APY, description */}
       <div className="flex min-w-0 flex-1 flex-col gap-6">
         {/* Header */}
         <div className="flex flex-col gap-2 min-w-0">
-          <h2 className="h3 truncate">{vault.name}</h2>
+          <h2 className="h3">{vault.name}</h2>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="ct-pill accent mono text-xs">{vault.ticker}</span>
             <Badge variant={STATUS_VARIANT[vault.status]}>
@@ -116,17 +116,8 @@ export function ProductSelectCard({ vault }: ProductSelectCardProps) {
       */}
       <div
         aria-hidden
-        className="block self-stretch md:hidden"
-        style={{
-          borderTop: "1px solid var(--ct-border-soft)",
-        }}
-      />
-      <div
-        aria-hidden
-        className="hidden self-stretch md:block"
-        style={{
-          borderLeft: "1px solid var(--ct-border-soft)",
-        }}
+        className="self-stretch shrink-0"
+        style={{ borderLeft: "1px solid var(--ct-border-soft)" }}
       />
 
       {/*
@@ -139,7 +130,7 @@ export function ProductSelectCard({ vault }: ProductSelectCardProps) {
           so nothing unlayered overrides it. `shrink-0` keeps it from
           collapsing under the flexible left column.
       */}
-      <div className="flex w-full flex-col justify-center gap-8 md:w-80 md:shrink-0">
+      <div className="flex w-56 shrink-0 flex-col justify-between gap-6">
         <div className="grid grid-cols-2 items-start gap-x-8 gap-y-6">
           <div className="flex flex-col gap-1">
             <span className="stat-label">Min. ticket</span>

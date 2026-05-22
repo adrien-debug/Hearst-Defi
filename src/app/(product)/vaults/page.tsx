@@ -47,7 +47,7 @@ export default async function VaultsPage() {
             </p>
           </Card>
         ) : (
-          <div className="grid gap-6 grid-cols-[repeat(auto-fit,minmax(var(--ct-vault-card-min-w),1fr))]">
+          <div className="flex flex-col gap-6">
             {vaults.map((vault) => (
               <ProductSelectCard key={vault.id} vault={vault} />
             ))}
