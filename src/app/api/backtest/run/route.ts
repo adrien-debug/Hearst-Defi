@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
  *
  * Auth   : Privy JWT (via `privy-token` cookie). 401 otherwise.
  * Limit  : 5 backtests / 60s / userId (heavier compute than scenarios, which
- *          run at 30/min/user — see (product)/scenario-lab/actions.ts).
+ *          run at 30/min/user — see admin/scenario-lab/actions.ts).
  * Body   : { key: BacktestKey } — Zod-validated.
  * Engine : pure `runBacktest()` — no I/O inside src/lib/engine/*.
  * Persist: a `BacktestRun` row is created (userId + updatedAt are NOT NULL

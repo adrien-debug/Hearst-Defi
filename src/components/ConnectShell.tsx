@@ -20,7 +20,11 @@ const CHAT_CONFIG: ChatConfig = {
 
 export function ConnectShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const showBottomNav = !pathname.startsWith("/debug");
+  // The bottom nav is the INVESTOR nav (Portfolio / Vaults / Profile). It must
+  // never appear in the admin universe — the two zones are watertight. Admins
+  // navigate via the left AdminRailIntra instead.
+  const showBottomNav =
+    !pathname.startsWith("/debug") && !pathname.startsWith("/admin");
 
   return (
     <>

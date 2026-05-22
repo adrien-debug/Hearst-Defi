@@ -260,7 +260,7 @@ export async function confirmDistribution(
     });
 
     revalidatePath("/admin/distributions");
-    revalidatePath("/proof-center");
+    revalidatePath("/admin/proof-center");
 
     return { confirmed: true, signersCount, required: REQUIRED_SIGNERS };
   } catch (err) {

@@ -74,7 +74,7 @@ export type ProofIngestResult =
  *
  * - Validates the payload with Zod (strict).
  * - Calls requireAdmin() — throws if the requester is not an admin.
- * - Persists via Prisma and revalidates /admin/proofs + /proof-center.
+ * - Persists via Prisma and revalidates /admin/proofs + /admin/proof-center.
  */
 export async function ingestProof(
   input: ProofIngestInput,
@@ -104,7 +104,7 @@ export async function ingestProof(
     });
 
     revalidatePath("/admin/proofs");
-    revalidatePath("/proof-center");
+    revalidatePath("/admin/proof-center");
 
     logger.info("proof ingested", { proofId: proof.id, proofType });
 
@@ -124,7 +124,7 @@ export async function deleteProof(id: string): Promise<{ ok: true }> {
   try {
     await prisma.proof.delete({ where: { id } });
     revalidatePath("/admin/proofs");
-    revalidatePath("/proof-center");
+    revalidatePath("/admin/proof-center");
     logger.info("proof deleted", { proofId: id });
     return { ok: true };
   } catch (err) {

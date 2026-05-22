@@ -1,0 +1,124 @@
+// Admin · Customers supervision table.
+// Server Component — inherits the /admin layout's requireAdmin() gate, so no
+// redundant auth check here. Reads via the server-only loadCustomers() loader.
+
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { loadCustomers, type KycStatus } from "@/lib/data/customers";
+
+export const dynamic = "force-dynamic";
+
+export const metadata = {
+  title: "Customers — Admin · Hearst Connect",
+};
+
+const usdFull = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
+
+const joinedFmt = new Intl.DateTimeFormat("en-US", {
+  year: "numeric",
+  month: "short",
+  day: "2-digit",
+});
+
+const KYC_VARIANT: Record<KycStatus, "success" | "warning" | "danger"> = {
+  approved: "success",
+  pending: "warning",
+  rejected: "danger",
+};
+
+const KYC_LABEL: Record<KycStatus, string> = {
+  approved: "Approved",
+  pending: "Pending",
+  rejected: "Rejected",
+};
+
+/** Short, middle-truncated wallet address (0x1234…abcd) or em dash. */
+function truncateWallet(wallet: string | null): string {
+  if (!wallet) return "—";
+  if (wallet.length <= 12) return wallet;
+  return `${wallet.slice(0, 6)}…${wallet.slice(-4)}`;
+}
+
+export default async function CustomersPage() {
+  const customers = await loadCustomers();
+
+  return (
+    <div className="space-y-8">
+      <header className="space-y-3">
+        <p className="eyebrow">Admin</p>
+        <h1 className="h1">Customers</h1>
+        <p className="body-sm max-w-2xl ct-text-muted">
+          Every investor provisioned on the platform: KYC status, active
+          positions and principal under management. Read-only supervision view.
+        </p>
+      </header>
+
+      <section className="space-y-3" aria-label="Investors">
+        <h3 className="stat-label">Investors ({customers.length})</h3>
+
+        {customers.length === 0 ? (
+          <Card className="p-8">
+            <p className="body-sm ct-text-muted">
+              No investors yet. Investor rows appear here once an account is
+              provisioned with an <code className="mono ct-text-body">Investor</code>{" "}
+              profile.
+            </p>
+          </Card>
+        ) : (
+          <Card className="overflow-x-auto p-0">
+            <table className="w-full border-collapse text-left">
+              <thead>
+                <tr className="border-b border-[--ct-border]">
+                  <th className="stat-label px-5 py-3 font-medium">Email</th>
+                  <th className="stat-label px-5 py-3 font-medium">Wallet</th>
+                  <th className="stat-label px-5 py-3 font-medium">KYC</th>
+                  <th className="stat-label px-5 py-3 text-right font-medium">
+                    Active positions
+                  </th>
+                  <th className="stat-label px-5 py-3 text-right font-medium">
+                    Total principal
+                  </th>
+                  <th className="stat-label px-5 py-3 font-medium">Joined</th>
+                </tr>
+              </thead>
+              <tbody>
+                {customers.map((c) => (
+                  <tr
+                    key={c.id}
+                    className="border-b border-[--ct-border] last:border-0"
+                  >
+                    <td className="px-5 py-3 text-[--ct-text-strong]">
+                      {c.email}
+                    </td>
+                    <td className="mono px-5 py-3 text-[--ct-text-muted]">
+                      {truncateWallet(c.walletAddress)}
+                    </td>
+                    <td className="px-5 py-3">
+                      <Badge variant={KYC_VARIANT[c.kycStatus]}>
+                        {KYC_LABEL[c.kycStatus]}
+                      </Badge>
+                    </td>
+                    <td className="px-5 py-3 text-right tabular-nums text-[--ct-text-body]">
+                      {c.activePositions}
+                    </td>
+                    <td className="px-5 py-3 text-right tabular-nums text-[--ct-text-strong]">
+                      {usdFull.format(c.totalPrincipalUsdc)}
+                    </td>
+                    <td className="px-5 py-3 text-[--ct-text-muted]">
+                      {joinedFmt.format(c.joinedAt)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+        )}
+      </section>
+    </div>
+  );
+}

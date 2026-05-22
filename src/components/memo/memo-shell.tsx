@@ -3,8 +3,8 @@
 import { useCallback, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { generateMemoAction } from "@/app/(product)/investor-memo/actions";
-import { generateMemoPdfAction } from "@/app/(product)/investor-memo/pdf-action";
+import { generateMemoAction } from "@/app/admin/investor-memo/actions";
+import { generateMemoPdfAction } from "@/app/admin/investor-memo/pdf-action";
 import { MemoSection } from "@/components/memo/memo-section";
 import { MemoToolbar } from "@/components/memo/memo-toolbar";
 import type { InvestorMemoOutput } from "@/lib/agents/schemas";

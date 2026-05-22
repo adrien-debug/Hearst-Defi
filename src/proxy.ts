@@ -35,10 +35,6 @@ const SESSION_COOKIE = "hc_session";
 
 // Route prefixes that require an authenticated session.
 const PROTECTED_PREFIXES = [
-  "/dashboard",
-  "/scenario-lab",
-  "/proof-center",
-  "/investor-memo",
   "/portfolio",
   "/vaults",
   "/admin",
@@ -118,14 +114,6 @@ export default async function proxy(
 // ---------------------------------------------------------------------------
 export const config = {
   matcher: [
-    "/dashboard",
-    "/dashboard/:path*",
-    "/scenario-lab",
-    "/scenario-lab/:path*",
-    "/proof-center",
-    "/proof-center/:path*",
-    "/investor-memo",
-    "/investor-memo/:path*",
     "/portfolio",
     "/portfolio/:path*",
     "/vaults",

@@ -10,6 +10,7 @@ import {
   Settings2,
   Wallet,
   Vault,
+  Users,
   LucideIcon,
 } from "lucide-react";
 
@@ -29,6 +30,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Settings2,
   Wallet,
   Vault,
+  Users,
 };
 
 interface Props {

@@ -96,7 +96,7 @@ describe("ingestProof", () => {
       }),
     });
     expect(revalidatePath).toHaveBeenCalledWith("/admin/proofs");
-    expect(revalidatePath).toHaveBeenCalledWith("/proof-center");
+    expect(revalidatePath).toHaveBeenCalledWith("/admin/proof-center");
   });
 
   it("Case A² — admin + valid input with notes → notes persisted on the row", async () => {
@@ -188,7 +188,7 @@ describe("deleteProof", () => {
       where: { id: "proof_cuid_001" },
     });
     expect(revalidatePath).toHaveBeenCalledWith("/admin/proofs");
-    expect(revalidatePath).toHaveBeenCalledWith("/proof-center");
+    expect(revalidatePath).toHaveBeenCalledWith("/admin/proof-center");
   });
 
   it("Case C² — non-admin on delete → requireAdmin throws, propagated", async () => {
