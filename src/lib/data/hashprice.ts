@@ -1,6 +1,10 @@
 import "server-only";
 
 import { fetchBtcPrice } from "@/lib/data/btc-price";
+import {
+  BLOCK_REWARD_BTC,
+  deriveHashpriceUsdPerThDay,
+} from "@/lib/data/hashprice-formula";
 
 /**
  * Live hashprice ($/TH/day) derived from public, free data sources.
@@ -47,21 +51,6 @@ export interface HashpriceData {
 
 const MEMPOOL_DIFFICULTY_URL =
   "https://mempool.space/api/v1/mining/difficulty-adjustments/1m";
-
-/** Current Bitcoin block reward (BTC) — post April 2024 halving. */
-const BLOCK_REWARD_BTC = 3.125;
-
-/** Blocks per day on a 10-min target. */
-const BLOCKS_PER_DAY = 144;
-
-/** 2^32 hashes per difficulty unit. */
-const HASHES_PER_DIFFICULTY = 2 ** 32;
-
-/** Convert raw hashes to terahashes. */
-const HASHES_PER_TH = 1e12;
-
-/** Bitcoin block time target (seconds). */
-const SECONDS_PER_BLOCK = 600;
 
 const STALE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
 
@@ -146,11 +135,7 @@ export async function fetchHashprice(): Promise<HashpriceData> {
       return fallback(fetched_at);
     }
 
-    // Network hashrate in TH/s = difficulty * 2^32 hashes per block / 600s / 1e12.
-    const network_hashrate_ths =
-      (difficulty * HASHES_PER_DIFFICULTY) / SECONDS_PER_BLOCK / HASHES_PER_TH;
-    const usd_per_th_day =
-      (BLOCK_REWARD_BTC * BLOCKS_PER_DAY * btc.usd) / network_hashrate_ths;
+    const usd_per_th_day = deriveHashpriceUsdPerThDay(difficulty, btc.usd);
 
     if (!Number.isFinite(usd_per_th_day) || usd_per_th_day <= 0) {
       return fallback(fetched_at);
