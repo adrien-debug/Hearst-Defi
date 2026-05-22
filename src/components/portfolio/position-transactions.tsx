@@ -68,21 +68,21 @@ export function PositionTransactions({
     >
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <span className="eyebrow text-[--ct-text-muted]">
+        <span className="eyebrow ct-text-muted">
           Transaction history
         </span>
         <ProvenanceBadge kind={provenance} />
       </div>
 
-      {/* Visual filter chips — display only */}
+      {/* Visual filter chips — decorative only, not interactive */}
       <div
         className="flex gap-2 flex-wrap"
-        aria-label="Filter options (display only)"
+        aria-hidden="true"
       >
         {chips.map((c) => (
           <span
             key={c}
-            className="ct-pill body-xs cursor-default"
+            className="ct-pill body-xs cursor-default select-none"
           >
             {TYPE_LABEL[c]}
           </span>
@@ -124,7 +124,7 @@ export function PositionTransactions({
                       <span className="body-xs ct-text-body inline-flex items-center gap-1.5">
                         <span
                           aria-hidden="true"
-                          className={incoming ? "ct-text-muted body-xs" : "ct-status-success body-xs"}
+                          className={incoming ? "ct-status-success body-xs" : "ct-text-muted body-xs"}
                         >
                           {TYPE_ICON[tx.type]}
                         </span>
@@ -132,11 +132,11 @@ export function PositionTransactions({
                       </span>
                     </td>
 
-                    {/* Amount — signed, accent for yield/dist, muted for deposits */}
+                    {/* Amount — green for incoming (deposit), muted for outgoing */}
                     <td
-                      className={`tabular body-md py-2 pr-4 text-right mono font-semibold whitespace-nowrap ${incoming ? "ct-text-primary" : "ct-status-success"}`}
+                      className={`tabular body-md py-2 pr-4 text-right mono font-semibold whitespace-nowrap ${incoming ? "ct-status-success" : "ct-text-primary"}`}
                     >
-                      {incoming ? "" : "+"}
+                      {incoming ? "+" : ""}
                       {usdSigned.format(tx.amountUsdc)}
                     </td>
 

@@ -76,7 +76,11 @@ export function PositionHeader({ position }: PositionHeaderProps) {
       </div>
 
       {/* Total value */}
-      <div className="ct-card flex items-center justify-between flex-wrap gap-4">
+      <div
+        role="region"
+        aria-label="Total position value"
+        className="ct-card flex items-center justify-between flex-wrap gap-4"
+      >
         <div className="flex flex-col gap-1">
           <span className="eyebrow ct-text-muted">
             Total value
@@ -88,7 +92,7 @@ export function PositionHeader({ position }: PositionHeaderProps) {
             <span
               className={cn(
                 "body-sm tabular mono",
-                delta >= 0 ? "text-[--ct-status-success]" : "text-[--ct-status-danger]"
+                delta >= 0 ? "ct-status-success" : "ct-status-danger"
               )}
             >
               {deltaSign}

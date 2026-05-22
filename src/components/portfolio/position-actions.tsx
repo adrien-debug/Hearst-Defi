@@ -45,6 +45,7 @@ interface PositionActionsProps {
 export function PositionActions({ position }: PositionActionsProps) {
   const [claiming, setClaiming] = useState(false);
   const [exiting, setExiting] = useState(false);
+  const [confirmExit, setConfirmExit] = useState(false);
 
   const isActive = position.status === "active";
   const hasClaim = isActive && position.accruedYieldUsdc > 0;
@@ -70,13 +71,9 @@ export function PositionActions({ position }: PositionActionsProps) {
     }
   }
 
-  async function handleExit() {
+  async function handleExitConfirmed() {
     if (!isActive || exiting) return;
-    // Native confirm — no Dialog primitive required (MVP, design-lock §4)
-    const ok = window.confirm(
-      "Exit this position? Your principal will be returned after the standard settlement period. This action cannot be undone.",
-    );
-    if (!ok) return;
+    setConfirmExit(false);
     setExiting(true);
     try {
       const result = await stubExit(position.id);
@@ -96,33 +93,65 @@ export function PositionActions({ position }: PositionActionsProps) {
   if (!isActive) return null;
 
   return (
-    <section
-      aria-label="Position actions"
-      className="flex flex-wrap gap-3"
-    >
-      {hasClaim && (
-        <Button
-          variant="primary"
-          size="md"
-          onClick={handleClaim}
-          disabled={claiming}
-          aria-busy={claiming}
-        >
-          {claiming
-            ? "Claiming…"
-            : `Claim ${usdFull.format(position.accruedYieldUsdc)}`}
-        </Button>
-      )}
+    <section aria-label="Position actions" className="flex flex-col gap-3">
+      <div className="flex flex-wrap gap-3">
+        {hasClaim && (
+          <Button
+            variant="primary"
+            size="md"
+            onClick={handleClaim}
+            disabled={claiming}
+            aria-busy={claiming}
+          >
+            {claiming
+              ? "Claiming…"
+              : `Claim ${usdFull.format(position.accruedYieldUsdc)}`}
+          </Button>
+        )}
 
-      <Button
-        variant="danger"
-        size="md"
-        onClick={handleExit}
-        disabled={exiting}
-        aria-busy={exiting}
-      >
-        {exiting ? "Exiting…" : "Exit position"}
-      </Button>
+        <Button
+          variant="danger"
+          size="md"
+          onClick={() => setConfirmExit(true)}
+          disabled={exiting || confirmExit}
+          aria-busy={exiting}
+          aria-expanded={confirmExit}
+        >
+          {exiting ? "Exiting…" : "Exit position"}
+        </Button>
+      </div>
+
+      {/* Inline exit confirmation — no Dialog primitive (design-lock §4, MVP) */}
+      {confirmExit && (
+        <div
+          role="alert"
+          className="glass-panel flex flex-col gap-3 p-4 max-w-md"
+          aria-label="Confirm exit"
+        >
+          <p className="body-sm ct-text-body">
+            Your principal will be returned after the standard settlement period.
+            This action cannot be undone.
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={handleExitConfirmed}
+              disabled={exiting}
+            >
+              Confirm exit
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setConfirmExit(false)}
+              disabled={exiting}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
