@@ -297,7 +297,7 @@ export function AllocationSection({
     <div className={variant === "full" ? "mt-4" : undefined}>
       <div
         className={cn(
-          "grid grid-cols-[1fr_auto_auto] text-micro font-semibold uppercase tracking-wide text-[var(--ct-text-muted)]",
+          "grid grid-cols-[1fr_auto_auto] text-micro font-semibold uppercase tracking-[var(--ct-tracking-wide)] text-[var(--ct-text-muted)]",
           variant === "full" ? "mb-2 gap-x-4" : "mb-1.5 gap-x-3",
         )}
       >

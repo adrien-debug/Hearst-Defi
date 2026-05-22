@@ -38,7 +38,7 @@ export function ScenarioModeToggle({
             size="sm"
             onClick={() => onChange(mode)}
             className={cn(
-              "rounded-[var(--ct-radius-sm)] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide shadow-none active:scale-100",
+              "rounded-[var(--ct-radius-sm)] px-4 py-1.5 text-xs font-semibold uppercase tracking-[var(--ct-tracking-wide)] shadow-none active:scale-100",
               isActive
                 ? "bg-[var(--ct-text-strong)] text-[var(--ct-bg-deep)] hover:bg-[var(--ct-text-strong)] hover:text-[var(--ct-bg-deep)]"
                 : "text-[var(--ct-text-body)] hover:text-[var(--ct-text-primary)]",

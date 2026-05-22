@@ -80,8 +80,8 @@ export default async function VaultsPage({ searchParams }: PageProps) {
               aria-selected={isActive}
               className={
                 isActive
-                  ? "ct-pill accent text-xs font-semibold uppercase tracking-wide"
-                  : "ct-pill text-xs font-semibold uppercase tracking-wide"
+                  ? "ct-pill accent text-xs font-semibold uppercase tracking-[var(--ct-tracking-wide)]"
+                  : "ct-pill text-xs font-semibold uppercase tracking-[var(--ct-tracking-wide)]"
               }
             >
               {tab.label}

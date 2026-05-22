@@ -65,9 +65,9 @@ function riskTextClass(score: number): string {
 }
 
 function riskBgClass(score: number): string {
-  if (score <= 35) return "bg-[var(--ct-status-success-soft)]";
-  if (score <= 65) return "bg-[var(--ct-status-warning-soft)]";
-  return "bg-[var(--ct-status-danger-soft)]";
+  if (score <= 35) return "ct-status-success-bg";
+  if (score <= 65) return "ct-status-warning-bg";
+  return "ct-status-danger-bg";
 }
 
 // ─── Slider primitive (uses ct-input class, Cockpit-themed) ──────────────────
@@ -87,7 +87,7 @@ function SliderField({ label, value, min, max, step, onChange, format }: SliderP
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-2">
-        <span className="body-sm ct-text-muted">{label}</span>
+        <span className="ct-form-label">{label}</span>
         <span className="mono tabular text-sm ct-text-primary">{fmt(value)}</span>
       </div>
       <input
@@ -155,8 +155,8 @@ function AllocSliders({
           className={cn(
             "mono tabular text-xs px-1.5 py-0.5 rounded",
             sumOk
-              ? "ct-status-success bg-[var(--ct-status-success-soft)]"
-              : "ct-status-danger bg-[var(--ct-status-danger-soft)]",
+              ? "ct-status-success-bg"
+              : "ct-status-danger-bg",
           )}
         >
           {sum.toFixed(1)}%

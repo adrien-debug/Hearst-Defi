@@ -221,7 +221,7 @@ function BtcTacticalCard({ output }: { output: ScenarioOutput }) {
 
       {armedTriggers.length > 0 && (
         <div className="mt-4 border-t border-[var(--ct-border-soft)] pt-4">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--ct-text-muted)]">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[var(--ct-tracking-wide)] text-[var(--ct-text-muted)]">
             Armed triggers
           </p>
           <ul className="space-y-1.5">
@@ -286,7 +286,7 @@ function CompactPanel({
         aria-label={`APY midpoint delta vs Scenario A: ${apyDeltaValue.toFixed(2)} percentage points`}
       >
         Δ {formatSignedFixed(apyDeltaValue, 2)} pts{" "}
-        <span className="font-sans font-normal text-[var(--ct-text-muted)]">
+        <span className="font-normal text-[var(--ct-text-muted)]">
           midpoint vs Scenario A
         </span>
       </p>
@@ -302,7 +302,7 @@ function CompactPanel({
         aria-label={`Risk score delta vs Scenario A: ${Math.round(riskDeltaValue)}`}
       >
         Δ {formatSignedInt(riskDeltaValue)}{" "}
-        <span className="font-sans font-normal text-[var(--ct-text-muted)]">
+        <span className="font-normal text-[var(--ct-text-muted)]">
           vs A
         </span>
       </p>

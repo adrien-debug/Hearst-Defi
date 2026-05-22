@@ -74,12 +74,12 @@ export function BacktestTab() {
                     ],
               )}
             >
-              <span className="text-sm font-semibold leading-tight">
+              <span className="text-sm font-semibold leading-[var(--ct-leading-tight)]">
                 {p.label}
               </span>
               <span
                 className={cn(
-                  "text-xs leading-tight",
+                  "text-xs leading-[var(--ct-leading-tight)]",
                   isActive
                     ? "text-[var(--ct-bg-deep)] opacity-70"
                     : "text-[var(--ct-text-muted)]",

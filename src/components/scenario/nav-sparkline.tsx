@@ -182,19 +182,19 @@ export function NavSparkline({ output }: NavSparklineProps) {
       </CardHeader>
 
       <div className="mb-3 flex flex-wrap items-end gap-6 text-sm">
-        <div className="flex flex-col gap-0.5">
+        <div className="flex flex-col gap-[var(--ct-space-0_5)]">
           <span className="stat-label text-micro">Low band</span>
           <span className="mono font-bold text-[var(--ct-text-body)]">
             {last ? formatUsd(last.low) : "—"}
           </span>
         </div>
-        <div className="flex flex-col gap-0.5">
+        <div className="flex flex-col gap-[var(--ct-space-0_5)]">
           <span className="stat-label text-micro">Midpoint</span>
           <span className="mono font-bold text-[var(--ct-text-strong)]">
             {last ? formatUsd(last.mid) : "—"}
           </span>
         </div>
-        <div className="flex flex-col gap-0.5">
+        <div className="flex flex-col gap-[var(--ct-space-0_5)]">
           <span className="stat-label text-micro">High band</span>
           <span className="mono font-bold text-[var(--ct-text-body)]">
             {last ? formatUsd(last.high) : "—"}

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { Card } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { getMonitoringStats } from "@/lib/data/monitoring";
 
@@ -46,6 +47,7 @@ export default async function MonitoringPage() {
       {/* Agent Breakdown */}
       <section className="space-y-4">
         <h2 className="h2">Runs by Agent</h2>
+        <Card className="ct-border-soft rounded-[var(--ct-radius-lg)] overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -59,25 +61,27 @@ export default async function MonitoringPage() {
               {stats.runsByAgent.map((row) => (
                 <tr key={row.agentName} className="border-b border-[var(--ct-border-soft)]">
                   <td className="ct-table-cell">{row.agentName}</td>
-                  <td className="ct-table-cell text-right">{row.count}</td>
-                  <td className="ct-table-cell text-right">${row.costUsd.toFixed(4)}</td>
+                  <td className="ct-table-cell text-right tabular">{row.count}</td>
+                  <td className="ct-table-cell text-right tabular">${row.costUsd.toFixed(4)}</td>
                 </tr>
               ))}
               {stats.runsByAgent.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="py-8 text-center ct-text-muted">
-                    No runs recorded yet.
+                  <td colSpan={3}>
+                    <div className="ct-empty-state">No runs recorded yet.</div>
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
+        </Card>
       </section>
 
       {/* Recent Runs */}
       <section className="space-y-4">
         <h2 className="h2">Recent Runs</h2>
+        <Card className="ct-border-soft rounded-[var(--ct-radius-lg)] overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -98,10 +102,10 @@ export default async function MonitoringPage() {
                   <td className="ct-table-cell">
                     <StatusBadge status={run.status} />
                   </td>
-                  <td className="ct-table-cell text-right">
+                  <td className="ct-table-cell text-right tabular">
                     {run.latencyMs ? `${run.latencyMs}ms` : "—"}
                   </td>
-                  <td className="ct-table-cell text-right">
+                  <td className="ct-table-cell text-right tabular">
                     {run.costUsd ? `$${run.costUsd.toFixed(4)}` : "—"}
                   </td>
                   <td className="ct-table-cell text-right ct-text-muted">
@@ -111,14 +115,15 @@ export default async function MonitoringPage() {
               ))}
               {stats.recentRuns.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center ct-text-muted">
-                    No runs recorded yet.
+                  <td colSpan={6}>
+                    <div className="ct-empty-state">No runs recorded yet.</div>
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
+        </Card>
       </section>
     </div>
   );
@@ -126,7 +131,7 @@ export default async function MonitoringPage() {
 
 function KpiCard({ title, value }: { title: string; value: string }) {
   return (
-    <div className="glass-panel p-6 relative overflow-hidden">
+    <div className="glass-panel ct-kpi-card relative overflow-hidden">
       <div className="relative z-[var(--ct-z-raised)]">
         <p className="stat-label mb-1">{title}</p>
         <p className="stat-value ct-text-strong">{value}</p>
