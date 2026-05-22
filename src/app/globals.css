@@ -26,18 +26,6 @@
    ============================================================ */
 
 @theme {
-  /* ---- Responsive breakpoints ----
-     Tailwind v4 generates `sm:`/`md:`/`lg:`… media queries ONLY from the
-     `--breakpoint-*` theme keys. They were missing here, so all 74 responsive
-     variants in the codebase (md:flex-row, md:w-[…], …) silently produced NO
-     CSS — every layout fell back to its mobile/stacked form. These restore the
-     standard Tailwind scale. */
-  --breakpoint-sm: 40rem;   /* 640px */
-  --breakpoint-md: 48rem;   /* 768px */
-  --breakpoint-lg: 64rem;   /* 1024px */
-  --breakpoint-xl: 80rem;   /* 1280px */
-  --breakpoint-2xl: 96rem;  /* 1536px */
-
   /* ---- Brand (aliased to Cockpit accent) ---- */
   --color-brand: var(--ct-text-strong);
   --color-brand-strong: var(--ct-text-strong);

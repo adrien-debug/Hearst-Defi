@@ -21,80 +21,100 @@ export function StepProgress({ active }: StepProgressProps) {
   const activeIndex = STEPS.find((s) => s.id === active)?.index ?? 1;
 
   return (
-    <nav
-      aria-label="Invest flow progress"
-      className="flex items-center gap-0 w-full"
-    >
+    <nav aria-label="Invest flow progress" className="flex w-full">
       {STEPS.map((step, i) => {
         const isDone = step.index < activeIndex;
         const isActive = step.id === active;
+        const isFirst = i === 0;
         const isLast = i === STEPS.length - 1;
+        // A connector segment is "filled" once the step it leads INTO is
+        // reached: left half fills when this step is done/active, right half
+        // fills when this step is done.
+        const leftFilled = isDone || isActive;
+        const rightFilled = isDone;
 
         return (
-          <div key={step.id} className="flex items-center flex-1 min-w-0">
-            {/* Step segment */}
-            <div className="flex flex-col items-center gap-1 flex-shrink-0">
-              {/* Circle */}
+          // Each step owns an equal-width cell, so all circles share the same
+          // vertical line and are evenly spaced. The last cell is identical to
+          // the others — its trailing connector half is simply hidden.
+          <div
+            key={step.id}
+            className="relative flex flex-1 basis-0 min-w-0 flex-col items-center gap-1"
+          >
+            {/* Connector track: two halves drawn at the circle's vertical
+                center, each reaching to the cell edge so adjacent circles
+                connect center-to-center. Hidden at the row's outer edges. */}
+            {!isFirst && (
               <span
-                aria-current={isActive ? "step" : undefined}
-                className={cn(
-                  "inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold border transition-colors",
-                  isDone && "border-[var(--ct-border-accent)] bg-[var(--ct-accent)]",
-                  isDone && "ct-text-strong",
-                  isActive &&
-                    "border-[var(--ct-border-accent)] bg-[var(--ct-accent-soft)] text-[var(--ct-accent)] shadow-[var(--ct-glow-subtle)]",
-                  !isDone && !isActive && "border-[var(--ct-border-soft)] ct-surface-1",
-                  !isDone && !isActive && "ct-text-muted",
-                )}
-              >
-                {isDone ? (
-                  // Checkmark for completed steps
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M2 6l3 3 5-5"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                ) : (
-                  step.index
-                )}
-              </span>
-              {/* Label */}
-              <span
-                className={cn(
-                  "eyebrow font-medium whitespace-nowrap",
-                  isActive
-                    ? "ct-text-strong"
-                    : isDone
-                      ? "ct-text-primary"
-                      : "ct-text-muted",
-                )}
-              >
-                {step.label}
-              </span>
-            </div>
-
-            {/* Connector line (skip after last) */}
-            {!isLast && (
-              <div
                 aria-hidden="true"
                 className={cn(
-                  "flex-1 h-px mx-2 rounded-full transition-colors",
-                  isDone
+                  "absolute right-1/2 top-3.5 left-0 h-px rounded-full transition-colors",
+                  leftFilled
                     ? "bg-[var(--ct-accent)]"
                     : "bg-[var(--ct-border-soft)]",
                 )}
               />
             )}
+            {!isLast && (
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "absolute left-1/2 top-3.5 right-0 h-px rounded-full transition-colors",
+                  rightFilled
+                    ? "bg-[var(--ct-accent)]"
+                    : "bg-[var(--ct-border-soft)]",
+                )}
+              />
+            )}
+
+            {/* Circle */}
+            <span
+              aria-current={isActive ? "step" : undefined}
+              className={cn(
+                "relative z-[1] inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold border transition-colors",
+                isDone && "border-[var(--ct-border-accent)] bg-[var(--ct-accent)]",
+                isDone && "ct-text-strong",
+                isActive &&
+                  "border-[var(--ct-border-accent)] bg-[var(--ct-accent-soft)] text-[var(--ct-accent)] shadow-[var(--ct-glow-subtle)]",
+                !isDone && !isActive && "border-[var(--ct-border-soft)] ct-surface-1",
+                !isDone && !isActive && "ct-text-muted",
+              )}
+            >
+              {isDone ? (
+                // Checkmark for completed steps
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M2 6l3 3 5-5"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ) : (
+                step.index
+              )}
+            </span>
+
+            {/* Label */}
+            <span
+              className={cn(
+                "eyebrow font-medium whitespace-nowrap",
+                isActive
+                  ? "ct-text-strong"
+                  : isDone
+                    ? "ct-text-primary"
+                    : "ct-text-muted",
+              )}
+            >
+              {step.label}
+            </span>
           </div>
         );
       })}

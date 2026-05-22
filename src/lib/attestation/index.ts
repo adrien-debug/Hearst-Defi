@@ -11,6 +11,11 @@ export { canonicalize, digestOf } from "./canonical";
 export { attestorAddress, signAttestation, MOCK_ATTESTOR_PRIVATE_KEY } from "./sign";
 export { verifyAttestation } from "./verify";
 export {
+  parseAttestationPayload,
+  verifyStoredAttestation,
+  type StoredAttestation,
+} from "./stored";
+export {
   buildMockAttestation,
   signMockAttestation,
   MOCK_ATTESTOR_ADDRESS,

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { verifyStoredAttestation } from "@/lib/attestation";
 import { prisma } from "@/lib/db";
 import type { ProofItem, ProofType } from "@/lib/mock/proof-center";
 
@@ -43,10 +44,18 @@ export async function getProofs(): Promise<ProofItem[]> {
     orderBy: { postedAt: "desc" },
   });
 
-  return rows.flatMap((row): ProofItem[] => {
-    if (!isProofType(row.proofType)) return [];
-    return [
-      {
+  const items = await Promise.all(
+    rows.map(async (row): Promise<ProofItem | null> => {
+      if (!isProofType(row.proofType)) return null;
+
+      const verification = await verifyStoredAttestation({
+        payloadJson: row.payloadJson,
+        digest: row.hash,
+        signature: row.signature,
+        signer: row.signer,
+      });
+
+      return {
         id: row.id,
         proofType: row.proofType,
         period: row.period,
@@ -56,7 +65,11 @@ export async function getProofs(): Promise<ProofItem[]> {
         postedAt: row.postedAt.toISOString(),
         postedBy: row.postedBy,
         txHash: row.txHash,
-      },
-    ];
-  });
+        signer: row.signer,
+        attestationVerified: verification === null ? null : verification.valid,
+      };
+    }),
+  );
+
+  return items.filter((item): item is ProofItem => item !== null);
 }

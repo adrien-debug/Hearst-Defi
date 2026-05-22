@@ -53,12 +53,16 @@ export function ProductSelectCard({ vault }: ProductSelectCardProps) {
   const href = `/vaults/${vault.ticker.toLowerCase()}`;
 
   return (
-    <Card
-      className="flex flex-col gap-8 md:flex-row md:gap-10"
-      aria-label={`${vault.name} — ${STRATEGY_LABELS[vault.strategy]}`}
-    >
+    <Card aria-label={`${vault.name} — ${STRATEGY_LABELS[vault.strategy]}`}>
+      {/*
+        Card wraps its children in an inner `<div class="relative z-…">`, so the
+        flex container MUST live here (one level in), not on <Card> itself —
+        otherwise `flex md:flex-row` would apply to [hover-overlay, wrapper]
+        instead of the two columns, and the layout silently collapses.
+      */}
+      <div className="flex flex-col gap-8 md:flex-row md:items-stretch md:gap-10">
       {/* Left column — identity, APY, description */}
-      <div className="flex flex-1 flex-col gap-6 min-w-0">
+      <div className="flex min-w-0 flex-1 flex-col gap-6">
         {/* Header */}
         <div className="flex flex-col gap-2 min-w-0">
           <h2 className="h3 truncate">{vault.name}</h2>
@@ -102,8 +106,40 @@ export function ProductSelectCard({ vault }: ProductSelectCardProps) {
         <p className="body-sm ct-text-body line-clamp-3">{vault.description}</p>
       </div>
 
-      {/* Right column — metrics grid + CTA */}
-      <div className="flex flex-col gap-8 pt-8 border-t border-[var(--ct-border-soft)] md:w-[300px] md:shrink-0 md:pt-0 md:pl-10 md:border-t-0 md:border-l">
+      {/*
+        Separator filet. Two robust, scan-proof, cascade-proof elements (inline
+        border survives the Card's unlayered `.glass-panel` border shorthand):
+        - mobile: a 1px horizontal rule above the right column (hidden at md)
+        - desktop: a 1px vertical rule between the columns (shown only at md)
+        `hidden` / `block` toggle `display`, which the Card primitive never sets,
+        so the responsive switch is safe.
+      */}
+      <div
+        aria-hidden
+        className="block self-stretch md:hidden"
+        style={{
+          borderTop: "1px solid var(--ct-border-soft)",
+        }}
+      />
+      <div
+        aria-hidden
+        className="hidden self-stretch md:block"
+        style={{
+          borderLeft: "1px solid var(--ct-border-soft)",
+        }}
+      />
+
+      {/*
+        Right column — metrics grid + CTA.
+        - Mobile (default, flex-col parent): full width, stacked under the left
+          column.
+        - Desktop (md, flex-row parent): a fixed 320px track via the standard
+          `w-80` utility. `width` is a layered utility, but the Card primitive
+          (`.glass-panel`/`.ct-card`) only declares `border` — never `width` —
+          so nothing unlayered overrides it. `shrink-0` keeps it from
+          collapsing under the flexible left column.
+      */}
+      <div className="flex w-full flex-col gap-8 md:w-80 md:shrink-0 md:pl-10">
         <div className="grid grid-cols-2 items-start gap-x-8 gap-y-6">
           <div className="flex flex-col gap-1">
             <span className="stat-label">Min. ticket</span>
@@ -145,6 +181,7 @@ export function ProductSelectCard({ vault }: ProductSelectCardProps) {
             </Button>
           )}
         </div>
+      </div>
       </div>
     </Card>
   );

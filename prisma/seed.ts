@@ -6,6 +6,10 @@ import { hash } from "@node-rs/argon2";
 import { computeMiningRevenue } from "../src/lib/engine/mining";
 import { runBacktest } from "../src/lib/engine/backtest";
 import { getPresetInputs, runScenario } from "../src/lib/engine/scenario";
+import {
+  MOCK_ATTESTOR_ADDRESS,
+  signMockAttestation,
+} from "../src/lib/attestation";
 import type {
   BacktestKey,
   Preset,
@@ -539,18 +543,37 @@ async function seedDistributions(): Promise<number> {
 async function seedProofs(): Promise<number> {
   let count = 0;
   for (const p of PROOF_FIXTURES) {
-    const hash = hashFor(p.seed);
-    await prisma.proof.create({
-      data: {
-        proofType: p.proofType,
-        period: p.period,
-        hash,
-        uri: ipfsUriFor(hash),
-        postedAt: p.postedAt,
-        postedBy: "ops@hearst.connect",
-        txHash: null,
-      },
-    });
+    if (p.proofType === "mining_attestation" && p.period) {
+      // Real, end-to-end-verifiable signature (digest == on-chain evidenceHash).
+      const signed = await signMockAttestation(p.period, {}, p.postedAt);
+      await prisma.proof.create({
+        data: {
+          proofType: p.proofType,
+          period: p.period,
+          hash: signed.digest,
+          uri: signed.payload.evidenceCid,
+          postedAt: p.postedAt,
+          postedBy: `Attestor ${MOCK_ATTESTOR_ADDRESS.slice(0, 6)}…${MOCK_ATTESTOR_ADDRESS.slice(-4)} · mock signer`,
+          txHash: null,
+          signer: signed.payload.attestor,
+          signature: signed.signature,
+          payloadJson: JSON.stringify(signed.payload),
+        },
+      });
+    } else {
+      const hash = hashFor(p.seed);
+      await prisma.proof.create({
+        data: {
+          proofType: p.proofType,
+          period: p.period,
+          hash,
+          uri: ipfsUriFor(hash),
+          postedAt: p.postedAt,
+          postedBy: "ops@hearst.connect",
+          txHash: null,
+        },
+      });
+    }
     count++;
   }
   return count;

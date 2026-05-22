@@ -164,6 +164,14 @@ model Proof {
   txHash      String?
   notes       String?  // free-form admin annotation (Zod-validated ≤ 500 chars at ingest)
 
+  // Off-chain attestation signature (mining_attestation only; null otherwise).
+  // `hash` doubles as the keccak256 digest; `signer` must recover from `signature`
+  // over that digest. `payloadJson` is the canonical payload, enabling end-to-end
+  // re-verification at read time. See src/lib/attestation.
+  signer      String?  // attestor address (0x…)
+  signature   String?  // EIP-191 signature over `hash`
+  payloadJson String?  // canonical MiningAttestationPayload as JSON
+
   @@index([proofType, period])
 }
 
