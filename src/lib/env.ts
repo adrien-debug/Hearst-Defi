@@ -44,6 +44,7 @@ const serverEnvSchema = z.object({
   HYPERCLI_API_KEY: z.string().min(1).optional(),
   HYPERCLI_BASE_URL: z.string().url().optional(),
   HYPERCLI_DEFAULT_MODEL: z.string().min(1).default("kimi-k2.6"),
+  HYPERCLI_ANTHROPIC_MODEL: z.string().min(1).default("kimi-k2.6-anthropic"),
   HYPERCLI_ORG_ID: z.string().optional(),
   // Sentry observability — all optional, project boots without them (no-op fallback)
   SENTRY_DSN: z.string().url().optional(),
@@ -137,6 +138,8 @@ function resolveEnv(): ServerEnv {
         ...lenient.data,
         DATABASE_URL: lenient.data.DATABASE_URL ?? "",
         HYPERCLI_DEFAULT_MODEL: lenient.data.HYPERCLI_DEFAULT_MODEL ?? "kimi-k2.6",
+        HYPERCLI_ANTHROPIC_MODEL:
+          lenient.data.HYPERCLI_ANTHROPIC_MODEL ?? "kimi-k2.6-anthropic",
         DEMO_MODE_DEFAULT: lenient.data.DEMO_MODE_DEFAULT ?? "0",
       };
       return data;

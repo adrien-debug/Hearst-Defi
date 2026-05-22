@@ -5,6 +5,7 @@ import {
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { kimi, KIMI_MODEL } from "@/lib/llm/kimi";
+import { env } from "@/lib/env";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { prisma } from "@/lib/db";
@@ -14,12 +15,25 @@ import {
   loadUserMemory,
   buildUserContextSystemBlock,
 } from "@/lib/agents/user-context";
+import { REVIEW_FACILITATOR_PROMPT } from "@/lib/agents/system-prompts/review";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const SYSTEM_PROMPT =
   "Tu es l'assistant Kimi intégré à Hearst Connect — DeFi institutionnel adossé au cashflow du mining BTC (vault de rendement, infra on-chain). Réponds en français.";
+
+// Models the chat may run on. The client (cockpit-shell useChat) sends the
+// value of localStorage["cockpit:chat-model"]; anything outside this allowlist
+// falls back to the default so a tampered body can't pick an arbitrary model.
+const ALLOWED_MODELS = new Set<string>([
+  env.HYPERCLI_DEFAULT_MODEL,
+  env.HYPERCLI_ANTHROPIC_MODEL,
+]);
+
+function resolveModel(requested: string | undefined): string {
+  return requested && ALLOWED_MODELS.has(requested) ? requested : KIMI_MODEL;
+}
 
 // Per-user rate-limit: 20 chat requests / 60s (mirrors the handler default,
 // but keyed on the authenticated userId so corporate NAT users don't share
@@ -69,6 +83,9 @@ const ChatBodySchema = z.object({
   messages: z.array(ChatMessageSchema).max(MAX_MESSAGES).optional(),
   productId: z.string().max(200).nullish(),
   system: z.string().max(MAX_SYSTEM_LEN).optional(),
+  // Model the client requests (from localStorage). Validated against an
+  // allowlist downstream — an unknown value falls back to the default.
+  model: z.string().max(100).optional(),
   // Accepted but clamped (handler ignores these; we cap defensively).
   maxTokens: z.number().int().positive().max(MAX_OUTPUT_TOKENS).optional(),
   temperature: z.number().min(0).max(1).optional(),
@@ -191,6 +208,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   //    The handler calls `req.json()` internally, so we reconstruct a
   //    fresh Request carrying the sanitized payload.
   let sanitizedReq: NextRequest;
+  let requestedModel: string | undefined;
   try {
     const raw: unknown = await req.json();
     const parsed = ChatBodySchema.safeParse(raw);
@@ -208,6 +226,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
 
     const body = parsed.data;
+    requestedModel = body.model;
     const cleanMessage = sanitizeContent(body.message);
     if (!cleanMessage) {
       return new Response(
@@ -244,11 +263,32 @@ export async function POST(req: NextRequest): Promise<Response> {
     });
   }
 
-  // 4. Build a per-request handler bound to this user (rate-limit key +
+  // 4. Resolve the base persona. An admin who flipped the chat into "review"
+  //    mode (AdminChatMode row) gets the product-review facilitator prompt
+  //    instead of the default assistant. Only admins can ever set this row
+  //    (the setter route is requireAdmin-gated), so reading it here is safe.
+  let basePrompt = SYSTEM_PROMPT;
+  try {
+    const modeRow = await prisma.adminChatMode.findUnique({
+      where: { userId },
+      select: { mode: true },
+    });
+    if (modeRow?.mode === "review") {
+      basePrompt = REVIEW_FACILITATOR_PROMPT;
+    }
+  } catch (modeErr) {
+    logger.warn(
+      "cockpit-chat mode lookup failed — using default assistant prompt",
+      { userId },
+      modeErr instanceof Error ? modeErr : undefined,
+    );
+  }
+
+  // 5. Build a per-request handler bound to this user (rate-limit key +
   //    persistence are both userId-scoped).
   //    Enrich the system prompt with per-user persona + memory when available.
   //    A failure here must not block the chat — graceful degradation to base prompt.
-  let enrichedSystemPrompt = SYSTEM_PROMPT;
+  let enrichedSystemPrompt = basePrompt;
   try {
     const [profile, memory] = await Promise.all([
       loadUserAgentProfile(userId, "cockpit-chat"),
@@ -258,7 +298,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     if (ctxBlock !== null) {
       // Clamp to MAX_ENRICHED_SYSTEM_LEN: customInstructions is user-influenced
       // free text and must not bloat the system prompt beyond a safe bound.
-      enrichedSystemPrompt = (SYSTEM_PROMPT + "\n\n" + ctxBlock.text).slice(
+      enrichedSystemPrompt = (basePrompt + "\n\n" + ctxBlock.text).slice(
         0,
         MAX_ENRICHED_SYSTEM_LEN,
       );
@@ -273,7 +313,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   const handler = createCockpitChatHandler({
     llmClient: kimi,
-    model: KIMI_MODEL,
+    model: resolveModel(requestedModel),
     systemPrompt: enrichedSystemPrompt,
     userId,
     persistence: createUserScopedPersistence(userId),

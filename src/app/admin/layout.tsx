@@ -2,8 +2,10 @@ import { notFound, redirect } from "next/navigation";
 
 import { AdminRailIntra } from "@/components/nav/product-rail-intra";
 import { DemoModeToggleSlot } from "@/components/demo/demo-mode-toggle-slot";
+import { AdminChatControls } from "@/components/admin/admin-chat-controls";
 import { getSession } from "@/lib/auth/session";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { prisma } from "@/lib/db";
 
 export const metadata = {
   title: "Admin — Hearst Connect",
@@ -39,10 +41,17 @@ export default async function AdminLayout({
     notFound();
   }
 
+  const modeRow = await prisma.adminChatMode.findUnique({
+    where: { userId: session.userId },
+    select: { mode: true },
+  });
+  const initialMode = modeRow?.mode === "review" ? "review" : "normal";
+
   return (
     <>
       <AdminRailIntra />
       <DemoModeToggleSlot />
+      <AdminChatControls initialMode={initialMode} />
       {children}
     </>
   );
