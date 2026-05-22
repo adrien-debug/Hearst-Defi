@@ -84,39 +84,43 @@ export function ApyGauge({ low, high, maxAxis, ariaLabel }: ApyGaugeProps) {
   const clamp = (v: number) => Math.min(Math.max(v, 0), axis);
   const lo = clamp(low);
   const hi = clamp(Math.max(high, low));
-  // Arc positions (0..50) for the band edges, then build a dash that paints
-  // only the band span and offset it so it lands in the right arc segment.
-  const posHigh = (1 - hi / axis) * 50; // closer to right end
-  const posLow = (1 - lo / axis) * 50; // closer to left end
-  const bandLen = Math.max(posLow - posHigh, 0.5);
+  // With rotate(-90) on the group, arc starts at 9 o'clock (left = 0%).
+  // pos maps axis value to dashoffset position: 0 → left, 50 → right.
+  const posLo = (lo / axis) * 50;
+  const posHi = (hi / axis) * 50;
+  const bandLen = Math.max(posHi - posLo, 0.5);
   const bandDash = `${bandLen.toFixed(2)} ${(100 - bandLen).toFixed(2)}`;
-  const bandOffset = -posHigh;
+  const bandOffset = -posLo;
+  // viewBox crops to the bottom half only (y=16..42 with 2px padding for stroke overflow).
+  // rotate(90) on the group shifts arc start to 9 o'clock so low→high reads left→right.
   return (
     <svg
       className="gauge-svg"
-      viewBox="0 0 42 42"
+      viewBox="0 16 42 26"
       width="160"
-      height="160"
+      height="100"
       role="img"
       aria-label={ariaLabel}
     >
-      <circle
-        className="gauge-svg-circle bg"
-        cx="21"
-        cy="21"
-        r="15.9155"
-        strokeWidth="6"
-        strokeDasharray="50 50"
-      />
-      <circle
-        className="gauge-svg-circle fg"
-        cx="21"
-        cy="21"
-        r="15.9155"
-        strokeWidth="6"
-        strokeDasharray={bandDash}
-        strokeDashoffset={bandOffset}
-      />
+      <g transform="rotate(-90 21 21)">
+        <circle
+          className="gauge-svg-circle bg"
+          cx="21"
+          cy="21"
+          r="15.9155"
+          strokeWidth="6"
+          strokeDasharray="50 50"
+        />
+        <circle
+          className="gauge-svg-circle fg"
+          cx="21"
+          cy="21"
+          r="15.9155"
+          strokeWidth="6"
+          strokeDasharray={bandDash}
+          strokeDashoffset={bandOffset}
+        />
+      </g>
     </svg>
   );
 }

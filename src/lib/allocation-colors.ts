@@ -14,10 +14,10 @@ export type AllocationDashTone = "primary" | "accent" | "soft" | "muted";
 
 /** CSS `stroke` / `color` for engine bucket ids (`btc_tactical`, …). */
 export const ALLOCATION_STROKE: Record<EngineBucket, string> = {
-  mining: "var(--ct-text-strong)",
+  mining: "var(--ct-text-primary)",
   btc_tactical: "var(--ct-accent-strong)",
-  usdc_base: "var(--ct-surface-2)",
-  stable_reserve: "var(--ct-surface-3)",
+  usdc_base: "var(--ct-status-info)",
+  stable_reserve: "var(--ct-status-warning)",
 };
 
 /** Class suffix for `.dash-chart-circle.color-*` and `.dash-legend-dot.dot-*`. */
