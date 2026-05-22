@@ -65,3 +65,9 @@ electron/__tests__/results/
 *.deb
 *.zip
 
+# Tri / corbeille locale (videe manuellement)
+.tri-trash/
+
+# Captures de dev a la racine (non versionnees)
+/*.png
+
