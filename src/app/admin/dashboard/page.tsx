@@ -1,5 +1,10 @@
 import "./dashboard.css";
 
+import {
+  AllocationDonut,
+  ApyGauge,
+  AumSparkline,
+} from "@/components/dashboard/dashboard-charts";
 import { MiningHealthSection } from "@/components/dashboard/mining-health";
 import { RiskFrameworkSection } from "@/components/dashboard/risk-framework";
 import { TimeseriesSection } from "@/components/dashboard/timeseries-section";
@@ -257,7 +262,10 @@ export default async function DashboardPage() {
             <div className="dash-value-group">
               <span className="dash-value">{aumValue}</span>
             </div>
-            <div className="dash-sparkline-placeholder" aria-hidden="true" />
+            <AumSparkline
+              points={data.timeseries.nav30d}
+              ariaLabel={`Assets under management trend, ${data.timeseries.nav30d.length} points, ${aumTrendText}`}
+            />
           </article>
 
           {/* W2 — APY range gauge (source: kpi-charts gauge) */}
@@ -267,7 +275,13 @@ export default async function DashboardPage() {
               <ProvenanceBadge kind={apyProvenance} />
             </div>
             <div className="gauge-container">
-              <div className="gauge-placeholder" aria-hidden="true">
+              <ApyGauge
+                low={apyLow}
+                high={apyHigh}
+                maxAxis={apyMaxAxis}
+                ariaLabel={`APY range ${apyLow} to ${apyHigh} percent on a 0 to ${apyMaxAxis} percent axis`}
+              />
+              <div className="gauge-center">
                 <span className="gauge-val">
                   {apyLow}–{apyHigh}
                 </span>
@@ -332,7 +346,11 @@ export default async function DashboardPage() {
 
             <div className="grid grid-cols-[var(--ct-donut-size)_1fr] gap-6 items-center mt-2">
               <div className="dash-chart-container h-[var(--ct-donut-size)] mt-0">
-                <div className="donut-placeholder" aria-hidden="true">
+                <AllocationDonut
+                  segments={allocSegments}
+                  ariaLabel="Allocation breakdown by bucket"
+                />
+                <div className="donut-center">
                   <span className="donut-val">{usdShort.format(data.vault.aumUsdc)}</span>
                   <span className="donut-lbl">Total AUM</span>
                 </div>

@@ -35,6 +35,38 @@
 .dash-bento > .bento-col-8 { grid-column: span 8; }
 .dash-bento > .bento-col-12 { grid-column: span 12; }
 
+/* === Responsive bento ===
+ * < 1280px → 6-col grid: span-8/12 fill full width, span-3/4 pair up.
+ * < 768px  → single column, every cell stacks full width.
+ */
+@media (max-width: 1280px) {
+  .dash-bento {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .dash-cell.col-3 { grid-column: span 3; }
+  .dash-cell.col-4 { grid-column: span 3; }
+  .dash-cell.col-6 { grid-column: span 6; }
+  .dash-cell.col-8 { grid-column: span 6; }
+  .dash-cell.col-12 { grid-column: span 6; }
+  .dash-bento > .bento-col-8 { grid-column: span 6; }
+  .dash-bento > .bento-col-12 { grid-column: span 6; }
+}
+
+@media (max-width: 768px) {
+  .dash-bento {
+    grid-template-columns: 1fr;
+  }
+  .dash-cell.col-3,
+  .dash-cell.col-4,
+  .dash-cell.col-6,
+  .dash-cell.col-8,
+  .dash-cell.col-12,
+  .dash-bento > .bento-col-8,
+  .dash-bento > .bento-col-12 {
+    grid-column: span 1;
+  }
+}
+
 /* === KPI label / value (kpi-elegant) === */
 .dash-label {
   font-size: var(--ct-text-xs);
