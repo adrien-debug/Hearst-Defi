@@ -10,7 +10,7 @@
   "scripts": {
     "predev": "node scripts/free-port.mjs",
     "dev": "NODE_OPTIONS=--max-http-header-size=65536 next dev -p 4105",
-    "build": "NODE_ENV=production next build",
+    "build": "prisma generate && NODE_ENV=production next build",
     "start": "next start -p 4105",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
