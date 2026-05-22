@@ -6,10 +6,12 @@ import {
   EXPLORER_TX_BASE,
 } from "@/lib/chain/client";
 import type { OnChainAttestation } from "@/lib/chain/por-registry";
+import type { CustodySnapshot } from "@/lib/data/custody";
 import { cn } from "@/lib/cn";
 
 interface PorSummaryProps {
   attestation: OnChainAttestation | null;
+  custody?: CustodySnapshot | null;
 }
 
 const dateFmt = new Intl.DateTimeFormat("en-US", {
@@ -54,7 +56,51 @@ function btcFmt(value: number): string {
   }).format(value)} BTC`;
 }
 
-export function PorSummary({ attestation }: PorSummaryProps) {
+function custodyProvenance(snapshot: CustodySnapshot): "attested" | "stale" {
+  const live = snapshot.provenance === "live" && snapshot.configured;
+  const fresh = !isStale(new Date(snapshot.asOf));
+  return live && fresh ? "attested" : "stale";
+}
+
+function CustodyBlock({ custody }: { custody: CustodySnapshot }) {
+  const provenance = custodyProvenance(custody);
+  const asOf = new Date(custody.asOf);
+  return (
+    <div className="mt-6 border-t border-[var(--ct-border-soft)] pt-6">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <span className="eyebrow">Custody (Fireblocks)</span>
+        <ProvenanceBadge kind={provenance} />
+      </div>
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+        <Metric
+          label="USDC reserves"
+          value={usdFmt(custody.totalUsdcReserves)}
+          provenance={provenance}
+        />
+        <Metric
+          label="Vault accounts"
+          value={custody.accountsCount.toString()}
+          provenance={provenance}
+        />
+        <Metric
+          label="Snapshot at"
+          value={dateFmt.format(asOf)}
+          sublabel="UTC"
+          provenance={provenance}
+        />
+      </div>
+      {provenance === "stale" ? (
+        <p className="mt-3 body-xs text-[var(--ct-status-warning)]">
+          {custody.provenance === "live" && !custody.configured
+            ? "Reserve scope not pinned (FIREBLOCKS_VAULT_ACCOUNT_IDS unset) — badge shows Stale."
+            : "Custody snapshot is unverified or older than 24h — badge shows Stale."}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+export function PorSummary({ attestation, custody = null }: PorSummaryProps) {
   if (attestation === null) {
     return (
       <Card>
@@ -67,6 +113,7 @@ export function PorSummary({ attestation }: PorSummaryProps) {
           Base Sepolia — the publisher will post the first attestation after the
           initial vault period closes.
         </p>
+        {custody ? <CustodyBlock custody={custody} /> : null}
       </Card>
     );
   }
@@ -186,6 +233,8 @@ export function PorSummary({ attestation }: PorSummaryProps) {
           attestation is expected each period close.
         </p>
       ) : null}
+
+      {custody ? <CustodyBlock custody={custody} /> : null}
     </Card>
   );
 }

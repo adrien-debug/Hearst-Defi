@@ -1,10 +1,11 @@
-// PositionKpis — 4 KPI cards for /portfolio/[positionId]
+// PositionKpis — KPI cards for /portfolio/[positionId]
 // Server Component.
 // Non-negotiable #1: APY always via <ApyRange>, never single point.
 // Non-negotiable #2: ProvenanceBadge on every metric.
 
 import { Metric } from "@/components/ui/metric";
 import { ApyRange } from "@/components/ui/apy-range";
+import { cn } from "@/lib/cn";
 import type { PositionDetail } from "@/lib/data/portfolio";
 
 const usdFull = new Intl.NumberFormat("en-US", {
@@ -14,16 +15,37 @@ const usdFull = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
+/** Signed percentage, e.g. +9.3% / -2.1%. */
+function fmtSignedPct(pct: number): string {
+  const sign = pct >= 0 ? "+" : "";
+  return `${sign}${pct.toFixed(1)}%`;
+}
+
 interface PositionKpisProps {
   position: PositionDetail;
 }
 
 /**
- * 4-up KPI grid: Principal · Accrued yield · Distributed to date · Realised APY range.
+ * KPI grid: Principal · Accrued yield · Distributed to date · Realised APY range,
+ * plus Net P&L when a P&L computation is present.
  * Every metric has a ProvenanceBadge (delegated to the Metric primitive).
  */
 export function PositionKpis({ position }: PositionKpisProps) {
   const provenance = position.source === "live" ? "live" : "estimated";
+  const pnl = position.pnl;
+
+  // P&L sublabel: realized vs unrealized, plus annualised when a holding period exists.
+  const pnlSublabel = pnl
+    ? [
+        `Realised ${usdFull.format(pnl.realizedUsdc)}`,
+        `Unrealised ${usdFull.format(pnl.unrealizedUsdc)}`,
+        pnl.annualizedReturnPct !== null
+          ? `Annualised ${fmtSignedPct(pnl.annualizedReturnPct)}`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : undefined;
 
   return (
     <section
@@ -72,6 +94,30 @@ export function PositionKpis({ position }: PositionKpisProps) {
         provenance="estimated"
         sublabel="Not guaranteed — indicative range"
       />
+
+      {/* 5 — Net P&L — only when computed; ProvenanceBadge estimated (non-negotiable #2) */}
+      {pnl ? (
+        <Metric
+          label="Net P&L"
+          value={
+            <span
+              className={cn(
+                pnl.netReturnPct >= 0
+                  ? "text-[var(--ct-status-success)]"
+                  : "text-[var(--ct-status-danger)]",
+              )}
+            >
+              {fmtSignedPct(pnl.netReturnPct)}
+            </span>
+          }
+          provenance="estimated"
+          sublabel={pnlSublabel}
+          trend={{
+            direction: pnl.netReturnPct >= 0 ? "up" : "down",
+            text: usdFull.format(pnl.totalReturnUsdc),
+          }}
+        />
+      ) : null}
     </section>
   );
 }

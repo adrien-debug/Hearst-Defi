@@ -12,6 +12,7 @@ import { PorSummary } from "@/components/proof-center/por-summary";
 import { isChainConfigured } from "@/lib/chain/client";
 import { fetchOnChainEvents } from "@/lib/chain/event-logger";
 import { fetchOnChainAttestations } from "@/lib/chain/por-registry";
+import { loadCustody } from "@/lib/data/custody";
 import { getProofs } from "@/lib/demo/loaders";
 
 interface ProofCenterPageProps {
@@ -26,11 +27,13 @@ export default async function ProofCenterPage({
   const filter = parseFilter(raw);
 
   const chainConfigured = isChainConfigured();
-  const [onChainEvents, onChainAttestations, paper] = await Promise.all([
-    fetchOnChainEvents({ limit: 20 }),
-    fetchOnChainAttestations({ limit: 12 }),
-    getProofs(),
-  ]);
+  const [onChainEvents, onChainAttestations, paper, custody] =
+    await Promise.all([
+      fetchOnChainEvents({ limit: 20 }),
+      fetchOnChainAttestations({ limit: 12 }),
+      getProofs(),
+      loadCustody(),
+    ]);
 
   // Latest PoR attestation for the summary panel (most recent = index 0,
   // because fetchOnChainAttestations returns descending order).
@@ -80,7 +83,7 @@ export default async function ProofCenterPage({
         <h2 id="por-heading" className="sr-only">
           Proof of Reserves
         </h2>
-        <PorSummary attestation={latestAttestation} />
+        <PorSummary attestation={latestAttestation} custody={custody} />
       </section>
 
       {/* ── On-chain event timeline ─────────────────────────── */}

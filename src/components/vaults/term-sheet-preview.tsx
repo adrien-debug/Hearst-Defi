@@ -9,6 +9,11 @@ import { Card } from "@/components/ui/card";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
 import type { VaultProduct } from "@/lib/data/vaults";
+import {
+  SHARE_CLASS_A,
+  SHARE_CLASS_B,
+  type ShareClassTerms,
+} from "@/lib/engine/share-class";
 
 const USD_COMPACT = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -110,9 +115,14 @@ interface TermSheetPreviewProps {
  */
 export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
   const allocRows = ALLOCATION_ROWS(vault);
-  const mgmtPct = (vault.fees.mgmtBps / 100).toFixed(2);
-  const perfPct = (vault.fees.perfBps / 100).toFixed(0);
-  const hurdlePct = (vault.fees.hurdleBps / 100).toFixed(0);
+
+  // Engine presets are the single source of truth for class economics
+  // (min ticket, lock-up, fees, hurdle). The vault row only selects the class.
+  const terms: ShareClassTerms =
+    vault.shareClass === "B" ? SHARE_CLASS_B : SHARE_CLASS_A;
+  const mgmtPct = (terms.mgmtFeeBps / 100).toFixed(2);
+  const perfPct = (terms.perfFeeBps / 100).toFixed(0);
+  const hurdlePct = (terms.hurdleBps / 100).toFixed(0);
 
   return (
     // Two-column layout (desktop) to halve vertical height. Left column holds
@@ -140,12 +150,12 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
 
             <KpiRow
               label="Soft lock-up period"
-              value={`${vault.softLockupDays} days`}
+              value={`${terms.softLockupDays} days`}
               provenance="manual"
             />
             <KpiRow
               label="Minimum subscription"
-              value={USD_FULL.format(vault.minTicketUsdc)}
+              value={USD_FULL.format(terms.minTicketUsdc)}
               provenance="manual"
             />
             <KpiRow
@@ -155,7 +165,7 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
             />
             <KpiRow
               label="Performance fee"
-              value={`${perfPct}%${vault.fees.hurdleBps > 0 ? ` above ${hurdlePct}% hurdle` : " (no hurdle)"}`}
+              value={`${perfPct}%${terms.hurdleBps > 0 ? ` above ${hurdlePct}% hurdle` : " (no hurdle)"}`}
               provenance="manual"
             />
             <KpiRow
