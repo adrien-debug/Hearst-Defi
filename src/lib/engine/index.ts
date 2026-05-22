@@ -19,6 +19,32 @@ export {
   runScenario,
 } from "./scenario";
 export type { RunScenarioOpts } from "./scenario";
+export { createPrng, mulberry32 } from "./prng";
+export type { Prng } from "./prng";
+export { runMonteCarlo } from "./monte-carlo";
+export type {
+  BlendedYieldAssumptions,
+  BtcGbmAssumptions,
+  DifficultyAssumptions,
+  MonteCarloInput,
+  MonteCarloOutput,
+  Percentiles,
+} from "./monte-carlo";
+export {
+  getVaultDefinition,
+  vaultAllocationWeights,
+  VAULT_BTC_PLUS,
+  VAULT_DEFENSIVE,
+  VAULT_YIELD,
+  VAULTS,
+} from "./vaults";
+export type {
+  AllocationTargets,
+  ApyTargetRange,
+  Provenance,
+  VaultAllocationWeights,
+  VaultDefinition,
+} from "./vaults";
 export type {
   Allocation,
   AllocationBucket,
@@ -39,5 +65,6 @@ export type {
   ScenarioOutput,
   ScenarioParams,
   ScenarioResult,
+  VaultId,
   VaultMode,
 } from "./types";

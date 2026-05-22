@@ -20,6 +20,9 @@ export interface Allocation {
 
 export type VaultMode = "defensive" | "balanced" | "opportunistic";
 
+// First-class vault identity (ADR-006 lifts the single-vault MVP lock).
+export type VaultId = "yield" | "defensive" | "btc-plus";
+
 export type Confidence = "low" | "medium" | "high";
 
 export interface ScenarioOutput {
