@@ -11,7 +11,7 @@ describe("allocation-colors", () => {
   it("maps engine buckets to dashboard bento strokes", () => {
     expect(ALLOCATION_STROKE.mining).toBe("var(--ct-text-strong)");
     expect(ALLOCATION_STROKE.btc_tactical).toBe("var(--ct-accent-strong)");
-    expect(ALLOCATION_STROKE.usdc_base).toBe("var(--ct-accent-soft)");
+    expect(ALLOCATION_STROKE.usdc_base).toBe("var(--ct-surface-2)");
     expect(ALLOCATION_STROKE.stable_reserve).toBe("var(--ct-surface-3)");
   });
 
