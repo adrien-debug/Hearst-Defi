@@ -85,17 +85,17 @@ const TONE_CLASSES: Record<
   { border: string; badge: string; text: string }
 > = {
   success: {
-    border: "border-[--ct-status-success-border]",
+    border: "border-[var(--ct-status-success-border)]",
     badge: "ct-status-success",
     text: "ct-status-success",
   },
   warning: {
-    border: "border-[--ct-border]",
+    border: "border-[var(--ct-border)]",
     badge: "ct-text-primary",
     text: "ct-text-primary",
   },
   danger: {
-    border: "border-[--ct-status-danger-border]",
+    border: "border-[var(--ct-status-danger-border)]",
     badge: "ct-status-danger",
     text: "ct-status-danger",
   },
@@ -110,10 +110,10 @@ interface AllocationBarProps {
 function AllocationBar({ label, pct, tone }: AllocationBarProps) {
   const barColor =
     tone === "success"
-      ? "bg-[--ct-status-success]"
+      ? "bg-[var(--ct-status-success)]"
       : tone === "danger"
-        ? "bg-[--ct-status-danger]"
-        : "bg-[--ct-accent]";
+        ? "bg-[var(--ct-status-danger)]"
+        : "bg-[var(--ct-accent)]";
 
   return (
     <div className="flex items-center gap-2 min-w-0">
@@ -190,7 +190,7 @@ export function DynamicAllocationCards() {
             <p className="body-sm ct-text-body">{card.scenario}</p>
 
             {/* Allocation bars */}
-            <div className="flex flex-col gap-2 pt-2 border-t border-[--ct-border-soft]">
+            <div className="flex flex-col gap-2 pt-2 border-t border-[var(--ct-border-soft)]">
               <span className="stat-label">Target allocation</span>
               <AllocationBar
                 label="Mining"
@@ -215,7 +215,7 @@ export function DynamicAllocationCards() {
             </div>
 
             {/* Strategy pitch */}
-            <p className="body-xs ct-text-muted border-t border-[--ct-border-soft] pt-2">
+            <p className="body-xs ct-text-muted border-t border-[var(--ct-border-soft)] pt-2">
               {card.pitch}
             </p>
           </Card>

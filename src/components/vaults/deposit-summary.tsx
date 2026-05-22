@@ -49,7 +49,7 @@ export function DepositSummary({ vault, amount }: DepositSummaryProps) {
         <ProvenanceBadge kind="estimated" />
       </div>
 
-      <div className="divide-y divide-[--ct-border-soft]">
+      <div className="divide-y divide-[var(--ct-border-soft)]">
         <SumRow label="You deposit">
           {amount > 0 ? (
             <span className="tabular mono">

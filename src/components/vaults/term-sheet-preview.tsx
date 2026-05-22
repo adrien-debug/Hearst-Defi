@@ -87,7 +87,7 @@ interface KpiRowProps {
 
 function KpiRow({ label, value, provenance = "manual" }: KpiRowProps) {
   return (
-    <div className="flex items-center justify-between gap-4 py-2 border-b border-[--ct-border-soft] last:border-0">
+    <div className="flex items-center justify-between gap-4 py-2 border-b border-[var(--ct-border-soft)] last:border-0">
       <span className="stat-label flex-1">{label}</span>
       <div className="flex items-center gap-2 flex-shrink-0">
         <ProvenanceBadge kind={provenance} />
@@ -119,7 +119,7 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
       <Section id="sec-kpis" title="Key metrics">
         <Card className="flex flex-col gap-0">
           {/* APY range — mandatory primitive (#1), provenance badge (#2) */}
-          <div className="flex items-center justify-between gap-4 py-3 border-b border-[--ct-border-soft]">
+          <div className="flex items-center justify-between gap-4 py-3 border-b border-[var(--ct-border-soft)]">
             <span className="stat-label flex-1">Target APY range</span>
             <div className="flex items-center gap-2 flex-shrink-0">
               <ProvenanceBadge kind="estimated" />
@@ -179,13 +179,13 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
       <Section id="sec-strategy" title="Strategy & provenance">
         <Card className="flex flex-col gap-3">
           <p className="body-md ct-text-body">{vault.description}</p>
-          <div className="flex flex-wrap gap-2 pt-2 border-t border-[--ct-border-soft]">
+          <div className="flex flex-wrap gap-2 pt-2 border-t border-[var(--ct-border-soft)]">
             <Badge variant="brand">Mining-backed</Badge>
             <Badge variant="default">Rule-based rebalancing</Badge>
             <Badge variant="default">Monthly USDC distributions</Badge>
             <Badge variant="default">No leverage</Badge>
           </div>
-          <div className="pt-2 border-t border-[--ct-border-soft]">
+          <div className="pt-2 border-t border-[var(--ct-border-soft)]">
             <p className="body-sm ct-text-muted">
               <strong className="ct-text-body">Methodology:</strong> Yield
               projections follow{" "}
@@ -207,7 +207,7 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
               key={row.label}
               className={
                 i < allocRows.length - 1
-                  ? "flex flex-col gap-1 py-3 border-b border-[--ct-border-soft]"
+                  ? "flex flex-col gap-1 py-3 border-b border-[var(--ct-border-soft)]"
                   : "flex flex-col gap-1 py-3"
               }
             >
@@ -264,14 +264,14 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
       {/* ── 5. Disclaimers (#10 — mandatory "not guaranteed") ────────── */}
       <Section id="sec-disclaimers" title="Disclaimers">
         <Card
-          className="border border-[--ct-border-strong]"
+          className="border border-[var(--ct-border-strong)]"
           role="note"
           aria-label="Important disclaimers"
         >
           <p className="body-sm ct-text-muted leading-relaxed">
             {vault.disclaimers}
           </p>
-          <p className="body-xs ct-text-faint mt-3 pt-3 border-t border-[--ct-border-soft]">
+          <p className="body-xs ct-text-faint mt-3 pt-3 border-t border-[var(--ct-border-soft)]">
             APY ranges are not a projection of returns. Past performance does
             not indicate future results. Allocations shown are targets and may
             deviate. This document is informational only and does not constitute

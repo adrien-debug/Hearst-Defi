@@ -111,7 +111,7 @@ export function PorSummary({ attestation }: PorSummaryProps) {
         />
       </div>
 
-      <dl className="mt-6 space-y-2 border-t border-[--ct-border-soft] pt-6">
+      <dl className="mt-6 space-y-2 border-t border-[var(--ct-border-soft)] pt-6">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <dt className="body-xs">Attestor address</dt>
           <dd>
@@ -119,7 +119,7 @@ export function PorSummary({ attestation }: PorSummaryProps) {
               href={`${EXPLORER_ADDRESS_BASE}${attestation.attestor}`}
               target="_blank"
               rel="noreferrer noopener"
-              className="mono tabular text-xs text-[--ct-text-primary] hover:text-[--ct-text-strong] transition-colors duration-[var(--ct-dur-fast)]"
+              className="mono tabular text-xs text-[var(--ct-text-primary)] hover:text-[var(--ct-text-strong)] transition-colors duration-[var(--ct-dur-fast)]"
               title={attestation.attestor}
             >
               {truncateAddress(attestation.attestor)}
@@ -129,7 +129,7 @@ export function PorSummary({ attestation }: PorSummaryProps) {
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <dt className="body-xs">Evidence hash</dt>
           <dd
-            className="mono tabular text-xs text-[--ct-text-body]"
+            className="mono tabular text-xs text-[var(--ct-text-body)]"
             title={attestation.evidenceHash}
           >
             {truncateHash(attestation.evidenceHash)}
@@ -137,7 +137,7 @@ export function PorSummary({ attestation }: PorSummaryProps) {
         </div>
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <dt className="body-xs">Block</dt>
-          <dd className="mono tabular text-xs text-[--ct-text-body]">
+          <dd className="mono tabular text-xs text-[var(--ct-text-body)]">
             {attestation.blockNumber.toString()}
           </dd>
         </div>
@@ -149,9 +149,9 @@ export function PorSummary({ attestation }: PorSummaryProps) {
           target="_blank"
           rel="noreferrer noopener"
           className={cn(
-            "rounded-[--ct-radius-full] border border-[--ct-text-strong] bg-[--ct-surface-1]",
-            "px-3 py-1.5 text-xs text-[--ct-text-strong]",
-            "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-2]",
+            "rounded-[var(--ct-radius-full)] border border-[var(--ct-text-strong)] bg-[var(--ct-surface-1)]",
+            "px-3 py-1.5 text-xs text-[var(--ct-text-strong)]",
+            "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[var(--ct-surface-2)]",
             "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
           )}
         >
@@ -169,9 +169,9 @@ export function PorSummary({ attestation }: PorSummaryProps) {
             target="_blank"
             rel="noreferrer noopener"
             className={cn(
-              "rounded-[--ct-radius-full] border border-[--ct-border-strong] bg-[--ct-surface-1]",
-              "px-3 py-1.5 text-xs text-[--ct-text-primary]",
-              "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-3]",
+              "rounded-[var(--ct-radius-full)] border border-[var(--ct-border-strong)] bg-[var(--ct-surface-1)]",
+              "px-3 py-1.5 text-xs text-[var(--ct-text-primary)]",
+              "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[var(--ct-surface-3)]",
               "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
             )}
           >
@@ -181,7 +181,7 @@ export function PorSummary({ attestation }: PorSummaryProps) {
       </div>
 
       {stale ? (
-        <p className="mt-3 body-xs text-[--ct-status-warning]">
+        <p className="mt-3 body-xs text-[var(--ct-status-warning)]">
           Last attestation is older than 24h — badge shows Stale. A fresh
           attestation is expected each period close.
         </p>

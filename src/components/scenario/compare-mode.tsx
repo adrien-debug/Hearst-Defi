@@ -94,8 +94,8 @@ function PresetPicker({
 
   const sideAccent =
     side === "A"
-      ? "border-l-[--ct-border-strong]"
-      : "border-l-[--ct-text-strong]";
+      ? "border-l-[var(--ct-border-strong)]"
+      : "border-l-[var(--ct-text-strong)]";
 
   return (
     <div ref={rootRef} className="relative">
@@ -121,7 +121,7 @@ function PresetPicker({
           <span
             className={cn(
               "h4 truncate",
-              !value && "text-[--ct-text-muted] font-medium",
+              !value && "text-[var(--ct-text-muted)] font-medium",
             )}
           >
             {value ? labelFor(value) : "Select a scenario"}
@@ -129,7 +129,7 @@ function PresetPicker({
         </span>
         <svg
           className={cn(
-            "h-4 w-4 shrink-0 text-[--ct-text-body] transition-transform duration-[var(--ct-dur-fast)]",
+            "h-4 w-4 shrink-0 text-[var(--ct-text-body)] transition-transform duration-[var(--ct-dur-fast)]",
             open && "rotate-180",
           )}
           xmlns="http://www.w3.org/2000/svg"
@@ -180,14 +180,14 @@ function PresetPicker({
                     "transition-colors duration-[var(--ct-dur-fast)]",
                     "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
                     isSelected
-                      ? "bg-[--ct-surface-1] text-[--ct-text-strong]"
-                      : "text-[--ct-text-body] hover:bg-[--ct-surface-3] hover:text-[--ct-text-primary]",
+                      ? "bg-[var(--ct-surface-1)] text-[var(--ct-text-strong)]"
+                      : "text-[var(--ct-text-body)] hover:bg-[var(--ct-surface-3)] hover:text-[var(--ct-text-primary)]",
                     isExcluded &&
                       "cursor-not-allowed opacity-40 hover:bg-transparent",
                   )}
                 >
                   <span className="text-sm font-semibold">{p.label}</span>
-                  <span className="text-micro text-[--ct-text-muted]">
+                  <span className="text-micro text-[var(--ct-text-muted)]">
                     {isExcluded ? "Already on the other side" : p.description}
                   </span>
                 </button>
@@ -215,8 +215,8 @@ function Placeholder({ side, pending }: PlaceholderProps) {
         "glass-panel-subtle border-dashed",
         "border-l-4",
         side === "A"
-          ? "border-l-[--ct-border-strong]"
-          : "border-l-[--ct-text-strong]",
+          ? "border-l-[var(--ct-border-strong)]"
+          : "border-l-[var(--ct-text-strong)]",
         "px-5 py-5",
         "transition-opacity duration-[var(--ct-dur-fast)]",
         pending && "opacity-50",
@@ -226,7 +226,7 @@ function Placeholder({ side, pending }: PlaceholderProps) {
       {pending ? (
         <>
           <svg
-            className="h-4 w-4 animate-spin text-[--ct-text-strong]"
+            className="h-4 w-4 animate-spin text-[var(--ct-text-strong)]"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -246,12 +246,12 @@ function Placeholder({ side, pending }: PlaceholderProps) {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
             />
           </svg>
-          <p className="stat-label text-[--ct-text-body]">Computing…</p>
+          <p className="stat-label text-[var(--ct-text-body)]">Computing…</p>
         </>
       ) : (
         <>
           <svg
-            className="h-10 w-10 text-[--ct-text-muted]"
+            className="h-10 w-10 text-[var(--ct-text-muted)]"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -265,8 +265,8 @@ function Placeholder({ side, pending }: PlaceholderProps) {
               d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"
             />
           </svg>
-          <p className="text-center text-sm text-[--ct-text-muted]">
-            <span className="font-semibold text-[--ct-text-body]">
+          <p className="text-center text-sm text-[var(--ct-text-muted)]">
+            <span className="font-semibold text-[var(--ct-text-body)]">
               Scenario {side}
             </span>
             <br />
@@ -368,7 +368,7 @@ export function CompareMode({ active = true }: { active?: boolean }) {
       {error && (
         <p
           role="alert"
-          className="rounded-[--ct-radius-full] border border-[--ct-status-danger] bg-[--ct-status-danger-soft] px-4 py-2.5 text-sm text-[--ct-status-danger]"
+          className="rounded-[var(--ct-radius-full)] border border-[var(--ct-status-danger)] bg-[var(--ct-status-danger-soft)] px-4 py-2.5 text-sm text-[var(--ct-status-danger)]"
         >
           {error}
         </p>
@@ -406,8 +406,8 @@ export function CompareMode({ active = true }: { active?: boolean }) {
       )}
 
       {/* Shared disclaimer */}
-      <p className="border-t border-[--ct-border-soft] pt-4 text-xs italic text-[--ct-text-muted]">
-        <span className="font-semibold not-italic text-[--ct-text-body]">
+      <p className="border-t border-[var(--ct-border-soft)] pt-4 text-xs italic text-[var(--ct-text-muted)]">
+        <span className="font-semibold not-italic text-[var(--ct-text-body)]">
           Not guaranteed.
         </span>{" "}
         Projections are conditional on stated assumptions. Methodology v1.0. Past

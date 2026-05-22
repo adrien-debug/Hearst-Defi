@@ -22,7 +22,7 @@ interface FeedbackItem {
 export function FeedbackList({ items }: { items: FeedbackItem[] }) {
   if (items.length === 0) {
     return (
-      <div className="rounded-[--ct-radius-md] border border-dashed border-[--ct-border] px-4 py-8 text-center text-sm text-[--ct-text-muted]">
+      <div className="rounded-[var(--ct-radius-md)] border border-dashed border-[var(--ct-border)] px-4 py-8 text-center text-sm text-[var(--ct-text-muted)]">
         No feedback yet. Be the first.
       </div>
     );
@@ -57,7 +57,7 @@ function FeedbackRow({ item }: { item: FeedbackItem }) {
     <Card className={cn("p-4", item.resolved && "opacity-60")}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-[--ct-text-muted]">
+          <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-[var(--ct-text-muted)]">
             <time>{item.createdAt.toISOString().slice(0, 16).replace("T", " ")}</time>
             {item.author ? <span>· {item.author}</span> : null}
             {item.itemId ? (
@@ -68,7 +68,7 @@ function FeedbackRow({ item }: { item: FeedbackItem }) {
             ) : null}
             {item.resolved ? <Badge variant="success">Resolved</Badge> : null}
           </div>
-          <p className="whitespace-pre-wrap text-sm text-[--ct-text-body]">
+          <p className="whitespace-pre-wrap text-sm text-[var(--ct-text-body)]">
             {item.message}
           </p>
         </div>

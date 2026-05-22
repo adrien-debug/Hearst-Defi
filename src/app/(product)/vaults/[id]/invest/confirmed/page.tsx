@@ -93,7 +93,7 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
         </div>
 
         {/* Transaction row */}
-        <div className="w-full flex flex-col gap-2 p-4 rounded-[--ct-radius-md] bg-[--ct-surface-1] border border-[--ct-border-soft]">
+        <div className="w-full flex flex-col gap-2 p-4 rounded-[var(--ct-radius-md)] bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)]">
           <div className="flex items-center justify-between gap-3">
             <span className="eyebrow ct-text-muted">
               Transaction
@@ -110,7 +110,7 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
                 href={baseScanHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="body-xs text-[--ct-accent-strong] no-underline font-medium shrink-0 transition-opacity duration-150 hover:opacity-80"
+                className="body-xs text-[var(--ct-accent-strong)] no-underline font-medium shrink-0 transition-opacity duration-150 hover:opacity-80"
               >
                 View on BaseScan ↗
               </a>
@@ -135,7 +135,7 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
               >
                 <span
                   aria-hidden="true"
-                  className="inline-block mt-0.5 w-1.5 h-1.5 rounded-full bg-[--ct-accent] shrink-0"
+                  className="inline-block mt-0.5 w-1.5 h-1.5 rounded-full bg-[var(--ct-accent)] shrink-0"
                 />
                 {item}
               </li>

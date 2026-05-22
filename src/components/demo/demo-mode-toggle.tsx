@@ -26,7 +26,7 @@ export function DemoModeToggle({ active }: DemoModeToggleProps) {
     <Button
       variant="ghost"
       size="sm"
-      className={cn(active && "bg-[--ct-accent-soft] text-[--ct-text-strong] border border-[--ct-border-accent]")}
+      className={cn(active && "bg-[var(--ct-accent-soft)] text-[var(--ct-text-strong)] border border-[var(--ct-border-accent)]")}
       aria-pressed={active}
       disabled={pending}
       onClick={() =>

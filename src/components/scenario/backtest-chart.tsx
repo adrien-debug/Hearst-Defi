@@ -13,7 +13,7 @@ export function BacktestChart({ series }: BacktestChartProps) {
     return (
       <div
         role="status"
-        className="flex min-h-[var(--ct-chart-empty-h)] items-center justify-center glass-panel-subtle border-dashed px-6 py-8 text-center text-xs text-[--ct-text-muted]"
+        className="flex min-h-[var(--ct-chart-empty-h)] items-center justify-center glass-panel-subtle border-dashed px-6 py-8 text-center text-xs text-[var(--ct-text-muted)]"
       >
         No backtest data available for this period.
       </div>

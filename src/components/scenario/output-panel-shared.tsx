@@ -25,11 +25,11 @@ export function progressScoreFillClass(
   invertedRisk = false,
 ): string {
   if (invertedRisk) {
-    if (score > 70) return "bg-[--ct-status-danger]";
-    if (score > 40) return "bg-[--ct-status-warning]";
-    return "bg-[--ct-status-success]";
+    if (score > 70) return "bg-[var(--ct-status-danger)]";
+    if (score > 40) return "bg-[var(--ct-status-warning)]";
+    return "bg-[var(--ct-status-success)]";
   }
-  if (score < 30) return "bg-[--ct-status-danger]";
-  if (score < 60) return "bg-[--ct-status-warning]";
-  return "bg-[--ct-status-success]";
+  if (score < 30) return "bg-[var(--ct-status-danger)]";
+  if (score < 60) return "bg-[var(--ct-status-warning)]";
+  return "bg-[var(--ct-status-success)]";
 }

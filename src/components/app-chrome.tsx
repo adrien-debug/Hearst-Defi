@@ -20,7 +20,7 @@ export function AppChrome({ children }: { children: ReactNode }) {
   const bare = BARE_ROUTES.has(pathname);
 
   if (bare) {
-    return <div className="min-h-dvh bg-[--ct-bg-deep]">{children}</div>;
+    return <div className="min-h-dvh bg-[var(--ct-bg-deep)]">{children}</div>;
   }
 
   return <ConnectShell>{children}</ConnectShell>;

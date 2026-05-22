@@ -102,23 +102,23 @@ function AssumptionsList({ assumptions }: { assumptions: string[] }) {
           return (
             <li key={i} className="flex items-start gap-2 text-sm">
               <span
-                className="mt-0.5 shrink-0 text-micro text-[--ct-text-strong]"
+                className="mt-0.5 shrink-0 text-micro text-[var(--ct-text-strong)]"
                 aria-hidden
               >
                 ▸
               </span>
               {key !== null ? (
                 <span>
-                  <span className="font-semibold text-[--ct-text-body] capitalize">
+                  <span className="font-semibold text-[var(--ct-text-body)] capitalize">
                     {key}
                   </span>
-                  <span className="text-[--ct-text-muted]">: </span>
-                  <span className="mono text-[--ct-text-body]">
+                  <span className="text-[var(--ct-text-muted)]">: </span>
+                  <span className="mono text-[var(--ct-text-body)]">
                     {value}
                   </span>
                 </span>
               ) : (
-                <span className="text-[--ct-text-body]">{value}</span>
+                <span className="text-[var(--ct-text-body)]">{value}</span>
               )}
             </li>
           );
@@ -130,7 +130,7 @@ function AssumptionsList({ assumptions }: { assumptions: string[] }) {
           variant="ghost"
           size="sm"
           onClick={() => setExpanded((x) => !x)}
-          className="mt-3 text-[--ct-text-strong] hover:text-[--ct-text-strong]"
+          className="mt-3 text-[var(--ct-text-strong)] hover:text-[var(--ct-text-strong)]"
         >
           {expanded
             ? "Show less"
@@ -180,8 +180,8 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
       aria-busy={isPending}
     >
       {isPending && (
-        <div className="pointer-events-none absolute inset-0 z-[--ct-z-overlay] flex items-center justify-center rounded-[--ct-radius-lg] bg-[--ct-surface-2]/60 backdrop-blur-sm">
-          <span className="text-sm text-[--ct-text-body]">Computing…</span>
+        <div className="pointer-events-none absolute inset-0 z-[var(--ct-z-overlay)] flex items-center justify-center rounded-[var(--ct-radius-lg)] bg-[var(--ct-surface-2)]/60 backdrop-blur-sm">
+          <span className="text-sm text-[var(--ct-text-body)]">Computing…</span>
         </div>
       )}
 
@@ -196,7 +196,7 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
           <ApyRange
             low={output.apy_range.low}
             high={output.apy_range.high}
-            className="mono text-5xl font-extrabold tabular-nums text-[--ct-text-strong] leading-none"
+            className="mono text-5xl font-extrabold tabular-nums text-[var(--ct-text-strong)] leading-none"
           />
           <div className="flex flex-col items-end gap-1.5">
             <span className="stat-label">Confidence</span>
@@ -209,15 +209,15 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
           </div>
         </div>
 
-        <div className="mt-4 border-t border-[--ct-border-soft] pt-4">
+        <div className="mt-4 border-t border-[var(--ct-border-soft)] pt-4">
           <div className="mb-3 flex items-center justify-between gap-2">
             <span className="stat-label">Stressed APY</span>
             <ProvenanceBadge kind="estimated" />
           </div>
-          <span className="mono text-2xl font-extrabold tabular-nums text-[--ct-text-primary]">
+          <span className="mono text-2xl font-extrabold tabular-nums text-[var(--ct-text-primary)]">
             {output.stressed_apy.toFixed(1)}%
           </span>
-          <span className="ml-2 text-xs text-[--ct-text-muted]">
+          <span className="ml-2 text-xs text-[var(--ct-text-muted)]">
             bear scenario floor
           </span>
         </div>
@@ -236,11 +236,11 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
             </CardHeader>
             <Markdown content={narrative.narrative_md} />
             {narrative.risk_warning ? (
-              <div className="mt-4 rounded-[--ct-radius-full] border border-[--ct-status-warning] bg-[--ct-status-warning-soft] px-4 py-3">
-                <p className="stat-label mb-1 text-[--ct-status-warning]">
+              <div className="mt-4 rounded-[var(--ct-radius-full)] border border-[var(--ct-status-warning)] bg-[var(--ct-status-warning-soft)] px-4 py-3">
+                <p className="stat-label mb-1 text-[var(--ct-status-warning)]">
                   Risk warning
                 </p>
-                <p className="text-sm text-[--ct-text-body]">
+                <p className="text-sm text-[var(--ct-text-body)]">
                   {narrative.risk_warning}
                 </p>
               </div>
@@ -249,8 +249,8 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
         ) : (
           <Card>
             <div className="flex items-center gap-3">
-              <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[--ct-status-warning]" aria-hidden />
-              <p className="text-xs text-[--ct-text-muted]">
+              <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--ct-status-warning)]" aria-hidden />
+              <p className="text-xs text-[var(--ct-text-muted)]">
                 AI narrative unavailable — engine output shown above.
               </p>
             </div>
@@ -270,17 +270,17 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
             <ProvenanceBadge kind="estimated" />
           </div>
           <div className="mb-1 flex items-baseline gap-1">
-            <span className="mono text-2xl font-extrabold tabular-nums text-[--ct-text-primary]">
+            <span className="mono text-2xl font-extrabold tabular-nums text-[var(--ct-text-primary)]">
               {output.risk_score.toFixed(0)}
             </span>
-            <span className="text-sm text-[--ct-text-muted]">/100</span>
+            <span className="text-sm text-[var(--ct-text-muted)]">/100</span>
           </div>
           <Progress
             value={output.risk_score}
             fillClassName={riskColorClass}
             className="mt-2"
           />
-          <p className="mt-2 text-xs text-[--ct-text-muted]">
+          <p className="mt-2 text-xs text-[var(--ct-text-muted)]">
             Lower = lower risk
           </p>
         </Card>
@@ -292,17 +292,17 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
             <ProvenanceBadge kind="estimated" />
           </div>
           <div className="mb-1 flex items-baseline gap-1">
-            <span className="mono text-2xl font-extrabold tabular-nums text-[--ct-text-primary]">
+            <span className="mono text-2xl font-extrabold tabular-nums text-[var(--ct-text-primary)]">
               {output.mining_margin_score.toFixed(0)}
             </span>
-            <span className="text-sm text-[--ct-text-muted]">/100</span>
+            <span className="text-sm text-[var(--ct-text-muted)]">/100</span>
           </div>
           <Progress
             value={output.mining_margin_score}
             fillClassName={miningColorClass}
             className="mt-2"
           />
-          <p className="mt-2 text-xs text-[--ct-text-muted]">
+          <p className="mt-2 text-xs text-[var(--ct-text-muted)]">
             Current vs target
           </p>
         </Card>
@@ -313,7 +313,7 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="stat-label mb-1">Vault Mode</p>
-            <p className="text-xs text-[--ct-text-muted]">
+            <p className="text-xs text-[var(--ct-text-muted)]">
               Current allocation posture
             </p>
           </div>
@@ -339,19 +339,19 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
         {/* Table */}
         <div className="mt-4">
           {/* Header */}
-          <div className="mb-2 grid grid-cols-[1fr_auto_auto] gap-x-4 text-micro font-semibold uppercase tracking-wide text-[--ct-text-muted]">
+          <div className="mb-2 grid grid-cols-[1fr_auto_auto] gap-x-4 text-micro font-semibold uppercase tracking-wide text-[var(--ct-text-muted)]">
             <span>Bucket</span>
             <span className="text-right">Pct</span>
             <span className="text-right">Yield contribution</span>
           </div>
           {/* Rows */}
-          <ul className="divide-y divide-[--ct-border-soft]">
+          <ul className="divide-y divide-[var(--ct-border-soft)]">
             {output.allocations.map((a) => (
               <li
                 key={a.bucket}
                 className="grid grid-cols-[1fr_auto_auto] items-center gap-x-4 py-2.5 text-sm first:pt-1 last:pb-1"
               >
-                <span className="flex items-center gap-2 text-[--ct-text-body]">
+                <span className="flex items-center gap-2 text-[var(--ct-text-body)]">
                   <span
                     className="inline-block h-2 w-2 shrink-0 rounded-full shadow-[var(--ct-glow-dot)] bg-current"
                     style={{ color: BUCKET_COLOR[a.bucket] }}
@@ -359,10 +359,10 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
                   />
                   {BUCKET_LABEL[a.bucket]}
                 </span>
-                <span className="text-right mono tabular-nums text-[--ct-text-primary]">
+                <span className="text-right mono tabular-nums text-[var(--ct-text-primary)]">
                   {a.pct.toFixed(0)}%
                 </span>
-                <span className="text-right mono tabular-nums text-[--ct-text-muted]">
+                <span className="text-right mono tabular-nums text-[var(--ct-text-muted)]">
                   {a.yield_contribution_bps > 0
                     ? `+${a.yield_contribution_bps} bps`
                     : "P&L variable"}
@@ -398,8 +398,8 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
 
           {/* Armed triggers */}
           {armedTriggers.length > 0 && (
-            <div className="mt-4 border-t border-[--ct-border-soft] pt-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[--ct-text-muted]">
+            <div className="mt-4 border-t border-[var(--ct-border-soft)] pt-4">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--ct-text-muted)]">
                 Armed triggers
               </p>
               <ul className="space-y-1.5">
@@ -409,12 +409,12 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
                     className="flex items-start gap-2 text-sm"
                   >
                     <span
-                      className="mt-0.5 shrink-0 text-micro text-[--ct-status-warning]"
+                      className="mt-0.5 shrink-0 text-micro text-[var(--ct-status-warning)]"
                       aria-hidden
                     >
                       ▸
                     </span>
-                    <span className="text-[--ct-text-body]">
+                    <span className="text-[var(--ct-text-body)]">
                       {t.condition}
                     </span>
                   </li>
@@ -437,8 +437,8 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
       </Card>
 
       {/* ── Disclaimer ──────────────────────────────────────────────────── */}
-      <p className="border-t border-[--ct-border-soft] pt-4 text-xs italic text-[--ct-text-muted]">
-        <span className="font-semibold not-italic text-[--ct-text-body]">
+      <p className="border-t border-[var(--ct-border-soft)] pt-4 text-xs italic text-[var(--ct-text-muted)]">
+        <span className="font-semibold not-italic text-[var(--ct-text-body)]">
           Not guaranteed.
         </span>{" "}
         Projections are conditional on stated assumptions. Methodology v1.0.

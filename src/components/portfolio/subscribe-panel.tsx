@@ -138,7 +138,7 @@ export function SubscribePanel({ vaults, onCancel }: SubscribePanelProps) {
               className={cn(
                 "ct-input tabular w-full pl-8 pr-4 py-3 mono text-lg",
                 amount > 0 && !amountValid &&
-                  "border-[--ct-status-warning-border]",
+                  "border-[var(--ct-status-warning-border)]",
               )}
             />
           </div>
@@ -162,7 +162,7 @@ export function SubscribePanel({ vaults, onCancel }: SubscribePanelProps) {
           </label>
 
           {error && (
-            <p className="body-xs ct-status-danger px-3 py-2 rounded-[--ct-radius-lg] border border-[--ct-status-danger-border] ct-surface-1">
+            <p className="body-xs ct-status-danger px-3 py-2 rounded-[var(--ct-radius-lg)] border border-[var(--ct-status-danger-border)] ct-surface-1">
               {error}
             </p>
           )}

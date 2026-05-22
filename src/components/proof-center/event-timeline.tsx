@@ -66,7 +66,7 @@ export function EventTimeline({ events }: EventTimelineProps) {
       {events.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-12 text-center">
           <svg
-            className="h-10 w-10 text-[--ct-text-muted]"
+            className="h-10 w-10 text-[var(--ct-text-muted)]"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -93,21 +93,21 @@ export function EventTimeline({ events }: EventTimelineProps) {
                 "relative flex gap-5 pb-8",
                 // Suppress timeline line after last item
                 idx < events.length - 1 &&
-                  "before:absolute before:left-[0.8125rem] before:top-7 before:bottom-0 before:w-px before:bg-[--ct-border-soft]",
+                  "before:absolute before:left-[0.8125rem] before:top-7 before:bottom-0 before:w-px before:bg-[var(--ct-border-soft)]",
               )}
             >
               {/* Timeline dot */}
               <div className="relative mt-1 flex h-7 w-7 shrink-0 items-center justify-center">
                 <span
                   className={cn(
-                    "h-3 w-3 rounded-full border-2 border-[--ct-surface-2]",
+                    "h-3 w-3 rounded-full border-2 border-[var(--ct-surface-2)]",
                     event.kind === "GuardrailBreach"
-                      ? "bg-[--ct-status-danger]"
+                      ? "bg-[var(--ct-status-danger)]"
                       : event.kind === "Distribution"
-                        ? "bg-[--ct-status-success]"
+                        ? "bg-[var(--ct-status-success)]"
                         : event.kind === "TriggerArmed"
-                          ? "bg-[--ct-status-warning]"
-                          : "bg-[--ct-text-strong]",
+                          ? "bg-[var(--ct-status-warning)]"
+                          : "bg-[var(--ct-text-strong)]",
                   )}
                 />
               </div>
@@ -124,42 +124,42 @@ export function EventTimeline({ events }: EventTimelineProps) {
                 </div>
 
                 <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs">
-                  <dt className="text-[--ct-text-muted]">Timestamp</dt>
-                  <dd className="text-[--ct-text-body]">
+                  <dt className="text-[var(--ct-text-muted)]">Timestamp</dt>
+                  <dd className="text-[var(--ct-text-body)]">
                     {dateFmt.format(event.timestamp)} UTC
                   </dd>
 
-                  <dt className="text-[--ct-text-muted]">Block</dt>
-                  <dd className="mono tabular text-[--ct-text-body]">
+                  <dt className="text-[var(--ct-text-muted)]">Block</dt>
+                  <dd className="mono tabular text-[var(--ct-text-body)]">
                     {event.blockNumber.toString()}
                   </dd>
 
-                  <dt className="text-[--ct-text-muted]">Publisher</dt>
+                  <dt className="text-[var(--ct-text-muted)]">Publisher</dt>
                   <dd
-                    className="mono tabular text-[--ct-text-body]"
+                    className="mono tabular text-[var(--ct-text-body)]"
                     title={event.publisher}
                   >
                     {truncateAddress(event.publisher)}
                   </dd>
 
-                  <dt className="text-[--ct-text-muted]">Tx hash</dt>
+                  <dt className="text-[var(--ct-text-muted)]">Tx hash</dt>
                   <dd
-                    className="mono tabular text-[--ct-text-primary]"
+                    className="mono tabular text-[var(--ct-text-primary)]"
                     title={event.txHash}
                   >
                     <a
                       href={`${EXPLORER_TX_BASE}${event.txHash}`}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="hover:text-[--ct-text-strong] transition-colors duration-[var(--ct-dur-fast)]"
+                      className="hover:text-[var(--ct-text-strong)] transition-colors duration-[var(--ct-dur-fast)]"
                     >
                       {truncateHash(event.txHash)}
                     </a>
                   </dd>
 
-                  <dt className="text-[--ct-text-muted]">Context hash</dt>
+                  <dt className="text-[var(--ct-text-muted)]">Context hash</dt>
                   <dd
-                    className="mono tabular text-[--ct-text-muted]"
+                    className="mono tabular text-[var(--ct-text-muted)]"
                     title={event.contextHash}
                   >
                     {truncateHash(event.contextHash)}
@@ -173,9 +173,9 @@ export function EventTimeline({ events }: EventTimelineProps) {
                       target="_blank"
                       rel="noreferrer noopener"
                       className={cn(
-                        "rounded-[--ct-radius-full] border border-[--ct-border-strong] bg-[--ct-surface-1]",
-                        "px-3 py-1 text-xs text-[--ct-text-primary]",
-                        "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-3]",
+                        "rounded-[var(--ct-radius-full)] border border-[var(--ct-border-strong)] bg-[var(--ct-surface-1)]",
+                        "px-3 py-1 text-xs text-[var(--ct-text-primary)]",
+                        "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[var(--ct-surface-3)]",
                         "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
                       )}
                     >

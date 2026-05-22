@@ -125,7 +125,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
 
       {/* Sticky CTA footer */}
       <Card
-        className="sticky bottom-6 flex items-center justify-between gap-4 border border-[--ct-border-strong] shadow-[var(--ct-shadow-elevated)]"
+        className="sticky bottom-6 flex items-center justify-between gap-4 border border-[var(--ct-border-strong)] shadow-[var(--ct-shadow-elevated)]"
         role="navigation"
         aria-label="Invest flow actions"
       >

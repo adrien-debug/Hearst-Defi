@@ -233,7 +233,7 @@ export function InvestForm({ vault }: InvestFormProps) {
               className={cn(
                 "ct-input tabular w-full pl-8 pr-4 py-3 mono text-lg",
                 amount > 0 && !amountValid
-                  ? "border-[--ct-status-warning-border] focus:ring-[--ct-status-warning]"
+                  ? "border-[var(--ct-status-warning-border)] focus:ring-[var(--ct-status-warning)]"
                   : "",
               )}
             />
@@ -269,8 +269,8 @@ export function InvestForm({ vault }: InvestFormProps) {
               className={cn(
                 "flex items-center justify-center w-5 h-5 rounded border transition-colors",
                 agreedToTermSheet
-                  ? "bg-[--ct-accent] border-[--ct-border-accent]"
-                  : "ct-surface-1 border-[--ct-border-soft] group-hover:border-[--ct-border-strong]",
+                  ? "bg-[var(--ct-accent)] border-[var(--ct-border-accent)]"
+                  : "ct-surface-1 border-[var(--ct-border-soft)] group-hover:border-[var(--ct-border-strong)]",
               )}
             >
               {agreedToTermSheet && (
@@ -309,7 +309,7 @@ export function InvestForm({ vault }: InvestFormProps) {
 
         {/* Deposit error */}
         {depositError && (
-          <p className="body-xs ct-status-danger px-3 py-2 rounded-[--ct-radius-lg] border border-[--ct-status-danger-border] ct-surface-1">
+          <p className="body-xs ct-status-danger px-3 py-2 rounded-[var(--ct-radius-lg)] border border-[var(--ct-status-danger-border)] ct-surface-1">
             {depositError}
           </p>
         )}

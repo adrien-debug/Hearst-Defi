@@ -117,7 +117,7 @@ function AllocationDiffTable({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm tabular ct-divide-soft border border-[--ct-border-soft] rounded-[--ct-radius-lg] overflow-hidden">
+      <table className="w-full text-sm tabular ct-divide-soft border border-[var(--ct-border-soft)] rounded-[var(--ct-radius-lg)] overflow-hidden">
         <thead>
           <tr className="ct-surface-1">
             <th className="text-left ct-table-header ct-text-muted body-xs">
@@ -145,7 +145,7 @@ function AllocationDiffTable({
             return (
               <tr
                 key={bucket}
-                className="border-t border-[--ct-border-soft] ct-hover-surface transition-colors"
+                className="border-t border-[var(--ct-border-soft)] ct-hover-surface transition-colors"
               >
                 <td className="ct-table-cell ct-text-body mono text-xs capitalize">
                   {bucket.replace(/_/g, " ")}
@@ -321,7 +321,7 @@ export function RebalanceCard({
 
       {/* Error display */}
       {error && (
-        <p className="body-xs ct-status-danger-bg px-3 py-2 rounded-[--ct-radius-lg]">
+        <p className="body-xs ct-status-danger-bg px-3 py-2 rounded-[var(--ct-radius-lg)]">
           {error}
         </p>
       )}

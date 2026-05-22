@@ -94,7 +94,7 @@ export function RiskFrameworkSection({ data }: RiskFrameworkSectionProps) {
         ))}
       </ul>
 
-      <p className="mt-6 text-xs text-[--ct-text-faint] italic leading-relaxed">
+      <p className="mt-6 text-xs text-[var(--ct-text-faint)] italic leading-relaxed">
         Composite score is the weighted sum of the five dimensions defined in
         Methodology v1.0. Conditional projection — not guaranteed.
       </p>
@@ -110,12 +110,12 @@ interface CompositeHeaderProps {
 
 function CompositeHeader({ composite, band, bandLabel }: CompositeHeaderProps) {
   return (
-    <div className="flex flex-col gap-4 rounded-[--ct-radius-xl] glass-panel-subtle px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-4 rounded-[var(--ct-radius-xl)] glass-panel-subtle px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-baseline gap-3">
         <span className="stat-label">Composite</span>
         <span className={cn("text-3xl font-semibold tracking-tight tabular-nums", BAND_TEXT[band])}>
           {composite}
-          <span className="text-[--ct-text-faint] text-lg font-normal ml-1">
+          <span className="text-[var(--ct-text-faint)] text-lg font-normal ml-1">
             / 100
           </span>
         </span>
@@ -151,12 +151,12 @@ function RiskRow({ dimension }: RiskRowProps) {
         />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium text-[--ct-text-primary] group-hover:text-[--ct-text-body] transition-colors">
+            <span className="text-sm font-medium text-[var(--ct-text-primary)] group-hover:text-[var(--ct-text-body)] transition-colors">
               {label}
             </span>
             <Badge variant={SEVERITY_VARIANT[severity]}>{status}</Badge>
           </div>
-          <p className="mt-1 text-xs text-[--ct-text-muted] group-hover:text-[--ct-text-body] transition-colors">{detail}</p>
+          <p className="mt-1 text-xs text-[var(--ct-text-muted)] group-hover:text-[var(--ct-text-body)] transition-colors">{detail}</p>
         </div>
       </div>
       {/* sm:w-[11.25rem] conservé — 11.25rem = 180px, pas de step natif Tailwind (w-44=176px trop étroit, w-48=192px trop large) */}

@@ -97,7 +97,7 @@ export function TimeToTargetChart({ amount, vault }: TimeToTargetChartProps) {
               x={PAD.left - 6}
               y={yOf(nav) + 4}
               textAnchor="end"
-              className="tabular fill-[--ct-text-faint] text-[length:var(--ct-text-micro)]"
+              className="tabular fill-[var(--ct-text-faint)] text-[length:var(--ct-text-micro)]"
             >
               ${(nav / 1000).toFixed(0)}k
             </text>
@@ -111,7 +111,7 @@ export function TimeToTargetChart({ amount, vault }: TimeToTargetChartProps) {
             x={xOf(m)}
             y={H - 6}
             textAnchor="middle"
-            className="fill-[--ct-text-faint] text-[length:var(--ct-text-micro)]"
+            className="fill-[var(--ct-text-faint)] text-[length:var(--ct-text-micro)]"
           >
             m{m}
           </text>
@@ -167,7 +167,7 @@ export function TimeToTargetChart({ amount, vault }: TimeToTargetChartProps) {
             <text
               x={xOf(months10pct) + 4}
               y={PAD.top + 12}
-              className="fill-[--ct-status-success] text-[length:var(--ct-text-micro)]"
+              className="fill-[var(--ct-status-success)] text-[length:var(--ct-text-micro)]"
             >
               +{TARGET_CUMULATIVE_PCT}% @m{months10pct}
             </text>

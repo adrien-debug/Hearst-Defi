@@ -94,18 +94,18 @@ export function OutputPanelCompact({
   // For Risk: higher is "worse" (positive delta = red).
   const apyDeltaToneClass = apyDelta
     ? apyDelta.value > 0.05
-      ? "text-[--ct-status-success]"
+      ? "text-[var(--ct-status-success)]"
       : apyDelta.value < -0.05
-        ? "text-[--ct-status-danger]"
-        : "text-[--ct-text-muted]"
+        ? "text-[var(--ct-status-danger)]"
+        : "text-[var(--ct-text-muted)]"
     : "";
 
   const riskDeltaToneClass = riskDelta
     ? riskDelta.value > 0.5
-      ? "text-[--ct-status-danger]"
+      ? "text-[var(--ct-status-danger)]"
       : riskDelta.value < -0.5
-        ? "text-[--ct-status-success]"
-        : "text-[--ct-text-muted]"
+        ? "text-[var(--ct-status-success)]"
+        : "text-[var(--ct-text-muted)]"
     : "";
 
   return (
@@ -114,8 +114,8 @@ export function OutputPanelCompact({
         "relative flex flex-col gap-4 glass-panel p-5",
         "border-l-4",
         side === "A"
-          ? "border-l-[--ct-border-strong]"
-          : "border-l-[--ct-text-strong]",
+          ? "border-l-[var(--ct-border-strong)]"
+          : "border-l-[var(--ct-text-strong)]",
         "transition-opacity duration-[var(--ct-dur-fast)]",
         isPending && "pointer-events-none opacity-50",
       )}
@@ -133,7 +133,7 @@ export function OutputPanelCompact({
       {/* ── APY Hero ─────────────────────────────────────────────────── */}
       <div className="glass-panel-subtle p-5">
         <div className="mb-3 flex items-start justify-between gap-4">
-          <h4 className="h4 text-[--ct-text-strong]">Projected APY</h4>
+          <h4 className="h4 text-[var(--ct-text-strong)]">Projected APY</h4>
           <ProvenanceBadge kind="estimated" />
         </div>
 
@@ -143,7 +143,7 @@ export function OutputPanelCompact({
             high={output.apy_range.high}
             className={cn(
               "mono text-4xl font-extrabold tabular-nums",
-              "text-[--ct-text-strong] leading-none",
+              "text-[var(--ct-text-strong)] leading-none",
             )}
           />
           <div className="flex flex-col items-end gap-1">
@@ -167,7 +167,7 @@ export function OutputPanelCompact({
             aria-label={`APY midpoint delta vs Scenario A: ${apyDelta.value.toFixed(2)} percentage points`}
           >
             Δ {formatSignedFixed(apyDelta.value, 2)} pts{" "}
-            <span className="font-sans font-normal text-[--ct-text-muted]">
+            <span className="font-sans font-normal text-[var(--ct-text-muted)]">
               midpoint vs Scenario A
             </span>
           </p>
@@ -183,10 +183,10 @@ export function OutputPanelCompact({
             <ProvenanceBadge kind="estimated" />
           </div>
           <div className="mb-1 flex items-baseline gap-1">
-            <span className="mono text-xl font-extrabold tabular-nums text-[--ct-text-primary]">
+            <span className="mono text-xl font-extrabold tabular-nums text-[var(--ct-text-primary)]">
               {output.risk_score.toFixed(0)}
             </span>
-            <span className="text-xs text-[--ct-text-muted]">/100</span>
+            <span className="text-xs text-[var(--ct-text-muted)]">/100</span>
           </div>
           <Progress
             value={output.risk_score}
@@ -203,7 +203,7 @@ export function OutputPanelCompact({
               aria-label={`Risk score delta vs Scenario A: ${Math.round(riskDelta.value)}`}
             >
               Δ {formatSignedInt(riskDelta.value)}{" "}
-              <span className="font-sans font-normal text-[--ct-text-muted]">
+              <span className="font-sans font-normal text-[var(--ct-text-muted)]">
                 vs A
               </span>
             </p>
@@ -219,17 +219,17 @@ export function OutputPanelCompact({
             <ProvenanceBadge kind="estimated" />
           </div>
           <div className="mb-1 flex items-baseline gap-1">
-            <span className="mono text-xl font-extrabold tabular-nums text-[--ct-text-primary]">
+            <span className="mono text-xl font-extrabold tabular-nums text-[var(--ct-text-primary)]">
               {output.mining_margin_score.toFixed(0)}
             </span>
-            <span className="text-xs text-[--ct-text-muted]">/100</span>
+            <span className="text-xs text-[var(--ct-text-muted)]">/100</span>
           </div>
           <Progress
             value={output.mining_margin_score}
             fillClassName={miningColorClass}
             className="mt-1.5"
           />
-          <p className="mt-2 text-micro text-[--ct-text-muted]">
+          <p className="mt-2 text-micro text-[var(--ct-text-muted)]">
             Current vs target
           </p>
         </div>
@@ -240,7 +240,7 @@ export function OutputPanelCompact({
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="stat-label text-micro">Vault Mode</p>
-            <p className="mt-0.5 text-micro text-[--ct-text-muted]">
+            <p className="mt-0.5 text-micro text-[var(--ct-text-muted)]">
               Allocation posture
             </p>
           </div>
@@ -256,23 +256,23 @@ export function OutputPanelCompact({
       {/* ── Allocation (compact table, no stacked bar) ────────────────── */}
       <div className="glass-panel-subtle p-4">
         <div className="mb-3 flex items-start justify-between gap-4">
-          <h4 className="h4 text-[--ct-text-strong]">Allocation</h4>
+          <h4 className="h4 text-[var(--ct-text-strong)]">Allocation</h4>
           <ProvenanceBadge kind="estimated" />
         </div>
 
         <div>
-          <div className="mb-1.5 grid grid-cols-[1fr_auto_auto] gap-x-3 text-micro font-semibold uppercase tracking-wide text-[--ct-text-muted]">
+          <div className="mb-1.5 grid grid-cols-[1fr_auto_auto] gap-x-3 text-micro font-semibold uppercase tracking-wide text-[var(--ct-text-muted)]">
             <span>Bucket</span>
             <span className="text-right">Pct</span>
             <span className="text-right">Yield</span>
           </div>
-          <ul className="divide-y divide-[--ct-border-soft]">
+          <ul className="divide-y divide-[var(--ct-border-soft)]">
             {output.allocations.map((a) => (
               <li
                 key={a.bucket}
                 className="grid grid-cols-[1fr_auto_auto] items-center gap-x-3 py-1.5 text-sm first:pt-0.5 last:pb-0.5"
               >
-                <span className="flex min-w-0 items-center gap-2 text-[--ct-text-body]">
+                <span className="flex min-w-0 items-center gap-2 text-[var(--ct-text-body)]">
                   <span
                     className="inline-block h-2 w-2 shrink-0 rounded-full shadow-[var(--ct-glow-dot)] bg-current"
                     style={{ color: BUCKET_COLOR[a.bucket] }}
@@ -280,10 +280,10 @@ export function OutputPanelCompact({
                   />
                   <span className="truncate">{BUCKET_LABEL[a.bucket]}</span>
                 </span>
-                <span className="text-right mono tabular-nums text-[--ct-text-primary]">
+                <span className="text-right mono tabular-nums text-[var(--ct-text-primary)]">
                   {a.pct.toFixed(0)}%
                 </span>
-                <span className="text-right mono text-xs tabular-nums text-[--ct-text-muted]">
+                <span className="text-right mono text-xs tabular-nums text-[var(--ct-text-muted)]">
                   {a.yield_contribution_bps > 0
                     ? `+${a.yield_contribution_bps}bps`
                     : "P&L"}

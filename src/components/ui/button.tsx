@@ -4,18 +4,18 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/cn";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-[--ct-radius-full] text-sm font-medium transition-all duration-[var(--ct-dur-base)] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)] active:scale-[0.98]",
+  "inline-flex items-center justify-center gap-2 rounded-[var(--ct-radius-full)] text-sm font-medium transition-all duration-[var(--ct-dur-base)] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)] active:scale-[0.98]",
   {
     variants: {
       variant: {
         primary:
-          "font-bold bg-[--ct-text-strong] text-[--ct-bg-deep] hover:bg-[--ct-text-primary] shadow-[var(--ct-glow-subtle)] hover:shadow-[var(--ct-glow-soft)]",
+          "font-bold bg-[var(--ct-accent)] text-[var(--ct-bg-deep)] hover:bg-[var(--ct-accent-strong)] shadow-[var(--ct-glow-subtle)] hover:shadow-[var(--ct-glow-soft)]",
         secondary:
-          "bg-[--ct-surface-0] backdrop-blur-xl border border-[--ct-border-soft] text-[--ct-text-primary] hover:bg-[--ct-surface-2] hover:border-[--ct-border-strong] hover:text-[--ct-text-strong] shadow-[var(--ct-shadow-soft)]",
+          "bg-[var(--ct-surface-0)] backdrop-blur-xl border border-[var(--ct-border-soft)] text-[var(--ct-text-primary)] hover:bg-[var(--ct-surface-2)] hover:border-[var(--ct-border-strong)] hover:text-[var(--ct-text-strong)] shadow-[var(--ct-shadow-soft)]",
         ghost:
-          "text-[--ct-text-muted] hover:bg-[--ct-surface-1] hover:text-[--ct-text-strong]",
+          "text-[var(--ct-text-muted)] hover:bg-[var(--ct-surface-1)] hover:text-[var(--ct-text-strong)]",
         danger:
-          "border border-[--ct-status-danger-border] bg-[--ct-status-danger-soft] text-[--ct-status-danger] hover:bg-[--ct-status-danger-soft] shadow-[var(--ct-glow-subtle)] hover:shadow-[var(--ct-glow-soft)]",
+          "border border-[var(--ct-status-danger-border)] bg-[var(--ct-status-danger-soft)] text-[var(--ct-status-danger)] hover:bg-[var(--ct-status-danger-soft)] shadow-[var(--ct-glow-subtle)] hover:shadow-[var(--ct-glow-soft)]",
       },
       size: {
         sm: "h-8 px-4 text-xs",

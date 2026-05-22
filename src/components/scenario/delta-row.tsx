@@ -56,9 +56,9 @@ function toneClass(metric: DeltaMetric): string {
     ? metric.delta < -THRESHOLD
     : metric.delta > THRESHOLD;
 
-  if (isBetter) return "text-[--ct-status-success]";
-  if (isWorse) return "text-[--ct-status-danger]";
-  return "text-[--ct-text-body]";
+  if (isBetter) return "text-[var(--ct-status-success)]";
+  if (isWorse) return "text-[var(--ct-status-danger)]";
+  return "text-[var(--ct-text-body)]";
 }
 
 function formatDelta(metric: DeltaMetric): string {
@@ -102,16 +102,16 @@ export function DeltaRow({ a, b }: DeltaRowProps) {
             >
               {formatDelta(m)}
             </span>
-            <span className="text-micro text-[--ct-text-muted]">
+            <span className="text-micro text-[var(--ct-text-muted)]">
               {m.unit} · midpoint
             </span>
           </div>
         ))}
       </div>
 
-      <p className="mt-3 text-micro text-[--ct-text-muted]">
+      <p className="mt-3 text-micro text-[var(--ct-text-muted)]">
         Green = Scenario B is better. Red = Scenario B is worse. All deltas are midpoint estimates.
-        <span className="ml-1 font-semibold text-[--ct-text-body]">
+        <span className="ml-1 font-semibold text-[var(--ct-text-body)]">
           Not guaranteed.
         </span>
       </p>

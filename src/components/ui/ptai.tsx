@@ -11,10 +11,10 @@ interface PtaiProps {
 // Each PTAI row maps to a Cockpit status / accent token. We keep the
 // semantic mapping explicit so a token rename ripples to one place only.
 const ROWS: ReadonlyArray<{ key: keyof PtaiProps; label: string; iconColorClass: string }> = [
-  { key: "projection", label: "Projection", iconColorClass: "text-[--ct-status-info]" },
-  { key: "trigger", label: "Trigger", iconColorClass: "text-[--ct-status-warning]" },
-  { key: "action", label: "Action", iconColorClass: "text-[--ct-accent]" },
-  { key: "impact", label: "Impact", iconColorClass: "text-[--ct-status-success]" },
+  { key: "projection", label: "Projection", iconColorClass: "text-[var(--ct-status-info)]" },
+  { key: "trigger", label: "Trigger", iconColorClass: "text-[var(--ct-status-warning)]" },
+  { key: "action", label: "Action", iconColorClass: "text-[var(--ct-accent)]" },
+  { key: "impact", label: "Impact", iconColorClass: "text-[var(--ct-status-success)]" },
 ];
 
 export function Ptai({
@@ -27,18 +27,18 @@ export function Ptai({
   const values: Record<"projection" | "trigger" | "action" | "impact", string> =
     { projection, trigger, action, impact };
   return (
-    <div className={cn("glass-panel-subtle p-4 rounded-[--ct-radius-xl] relative overflow-hidden group", className)}>
-      <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[--ct-surface-3] to-transparent opacity-50" />
+    <div className={cn("glass-panel-subtle p-4 rounded-[var(--ct-radius-xl)] relative overflow-hidden group", className)}>
+      <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[var(--ct-surface-3)] to-transparent opacity-50" />
       <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm relative z-[var(--ct-z-raised)]">
         {ROWS.map(({ key, label, iconColorClass }) => (
           <div key={key} className="contents group/row">
-            <dt className="flex items-center gap-2 mono text-[length:var(--ct-text-micro)] uppercase tracking-wide text-[--ct-text-muted] pt-0.5 group-hover/row:text-[--ct-text-body] transition-colors">
+            <dt className="flex items-center gap-2 mono text-[length:var(--ct-text-micro)] uppercase tracking-wide text-[var(--ct-text-muted)] pt-0.5 group-hover/row:text-[var(--ct-text-body)] transition-colors">
               <span
-                className={cn("h-1.5 w-1.5 rounded-[--ct-radius-full] shadow-[var(--ct-glow-dot)] bg-current", iconColorClass)}
+                className={cn("h-1.5 w-1.5 rounded-[var(--ct-radius-full)] shadow-[var(--ct-glow-dot)] bg-current", iconColorClass)}
               />
               {label}
             </dt>
-            <dd className="text-[--ct-text-body] font-medium group-hover/row:text-[--ct-text-strong] transition-colors">
+            <dd className="text-[var(--ct-text-body)] font-medium group-hover/row:text-[var(--ct-text-strong)] transition-colors">
               {values[key as "projection" | "trigger" | "action" | "impact"]}
             </dd>
           </div>

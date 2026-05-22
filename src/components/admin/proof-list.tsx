@@ -31,7 +31,7 @@ function truncate(str: string, head: number, tail: number): string {
 export function ProofList({ items }: { items: ProofItem[] }) {
   if (items.length === 0) {
     return (
-      <div className="rounded-[--ct-radius-md] border border-dashed border-[--ct-border] px-4 py-8 text-center text-sm text-[--ct-text-muted]">
+      <div className="rounded-[var(--ct-radius-md)] border border-dashed border-[var(--ct-border)] px-4 py-8 text-center text-sm text-[var(--ct-text-muted)]">
         No proofs yet. Use the ingest CLI to publish an attestation.
       </div>
     );
@@ -76,39 +76,39 @@ function ProofRow({ item }: { item: ProofItem }) {
     <Card className="p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1 space-y-2">
-          <div className="flex flex-wrap items-center gap-2 text-xs text-[--ct-text-muted]">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--ct-text-muted)]">
             <Badge variant="brand">{item.proofType}</Badge>
             {item.period ? (
               <Badge variant="default">{item.period}</Badge>
             ) : null}
             <time className="mono">{postedAtDisplay}</time>
-            <span className="mono text-[--ct-text-body]">
+            <span className="mono text-[var(--ct-text-body)]">
               by {postedByDisplay}
             </span>
           </div>
 
-          <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-[--ct-text-muted]">
+          <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-[var(--ct-text-muted)]">
             <span>
-              <span className="text-[--ct-text-muted]">hash </span>
-              <span className="mono text-[--ct-text-body]">
+              <span className="text-[var(--ct-text-muted)]">hash </span>
+              <span className="mono text-[var(--ct-text-body)]">
                 {hashDisplay}
               </span>
             </span>
             <span>
-              <span className="text-[--ct-text-muted]">uri </span>
+              <span className="text-[var(--ct-text-muted)]">uri </span>
               <a
                 href={safeUrl(item.uri)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mono text-[--ct-text-body] hover:text-[--ct-text-strong] underline underline-offset-2"
+                className="mono text-[var(--ct-text-body)] hover:text-[var(--ct-text-strong)] underline underline-offset-2"
               >
                 {uriDisplay} ↗
               </a>
             </span>
             {item.txHash ? (
               <span>
-                <span className="text-[--ct-text-muted]">tx </span>
-                <span className="mono text-[--ct-text-body]">
+                <span className="text-[var(--ct-text-muted)]">tx </span>
+                <span className="mono text-[var(--ct-text-body)]">
                   {truncate(item.txHash, 8, 4)}
                 </span>
               </span>
@@ -116,7 +116,7 @@ function ProofRow({ item }: { item: ProofItem }) {
           </div>
 
           {item.notes ? (
-            <p className="text-xs text-[--ct-text-muted] italic">{item.notes}</p>
+            <p className="text-xs text-[var(--ct-text-muted)] italic">{item.notes}</p>
           ) : null}
         </div>
 

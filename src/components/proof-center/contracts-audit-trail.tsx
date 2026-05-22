@@ -72,11 +72,11 @@ function truncateTx(tx: string): string {
 
 const variantStyles: Record<"success" | "warning" | "default", string> = {
   success:
-    "border-[--ct-status-success-border] bg-[--ct-status-success-soft] text-[--ct-status-success]",
+    "border-[var(--ct-status-success-border)] bg-[var(--ct-status-success-soft)] text-[var(--ct-status-success)]",
   warning:
-    "border-[--ct-status-warning-border] bg-[--ct-status-warning-soft] text-[--ct-status-warning]",
+    "border-[var(--ct-status-warning-border)] bg-[var(--ct-status-warning-soft)] text-[var(--ct-status-warning)]",
   default:
-    "border-[--ct-border-strong] bg-[--ct-surface-1] text-[--ct-text-body]",
+    "border-[var(--ct-border-strong)] bg-[var(--ct-surface-1)] text-[var(--ct-text-body)]",
 };
 
 export function ContractsAuditTrail() {
@@ -96,7 +96,7 @@ export function ContractsAuditTrail() {
           {DEPLOYED_CONTRACTS.map((contract) => (
             <article
               key={contract.address}
-              className="rounded-[--ct-radius-md] border border-[--ct-border-soft] bg-[--ct-surface-1] p-5"
+              className="rounded-[var(--ct-radius-md)] border border-[var(--ct-border-soft)] bg-[var(--ct-surface-1)] p-5"
             >
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h4 className="h4">{contract.name}</h4>
@@ -113,7 +113,7 @@ export function ContractsAuditTrail() {
                       href={`${EXPLORER_ADDRESS_BASE}${contract.address}`}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="mono tabular text-xs text-[--ct-text-primary] hover:text-[--ct-text-strong] transition-colors duration-[var(--ct-dur-fast)]"
+                      className="mono tabular text-xs text-[var(--ct-text-primary)] hover:text-[var(--ct-text-strong)] transition-colors duration-[var(--ct-dur-fast)]"
                       title={contract.address}
                     >
                       {truncateAddress(contract.address)}
@@ -127,7 +127,7 @@ export function ContractsAuditTrail() {
                       href={`${EXPLORER_TX_BASE}${contract.deployTxHash}`}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="mono tabular text-xs text-[--ct-text-body] hover:text-[--ct-text-strong] transition-colors duration-[var(--ct-dur-fast)]"
+                      className="mono tabular text-xs text-[var(--ct-text-body)] hover:text-[var(--ct-text-strong)] transition-colors duration-[var(--ct-dur-fast)]"
                       title={contract.deployTxHash}
                     >
                       {truncateTx(contract.deployTxHash)}
@@ -136,13 +136,13 @@ export function ContractsAuditTrail() {
                 </div>
                 <div className="flex flex-wrap items-baseline justify-between gap-3">
                   <dt className="body-xs">Deploy block</dt>
-                  <dd className="mono tabular text-xs text-[--ct-text-body]">
+                  <dd className="mono tabular text-xs text-[var(--ct-text-body)]">
                     {contract.deployBlock}
                   </dd>
                 </div>
                 <div className="flex flex-wrap items-baseline justify-between gap-3">
                   <dt className="body-xs">Network</dt>
-                  <dd className="body-xs text-[--ct-text-body]">
+                  <dd className="body-xs text-[var(--ct-text-body)]">
                     Base Sepolia (chain id 84532)
                   </dd>
                 </div>
@@ -154,9 +154,9 @@ export function ContractsAuditTrail() {
                   target="_blank"
                   rel="noreferrer noopener"
                   className={cn(
-                    "rounded-[--ct-radius-full] border border-[--ct-text-strong] bg-[--ct-surface-1]",
-                    "px-3 py-1.5 text-xs text-[--ct-text-strong]",
-                    "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-2]",
+                    "rounded-[var(--ct-radius-full)] border border-[var(--ct-text-strong)] bg-[var(--ct-surface-1)]",
+                    "px-3 py-1.5 text-xs text-[var(--ct-text-strong)]",
+                    "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[var(--ct-surface-2)]",
                     "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
                   )}
                 >
@@ -167,9 +167,9 @@ export function ContractsAuditTrail() {
                   target="_blank"
                   rel="noreferrer noopener"
                   className={cn(
-                    "rounded-[--ct-radius-full] border border-[--ct-border-strong] bg-[--ct-surface-1]",
-                    "px-3 py-1.5 text-xs text-[--ct-text-primary]",
-                    "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-3]",
+                    "rounded-[var(--ct-radius-full)] border border-[var(--ct-border-strong)] bg-[var(--ct-surface-1)]",
+                    "px-3 py-1.5 text-xs text-[var(--ct-text-primary)]",
+                    "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[var(--ct-surface-3)]",
                     "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
                   )}
                 >
@@ -194,20 +194,20 @@ export function ContractsAuditTrail() {
           {AUDIT_ENTRIES.map((entry) => (
             <li
               key={entry.label}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-[--ct-radius-md] border border-[--ct-border-soft] bg-[--ct-surface-1] px-4 py-3"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--ct-radius-md)] border border-[var(--ct-border-soft)] bg-[var(--ct-surface-1)] px-4 py-3"
             >
               <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium text-[--ct-text-primary]">
+                <span className="text-sm font-medium text-[var(--ct-text-primary)]">
                   {entry.label}
                 </span>
-                <span className="text-xs text-[--ct-text-body]">
+                <span className="text-xs text-[var(--ct-text-body)]">
                   {entry.status}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span
                   className={cn(
-                    "inline-flex items-center rounded-[--ct-radius-full] border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide leading-none",
+                    "inline-flex items-center rounded-[var(--ct-radius-full)] border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide leading-none",
                     variantStyles[entry.variant],
                   )}
                 >
@@ -223,9 +223,9 @@ export function ContractsAuditTrail() {
                     target="_blank"
                     rel="noreferrer noopener"
                     className={cn(
-                      "rounded-[--ct-radius-full] border border-[--ct-border-strong] bg-[--ct-surface-1]",
-                      "px-3 py-1 text-xs text-[--ct-text-primary]",
-                      "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[--ct-surface-3]",
+                      "rounded-[var(--ct-radius-full)] border border-[var(--ct-border-strong)] bg-[var(--ct-surface-1)]",
+                      "px-3 py-1 text-xs text-[var(--ct-text-primary)]",
+                      "transition-colors duration-[var(--ct-dur-fast)] hover:bg-[var(--ct-surface-3)]",
                       "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
                     )}
                   >
@@ -237,7 +237,7 @@ export function ContractsAuditTrail() {
           ))}
         </ul>
 
-        <p className="body-xs mt-4 border-t border-[--ct-border-soft] pt-4">
+        <p className="body-xs mt-4 border-t border-[var(--ct-border-soft)] pt-4">
           Phase 3 will require a Spearbit audit pass before any ERC-4626 vault
           deployment. Methodology is immutable at v1.0; a version bump requires
           an ADR and LP notification.

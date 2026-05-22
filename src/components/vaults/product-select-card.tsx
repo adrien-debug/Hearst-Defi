@@ -54,17 +54,16 @@ export function ProductSelectCard({ vault }: ProductSelectCardProps) {
 
   return (
     <Card
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-8 md:flex-row md:gap-10"
       aria-label={`${vault.name} — ${STRATEGY_LABELS[vault.strategy]}`}
     >
-      {/* Header row */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex flex-col gap-1 min-w-0">
+      {/* Left column — identity, APY, description */}
+      <div className="flex flex-1 flex-col gap-6 min-w-0">
+        {/* Header */}
+        <div className="flex flex-col gap-2 min-w-0">
           <h2 className="h3 truncate">{vault.name}</h2>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="ct-pill accent mono text-xs">
-              {vault.ticker}
-            </span>
+            <span className="ct-pill accent mono text-xs">{vault.ticker}</span>
             <Badge variant={STATUS_VARIANT[vault.status]}>
               {vault.status === "live"
                 ? "Live"
@@ -78,77 +77,74 @@ export function ProductSelectCard({ vault }: ProductSelectCardProps) {
             </Badge>
           </div>
         </div>
+
+        {/* APY range — mandatory primitive, provenance badge mandatory (#2) */}
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-2">
+            <span className="stat-label">Target APY range</span>
+            <ProvenanceBadge kind="estimated" />
+          </div>
+          <div className="flex items-baseline gap-1">
+            <ApyRange
+              low={vault.apyLow}
+              high={vault.apyHigh}
+              precision={1}
+              className="stat-value"
+            />
+          </div>
+          <p className="body-xs ct-text-muted">
+            Conditional on stated assumptions · not a projection of future
+            results
+          </p>
+        </div>
+
+        {/* Strategy description */}
+        <p className="body-sm ct-text-body line-clamp-3">{vault.description}</p>
       </div>
 
-      {/* APY range — mandatory primitive, provenance badge mandatory (#2) */}
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="stat-label">Target APY range</span>
-          <ProvenanceBadge kind="estimated" />
+      {/* Right column — metrics grid + CTA */}
+      <div className="flex flex-col gap-8 pt-8 border-t border-[var(--ct-border-soft)] md:w-[300px] md:shrink-0 md:pt-0 md:pl-10 md:border-t-0 md:border-l">
+        <div className="grid grid-cols-2 items-start gap-x-8 gap-y-6">
+          <div className="flex flex-col gap-1">
+            <span className="stat-label">Min. ticket</span>
+            <span className="tabular text-base font-semibold ct-text-strong whitespace-nowrap">
+              {USD_COMPACT.format(vault.minTicketUsdc)}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="stat-label">Soft lock-up</span>
+            <span className="tabular text-base font-semibold ct-text-strong whitespace-nowrap">
+              {vault.softLockupDays}d
+            </span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="stat-label">Risk level</span>
+            <span className="text-base font-semibold ct-text-strong whitespace-nowrap">
+              {RISK_LABELS[vault.riskLevel]}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="stat-label">AUM</span>
+            <span className="tabular text-base font-semibold ct-text-strong whitespace-nowrap">
+              {USD_COMPACT.format(vault.currentAumUsdc)}
+            </span>
+          </div>
         </div>
-        <div className="flex items-baseline gap-1">
-          <ApyRange
-            low={vault.apyLow}
-            high={vault.apyHigh}
-            precision={1}
-            className="stat-value"
-          />
-        </div>
-        <p className="body-xs ct-text-muted">
-          Conditional on stated assumptions · not a projection of future results
-        </p>
-      </div>
 
-      {/* Key metrics row */}
-      <div className="flex flex-wrap gap-x-6 gap-y-2 pt-1 border-t border-[--ct-border-soft]">
-        <div className="flex flex-col gap-0.5">
-          <span className="stat-label">Min. ticket</span>
-          <span className="tabular text-sm font-semibold ct-text-strong">
-            {USD_COMPACT.format(vault.minTicketUsdc)}
-          </span>
+        {/* CTA — compact, aligned bottom-right */}
+        <div className="mt-auto flex justify-end">
+          {isLive ? (
+            <Button variant="primary" size="md" asChild className="font-bold">
+              <Link href={href} aria-label={`View details for ${vault.name}`}>
+                Select →
+              </Link>
+            </Button>
+          ) : (
+            <Button variant="secondary" size="md" disabled aria-disabled>
+              Coming soon
+            </Button>
+          )}
         </div>
-        <div className="flex flex-col gap-0.5">
-          <span className="stat-label">Soft lock-up</span>
-          <span className="tabular text-sm font-semibold ct-text-strong">
-            {vault.softLockupDays}d
-          </span>
-        </div>
-        <div className="flex flex-col gap-0.5">
-          <span className="stat-label">Risk level</span>
-          <span className="text-sm font-semibold ct-text-strong">
-            {RISK_LABELS[vault.riskLevel]}
-          </span>
-        </div>
-        <div className="flex flex-col gap-0.5">
-          <span className="stat-label">AUM</span>
-          <span className="tabular text-sm font-semibold ct-text-strong">
-            {USD_COMPACT.format(vault.currentAumUsdc)}
-          </span>
-        </div>
-      </div>
-
-      {/* Strategy description */}
-      <p className="body-sm ct-text-body line-clamp-3">{vault.description}</p>
-
-      {/* CTA */}
-      <div className="mt-auto pt-2">
-        {isLive ? (
-          <Button variant="primary" size="md" asChild className="w-full font-bold">
-            <Link href={href} aria-label={`View details for ${vault.name}`}>
-              Select →
-            </Link>
-          </Button>
-        ) : (
-          <Button
-            variant="secondary"
-            size="md"
-            disabled
-            aria-disabled
-            className="w-full"
-          >
-            Coming soon
-          </Button>
-        )}
       </div>
     </Card>
   );

@@ -57,20 +57,20 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
   }
 
   return (
-    <div className="rounded-[--ct-radius-xl] border border-[--ct-border] bg-[--ct-surface-1]">
+    <div className="rounded-[var(--ct-radius-xl)] border border-[var(--ct-border)] bg-[var(--ct-surface-1)]">
       <div className="flex items-center gap-4 px-5 py-4">
         <span
           role="img"
           aria-label={statusLabel(item.status)}
           className={cn(
-            "inline-block h-2.5 w-2.5 shrink-0 rounded-[--ct-radius-full]",
+            "inline-block h-2.5 w-2.5 shrink-0 rounded-[var(--ct-radius-full)]",
             statusDotClass(item.status),
           )}
           title={statusLabel(item.status)}
         />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <span className="text-base font-medium text-[--ct-text-primary]">
+            <span className="text-base font-medium text-[var(--ct-text-primary)]">
               {item.label}
             </span>
             <Badge variant="default">{item.owner}</Badge>
@@ -79,17 +79,17 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
                 href={safeUrl(item.evidenceUrl)}
                 target="_blank"
                 rel="noreferrer"
-                className="text-sm font-medium text-[--ct-accent] underline-offset-2 hover:underline"
+                className="text-sm font-medium text-[var(--ct-accent)] underline-offset-2 hover:underline"
               >
                 Evidence ↗
               </a>
             ) : null}
             {item.blockers ? <Badge variant="danger">Blocker</Badge> : null}
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[--ct-text-muted]">
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--ct-text-muted)]">
             <span className="mono">{item.id}</span>
             {item.spec_ref ? (
-              <span className="mono text-[--ct-text-faint]">
+              <span className="mono text-[var(--ct-text-faint)]">
                 · {item.spec_ref}
               </span>
             ) : null}
@@ -114,10 +114,10 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
               onClick={() => setStatus(s)}
               disabled={isPending || item.status === s}
               className={cn(
-                "rounded-[--ct-radius-md] px-2.5 py-1.5 disabled:cursor-default",
+                "rounded-[var(--ct-radius-md)] px-2.5 py-1.5 disabled:cursor-default",
                 item.status === s
-                  ? "bg-[--ct-surface-2] text-[--ct-text-primary]"
-                  : "text-[--ct-text-muted] hover:bg-[--ct-surface-2] hover:text-[--ct-text-primary]",
+                  ? "bg-[var(--ct-surface-2)] text-[var(--ct-text-primary)]"
+                  : "text-[var(--ct-text-muted)] hover:bg-[var(--ct-surface-2)] hover:text-[var(--ct-text-primary)]",
               )}
               title={statusLabel(s)}
               aria-label={`Set status to ${statusLabel(s)}`}
@@ -125,7 +125,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
               <span
                 aria-hidden
                 className={cn(
-                  "inline-block h-2 w-2 rounded-[--ct-radius-full]",
+                  "inline-block h-2 w-2 rounded-[var(--ct-radius-full)]",
                   statusDotClass(s),
                 )}
               />
@@ -146,13 +146,13 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
       {open ? (
         <form
           action={onSubmit}
-          className="space-y-3 border-t border-[--ct-border] p-4"
+          className="space-y-3 border-t border-[var(--ct-border)] p-4"
         >
           <input type="hidden" name="itemId" value={item.id} />
 
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block text-xs">
-              <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
+              <span className="mb-1 block text-[var(--ct-text-muted)] uppercase tracking-wide">
                 Status
               </span>
               <select
@@ -169,7 +169,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
             </label>
 
             <label className="block text-xs">
-              <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
+              <span className="mb-1 block text-[var(--ct-text-muted)] uppercase tracking-wide">
                 Validated by
               </span>
               <input
@@ -183,7 +183,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
           </div>
 
           <label className="block text-xs">
-            <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
+            <span className="mb-1 block text-[var(--ct-text-muted)] uppercase tracking-wide">
               Evidence URL
             </span>
             <input
@@ -196,7 +196,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
           </label>
 
           <label className="block text-xs">
-            <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
+            <span className="mb-1 block text-[var(--ct-text-muted)] uppercase tracking-wide">
               Notes
             </span>
             <textarea
@@ -208,7 +208,7 @@ export function RoadmapItemRow({ item }: { item: RoadmapItemWithState }) {
           </label>
 
           <label className="block text-xs">
-            <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
+            <span className="mb-1 block text-[var(--ct-text-muted)] uppercase tracking-wide">
               Blockers
             </span>
             <textarea

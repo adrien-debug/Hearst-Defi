@@ -72,14 +72,14 @@ function ChartEmpty({ title, subtitle, provenance }: ChartEmptyProps) {
       <CardHeader>
         <div className="flex flex-col gap-2">
           <CardTitle>{title}</CardTitle>
-          <p className="text-xs font-medium uppercase tracking-wide text-[--ct-text-muted]">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--ct-text-muted)]">
             {subtitle}
           </p>
         </div>
         <ProvenanceBadge kind={provenance === "live" ? "stale" : provenance} />
       </CardHeader>
-      <div className="flex-1 min-h-[var(--ct-chart-empty-h)] flex items-center justify-center text-center -mx-4 -mb-4 mt-4 rounded-b-[--ct-radius-lg] border border-dashed border-[--ct-border-soft] bg-[--ct-surface-1]">
-        <p className="text-xs text-[--ct-text-muted] px-6 py-8">
+      <div className="flex-1 min-h-[var(--ct-chart-empty-h)] flex items-center justify-center text-center -mx-4 -mb-4 mt-4 rounded-b-[var(--ct-radius-lg)] border border-dashed border-[var(--ct-border-soft)] bg-[var(--ct-surface-1)]">
+        <p className="text-xs text-[var(--ct-text-muted)] px-6 py-8">
           No historical data yet — first snapshot needed.
         </p>
       </div>
@@ -120,18 +120,18 @@ function NavChart({ points, provenance }: NavChartProps) {
       <CardHeader>
         <div className="flex flex-col gap-2">
           <CardTitle>Net Asset Value</CardTitle>
-          <p className="text-xs font-medium uppercase tracking-wide text-[--ct-text-muted]">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--ct-text-muted)]">
             Trailing 30 days · USDC
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <span className="text-3xl font-semibold tabular-nums leading-tight text-[--ct-text-primary] drop-shadow-[var(--ct-glow-subtle)]">
+          <span className="text-3xl font-semibold tabular-nums leading-tight text-[var(--ct-text-primary)] drop-shadow-[var(--ct-glow-subtle)]">
             {usdCompact.format(last)}
           </span>
           <div className="flex items-center gap-3">
             <span
               className={cn(
-                "mono tabular-nums text-sm font-medium px-2 py-0.5 rounded-[--ct-radius-md] backdrop-blur-md",
+                "mono tabular-nums text-sm font-medium px-2 py-0.5 rounded-[var(--ct-radius-md)] backdrop-blur-md",
                 trendDir === "up" && "ct-status-success-bg",
                 trendDir === "down" && "ct-status-danger-bg",
                 trendDir === "flat" && "ct-surface-1 ct-text-body ct-border-base",
@@ -267,7 +267,7 @@ function ApyChart({ points, provenance }: ApyChartProps) {
       <CardHeader>
         <div className="flex flex-col gap-2">
           <CardTitle>APY Range</CardTitle>
-          <p className="text-xs font-medium uppercase tracking-wide text-[--ct-text-muted]">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--ct-text-muted)]">
             Trailing 30d · Target {METHODOLOGY_TARGET_APY.toFixed(0)}%
           </p>
         </div>

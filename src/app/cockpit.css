@@ -10,16 +10,16 @@
 
 /* ── TOKENS COMPLÉMENTAIRES manquants dans tokens.css du package ── */
 :root {
-  /* Override du fond global (remplace le bordeaux #1A050B du package) */
-  --ct-bg-deep: #050A05;
-  
-  /* On force l'accent ici avec !important pour écraser le ThemeAccent du package
-     qui a pu garder l'ancienne couleur en cache Next.js */
+  /* Fond global — noir pur iOS dark (remplace le noir verdâtre #050A05) */
+  --ct-bg-deep: #000000;
+
+  /* Accent système — vert logo Hearst (#A7FB90).
+     !important pour écraser le ThemeAccent du package gardé en cache Next.js. */
   --ct-accent: #A7FB90 !important;
-  
-  /* Override des dérivés qui hardcodent #1A050B dans le package */
-  --ct-accent-maroon: color-mix(in srgb, var(--ct-accent) 20%, var(--ct-bg-deep));
-  --ct-accent-strong: color-mix(in srgb, var(--ct-accent) 78%, #ffffff);
+
+  /* Dérivés d'accent — recalés sur le bleu iOS, plus vifs et lumineux */
+  --ct-accent-maroon: color-mix(in srgb, var(--ct-accent) 22%, var(--ct-bg-deep));
+  --ct-accent-strong: color-mix(in srgb, var(--ct-accent) 82%, #ffffff);
   --ct-accent-soft: color-mix(in srgb, var(--ct-accent) 18%, transparent);
   --ct-border-accent: color-mix(in srgb, var(--ct-accent) 55%, transparent);
 
@@ -68,9 +68,9 @@
   --ct-shadow-soft: 0 4px 24px -4px rgba(0, 0, 0, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.10);
   --ct-shadow-elevated: 0 12px 48px -12px rgba(0, 0, 0, 0.60), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   --ct-shadow-depth: 0 8px 32px -8px rgba(0, 0, 0, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.10);
-  --ct-glow-subtle: 0 0 15px rgba(255, 255, 255, 0.10);
-  --ct-glow-soft:   0 0 10px rgba(255, 255, 255, 0.50);
-  --ct-glow-strong: 0 0 10px rgba(255, 255, 255, 0.80);
+  --ct-glow-subtle: 0 0 22px color-mix(in srgb, var(--ct-accent) 38%, transparent);
+  --ct-glow-soft:   0 0 32px color-mix(in srgb, var(--ct-accent) 62%, transparent);
+  --ct-glow-strong: 0 0 22px color-mix(in srgb, var(--ct-accent) 75%, transparent);
   --ct-glow-dot: 0 0 8px currentColor;
   --ct-shadow-focus-ring: 0 0 0 3px var(--ct-glow-soft);
   --ct-scrollbar-size: 6px;
@@ -556,7 +556,13 @@
 .ct-rail-intra {
   position: fixed;
   left: 0;
+  /* Le rail démarre sous le logo (header shell) et descend jusqu'au-dessus du
+     slot identity (docké à bottom:88px). On lui donne une hauteur réelle pour
+     que justify-content:center centre vraiment les icônes sur l'axe vertical
+     de la colonne — sinon le rail n'a aucune hauteur et les icônes collent
+     en haut, sous le logo (chevauchement). */
   top: var(--ct-shell-header-h);
+  bottom: 88px;
   width: 88px;
   display: flex;
   flex-direction: column;
@@ -824,8 +830,13 @@
 /* Chat history */
 .ct-chat-history                           { padding: 4px 2px; }
 .ct-chat-history-actions                   { padding-bottom: 8px; }
-.ct-chat-history-newbtn                    { padding: 9px 14px; }
-.ct-chat-history-clearbtn                  { padding: 9px 12px; }
+/* Le package pose color:var(--ct-text-strong) (blanc) sur background:var(--ct-accent).
+   Avec l'accent vert clair (#A7FB90) le texte blanc est illisible → texte noir.
+   Le package fixe aussi border-radius:10px ; on l'aligne sur --ct-radius-full
+   (pilule) comme tous les autres boutons de l'app.
+   cockpit.css est unlayered + importé en dernier → gagne sans !important. */
+.ct-chat-history-newbtn                    { padding: 9px 14px; color: var(--ct-bg-deep); border-radius: var(--ct-radius-full); }
+.ct-chat-history-clearbtn                  { padding: 9px 12px; border-radius: var(--ct-radius-full); }
 .ct-chat-history-list                      { padding: 0; }
 .ct-chat-history-item-main                 { padding: 10px 12px; }
 .ct-chat-history-delete                    { padding: 0 10px; }

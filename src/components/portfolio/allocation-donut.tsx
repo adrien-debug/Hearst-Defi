@@ -115,7 +115,7 @@ export function AllocationDonut({
             </div>
           ))}
           {segments.length === 0 && (
-            <span className="dash-legend-left text-[--ct-text-muted]">
+            <span className="dash-legend-left text-[var(--ct-text-muted)]">
               No positions
             </span>
           )}

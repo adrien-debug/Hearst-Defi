@@ -116,12 +116,12 @@ export function RebalancingActions({ output }: RebalancingActionsProps) {
           <CardTitle>Rebalancing Actions</CardTitle>
           <span className="eyebrow">Max 4 · Rule-based</span>
         </CardHeader>
-        <div className="flex items-center gap-3 rounded-[--ct-radius-sm] glass-panel-subtle px-4 py-3">
+        <div className="flex items-center gap-3 rounded-[var(--ct-radius-sm)] glass-panel-subtle px-4 py-3">
           <span
-            className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[--ct-status-success]"
+            className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--ct-status-success)]"
             aria-hidden
           />
-          <p className="text-xs text-[--ct-text-muted]">
+          <p className="text-xs text-[var(--ct-text-muted)]">
             No rebalancing actions triggered — vault allocation is within target bands.
           </p>
         </div>
@@ -141,7 +141,7 @@ export function RebalancingActions({ output }: RebalancingActionsProps) {
           <li
             key={action.ruleId}
             className={cn(
-              "flex gap-4 rounded-[--ct-radius-sm] glass-panel-subtle",
+              "flex gap-4 rounded-[var(--ct-radius-sm)] glass-panel-subtle",
               "px-4 py-3",
             )}
           >
@@ -151,8 +151,8 @@ export function RebalancingActions({ output }: RebalancingActionsProps) {
                 "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center",
                 "rounded-full text-micro font-bold tabular-nums",
                 action.armed
-                  ? "bg-[--ct-text-strong] text-[--ct-bg-deep]"
-                  : "bg-[--ct-surface-3] text-[--ct-text-muted]",
+                  ? "bg-[var(--ct-text-strong)] text-[var(--ct-bg-deep)]"
+                  : "bg-[var(--ct-surface-3)] text-[var(--ct-text-muted)]",
               )}
               aria-hidden
             >
@@ -161,14 +161,14 @@ export function RebalancingActions({ output }: RebalancingActionsProps) {
 
             <div className="min-w-0 flex-1 space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-semibold text-[--ct-text-primary]">
+                <span className="text-sm font-semibold text-[var(--ct-text-primary)]">
                   {action.label}
                 </span>
                 <Badge variant={action.variant} className="text-micro">
                   {action.ruleId}
                 </Badge>
               </div>
-              <p className="text-xs text-[--ct-text-body]">
+              <p className="text-xs text-[var(--ct-text-body)]">
                 {action.detail}
               </p>
             </div>

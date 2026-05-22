@@ -49,7 +49,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
       return (
         <div className="min-h-[50vh] flex items-center justify-center">
           <div className="max-w-md w-full space-y-6 text-center p-8">
-            <div className="w-16 h-16 mx-auto rounded-[--ct-radius-full] ct-status-danger-bg flex items-center justify-center">
+            <div className="w-16 h-16 mx-auto rounded-[var(--ct-radius-full)] ct-status-danger-bg flex items-center justify-center">
               <svg
                 className="w-8 h-8 ct-status-danger"
                 fill="none"
@@ -65,10 +65,10 @@ export class ErrorBoundary extends React.Component<Props, State> {
               </svg>
             </div>
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold text-[--ct-text-primary]">
+              <h2 className="text-xl font-semibold text-[var(--ct-text-primary)]">
                 Something went wrong
               </h2>
-              <p className="text-sm text-[--ct-text-muted]">
+              <p className="text-sm text-[var(--ct-text-muted)]">
                 We encountered an unexpected error. Please refresh the page or
                 try again later.
               </p>
@@ -77,7 +77,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
               Refresh page
             </Button>
             {process.env.NODE_ENV === "development" && this.state.error && (
-              <pre className="mt-4 p-4 rounded-[--ct-radius-lg] ct-status-danger-bg text-[--ct-status-danger] text-left text-xs overflow-auto">
+              <pre className="mt-4 p-4 rounded-[var(--ct-radius-lg)] ct-status-danger-bg text-[var(--ct-status-danger)] text-left text-xs overflow-auto">
                 {this.state.error.message}
               </pre>
             )}

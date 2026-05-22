@@ -3,7 +3,7 @@ import { cn } from "@/lib/cn";
 interface ProgressProps {
   value: number;
   max?: number;
-  /** Optional class applied to the fill bar (e.g. "bg-[--ct-status-danger]"). */
+  /** Optional class applied to the fill bar (e.g. "bg-[var(--ct-status-danger)]"). */
   fillClassName?: string;
   className?: string;
   /**
@@ -28,7 +28,7 @@ export function Progress({
   return (
     <div
       className={cn(
-        "h-1.5 w-full overflow-hidden rounded-[--ct-radius-full] bg-[--ct-surface-2] shadow-inner backdrop-blur-sm",
+        "h-1.5 w-full overflow-hidden rounded-[var(--ct-radius-full)] bg-[var(--ct-surface-2)] shadow-inner backdrop-blur-sm",
         className,
       )}
       role="progressbar"
@@ -41,11 +41,11 @@ export function Progress({
       <div
         className={cn(
           "h-full transition-[width] duration-[var(--ct-dur-slow)] ease-[var(--ct-ease)] relative",
-          fillClassName ?? "bg-[--ct-text-strong]",
+          fillClassName ?? "bg-[var(--ct-text-strong)]",
         )}
         style={{ width: `${pct}%` }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[--ct-surface-3] to-transparent w-full h-full animate-[shimmer_2s_infinite]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--ct-surface-3)] to-transparent w-full h-full animate-[shimmer_2s_infinite]" />
       </div>
     </div>
   );

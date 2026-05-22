@@ -30,28 +30,28 @@ export function Metric({
         className,
       )}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-[--ct-surface-0] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-[var(--ct-dur-slow)] pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[var(--ct-surface-0)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-[var(--ct-dur-slow)] pointer-events-none" />
 
       <div className="flex items-center justify-between gap-2 relative z-[var(--ct-z-raised)]">
-        <span className="stat-label text-[--ct-text-muted] group-hover:text-[--ct-text-body] transition-colors" title={tooltip}>
+        <span className="stat-label text-[var(--ct-text-muted)] group-hover:text-[var(--ct-text-body)] transition-colors" title={tooltip}>
           {label}
         </span>
         {provenance ? <ProvenanceBadge kind={provenance} /> : null}
       </div>
 
-      <span className="stat-value relative z-[var(--ct-z-raised)] text-[--ct-text-strong] drop-shadow-[var(--ct-glow-subtle)]">
+      <span className="stat-value relative z-[var(--ct-z-raised)] text-[var(--ct-text-strong)] drop-shadow-[var(--ct-glow-subtle)]">
         {value}
       </span>
 
       {(sublabel || trend) && (
-        <div className="flex min-w-0 items-center gap-2 text-xs text-[--ct-text-muted] relative z-[var(--ct-z-raised)] mt-auto pt-1">
+        <div className="flex min-w-0 items-center gap-2 text-xs text-[var(--ct-text-muted)] relative z-[var(--ct-z-raised)] mt-auto pt-1">
           {trend ? (
             <span
               className={cn(
-                "font-medium shrink-0 px-1.5 py-0.5 rounded-[--ct-radius-sm] backdrop-blur-md border",
-                trend.direction === "up" && "bg-[--ct-status-success-soft] text-[--ct-status-success] border-[--ct-status-success-border]",
-                trend.direction === "down" && "bg-[--ct-status-danger-soft] text-[--ct-status-danger] border-[--ct-status-danger-border]",
-                trend.direction === "flat" && "bg-[--ct-surface-1] text-[--ct-text-muted] border-[--ct-border]"
+                "font-medium shrink-0 px-1.5 py-0.5 rounded-[var(--ct-radius-sm)] backdrop-blur-md border",
+                trend.direction === "up" && "bg-[var(--ct-status-success-soft)] text-[var(--ct-status-success)] border-[var(--ct-status-success-border)]",
+                trend.direction === "down" && "bg-[var(--ct-status-danger-soft)] text-[var(--ct-status-danger)] border-[var(--ct-status-danger-border)]",
+                trend.direction === "flat" && "bg-[var(--ct-surface-1)] text-[var(--ct-text-muted)] border-[var(--ct-border)]"
               )}
             >
               {trend.direction === "up"

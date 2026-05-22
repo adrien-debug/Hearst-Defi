@@ -83,7 +83,7 @@ export function InputsPanel({ inputs, onChange, disabled }: InputsPanelProps) {
   }
 
   return (
-    <div className="divide-y divide-[--ct-border-soft]">
+    <div className="divide-y divide-[var(--ct-border-soft)]">
       {FIELDS.map((field) => {
         const value = inputs[field.key];
         const pct = ((value - field.min) / (field.max - field.min)) * 100;
@@ -108,14 +108,14 @@ export function InputsPanel({ inputs, onChange, disabled }: InputsPanelProps) {
               <div className="flex items-baseline gap-1.5">
                 <span
                   className={cn(
-                    "mono text-xl font-bold tabular-nums text-[--ct-text-primary]",
+                    "mono text-xl font-bold tabular-nums text-[var(--ct-text-primary)]",
                     disabled && "opacity-50",
                   )}
                 >
                   {field.format(value)}
                 </span>
                 {!isVolIndex && (
-                  <span className="text-xs text-[--ct-text-muted]">
+                  <span className="text-xs text-[var(--ct-text-muted)]">
                     {field.unit}
                   </span>
                 )}
@@ -144,14 +144,14 @@ export function InputsPanel({ inputs, onChange, disabled }: InputsPanelProps) {
 
             {/* Min / max labels */}
             <div className="mt-1.5 flex justify-between">
-              <span className="text-micro text-[--ct-text-muted]">
+              <span className="text-micro text-[var(--ct-text-muted)]">
                 {field.key === "btc_price_change_pct"
                   ? "−60%"
                   : field.key === "vol_index"
                     ? "Low"
                     : `${field.min} ${field.unit}`}
               </span>
-              <span className="text-micro text-[--ct-text-muted]">
+              <span className="text-micro text-[var(--ct-text-muted)]">
                 {field.key === "btc_price_change_pct"
                   ? "+120%"
                   : field.key === "vol_index"

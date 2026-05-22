@@ -20,13 +20,13 @@ export function ApyRange({
   return (
     <span
       className={cn(
-        "tabular font-semibold text-[--ct-text-strong]",
+        "tabular font-semibold text-[var(--ct-text-strong)]",
         className,
       )}
       aria-label={`APY range ${fmt(a)} to ${fmt(b)} ${suffix}`}
     >
       {fmt(a)}
-      <span aria-hidden className="mx-1 text-[--ct-text-muted] font-sans font-normal">
+      <span aria-hidden className="mx-1 text-[var(--ct-text-muted)] font-sans font-normal">
         —
       </span>
       {fmt(b)}

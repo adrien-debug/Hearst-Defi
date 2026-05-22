@@ -51,7 +51,7 @@ export function DistributionPreview({
 
       {/* Recipients table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm tabular border border-[--ct-border-soft] rounded-[--ct-radius-lg] overflow-hidden">
+        <table className="w-full text-sm tabular border border-[var(--ct-border-soft)] rounded-[var(--ct-radius-lg)] overflow-hidden">
           <thead>
             <tr className="ct-surface-1">
               <th className="text-left ct-table-header body-xs ct-text-muted">
@@ -69,7 +69,7 @@ export function DistributionPreview({
             {recipients.map((r) => (
               <tr
                 key={r.investorId}
-                className="border-t border-[--ct-border-soft] ct-hover-surface transition-colors"
+                className="border-t border-[var(--ct-border-soft)] ct-hover-surface transition-colors"
               >
                 <td className="ct-table-cell mono text-xs ct-text-body">
                   {abbrWallet(r.walletAddress)}
@@ -84,7 +84,7 @@ export function DistributionPreview({
             ))}
           </tbody>
           <tfoot>
-            <tr className="border-t border-[--ct-border-strong] ct-surface-2">
+            <tr className="border-t border-[var(--ct-border-strong)] ct-surface-2">
               <td className="ct-table-cell body-xs ct-text-muted font-medium">
                 Total ({recipients.length} recipients)
               </td>

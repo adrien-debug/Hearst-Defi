@@ -19,7 +19,7 @@ export default async function VaultsPage() {
   return (
     <>
       {/* Page header */}
-      <header className="flex flex-col gap-4">
+      <header className="flex flex-col gap-5">
         <span className="eyebrow">Invest</span>
         <h1 className="h1">Select a product</h1>
         <p className="body-lg ct-text-muted max-w-xl">
@@ -28,26 +28,26 @@ export default async function VaultsPage() {
         </p>
 
         {/* Step wizard */}
-        <div className="pt-2">
+        <div className="pt-6">
           <StepProgress active="select" />
         </div>
       </header>
 
       {/* Product grid — auto-fit, single card at MVP */}
-      <section aria-labelledby="vaults-heading">
-        <h2 id="vaults-heading" className="ct-section-title mb-4">
+      <section aria-labelledby="vaults-heading" className="mt-12">
+        <h2 id="vaults-heading" className="ct-section-title mb-6">
           Available products
         </h2>
 
         {vaults.length === 0 ? (
-          <Card className="p-6">
-            <p className="body-md">Aucun produit disponible pour le moment.</p>
-            <p className="body-sm ct-text-muted mt-1">
-              Revenez bientôt ou contactez votre gestionnaire.
+          <Card>
+            <p className="body-md">No products available right now.</p>
+            <p className="body-sm ct-text-muted mt-2">
+              Check back soon or contact your manager.
             </p>
           </Card>
         ) : (
-          <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(var(--ct-vault-card-min-w),1fr))]">
+          <div className="grid gap-6 grid-cols-[repeat(auto-fit,minmax(var(--ct-vault-card-min-w),1fr))]">
             {vaults.map((vault) => (
               <ProductSelectCard key={vault.id} vault={vault} />
             ))}
@@ -56,7 +56,7 @@ export default async function VaultsPage() {
       </section>
 
       {/* Global disclaimer (#10) */}
-      <footer>
+      <footer className="mt-12">
         <p className="body-xs ct-text-faint max-w-2xl">
           Products listed are offered exclusively to professional and qualified
           investors. Past performance does not indicate future results. APY

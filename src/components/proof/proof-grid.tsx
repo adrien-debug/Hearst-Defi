@@ -36,7 +36,7 @@ export function ProofGrid({ proofs, filter }: ProofGridProps) {
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
         <svg
-          className="h-10 w-10 text-[--ct-text-muted]"
+          className="h-10 w-10 text-[var(--ct-text-muted)]"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -50,10 +50,10 @@ export function ProofGrid({ proofs, filter }: ProofGridProps) {
           />
         </svg>
         <div>
-          <p className="body-sm font-medium text-[--ct-text-primary]">
+          <p className="body-sm font-medium text-[var(--ct-text-primary)]">
             {emptyTitle}
           </p>
-          <p className="mt-1 text-xs text-[--ct-text-muted]">{emptyHint}</p>
+          <p className="mt-1 text-xs text-[var(--ct-text-muted)]">{emptyHint}</p>
         </div>
       </div>
     );

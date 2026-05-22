@@ -120,7 +120,7 @@ export function RecentActivity({ transactions, source }: RecentActivityProps) {
           {displayed.map((tx) => (
             <div
               key={tx.id}
-              className="flex items-center gap-3 py-2 border-b border-[--ct-border-soft]"
+              className="flex items-center gap-3 py-2 border-b border-[var(--ct-border-soft)]"
             >
               <TxIcon type={tx.type} />
 

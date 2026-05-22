@@ -142,7 +142,7 @@ function ConfirmDialogBody({
         tabIndex={-1}
         onClick={close}
         disabled={isPending}
-        className="absolute inset-0 cursor-default bg-[--ct-bg-deep]/70 backdrop-blur-sm disabled:cursor-not-allowed"
+        className="absolute inset-0 cursor-default bg-[var(--ct-bg-deep)]/70 backdrop-blur-sm disabled:cursor-not-allowed"
       />
 
       {/* Panel */}
@@ -153,19 +153,19 @@ function ConfirmDialogBody({
         aria-labelledby={titleId}
         aria-describedby={description ? descId : undefined}
         className={cn(
-          "relative w-full max-w-md rounded-[--ct-radius-xl] border border-[--ct-border-strong]",
-          "bg-[--ct-surface-2] p-6 shadow-[var(--ct-shadow-elevated)] z-[var(--ct-z-base)]",
+          "relative w-full max-w-md rounded-[var(--ct-radius-xl)] border border-[var(--ct-border-strong)]",
+          "bg-[var(--ct-surface-2)] p-6 shadow-[var(--ct-shadow-elevated)] z-[var(--ct-z-base)]",
         )}
       >
         <h2
           id={titleId}
-          className="text-lg font-semibold text-[--ct-text-strong]"
+          className="text-lg font-semibold text-[var(--ct-text-strong)]"
         >
           {title}
         </h2>
 
         {description && (
-          <div id={descId} className="body-sm text-[--ct-text-muted] mt-2">
+          <div id={descId} className="body-sm text-[var(--ct-text-muted)] mt-2">
             {description}
           </div>
         )}
@@ -177,7 +177,7 @@ function ConfirmDialogBody({
               className="stat-label block"
             >
               Tapez{" "}
-              <span className="mono tabular text-[--ct-text-strong]">
+              <span className="mono tabular text-[var(--ct-text-strong)]">
                 {confirmPhrase}
               </span>{" "}
               pour confirmer
@@ -200,7 +200,7 @@ function ConfirmDialogBody({
           <div
             id={errorId}
             role="alert"
-            className="ct-status-danger-bg body-xs mt-4 rounded-[--ct-radius-sm] px-3 py-2"
+            className="ct-status-danger-bg body-xs mt-4 rounded-[var(--ct-radius-sm)] px-3 py-2"
           >
             {error}
           </div>

@@ -85,7 +85,7 @@ export function PreFlightCheck({
   const epochOk = epoch.status === "ACTIVE";
 
   return (
-    <Card className="divide-y divide-[--ct-border-soft]">
+    <Card className="divide-y divide-[var(--ct-border-soft)]">
       <p className="eyebrow py-3">Pre-flight check</p>
 
       {/* 1 — Wallet */}
@@ -125,7 +125,7 @@ export function PreFlightCheck({
               type="button"
               onClick={handleApprove}
               disabled={approving}
-              className="border border-[--ct-border-accent] text-[--ct-accent] hover:bg-[--ct-accent-soft]"
+              className="border border-[var(--ct-border-accent)] text-[var(--ct-accent)] hover:bg-[var(--ct-accent-soft)]"
             >
               {approving ? "Approving…" : "Approve"}
             </Button>

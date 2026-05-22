@@ -23,7 +23,7 @@ export function StepProgress({ active }: StepProgressProps) {
   return (
     <nav
       aria-label="Invest flow progress"
-      className="flex items-center gap-0 w-full max-w-lg"
+      className="flex items-center gap-0 w-full"
     >
       {STEPS.map((step, i) => {
         const isDone = step.index < activeIndex;
@@ -39,11 +39,11 @@ export function StepProgress({ active }: StepProgressProps) {
                 aria-current={isActive ? "step" : undefined}
                 className={cn(
                   "inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold border transition-colors",
-                  isDone && "border-[--ct-border-accent] bg-[--ct-accent]",
+                  isDone && "border-[var(--ct-border-accent)] bg-[var(--ct-accent)]",
                   isDone && "ct-text-strong",
                   isActive &&
-                    "border-[--ct-border-accent] bg-[--ct-accent-soft] text-[--ct-accent] shadow-[var(--ct-glow-subtle)]",
-                  !isDone && !isActive && "border-[--ct-border-soft] ct-surface-1",
+                    "border-[var(--ct-border-accent)] bg-[var(--ct-accent-soft)] text-[var(--ct-accent)] shadow-[var(--ct-glow-subtle)]",
+                  !isDone && !isActive && "border-[var(--ct-border-soft)] ct-surface-1",
                   !isDone && !isActive && "ct-text-muted",
                 )}
               >
@@ -90,8 +90,8 @@ export function StepProgress({ active }: StepProgressProps) {
                 className={cn(
                   "flex-1 h-px mx-2 rounded-full transition-colors",
                   isDone
-                    ? "bg-[--ct-accent]"
-                    : "bg-[--ct-border-soft]",
+                    ? "bg-[var(--ct-accent)]"
+                    : "bg-[var(--ct-border-soft)]",
                 )}
               />
             )}
