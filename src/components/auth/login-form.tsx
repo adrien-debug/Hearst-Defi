@@ -60,7 +60,7 @@ export function LoginForm() {
     <>
     <form action={onSubmit} className="space-y-4" aria-label="Sign in">
       <label className="block text-xs" htmlFor="login-email">
-        <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
+        <span className="mb-1 block ct-text-muted uppercase tracking-wide">
           Email
         </span>
         <input
@@ -79,7 +79,7 @@ export function LoginForm() {
       </label>
 
       <label className="block text-xs" htmlFor="login-password">
-        <span className="mb-1 block text-[--ct-text-muted] uppercase tracking-wide">
+        <span className="mb-1 block ct-text-muted uppercase tracking-wide">
           Password
         </span>
         <input
@@ -115,7 +115,7 @@ export function LoginForm() {
     </form>
 
       {SHOW_DEV_SIGN_IN ? (
-        <div className="mt-4 border-t border-[--ct-border-soft] pt-4">
+        <div className="mt-4 border-t ct-border-soft pt-4">
           <Button
             type="button"
             variant="secondary"
@@ -126,7 +126,7 @@ export function LoginForm() {
           >
             Dev sign-in (skip login)
           </Button>
-          <p className="mt-2 text-center text-[length:var(--ct-text-micro)] text-[--ct-text-faint]">
+          <p className="mt-2 text-center eyebrow ct-text-faint">
             Development only · creates a session as the dev investor
           </p>
           <Button
@@ -139,7 +139,7 @@ export function LoginForm() {
           >
             Dev sign-in (admin)
           </Button>
-          <p className="mt-2 text-center text-[length:var(--ct-text-micro)] text-[--ct-text-faint]">
+          <p className="mt-2 text-center eyebrow ct-text-faint">
             Development only · creates an ADMIN session
           </p>
         </div>

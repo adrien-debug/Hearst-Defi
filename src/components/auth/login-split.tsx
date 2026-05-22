@@ -30,7 +30,7 @@ export function LoginSplit() {
             <h1 className="h1 text-balance">
               Institutional
               <br />
-              <span className="text-[--ct-text-strong]">Mining Yield</span>
+              <span className="ct-text-strong">Mining Yield</span>
               <br />
               Vaults
             </h1>
@@ -43,13 +43,13 @@ export function LoginSplit() {
 
           <div className="flex flex-col gap-4">
             <span className="eyebrow">Why Hearst</span>
-            <ul className="flex flex-col divide-y divide-[--ct-border-soft] border-y border-[--ct-border-soft]">
+            <ul className="flex flex-col ct-divide-soft ct-border-soft">
               {WHY.map((row) => (
                 <li
                   key={row.title}
                   className="flex items-center justify-between gap-4 py-3"
                 >
-                  <span className="body-sm font-medium text-[--ct-text-primary]">
+                  <span className="body-sm font-medium ct-text-primary">
                     {row.title}
                   </span>
                   <span className="body-sm ct-text-muted">{row.detail}</span>
@@ -70,7 +70,7 @@ export function LoginSplit() {
 
       {/* ── Right: sign-in panel ─────────────────────────────────────────── */}
       <section 
-        className="relative flex items-center justify-center border-t border-[--ct-border-soft] px-8 py-16 sm:px-12 lg:border-t-0 lg:border-l"
+        className="relative flex items-center justify-center border-t ct-border-soft px-8 py-16 sm:px-12 lg:border-t-0 lg:border-l"
         style={{ 
           background: "color-mix(in srgb, var(--ct-surface-1) 40%, transparent)", 
           backdropFilter: "blur(24px)", 
