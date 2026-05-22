@@ -8,7 +8,8 @@
 //   Apply with: `pnpm db:push` then `pnpm db:generate`.
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {

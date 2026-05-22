@@ -22,6 +22,7 @@ COPY . .
 RUN pnpm db:generate
 
 # Build the application
+ENV STANDALONE_BUILD=1
 RUN pnpm build
 
 # ── Stage 3: Runner ─────────────────────────────────────────────────────────

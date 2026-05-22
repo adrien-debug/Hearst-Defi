@@ -18,15 +18,28 @@ const nextConfig: NextConfig = {
       "@solana/transaction-confirmation": { browser: "./src/lib/empty-module.ts", default: "./src/lib/empty-module.ts" },
     },
   },
+  serverExternalPackages: ["@prisma/client", "@fireblocks/ts-sdk"],
+  outputFileTracingExcludes: {
+    "*": [
+      "node_modules/@prisma/engines/**",
+      "node_modules/.pnpm/@prisma+engines*/**",
+      "node_modules/**/libquery_engine-darwin*",
+      "node_modules/**/schema-engine-*",
+      "node_modules/@swc/core-*/**",
+      "node_modules/esbuild/**",
+    ],
+  },
   experimental: {
     optimizePackageImports: [
-      "@anthropic-ai/sdk",
       "openai",
+      // @react-pdf/renderer: tree-shaken here but NOT in serverExternalPackages —
+      // adding it there breaks Turbopack (native binary conflict with canvas/pdfkit)
       "@react-pdf/renderer",
       "lucide-react",
     ],
   },
-  output: "standalone",
+  // standalone only for Docker/self-host packaging; omitted for Vercel (breaks serverless function routing)
+  ...(process.env.STANDALONE_BUILD ? { output: "standalone" as const } : {}),
   reactStrictMode: true,
   devIndicators: false,
   typescript: {

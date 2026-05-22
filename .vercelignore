@@ -1,0 +1,25 @@
+# Build artifacts & deps — Vercel rebuilds from source remotely.
+# Without this, `vercel --prod` uploads the local .next/standalone (~1.2 GB)
+# and inflates serverless functions past the size limit.
+.next
+.next.trash
+node_modules
+release
+dist-electron
+out
+
+# Desktop / packaging
+electron
+build/icon.icns
+
+# Local & dev
+.env*.local
+prisma/dev.db
+prisma/dev.db-journal
+*.log
+.playwright-mcp
+test-results
+playwright-report
+coverage
+.DS_Store
+docs/audit/screenshots
