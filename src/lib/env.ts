@@ -29,6 +29,14 @@ const serverEnvSchema = z.object({
   NEXT_PUBLIC_CHAIN_RPC_URL: z.string().url().optional(),
   NEXT_PUBLIC_EVENT_LOGGER_ADDRESS: z.string().optional(),
   NEXT_PUBLIC_POR_REGISTRY_ADDRESS: z.string().optional(),
+  // Fireblocks custody (Proof-of-Reserves). Optional — when absent, custody data
+  // falls back to mock with a `Manual` provenance badge instead of `Live`.
+  FIREBLOCKS_API_KEY: z.string().optional(),
+  FIREBLOCKS_SECRET_KEY_PATH: z.string().optional(),
+  FIREBLOCKS_BASE_URL: z.string().url().optional(),
+  // Comma-separated Fireblocks vault account IDs that constitute the vault's
+  // reserves. When empty, the PoR scope is unpinned (configured = false).
+  FIREBLOCKS_VAULT_ACCOUNT_IDS: z.string().optional(),
   // Admin provisioning — comma-separated emails seeded as role=admin, plus the
   // initial password applied to those accounts by `prisma/seed.ts`. Optional;
   // the seed is a no-op when unset.
