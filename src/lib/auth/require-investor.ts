@@ -6,15 +6,15 @@ import { getSession, type SessionUser } from "./session";
 import { enterRequestContext } from "@/lib/request-context";
 
 /**
- * Asserts that the current request is authenticated as an investor and renders
- * the investor product surface.
+ * Asserts that the current request is authenticated, then renders the investor
+ * product surface.
  *
- * The two universes (investor / admin) are intentionally watertight in BOTH
- * directions:
+ * Access rules:
  *   - No / invalid session → redirect to /login?from=<path> (must sign in).
- *   - role === "admin"      → redirect to /admin. An admin landing on an
- *     investor route is sent back to their own zone — this is not a 404,
- *     because /admin is a legitimate destination for them.
+ *   - role === "admin"      → allowed through. Admin ⊇ investor: an admin (e.g.
+ *     the head of product reviewing the platform A→Z) can browse the investor
+ *     surfaces in addition to /admin. The hard boundary remains one-directional
+ *     — `requireAdmin()` still blocks investors from /admin.
  *   - role === "investor"   → allowed through.
  *
  * Use at the top of the (product) layout. The edge proxy can only check cookie
@@ -25,10 +25,6 @@ export async function requireInvestor(from: string): Promise<SessionUser> {
 
   if (!session) {
     redirect(`/login?from=${encodeURIComponent(from)}`);
-  }
-
-  if (session.role === "admin") {
-    redirect("/admin");
   }
 
   // Propagate the real user id into the request context for logging/tracing.
