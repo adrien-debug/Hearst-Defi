@@ -21,6 +21,7 @@ import type { PositionDetail } from "@/lib/data/portfolio";
 import type { DistributionSnapshot } from "@/lib/agents/loaders/distribution";
 import type { MiningOpsSnapshot } from "@/lib/agents/loaders/mining";
 import type { VaultMonthlyRow } from "@/lib/agents/loaders/vault";
+import { aggregateLpPnl } from "@/lib/engine/lp-pnl";
 
 /**
  * Deterministic fixtures for demo mode.
@@ -643,6 +644,14 @@ export const DEMO_PORTFOLIO_DATA: PortfolioData = {
   ],
   totalValueUsdc: DEMO_POSITION_PRINCIPAL + DEMO_POSITION_ACCRUED,
   totalYieldYtdUsdc: DEMO_POSITION_ACCRUED + DEMO_POSITION_DISTRIBUTED,
+  pnl: aggregateLpPnl([
+    {
+      contributedUsdc: DEMO_POSITION_PRINCIPAL,
+      distributedUsdc: DEMO_POSITION_DISTRIBUTED,
+      accruedYieldUsdc: DEMO_POSITION_ACCRUED,
+      daysHeld: 168,
+    },
+  ]),
   nextDistributionAt: new Date(Date.UTC(2026, 5, 1, 0, 0, 0)), // 2026-06-01
   recentTransactions: [
     {

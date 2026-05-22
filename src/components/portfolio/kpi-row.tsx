@@ -1,5 +1,6 @@
 import { ProvenanceBadge, type Provenance } from "@/components/ui/provenance-badge";
 import type { PortfolioData } from "@/lib/data/portfolio";
+import { cn } from "@/lib/cn";
 import { formatUsdCompact } from "@/lib/format/usd-compact";
 
 const monthDayFmt = new Intl.DateTimeFormat("en-US", {
@@ -40,6 +41,19 @@ export function PortfolioKpiRow({ data }: KpiRowProps) {
           </span>
           <span className="dash-unit">USDC</span>
         </div>
+        {hasPositions && data.pnl ? (
+          <p
+            className={cn(
+              "body-xs mt-2 tabular",
+              data.pnl.netReturnPct >= 0
+                ? "ct-status-success"
+                : "ct-status-danger",
+            )}
+          >
+            {data.pnl.netReturnPct >= 0 ? "+" : ""}
+            {data.pnl.netReturnPct.toFixed(1)}% net return
+          </p>
+        ) : null}
       </article>
 
       {/* Yield YTD */}
