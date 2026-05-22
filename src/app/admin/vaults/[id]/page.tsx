@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { VaultActionButton } from "@/components/admin/vault-action-button";
 import { VaultStatusPill } from "@/components/admin/vault-status-pill";
 import { ApyRange } from "@/components/ui/apy-range";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,35 @@ export default async function VaultDetailPage({ params }: PageProps) {
   const alreadySigned = vault.approvals.some((a) => a.signerWallet === actorWallet);
   const approveCount = vault.approvals.filter((a) => a.decision === "approve").length;
 
+  const submitForReviewAction = async () => {
+    "use server";
+    await submitForReview(id);
+  };
+  const approveAction = async () => {
+    "use server";
+    await signApproval(id, "approve");
+  };
+  const rejectAction = async () => {
+    "use server";
+    await signApproval(id, "reject", "Rejected via admin UI");
+  };
+  const markAsLiveAction = async () => {
+    "use server";
+    await markAsLive(id);
+  };
+  const pauseAction = async () => {
+    "use server";
+    await pauseVault(id);
+  };
+  const resumeAction = async () => {
+    "use server";
+    await resumeVault(id);
+  };
+  const closeAction = async () => {
+    "use server";
+    await closeVault(id);
+  };
+
   return (
     <section className="ct-section space-y-8">
       {/* Header */}
@@ -101,92 +131,114 @@ export default async function VaultDetailPage({ params }: PageProps) {
               <Button variant="secondary" size="md" asChild>
                 <Link href={`/admin/vaults/${id}/edit`}>Edit</Link>
               </Button>
-              <form
-                action={async () => {
-                  "use server";
-                  await submitForReview(id);
+              <VaultActionButton
+                label="Submit for Review"
+                variant="primary"
+                action={submitForReviewAction}
+                confirm={{
+                  title: "Soumettre pour revue ?",
+                  description:
+                    "Le vault passera en statut « review » et sera soumis aux signataires.",
+                  confirmLabel: "Soumettre",
+                  confirmVariant: "primary",
                 }}
-              >
-                <Button variant="primary" size="md" type="submit">
-                  Submit for Review
-                </Button>
-              </form>
+              />
             </>
           )}
 
           {vault.status === "review" && whitelist.includes(actorWallet) && !alreadySigned && (
             <>
-              <form
-                action={async () => {
-                  "use server";
-                  await signApproval(id, "approve");
+              <VaultActionButton
+                label="Sign Approval"
+                variant="primary"
+                action={approveAction}
+                confirm={{
+                  title: "Signer l'approbation ?",
+                  description:
+                    "Votre signature d'approbation sera enregistrée de façon permanente.",
+                  confirmLabel: "Signer",
+                  confirmVariant: "primary",
                 }}
-              >
-                <Button variant="primary" size="md" type="submit">
-                  Sign Approval
-                </Button>
-              </form>
-              <form
-                action={async () => {
-                  "use server";
-                  await signApproval(id, "reject", "Rejected via admin UI");
+              />
+              <VaultActionButton
+                label="Sign Rejection"
+                variant="danger"
+                action={rejectAction}
+                confirm={{
+                  title: "Signer le rejet ?",
+                  description:
+                    "Votre signature de rejet sera enregistrée de façon permanente.",
+                  confirmLabel: "Rejeter",
+                  confirmVariant: "danger",
                 }}
-              >
-                <Button variant="danger" size="md" type="submit">
-                  Sign Rejection
-                </Button>
-              </form>
+              />
             </>
           )}
 
           {vault.status === "deployed" && (
-            <form
-              action={async () => {
-                "use server";
-                await markAsLive(id);
+            <VaultActionButton
+              label="Mark as Live"
+              variant="primary"
+              action={markAsLiveAction}
+              confirm={{
+                title: "Passer le vault en live ?",
+                description:
+                  "Le vault deviendra actif et ouvert aux souscriptions.",
+                confirmLabel: "Mettre en live",
+                confirmVariant: "primary",
               }}
-            >
-              <Button variant="primary" size="md" type="submit">
-                Mark as Live
-              </Button>
-            </form>
+            />
           )}
 
           {vault.status === "live" && (
-            <form
-              action={async () => {
-                "use server";
-                await pauseVault(id);
+            <VaultActionButton
+              label="Pause"
+              variant="secondary"
+              action={pauseAction}
+              confirm={{
+                title: "Mettre en pause ?",
+                description:
+                  "Les souscriptions et l'activité du vault seront suspendues.",
+                confirmLabel: "Pause",
+                confirmVariant: "primary",
               }}
-            >
-              <Button variant="secondary" size="md" type="submit">
-                Pause
-              </Button>
-            </form>
+            />
           )}
 
           {vault.status === "paused" && (
             <>
-              <form
-                action={async () => {
-                  "use server";
-                  await resumeVault(id);
+              <VaultActionButton
+                label="Resume"
+                variant="primary"
+                action={resumeAction}
+                confirm={{
+                  title: "Reprendre l'activité ?",
+                  description: "Le vault repassera en statut « live ».",
+                  confirmLabel: "Reprendre",
+                  confirmVariant: "primary",
                 }}
-              >
-                <Button variant="primary" size="md" type="submit">
-                  Resume
-                </Button>
-              </form>
-              <form
-                action={async () => {
-                  "use server";
-                  await closeVault(id);
+              />
+              <VaultActionButton
+                label="Close Vault"
+                variant="danger"
+                action={closeAction}
+                confirm={{
+                  title: "Clôturer le vault ?",
+                  description: (
+                    <>
+                      Cette action est{" "}
+                      <strong className="text-[--ct-status-danger]">
+                        irréversible
+                      </strong>
+                      . Une fois clôturé, le vault ne pourra plus jamais être
+                      réactivé. Aucune transition d'état ne sera possible.
+                    </>
+                  ),
+                  confirmLabel: "Clôturer définitivement",
+                  confirmVariant: "danger",
+                  confirmPhrase: vault.ticker,
                 }}
-              >
-                <Button variant="danger" size="md" type="submit">
-                  Close Vault
-                </Button>
-              </form>
+              />
             </>
           )}
         </div>

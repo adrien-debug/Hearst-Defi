@@ -83,7 +83,7 @@ Utilisables comme `bg-bg`, `bg-bg-card`, `text-text`, `border-border`, etc. Aucu
 
 ## 4. Primitives UI figées (`src/components/ui/`)
 
-**11 primitives autorisées**, listées ci-dessous. **Aucune nouvelle primitive ne s'ajoute sans validation explicite.**
+**12 primitives autorisées**, listées ci-dessous. **Aucune nouvelle primitive ne s'ajoute sans validation explicite.**
 
 | Fichier | Rôle | Notes |
 |---|---|---|
@@ -97,8 +97,9 @@ Utilisables comme `bg-bg`, `bg-bg-card`, `text-text`, `border-border`, etc. Aucu
 | `apy-range.tsx` | **Obligatoire pour APY** | `low–high %` — jamais ponctuel |
 | `ptai.tsx` | **Obligatoire pour simulations/rebal** | Projection → Trigger → Action → Impact |
 | `toaster.tsx` + `client-toaster.tsx` | Sonner Cockpit-themed | Override dans `cockpit.css` `[data-sonner-toaster]` |
+| `confirm-dialog.tsx` | Modale de confirmation accessible (focus trap, Escape, backdrop, `confirmPhrase` retape) | Validé 2026-05-22, confirmation actions destructives (cycle de vie vault). Tokens `--ct-*` only, pas de lib externe |
 
-**Si tu as besoin d'un nouveau composant** : compose à partir de ces 11 primitives + helpers `.ct-*`, ne crée pas une 12e primitive sans demander.
+**Si tu as besoin d'un nouveau composant** : compose à partir de ces 12 primitives + helpers `.ct-*`, ne crée pas une 12e primitive sans demander.
 
 ---
 
