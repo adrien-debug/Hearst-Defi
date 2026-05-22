@@ -1,5 +1,6 @@
-import "server-only";
-
+// NOTE: deliberately NOT `server-only`. This module is isomorphic (only `fetch`
+// + pure math, no prisma/fs/secrets) so the `tsx` backfill script can import it.
+//
 // Historical market series for the 36-month backfill. Hybrid by design: try the
 // free public APIs (CoinGecko daily prices, mempool.space difficulty steps) and
 // fall back to a deterministic synthetic series when they fail or rate-limit, so

@@ -5,7 +5,10 @@ import { fetchBtcPrice } from "@/lib/data/btc-price";
 import { fetchDefiLlama } from "@/lib/data/defillama";
 import { fetchFearGreed } from "@/lib/data/fear-greed";
 import { fetchHashprice } from "@/lib/data/hashprice";
-import { computeMiningRevenue } from "@/lib/engine/mining";
+import {
+  computeMiningRevenue,
+  computeOperationalConfidence,
+} from "@/lib/engine/mining";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { isDuplicate, markComplete } from "@/lib/idempotency";
@@ -126,23 +129,6 @@ async function marketDataHourlyHandler({
 
   await markComplete(MARKET_DATA_HOURLY_ID, now);
   return { btcUsd: btc.usd, hashprice: hp.usd_per_th_day, miningMarginScore: marginScore };
-}
-
-/**
- * Simple operational confidence heuristic:
- * - margin_score >= 70 → high confidence (80-100)
- * - margin_score 40-70 → moderate (50-80)
- * - margin_score < 40 → low (0-50)
- * - Adjusted by BTC 24h change magnitude (>10% swing reduces confidence)
- */
-function computeOperationalConfidence(marginScore: number, btc24hChange: number): number {
-  let base = marginScore;
-  if (marginScore >= 70) base = 85;
-  else if (marginScore >= 40) base = 65;
-  else base = 40;
-
-  const volatilityPenalty = Math.min(20, Math.abs(btc24hChange) * 0.5);
-  return Math.round(Math.max(0, Math.min(100, base - volatilityPenalty)));
 }
 
 export const marketDataHourly = inngest.createFunction(

@@ -22,6 +22,7 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
+    "db:backfill": "tsx prisma/backfill.ts",
     "electron:compile": "tsc -p electron",
     "electron:dev": "concurrently --restart-tries 3 --restart-after 2000 -n next,electron -c blue,magenta \"pnpm dev\" \"wait-on http://localhost:4105 && pnpm electron:compile && cross-env ELECTRON_RUN_AS_NODE= electron .\"",
     "electron:start": "pnpm electron:compile && cross-env ELECTRON_RUN_AS_NODE= electron .",

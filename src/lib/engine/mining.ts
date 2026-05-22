@@ -22,6 +22,26 @@ export function computeMiningRevenue(inputs: ScenarioInputs): MiningRevenue {
   };
 }
 
+/**
+ * Operational confidence heuristic (0–100), shared by the hourly cron and the
+ * historical backfill so live and backfilled points sit on the same curve:
+ * - margin_score ≥ 70 → high (base 85)
+ * - margin_score 40–69 → moderate (base 65)
+ * - margin_score < 40 → low (base 40)
+ * minus a volatility penalty scaled by |BTC 24h change|, capped at 20.
+ *
+ * (Simplified placeholder; the full spec-05 formula folds in uptime_30d,
+ * attestation freshness and energy-cost stability once those feeds exist.)
+ */
+export function computeOperationalConfidence(
+  marginScore: number,
+  btc24hChange: number,
+): number {
+  const base = marginScore >= 70 ? 85 : marginScore >= 40 ? 65 : 40;
+  const volatilityPenalty = Math.min(20, Math.abs(btc24hChange) * 0.5);
+  return Math.round(clip(base - volatilityPenalty, 0, 100));
+}
+
 function clip(n: number, lo: number, hi: number): number {
   if (n < lo) return lo;
   if (n > hi) return hi;
