@@ -1,9 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
-import Anthropic from "@anthropic-ai/sdk";
 
 import { runInvestorMemo } from "@/lib/agents/investor-memo";
 import { prisma } from "@/lib/db";
 import type { InvestorMemoInput } from "@/lib/agents/investor-memo";
+
+/** OpenAI-SDK-style error: an Error carrying an HTTP `status`. The client
+ *  classifies retryability by the numeric `status`, not by any SDK class. */
+function apiError(status: number, message: string): Error {
+  const err = new Error(message) as Error & { status: number };
+  err.status = status;
+  return err;
+}
 
 describe("Investor Memo integration", () => {
   it("generates a memo and persists a LlmRun record", async () => {
@@ -61,7 +68,7 @@ describe("Investor Memo integration", () => {
     expect(run).toBeDefined();
     if (run) {
       expect(run.status).toBe("success");
-      expect(run.model).toContain("opus");
+      expect(run.model).toBe("kimi-k2.6");
       expect(run.inputTokens).toBe(500);
       expect(run.outputTokens).toBe(300);
       expect(run.costUsd).toBeGreaterThan(0);
@@ -88,7 +95,7 @@ describe("Investor Memo integration", () => {
       usage: { input_tokens: 100, output_tokens: 50 },
     };
 
-    const error429 = new Anthropic.APIError(429, undefined, "Rate limited", undefined);
+    const error429 = apiError(429, "Rate limited");
 
     const mockClient = {
       messages: {

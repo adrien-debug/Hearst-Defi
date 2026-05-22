@@ -15,10 +15,10 @@ import { assertCitesAssumption, assertNoForbiddenWords } from "@/lib/agents/vali
 /**
  * Default model id for the Risk Explanation Agent.
  *
- * Pinned to Sonnet 4.6 per CLAUDE.md ("Sonnet 4.6 for ops").
+ * Runs on Hypercli (Kimi K2.6) — the single provider.
  * Triggers daily and on every rebalancing event.
  */
-export const RISK_EXPLANATION_MODEL = "claude-sonnet-4-6" as const;
+export const RISK_EXPLANATION_MODEL = "kimi-k2.6" as const;
 
 /**
  * Input for the Risk Explanation Agent.
@@ -51,7 +51,7 @@ export interface RunRiskExplanationOptions {
    * init.
    */
   client?: LlmClientLike;
-  /** Override the default model. Default: claude-sonnet-4-6. */
+  /** Override the default model. Default: kimi-k2.6. */
   model?: string;
 }
 

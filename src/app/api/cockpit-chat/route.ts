@@ -26,10 +26,7 @@ const SYSTEM_PROMPT =
 // Models the chat may run on. The client (cockpit-shell useChat) sends the
 // value of localStorage["cockpit:chat-model"]; anything outside this allowlist
 // falls back to the default so a tampered body can't pick an arbitrary model.
-const ALLOWED_MODELS = new Set<string>([
-  env.HYPERCLI_DEFAULT_MODEL,
-  env.HYPERCLI_ANTHROPIC_MODEL,
-]);
+const ALLOWED_MODELS = new Set<string>([env.HYPERCLI_DEFAULT_MODEL]);
 
 function resolveModel(requested: string | undefined): string {
   return requested && ALLOWED_MODELS.has(requested) ? requested : KIMI_MODEL;

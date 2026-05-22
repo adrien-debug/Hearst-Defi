@@ -17,8 +17,9 @@
  *   - `buildUserContextSystemBlock` is the real implementation (pure function).
  */
 
-import Anthropic from "@anthropic-ai/sdk";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import type { LlmParams } from "@/lib/llm/client";
 
 // ---- module mocks (must be top-level before any imports) -------------------
 
@@ -51,13 +52,13 @@ vi.mock("@/lib/logger", () => ({
 // Capture params passed to callLlm. We mock the whole module so no real API
 // call is made. The array is module-level so each test can inspect it after
 // clearing in beforeEach.
-const capturedParams: Anthropic.MessageCreateParamsNonStreaming[] = [];
+const capturedParams: LlmParams[] = [];
 
 vi.mock("@/lib/llm/client", () => ({
   callLlm: vi.fn(
     async (
       agentName: string,
-      params: Anthropic.MessageCreateParamsNonStreaming,
+      params: LlmParams,
     ) => {
       capturedParams.push(params);
       // Return appropriate fixture based on which agent is calling.
@@ -199,7 +200,7 @@ const mockLoadUserMemory = vi.mocked(loadUserMemory);
 // params.system can be `string | TextBlockParam[] | undefined` — we narrow to
 // the array case (which is what our agents always produce) via `unknown`.
 function getSystemBlocks(
-  params: Anthropic.MessageCreateParamsNonStreaming,
+  params: LlmParams,
 ): Array<{ type: string; text?: string; cache_control?: unknown }> {
   if (!Array.isArray(params.system)) return [];
   return (params.system as unknown) as Array<{
@@ -342,7 +343,7 @@ describe("runInvestorMemo — user-context injection + P1 best-effort", () => {
   });
 
   it("without userId → params.system has exactly 1 block", async () => {
-    await runInvestorMemo(makeInvestorMemoInput(), { model: "claude-sonnet-4-6" });
+    await runInvestorMemo(makeInvestorMemoInput(), { model: "kimi-k2.6" });
 
     expect(capturedParams).toHaveLength(1);
     const blocks = getSystemBlocks(capturedParams[0]!);
@@ -360,7 +361,7 @@ describe("runInvestorMemo — user-context injection + P1 best-effort", () => {
     );
 
     await runInvestorMemo(makeInvestorMemoInput(), {
-      model: "claude-sonnet-4-6",
+      model: "kimi-k2.6",
       userId: "user-abc",
     });
 
@@ -382,7 +383,7 @@ describe("runInvestorMemo — user-context injection + P1 best-effort", () => {
     // Must resolve without throwing
     await expect(
       runInvestorMemo(makeInvestorMemoInput(), {
-        model: "claude-sonnet-4-6",
+        model: "kimi-k2.6",
         userId: "user-db-down",
       }),
     ).resolves.not.toThrow();
@@ -414,7 +415,7 @@ describe("runInvestorMemo — user-context injection + P1 best-effort", () => {
 
     await expect(
       runInvestorMemo(makeInvestorMemoInput(), {
-        model: "claude-sonnet-4-6",
+        model: "kimi-k2.6",
         userId: "user-bad-instructions",
       }),
     ).resolves.not.toThrow();

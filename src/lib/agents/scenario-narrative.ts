@@ -23,11 +23,11 @@ import { formatApyRange } from "@/lib/format/apy";
 /**
  * Default model id for the Scenario Narrative Agent.
  *
- * Pinned to Sonnet 4.6 per CLAUDE.md ("Sonnet 4.6 for ops").
- * Override via `opts.model` only for evaluation / canary work; production
- * callers should leave the default.
+ * Runs on Hypercli (Kimi K2.6) — the single provider. Override via
+ * `opts.model` only for evaluation / canary work; production callers should
+ * leave the default.
  */
-export const SCENARIO_NARRATIVE_MODEL = "claude-sonnet-4-6" as const;
+export const SCENARIO_NARRATIVE_MODEL = "kimi-k2.6" as const;
 
 export interface ScenarioNarrativeInput {
   /** Scenario identifier (e.g. "base", "bear", "bull", or custom id). */
@@ -44,7 +44,7 @@ export interface RunScenarioNarrativeOptions {
    * init.
    */
   client?: LlmClientLike;
-  /** Override the default model. Default: claude-sonnet-4-6. */
+  /** Override the default model. Default: kimi-k2.6. */
   model?: string;
   /**
    * Authenticated user identifier. When provided, the per-user persona

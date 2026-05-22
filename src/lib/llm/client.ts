@@ -1,105 +1,122 @@
 import "server-only";
 
-import Anthropic from "@anthropic-ai/sdk";
 import { createHash } from "node:crypto";
 
 import { CircuitBreaker } from "@/lib/circuit-breaker";
 import { prisma } from "@/lib/db";
-import { env } from "@/lib/env";
 import { kimi, KIMI_MODEL } from "@/lib/llm/kimi";
-import { logger } from "@/lib/logger";
 import { getRequestContext } from "@/lib/request-context";
 
 /**
- * Thin, auditable wrapper around the Anthropic SDK.
+ * Thin, auditable wrapper around the single LLM provider: Kimi K2.6 via the
+ * OpenAI-compatible Hypercli endpoint.
  *
  * Features:
  * - Configurable timeout (default 30 s)
  * - Exponential-backoff retry for 429 / 5xx
  * - Circuit breaker (opens after 5 failures, 60s cooldown)
  * - Automatic persistence to `LlmRun` for cost, latency and error tracing
- * - Graceful degradation when ANTHROPIC_API_KEY is absent
  * - Request ID propagation from async context to LlmRun logs
  *
- * Tests should inject a `client` shaped like `{ messages: { create: ... } }`
- * so they never hit the real API.
+ * Agents are provider-agnostic: they build `LlmParams` (a small Anthropic-style
+ * shape — system blocks + messages) and call `callLlm`. The wrapper flattens
+ * that into an OpenAI chat-completion request for Kimi.
+ *
+ * Tests inject a `client` shaped like `{ messages: { create: ... } }` so they
+ * never hit the real API.
  */
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_MAX_RETRIES = 3;
 
-/** Shared circuit breaker for all Anthropic calls. */
-const anthropicBreaker = new CircuitBreaker({
-  name: "anthropic",
+/** Shared circuit breaker for all Kimi calls. */
+const kimiBreaker = new CircuitBreaker({
+  name: "kimi",
   failureThreshold: 5,
   cooldownMs: 60_000,
 });
 
-/** Subset of the Anthropic client surface we actually need. */
+/* --------------------------------------------------------------------------
+ * Minimal LLM types (provider-agnostic, Anthropic-style).
+ * Agents already author prompts as system blocks + messages; we keep that
+ * shape so the agent layer is unchanged, then adapt to Kimi internally.
+ * ------------------------------------------------------------------------ */
+
+/** A single text block in a system prompt. `cache_control` is accepted for
+ *  forward-compatibility but ignored by the Kimi endpoint (no prompt cache). */
+export interface SystemTextBlock {
+  type: "text";
+  text: string;
+  cache_control?: { type: "ephemeral" };
+}
+
+export type LlmSystem = string | SystemTextBlock[];
+
+export interface LlmTextBlock {
+  type: "text";
+  text: string;
+}
+
+export interface LlmMessage {
+  role: "user" | "assistant";
+  content: string | LlmTextBlock[];
+}
+
+export interface LlmParams {
+  /** Logical model id recorded on `LlmRun.model`. Actual inference always runs
+   *  on `KIMI_MODEL` regardless of this value. */
+  model: string;
+  max_tokens: number;
+  system?: LlmSystem;
+  messages: LlmMessage[];
+}
+
+export interface LlmUsage {
+  input_tokens: number;
+  output_tokens: number;
+}
+
+/** Normalised response — only the fields callers actually read. */
+export interface LlmResponse {
+  id: string;
+  model: string;
+  content: LlmTextBlock[];
+  usage: LlmUsage;
+}
+
+/** Subset of the client surface we need. Tests inject a mock matching this. */
 export interface LlmClientLike {
   messages: {
     create: (
-      body: Anthropic.MessageCreateParamsNonStreaming,
+      body: LlmParams,
       options?: { timeout?: number },
-    ) => Promise<Anthropic.Messages.Message>;
+    ) => Promise<LlmResponse>;
   };
 }
 
 export interface LlmCallResult {
-  response: Anthropic.Messages.Message;
+  response: LlmResponse;
   latencyMs: number;
   runId: string;
 }
 
 /**
- * Calls the LLM with retry, timeout, circuit breaker and observability.
+ * Calls the LLM (Kimi) with retry, timeout, circuit breaker and observability.
  *
  * @param agentName   Logical name for the run (e.g. "investor-memo")
- * @param params      Anthropic message-create parameters
+ * @param params      Provider-agnostic message-create parameters
  * @param opts        Optional injected client, timeout or retry count
  */
 export async function callLlm(
   agentName: string,
-  params: Anthropic.MessageCreateParamsNonStreaming,
+  params: LlmParams,
   opts?: {
     client?: LlmClientLike;
     timeoutMs?: number;
     maxRetries?: number;
-    /**
-     * Skip the Kimi (Hypercli) fallback that engages when Anthropic returns
-     * 429/503/529 after retries are exhausted. Tests set this so a mock
-     * client's failures surface directly instead of being masked by a
-     * fallback. The fallback is also skipped whenever a custom `client` is
-     * injected (only the real Anthropic SDK path can degrade to Kimi).
-     */
-    disableFallback?: boolean;
   },
 ): Promise<LlmCallResult> {
-  // Provider resolution. Default backend is Hypercli (Kimi K2.6) — agents are
-  // provider-agnostic and only ever talk to this wrapper. Anthropic is used
-  // only when LLM_PROVIDER === "anthropic". An injected client (tests/canaries)
-  // always wins regardless of provider.
-  const provider = env.LLM_PROVIDER;
-  const apiKey = env.ANTHROPIC_API_KEY;
-
-  if (!opts?.client) {
-    if (provider === "anthropic" && !apiKey) {
-      throw new Error(
-        "LLM_PROVIDER=anthropic but ANTHROPIC_API_KEY is not configured.",
-      );
-    }
-    if (provider === "hypercli" && !env.HYPERCLI_API_KEY) {
-      throw new Error(
-        "LLM_PROVIDER=hypercli but HYPERCLI_API_KEY is not configured.",
-      );
-    }
-  }
-
-  const client: LlmClientLike =
-    opts?.client ??
-    (provider === "hypercli"
-      ? kimiAsAnthropicClient()
-      : new Anthropic({ apiKey }));
+  const client: LlmClientLike = opts?.client ?? kimiAsClient();
   const timeoutMs = opts?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const maxRetries = opts?.maxRetries ?? DEFAULT_MAX_RETRIES;
 
@@ -108,9 +125,8 @@ export async function callLlm(
     .digest("hex")
     .slice(0, 16);
 
-  // Hash of the (cacheable) system prompt — groups LlmRun rows by prompt
-  // version so we can audit hit-rate per revision. `null` when no system
-  // prompt is supplied.
+  // Hash of the system prompt — groups LlmRun rows by prompt version so we can
+  // audit per revision. `null` when no system prompt is supplied.
   const systemPromptHash = hashSystemPrompt(params.system);
 
   // Capture userId from the current async request context (null outside request scope, e.g. cron).
@@ -131,7 +147,7 @@ export async function callLlm(
   let lastError: unknown;
 
   try {
-    return await anthropicBreaker.run(async () => {
+    return await kimiBreaker.run(async () => {
       for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
           const response = await client.messages.create(params, {
@@ -141,19 +157,7 @@ export async function callLlm(
 
           const inputTokens = response.usage?.input_tokens ?? 0;
           const outputTokens = response.usage?.output_tokens ?? 0;
-          // Prompt-cache usage (Anthropic ephemeral cache). Both fields are
-          // `null` on the SDK type when caching is disabled — coerce to a
-          // nullable `number | null` for Prisma persistence.
-          const cacheCreationInputTokens =
-            response.usage?.cache_creation_input_tokens ?? null;
-          const cacheReadInputTokens =
-            response.usage?.cache_read_input_tokens ?? null;
-          const costUsd = estimateCost(params.model, {
-            inputTokens,
-            outputTokens,
-            cacheCreationInputTokens: cacheCreationInputTokens ?? 0,
-            cacheReadInputTokens: cacheReadInputTokens ?? 0,
-          });
+          const costUsd = estimateCost({ inputTokens, outputTokens });
 
           await prisma.llmRun.update({
             where: { id: run.id },
@@ -162,8 +166,6 @@ export async function callLlm(
               latencyMs: latency,
               inputTokens,
               outputTokens,
-              cacheCreationInputTokens,
-              cacheReadInputTokens,
               costUsd,
             },
           });
@@ -171,18 +173,9 @@ export async function callLlm(
           return { response, latencyMs: latency, runId: run.id };
         } catch (err) {
           lastError = err;
-          const isTimeout =
-            err instanceof Error &&
-            err.constructor.name === "APIConnectionTimeoutError";
-          const isRetryable =
-            isTimeout ||
-            (err instanceof Anthropic.APIError &&
-              (err.status === 429 || err.status === 500 || err.status === 503));
-
-          if (!isRetryable || attempt === maxRetries - 1) {
+          if (!isRetryable(err) || attempt === maxRetries - 1) {
             break;
           }
-
           await sleep(Math.pow(2, attempt) * 1000);
         }
       }
@@ -191,71 +184,23 @@ export async function callLlm(
     });
   } catch (err) {
     const latency = Math.round(performance.now() - start);
-    // `lastError` is undefined when circuit breaker opens before any attempt.
-    // Fall back to `err` (the actual thrown value) in that case.
+    // `lastError` is undefined when the circuit breaker opens before any
+    // attempt. Fall back to `err` (the actual thrown value) in that case.
     const effectiveError = lastError ?? err;
     const errorMessage =
-      effectiveError instanceof Error ? effectiveError.message : String(effectiveError);
+      effectiveError instanceof Error
+        ? effectiveError.message
+        : String(effectiveError);
     const isTimeout =
       effectiveError instanceof Error &&
       effectiveError.constructor.name === "APIConnectionTimeoutError";
-    const errorType = isTimeout
-      ? "timeout"
-      : effectiveError instanceof Anthropic.APIError
-        ? String(effectiveError.status)
-        : "unknown";
-
-    // Degrade to Kimi (Hypercli) when Anthropic is overloaded / rate-limited
-    // and retries are exhausted. Only on the real SDK path: an injected
-    // client (tests, canaries) or an explicit opt-out bypasses the fallback.
-    const isOverloaded =
-      effectiveError instanceof Anthropic.APIError &&
-      (effectiveError.status === 429 ||
-        effectiveError.status === 503 ||
-        effectiveError.status === 529);
-    const fallbackEligible =
-      isOverloaded && !opts?.client && opts?.disableFallback !== true;
-
-    if (fallbackEligible) {
-      try {
-        const fallbackResponse = await callKimiFallback(params, timeoutMs);
-        const latencyFb = Math.round(performance.now() - start);
-        logger.warn("anthropic overloaded — fell back to Kimi", {
-          agentName,
-          anthropicStatus: errorType,
-          fallbackModel: KIMI_MODEL,
-        });
-        await prisma.llmRun.update({
-          where: { id: run.id },
-          data: {
-            status: "fallback",
-            model: KIMI_MODEL,
-            latencyMs: latencyFb,
-            inputTokens: fallbackResponse.usage?.input_tokens ?? 0,
-            outputTokens: fallbackResponse.usage?.output_tokens ?? 0,
-          },
-        });
-        return {
-          response: fallbackResponse,
-          latencyMs: latencyFb,
-          runId: run.id,
-        };
-      } catch (fbErr) {
-        logger.error(
-          "Kimi fallback also failed",
-          { agentName, fallbackModel: KIMI_MODEL },
-          fbErr,
-        );
-        // fall through to mark the run failed with the original error
-      }
-    }
 
     await prisma.llmRun.update({
       where: { id: run.id },
       data: {
         status: isTimeout ? "timeout" : "failed",
         latencyMs: latency,
-        errorType,
+        errorType: errorType(effectiveError),
         errorMessage: errorMessage.slice(0, 1000),
       },
     });
@@ -264,13 +209,43 @@ export async function callLlm(
   }
 }
 
+/** A retryable error is a timeout or a 429/500/503 from the OpenAI SDK. */
+function isRetryable(err: unknown): boolean {
+  if (
+    err instanceof Error &&
+    err.constructor.name === "APIConnectionTimeoutError"
+  ) {
+    return true;
+  }
+  const status = httpStatus(err);
+  return status === 429 || status === 500 || status === 503;
+}
+
+/** Extracts an HTTP status from an OpenAI SDK error without importing its type. */
+function httpStatus(err: unknown): number | null {
+  if (err !== null && typeof err === "object" && "status" in err) {
+    const s = (err as { status: unknown }).status;
+    return typeof s === "number" ? s : null;
+  }
+  return null;
+}
+
+function errorType(err: unknown): string {
+  if (
+    err instanceof Error &&
+    err.constructor.name === "APIConnectionTimeoutError"
+  ) {
+    return "timeout";
+  }
+  const status = httpStatus(err);
+  return status !== null ? String(status) : "unknown";
+}
+
 /**
- * Flattens an Anthropic system prompt (string or content-block array) into a
- * single plain-text string for the OpenAI-compatible Kimi endpoint.
+ * Flattens a system prompt (string or text-block array) into a single plain
+ * string for the OpenAI-compatible Kimi endpoint.
  */
-function flattenSystem(
-  system: Anthropic.MessageCreateParamsNonStreaming["system"],
-): string {
+function flattenSystem(system: LlmSystem | undefined): string {
   if (system === undefined) return "";
   if (typeof system === "string") return system;
   return system
@@ -279,11 +254,10 @@ function flattenSystem(
 }
 
 /**
- * Flattens an Anthropic message content (string or content-block array) into a
- * single plain-text string. Non-text blocks are dropped — Kimi fallback is a
- * text-in/text-out degradation path only.
+ * Flattens a message content (string or text-block array) into a single plain
+ * string. Non-text blocks are dropped — Kimi is text-in/text-out.
  */
-function flattenContent(content: Anthropic.MessageParam["content"]): string {
+function flattenContent(content: LlmMessage["content"]): string {
   if (typeof content === "string") return content;
   return content
     .map((block) => (block.type === "text" ? block.text : ""))
@@ -292,30 +266,28 @@ function flattenContent(content: Anthropic.MessageParam["content"]): string {
 }
 
 /**
- * Wraps the Kimi (Hypercli) endpoint as an `LlmClientLike` so it can be the
- * PRIMARY backend, not just the fallback. Exposes the same
- * `messages.create(params)` surface the Anthropic SDK does; internally it
- * adapts to the OpenAI-compatible chat endpoint via `callKimiFallback`. This
- * keeps `callLlm` (retry, breaker, LlmRun persistence) provider-agnostic.
+ * Wraps the Kimi (Hypercli) endpoint as an `LlmClientLike`. Exposes the same
+ * `messages.create(params)` surface the agents expect; internally it adapts to
+ * the OpenAI-compatible chat endpoint. This keeps `callLlm` (retry, breaker,
+ * LlmRun persistence) decoupled from the transport.
  */
-function kimiAsAnthropicClient(): LlmClientLike {
+function kimiAsClient(): LlmClientLike {
   return {
     messages: {
       create: (body, options) =>
-        callKimiFallback(body, options?.timeout ?? DEFAULT_TIMEOUT_MS),
+        callKimi(body, options?.timeout ?? DEFAULT_TIMEOUT_MS),
     },
   };
 }
 
 /**
  * Calls Kimi via the OpenAI-compatible Hypercli endpoint and adapts the
- * response back into the Anthropic `Message` shape the callers expect
- * (they only read `content` text blocks + `usage`).
+ * response into the normalised `LlmResponse` shape callers expect.
  */
-async function callKimiFallback(
-  params: Anthropic.MessageCreateParamsNonStreaming,
+async function callKimi(
+  params: LlmParams,
   timeoutMs: number,
-): Promise<Anthropic.Messages.Message> {
+): Promise<LlmResponse> {
   const systemText = flattenSystem(params.system);
   const chatMessages: Array<{
     role: "system" | "user" | "assistant";
@@ -341,99 +313,49 @@ async function callKimiFallback(
   );
 
   const text = completion.choices[0]?.message?.content ?? "";
-  const message: Anthropic.Messages.Message = {
+  return {
     id: completion.id,
-    type: "message",
-    role: "assistant",
     model: KIMI_MODEL,
-    content: [{ type: "text", text, citations: null }],
-    container: null,
-    stop_reason: "end_turn",
-    stop_details: null,
-    stop_sequence: null,
+    content: [{ type: "text", text }],
     usage: {
       input_tokens: completion.usage?.prompt_tokens ?? 0,
       output_tokens: completion.usage?.completion_tokens ?? 0,
-      cache_creation: null,
-      cache_creation_input_tokens: null,
-      cache_read_input_tokens: null,
-      inference_geo: null,
-      server_tool_use: null,
-      service_tier: null,
     },
   };
-  return message;
 }
 
-/**
- * Per-million-token USD pricing per model family. Source: Anthropic pricing
- * page (https://docs.anthropic.com/en/docs/about-claude/pricing) and
- * prompt-caching docs (https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching#pricing).
- *
- * Anthropic prompt caching adjusts the per-token rate:
- *   - cache_write tokens  = input * CACHE_WRITE_MULTIPLIER (1.25×)
- *   - cache_read  tokens  = input * CACHE_READ_MULTIPLIER  (0.10×)
- *   - regular input/output tokens unchanged
- */
-const CACHE_WRITE_MULTIPLIER = 1.25;
-const CACHE_READ_MULTIPLIER = 0.1;
+/* --------------------------------------------------------------------------
+ * Cost estimation. Kimi K2.6 per-million-token USD pricing (Hypercli).
+ * ------------------------------------------------------------------------ */
 
 interface ModelPricing {
-  /** USD per 1M input tokens (regular, non-cached). */
+  /** USD per 1M input tokens. */
   input: number;
   /** USD per 1M output tokens. */
   output: number;
 }
 
-const MODEL_PRICING: Record<string, ModelPricing> = {
-  opus: { input: 15, output: 75 },
-  sonnet: { input: 3, output: 15 },
-};
-
-function resolvePricing(model: string): ModelPricing {
-  if (model.includes("opus") || model.includes("claude-3-opus")) {
-    return MODEL_PRICING.opus!;
-  }
-  // Default to Sonnet-tier pricing for any non-Opus model (Sonnet 4.x, Haiku,
-  // Kimi fallback, unknowns). Kimi tokens are persisted with the Kimi model
-  // name so cost reports can still be filtered downstream.
-  return MODEL_PRICING.sonnet!;
-}
+/** Kimi K2.6 list price via Hypercli. */
+const KIMI_PRICING: ModelPricing = { input: 0.6, output: 2.5 };
 
 interface TokenBreakdown {
   inputTokens: number;
   outputTokens: number;
-  cacheCreationInputTokens: number;
-  cacheReadInputTokens: number;
+}
+
+/** Approximate cost in USD for a Kimi call. */
+function estimateCost(tokens: TokenBreakdown): number {
+  const input = tokens.inputTokens * KIMI_PRICING.input;
+  const output = tokens.outputTokens * KIMI_PRICING.output;
+  return (input + output) / 1_000_000;
 }
 
 /**
- * Approximate cost in USD, factoring Anthropic prompt-cache pricing.
- *
- * `inputTokens` from `response.usage.input_tokens` is the *regular* input
- * count and is already net of cached tokens — Anthropic reports cached
- * tokens separately. Cost components are summed accordingly.
+ * Stable hash of the system prompt blocks. Used to group LlmRun rows by prompt
+ * version. Returns `null` when no system prompt is supplied so the column stays
+ * NULL rather than hashing an empty string.
  */
-function estimateCost(model: string, tokens: TokenBreakdown): number {
-  const pricing = resolvePricing(model);
-  const regular = tokens.inputTokens * pricing.input;
-  const cacheWrite =
-    tokens.cacheCreationInputTokens * pricing.input * CACHE_WRITE_MULTIPLIER;
-  const cacheRead =
-    tokens.cacheReadInputTokens * pricing.input * CACHE_READ_MULTIPLIER;
-  const output = tokens.outputTokens * pricing.output;
-  return (regular + cacheWrite + cacheRead + output) / 1_000_000;
-}
-
-/**
- * Stable hash of the system prompt blocks. Used to group LlmRun rows by
- * prompt version (cache hit-rate audit). Returns `null` when no system
- * prompt is supplied so the column stays NULL rather than hashing an empty
- * string.
- */
-function hashSystemPrompt(
-  system: Anthropic.MessageCreateParamsNonStreaming["system"],
-): string | null {
+function hashSystemPrompt(system: LlmSystem | undefined): string | null {
   if (system === undefined) return null;
   const text =
     typeof system === "string"

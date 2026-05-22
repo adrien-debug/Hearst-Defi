@@ -1,13 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 
-import Anthropic from "@anthropic-ai/sdk";
-
 import { prisma } from "@/lib/db";
 import { callLlm } from "@/lib/llm/client";
 import { withRequestContext } from "@/lib/request-context";
 
-function apiError(status: number, message: string) {
-  return new Anthropic.APIError(status, undefined, message, undefined);
+/** A minimal OpenAI-SDK-style error: an Error carrying an HTTP `status`. The
+ *  client classifies retryability by the numeric `status` property, not by any
+ *  SDK class, so this is sufficient. */
+function apiError(status: number, message: string): Error {
+  const err = new Error(message) as Error & { status: number };
+  err.status = status;
+  return err;
 }
 
 describe("callLlm", () => {
@@ -26,7 +29,7 @@ describe("callLlm", () => {
     const result = await callLlm(
       "test-agent",
       {
-        model: "claude-sonnet-4-6",
+        model: "kimi-k2.6",
         max_tokens: 1024,
         messages: [{ role: "user" as const, content: "hello" }],
       },
@@ -58,7 +61,7 @@ describe("callLlm", () => {
     const result = await callLlm(
       "test-agent",
       {
-        model: "claude-sonnet-4-6",
+        model: "kimi-k2.6",
         max_tokens: 1024,
         messages: [{ role: "user" as const, content: "hello" }],
       },
@@ -82,7 +85,7 @@ describe("callLlm", () => {
       callLlm(
         "test-agent",
         {
-          model: "claude-sonnet-4-6",
+          model: "kimi-k2.6",
           max_tokens: 1024,
           messages: [{ role: "user" as const, content: "hello" }],
         },
@@ -106,7 +109,7 @@ describe("callLlm", () => {
       callLlm(
         "test-agent",
         {
-          model: "claude-sonnet-4-6",
+          model: "kimi-k2.6",
           max_tokens: 1024,
           messages: [{ role: "user" as const, content: "hello" }],
         },
@@ -117,14 +120,12 @@ describe("callLlm", () => {
     expect(mockClient.messages.create).toHaveBeenCalledTimes(1);
   });
 
-  describe("prompt-cache observability", () => {
-    // ----- pricing constants mirrored from client.ts (Anthropic docs) -----
-    const SONNET_INPUT_PER_M = 3;
-    const SONNET_OUTPUT_PER_M = 15;
-    const CACHE_WRITE_MULT = 1.25;
-    const CACHE_READ_MULT = 0.1;
+  describe("cost + observability", () => {
+    // Kimi K2.6 per-million-token pricing, mirrored from client.ts.
+    const KIMI_INPUT_PER_M = 0.6;
+    const KIMI_OUTPUT_PER_M = 2.5;
 
-    it("persists null cache fields and bills regular pricing when no cache usage", async () => {
+    it("bills Kimi pricing and records the system-prompt hash", async () => {
       const mockResponse = {
         content: [{ type: "text" as const, text: "{}" }],
         usage: { input_tokens: 1000, output_tokens: 200 },
@@ -134,9 +135,9 @@ describe("callLlm", () => {
       };
 
       const { runId } = await callLlm(
-        "test-no-cache",
+        "test-cost",
         {
-          model: "claude-sonnet-4-6",
+          model: "kimi-k2.6",
           max_tokens: 1024,
           system: "system prompt A",
           messages: [{ role: "user" as const, content: "hello" }],
@@ -145,97 +146,10 @@ describe("callLlm", () => {
       );
 
       const row = await prisma.llmRun.findUniqueOrThrow({ where: { id: runId } });
-      expect(row.cacheCreationInputTokens).toBeNull();
-      expect(row.cacheReadInputTokens).toBeNull();
       expect(row.systemPromptHash).toMatch(/^[a-f0-9]{64}$/);
       const expectedCost =
-        (1000 * SONNET_INPUT_PER_M + 200 * SONNET_OUTPUT_PER_M) / 1_000_000;
+        (1000 * KIMI_INPUT_PER_M + 200 * KIMI_OUTPUT_PER_M) / 1_000_000;
       expect(row.costUsd).toBeCloseTo(expectedCost, 10);
-    });
-
-    it("persists cache_creation tokens and applies the 1.25x write multiplier", async () => {
-      const mockResponse = {
-        content: [{ type: "text" as const, text: "{}" }],
-        usage: {
-          input_tokens: 200,
-          output_tokens: 100,
-          cache_creation_input_tokens: 5000,
-          cache_read_input_tokens: 0,
-        },
-      };
-      const mockClient = {
-        messages: { create: vi.fn().mockResolvedValue(mockResponse) },
-      };
-
-      const { runId } = await callLlm(
-        "test-cache-write",
-        {
-          model: "claude-sonnet-4-6",
-          max_tokens: 1024,
-          system: "system prompt write",
-          messages: [{ role: "user" as const, content: "hello" }],
-        },
-        { client: mockClient },
-      );
-
-      const row = await prisma.llmRun.findUniqueOrThrow({ where: { id: runId } });
-      expect(row.cacheCreationInputTokens).toBe(5000);
-      expect(row.cacheReadInputTokens).toBe(0);
-      expect(row.systemPromptHash).toMatch(/^[a-f0-9]{64}$/);
-
-      const expectedCost =
-        (200 * SONNET_INPUT_PER_M +
-          5000 * SONNET_INPUT_PER_M * CACHE_WRITE_MULT +
-          0 +
-          100 * SONNET_OUTPUT_PER_M) /
-        1_000_000;
-      expect(row.costUsd).toBeCloseTo(expectedCost, 10);
-    });
-
-    it("persists cache_read tokens and applies the 0.1x read multiplier", async () => {
-      const mockResponse = {
-        content: [{ type: "text" as const, text: "{}" }],
-        usage: {
-          input_tokens: 200,
-          output_tokens: 100,
-          cache_creation_input_tokens: 0,
-          cache_read_input_tokens: 5000,
-        },
-      };
-      const mockClient = {
-        messages: { create: vi.fn().mockResolvedValue(mockResponse) },
-      };
-
-      const { runId } = await callLlm(
-        "test-cache-read",
-        {
-          model: "claude-sonnet-4-6",
-          max_tokens: 1024,
-          system: "system prompt read",
-          messages: [{ role: "user" as const, content: "hello" }],
-        },
-        { client: mockClient },
-      );
-
-      const row = await prisma.llmRun.findUniqueOrThrow({ where: { id: runId } });
-      expect(row.cacheCreationInputTokens).toBe(0);
-      expect(row.cacheReadInputTokens).toBe(5000);
-      expect(row.systemPromptHash).toMatch(/^[a-f0-9]{64}$/);
-
-      const expectedCost =
-        (200 * SONNET_INPUT_PER_M +
-          0 +
-          5000 * SONNET_INPUT_PER_M * CACHE_READ_MULT +
-          100 * SONNET_OUTPUT_PER_M) /
-        1_000_000;
-      expect(row.costUsd).toBeCloseTo(expectedCost, 10);
-
-      // Read path must be cheaper than an equivalent non-cached run — this
-      // is the headline ~60–80% reduction we want to monitor in prod.
-      const baselineCost =
-        ((200 + 5000) * SONNET_INPUT_PER_M + 100 * SONNET_OUTPUT_PER_M) /
-        1_000_000;
-      expect(row.costUsd).toBeLessThan(baselineCost);
     });
   });
 
@@ -256,7 +170,7 @@ describe("callLlm", () => {
           callLlm(
             "test-userid-set",
             {
-              model: "claude-sonnet-4-6",
+              model: "kimi-k2.6",
               max_tokens: 1024,
               messages: [{ role: "user" as const, content: "hello" }],
             },
@@ -276,7 +190,7 @@ describe("callLlm", () => {
       const { runId } = await callLlm(
         "test-userid-null",
         {
-          model: "claude-sonnet-4-6",
+          model: "kimi-k2.6",
           max_tokens: 1024,
           messages: [{ role: "user" as const, content: "hello" }],
         },
@@ -286,42 +200,5 @@ describe("callLlm", () => {
       const row = await prisma.llmRun.findUniqueOrThrow({ where: { id: runId } });
       expect(row.userId).toBeNull();
     });
-  });
-
-  it("throws when provider=anthropic and api key is missing (no client injected)", async () => {
-    // Temporarily force the Anthropic provider with no API key.
-    const envModule = await import("@/lib/env");
-    const savedKey = envModule.env.ANTHROPIC_API_KEY;
-    const savedProvider = envModule.env.LLM_PROVIDER;
-    Object.defineProperty(envModule.env, "ANTHROPIC_API_KEY", {
-      value: undefined,
-      writable: true,
-      configurable: true,
-    });
-    Object.defineProperty(envModule.env, "LLM_PROVIDER", {
-      value: "anthropic",
-      writable: true,
-      configurable: true,
-    });
-    try {
-      await expect(
-        callLlm("test-agent", {
-          model: "claude-sonnet-4-6",
-          max_tokens: 1024,
-          messages: [{ role: "user" as const, content: "hello" }],
-        }),
-      ).rejects.toThrow(/ANTHROPIC_API_KEY is not configured/);
-    } finally {
-      Object.defineProperty(envModule.env, "ANTHROPIC_API_KEY", {
-        value: savedKey,
-        writable: true,
-        configurable: true,
-      });
-      Object.defineProperty(envModule.env, "LLM_PROVIDER", {
-        value: savedProvider,
-        writable: true,
-        configurable: true,
-      });
-    }
   });
 });

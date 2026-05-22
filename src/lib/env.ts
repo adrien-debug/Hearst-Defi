@@ -16,11 +16,6 @@ import { z } from "zod";
 
 const serverEnvSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
-  ANTHROPIC_API_KEY: z
-    .string()
-    .min(1)
-    .startsWith("sk-ant", "ANTHROPIC_API_KEY must start with sk-ant")
-    .optional(),
   // Privy — reserved for the USDC subscription/payment flow (wallet connect at
   // deposit time), NOT for authentication. Optional everywhere: the app boots
   // and authenticates (email/password) without it.
@@ -49,15 +44,12 @@ const serverEnvSchema = z.object({
   INNGEST_SIGNING_KEY: z.string().optional(),
   INNGEST_EVENT_KEY: z.string().optional(),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).optional(),
-  // Primary LLM provider for agents + chat. "hypercli" (Kimi K2.6, default)
-  // routes every agent through the OpenAI-compatible Hypercli endpoint;
-  // "anthropic" uses the Claude SDK directly. Agents are provider-agnostic —
-  // they call `callLlm`, which resolves the client from this switch.
-  LLM_PROVIDER: z.enum(["hypercli", "anthropic"]).default("hypercli"),
+  // LLM provider — Kimi K2.6 via the OpenAI-compatible Hypercli endpoint is the
+  // single backend. Agents are provider-agnostic: they call `callLlm`, which
+  // always routes to Kimi.
   HYPERCLI_API_KEY: z.string().min(1).optional(),
   HYPERCLI_BASE_URL: z.string().url().optional(),
   HYPERCLI_DEFAULT_MODEL: z.string().min(1).default("kimi-k2.6"),
-  HYPERCLI_ANTHROPIC_MODEL: z.string().min(1).default("kimi-k2.6-anthropic"),
   HYPERCLI_ORG_ID: z.string().optional(),
   // Sentry observability — all optional, project boots without them (no-op fallback)
   SENTRY_DSN: z.string().url().optional(),
@@ -107,10 +99,10 @@ if (IS_RUNTIME_PRODUCTION && parsed.success) {
         "background jobs (mining health, investor memo) and rack up LLM costs.",
     );
   }
-  if (!d.ANTHROPIC_API_KEY) {
+  if (!d.HYPERCLI_API_KEY) {
     console.error(
-      "⚠️  ANTHROPIC_API_KEY is not set. LLM features (agents, investor memo) will " +
-        "fail at runtime. Set ANTHROPIC_API_KEY to enable them.",
+      "⚠️  HYPERCLI_API_KEY is not set. LLM features (agents, investor memo) will " +
+        "fail at runtime. Set HYPERCLI_API_KEY to enable them.",
     );
   }
 }
@@ -150,10 +142,7 @@ function resolveEnv(): ServerEnv {
       const data: ServerEnv = {
         ...lenient.data,
         DATABASE_URL: lenient.data.DATABASE_URL ?? "",
-        LLM_PROVIDER: lenient.data.LLM_PROVIDER ?? "hypercli",
         HYPERCLI_DEFAULT_MODEL: lenient.data.HYPERCLI_DEFAULT_MODEL ?? "kimi-k2.6",
-        HYPERCLI_ANTHROPIC_MODEL:
-          lenient.data.HYPERCLI_ANTHROPIC_MODEL ?? "kimi-k2.6-anthropic",
         DEMO_MODE_DEFAULT: lenient.data.DEMO_MODE_DEFAULT ?? "0",
       };
       return data;

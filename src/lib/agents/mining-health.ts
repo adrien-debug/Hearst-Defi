@@ -15,9 +15,9 @@ import { assertCitesAssumption, assertNoForbiddenWords } from "@/lib/agents/vali
 /**
  * Default model id for the Mining Health Agent.
  *
- * Pinned to Sonnet 4.6 per CLAUDE.md. Daily cron 08:00 UTC.
+ * Runs on Hypercli (Kimi K2.6) — the single provider. Daily cron 08:00 UTC.
  */
-const MINING_HEALTH_MODEL = "claude-sonnet-4-6" as const;
+const MINING_HEALTH_MODEL = "kimi-k2.6" as const;
 
 /**
  * Local input type. Re-declared here for the same reason as

@@ -107,7 +107,7 @@ export async function runScenarioAction(
       logger.warn("runScenarioAction persistence failed", { userId }, persistErr);
     }
 
-    // Narrative agent — graceful degradation on any failure (Anthropic down,
+    // Narrative agent — graceful degradation on any failure (Kimi down,
     // forbidden-words filter trip, schema validation fail). Engine result is
     // still returned with `narrative: null`.
     let narrative: ScenarioNarrativeOutput | null = null;

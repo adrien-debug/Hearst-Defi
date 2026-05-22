@@ -1,16 +1,16 @@
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/db";
-import { env } from "@/lib/env";
 import { kimi, KIMI_MODEL } from "@/lib/llm/kimi";
 import { logger } from "@/lib/logger";
+import { getProductRoutes } from "@/lib/product-routes";
+import { getSpecIndex } from "@/lib/spec";
 import { REVIEW_DOCUMENT_INSTRUCTIONS } from "@/lib/agents/system-prompts/review";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// The anthropic-compatible Kimi variant follows structured-output instructions
-// more reliably; fall back to the default model if it is not configured.
-const DOCUMENT_MODEL = env.HYPERCLI_ANTHROPIC_MODEL || KIMI_MODEL;
+// Document review runs on the single Kimi K2.6 model.
+const DOCUMENT_MODEL = KIMI_MODEL;
 const GENERATION_TIMEOUT_MS = 60_000;
 
 function unauthorized(): Response {
@@ -81,6 +81,38 @@ export async function POST(): Promise<Response> {
     .map((m) => `${m.role === "user" ? "Head of Product" : "Copilote"} : ${m.content}`)
     .join("\n\n");
 
+  // Real route inventory derived from the filesystem — the model must anchor
+  // every remark on one of these (never invent a route). Best-effort: a read
+  // failure degrades to no inventory rather than blocking generation.
+  let routesBlock = "";
+  try {
+    const routes = await getProductRoutes();
+    if (routes.length > 0) {
+      routesBlock =
+        "Routes réelles de la plateforme (ancre CHAQUE remarque sur l'une d'elles, n'en invente aucune) :\n" +
+        routes.map((r) => `- ${r}`).join("\n") +
+        "\n\n";
+    }
+  } catch {
+    // no inventory → fall through with empty block
+  }
+
+  // Spec index — lets the model align its proposals on the documented product
+  // vision. Only the index (slug + title), never the full MDX, to bound tokens.
+  // Best-effort: a read failure degrades to no specs block.
+  let specsBlock = "";
+  try {
+    const specs = await getSpecIndex();
+    if (specs.length > 0) {
+      specsBlock =
+        "Specs produit documentées (aligne tes propositions sur cette vision) :\n" +
+        specs.map((s) => `- ${s.slug} — ${s.title}`).join("\n") +
+        "\n\n";
+    }
+  } catch {
+    // no specs → fall through with empty block
+  }
+
   let contentMd: string;
   try {
     const completion = await kimi.chat.completions.create(
@@ -91,7 +123,10 @@ export async function POST(): Promise<Response> {
           {
             role: "user",
             content:
-              "Transcription de la session de revue :\n\n" + transcript,
+              routesBlock +
+              specsBlock +
+              "Transcription de la session de revue :\n\n" +
+              transcript,
           },
         ],
       },

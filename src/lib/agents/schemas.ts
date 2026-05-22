@@ -12,7 +12,7 @@ import { z } from "zod";
  */
 
 /* -------------------------------------------------------------------------- */
-/* Scenario Narrative Agent (Sonnet 4.6)                                       */
+/* Scenario Narrative Agent (Kimi K2.6)                                       */
 /* -------------------------------------------------------------------------- */
 
 export const ScenarioNarrativeOutputSchema = z
@@ -27,7 +27,7 @@ export const ScenarioNarrativeOutputSchema = z
 export type ScenarioNarrativeOutput = z.infer<typeof ScenarioNarrativeOutputSchema>;
 
 /* -------------------------------------------------------------------------- */
-/* Mining Health Agent (Sonnet 4.6)                                            */
+/* Mining Health Agent (Kimi K2.6)                                            */
 /* -------------------------------------------------------------------------- */
 
 export const MiningHealthOutputSchema = z
@@ -41,7 +41,7 @@ export const MiningHealthOutputSchema = z
 export type MiningHealthOutput = z.infer<typeof MiningHealthOutputSchema>;
 
 /* -------------------------------------------------------------------------- */
-/* Risk Explanation Agent (Sonnet 4.6)                                         */
+/* Risk Explanation Agent (Kimi K2.6)                                         */
 /* -------------------------------------------------------------------------- */
 
 export const RiskExplanationOutputSchema = z
@@ -66,7 +66,7 @@ export const RiskExplanationOutputSchema = z
 export type RiskExplanationOutput = z.infer<typeof RiskExplanationOutputSchema>;
 
 /* -------------------------------------------------------------------------- */
-/* Investor Memo Agent (Opus 4.7)                                              */
+/* Investor Memo Agent (Kimi K2.6)                                              */
 /* -------------------------------------------------------------------------- */
 
 export const InvestorMemoOutputSchema = z

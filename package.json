@@ -109,7 +109,6 @@
     }
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.96.0",
     "@fireblocks/ts-sdk": "^19.0.0",
     "@hearst/cockpit-shell": "file:./hearst-cockpit-shell-0.2.0.tgz",
     "@hearst/hub-sdk": "file:./hearst-hub-sdk-0.2.0.tgz",

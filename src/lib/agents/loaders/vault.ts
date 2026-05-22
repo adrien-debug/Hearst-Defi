@@ -17,7 +17,7 @@ import type {
 /**
  * Shape returned to the Investor Memo cron — mirrors `InvestorMemoInput` but
  * declared independently so the loader does not import from `investor-memo.ts`
- * (which pulls the Anthropic SDK at module init).
+ * (which pulls the LLM client at module init).
  */
 export interface MemoLoadResult {
   vault: {

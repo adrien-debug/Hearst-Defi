@@ -23,10 +23,11 @@ import { formatApyRange } from "@/lib/format/apy";
 /**
  * Default model id for the Investor Memo Agent.
  *
- * MUST be Opus 4.7. Never downgrade to Sonnet.
- * This is the highest-stakes output — an 8-page PDF delivered to institutional LPs.
+ * All agents run on Hypercli (Kimi K2.6) — the single provider. The actual
+ * inference model is resolved by `callLlm` from `HYPERCLI_DEFAULT_MODEL`; this
+ * constant is the logical id recorded on `LlmRun.model`.
  */
-export const INVESTOR_MEMO_MODEL = "claude-opus-4-7" as const;
+export const INVESTOR_MEMO_MODEL = "kimi-k2.6" as const;
 
 export type InvestorMemoInput = {
   vault: {
@@ -48,13 +49,9 @@ export interface RunInvestorMemoOptions {
    * init.
    */
   client?: LlmClientLike;
-  /**
-   * Override the default model. Default: claude-opus-4-7.
-   * WARNING: Never set this to a Sonnet model for production use.
-   * Investor Memo is the highest-stakes output and requires Opus-level quality.
-   */
+  /** Override the logical model id recorded on `LlmRun`. Default: kimi-k2.6. */
   model?: string;
-  /** Timeout in ms for the Anthropic API call. Default: 180_000 (3 min). Opus 4.7 needs 68–136s for 4096 tokens. */
+  /** Timeout in ms for the LLM call. Default: 180_000 (3 min) — the memo is the largest output at 4096 tokens. */
   timeoutMs?: number;
   /**
    * Authenticated user identifier. When provided, the per-user persona
@@ -196,13 +193,6 @@ export async function runInvestorMemo(
   opts: RunInvestorMemoOptions = {},
 ): Promise<InvestorMemoOutput> {
   const model = opts.model ?? INVESTOR_MEMO_MODEL;
-  if (process.env.NODE_ENV === "production" && model !== INVESTOR_MEMO_MODEL) {
-    throw new Error(
-      `Investor Memo model pinning violated: got "${model}", required "${INVESTOR_MEMO_MODEL}". ` +
-        "The Investor Memo is the highest-stakes output (8-page PDF to institutional LPs) and " +
-        "must never be downgraded from Opus 4.7 in production.",
-    );
-  }
 
   // Build system blocks: first block is the cached methodology (always present).
   // If a userId is provided, load per-user persona and inject a second block
@@ -263,7 +253,13 @@ export async function runInvestorMemo(
   }
 
   const parsed = extractJson(textBlock.text);
-  const validated = InvestorMemoOutputSchema.parse(parsed);
+  const result = InvestorMemoOutputSchema.safeParse(parsed);
+  if (!result.success) {
+    throw new Error(
+      `Investor Memo agent returned invalid output: ${JSON.stringify(result.error.issues)}`,
+    );
+  }
+  const validated = result.data;
 
   assertNoForbiddenWords(validated.executive_summary);
   assertNoForbiddenWords(validated.vault_structure);

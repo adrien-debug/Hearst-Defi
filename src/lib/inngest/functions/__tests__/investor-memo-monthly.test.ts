@@ -151,7 +151,7 @@ describe("investorMemoMonthly Inngest function", () => {
     }
 
     const { data } = createCall[0] as { data: Record<string, unknown> };
-    expect(data.generatedBy).toBe("claude-opus-4-7");
+    expect(data.generatedBy).toBe("kimi-k2.6");
     expect(data.clientName).toBe("Hearst Connect");
     expect(data.methodologyVersion).toBe("v1.0");
     expect(data.scenariosIncluded).toBe("[]");
