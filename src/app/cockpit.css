@@ -591,10 +591,9 @@
   position: fixed;
   left: 0;
   /* Le rail démarre sous le logo (header shell) et descend jusqu'au-dessus du
-     slot identity (docké à bottom:88px). On lui donne une hauteur réelle pour
-     que justify-content:center centre vraiment les icônes sur l'axe vertical
-     de la colonne — sinon le rail n'a aucune hauteur et les icônes collent
-     en haut, sous le logo (chevauchement). */
+     slot identity (docké à bottom:88px). justify-content:center centre les
+     icônes verticalement. overflow-y:auto + padding-block évitent le débordement
+     sur le slot identity quand le viewport est court (ex: 10 items admin). */
   top: var(--ct-shell-header-h);
   bottom: 88px;
   width: 88px;
@@ -602,10 +601,16 @@
   flex-direction: column;
   align-items: center;
   gap: var(--ct-space-1);
-  padding: 0;
+  padding: var(--ct-space-3) 0;
   justify-content: center;
+  overflow-y: auto;
   z-index: 1001; /* Au-dessus du shell cockpit */
   pointer-events: auto;
+}
+
+/* Rail investor : peu d'items → centrage vertical. */
+.ct-rail-intra[data-rail="investor"] {
+  justify-content: center;
 }
 
 /* Bouton nav : 44×44px, icône centrée H+V. */
@@ -680,6 +685,67 @@
 
 .ct-rail-item:hover .ct-rail-item-tooltip {
   opacity: 1;
+}
+
+/* ── RAIL COLLAPSIBLE — déplié (html[data-rail-mode="expanded"]) ──
+   On élargit la colonne réservée du shell (.ct-rail-left) ET le rail intra
+   ensemble : la zone de contenu suit le flux et est POUSSÉE, jamais recouverte.
+   Le span tooltip se transforme en label inline (plus de popover au hover). */
+.ct-rail-left,
+.ct-rail-intra {
+  transition: width var(--ct-dur-base) var(--ct-ease);
+}
+
+html[data-rail-mode="expanded"] .ct-rail-left,
+html[data-rail-mode="expanded"] .ct-rail-left.launcher {
+  width: 232px !important;
+  min-width: 232px !important;
+  max-width: 232px !important;
+}
+
+html[data-rail-mode="expanded"] .ct-rail-intra {
+  width: 232px;
+  align-items: stretch;
+  padding-left: var(--ct-space-3);
+  padding-right: var(--ct-space-3);
+}
+
+/* Item = ligne icône + label sur toute la largeur. */
+html[data-rail-mode="expanded"] .ct-rail-item {
+  width: 100%;
+  justify-content: flex-start;
+  gap: var(--ct-space-3);
+  padding-inline: var(--ct-space-3);
+}
+
+/* Le span tooltip devient le label inline. */
+html[data-rail-mode="expanded"] .ct-rail-item-tooltip {
+  position: static;
+  left: auto;
+  top: auto;
+  transform: none;
+  opacity: 1;
+  pointer-events: none;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  color: inherit;
+  font-size: var(--ct-text-sm);
+  z-index: auto;
+}
+
+/* Séparateur pleine largeur en mode déplié. */
+html[data-rail-mode="expanded"] .ct-rail-sep {
+  width: 100%;
+}
+
+/* Bouton repli/dépli — même gabarit qu'un item. */
+.ct-rail-toggle {
+  cursor: pointer;
+  margin-bottom: var(--ct-space-2);
 }
 
 /* Hub-mode : masque le rail intra (le hub fournit sa propre nav) */

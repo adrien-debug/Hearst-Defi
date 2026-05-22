@@ -4,11 +4,11 @@
  * Source de vérité pour la navigation intra-app de Hearst Connect.
  * Consommé par :
  *   - (product)/layout.tsx  → nav custom dans le rail gauche (slot .ct-rail-left-intra)
- *   - BottomBar custom      → segments passés via wrapper de ProductBottomBar
+ *   - admin/layout.tsx      → rail admin (ADMIN_NAV + séparateur + ANALYTICS_NAV)
  *
  * NOTE : Le RailLeft de @hearst/cockpit-shell ne supporte PAS de prop nav
- * intra-app (API v0.1.0). La nav intra est composée dans (product)/layout.tsx
- * au-dessus du spacer du rail, en utilisant usePathname() côté client.
+ * intra-app (API v0.1.0). La nav intra est composée dans les layouts au-dessus
+ * du spacer du rail, en utilisant usePathname() côté client.
  */
 
 export type NavItem = {
@@ -21,10 +21,8 @@ export type NavItem = {
 
 /**
  * Investor-facing navigation. A signed-in user only sees their own space:
- * their portfolio (positions, distributions) and the vaults they can invest
- * in. The analytics surfaces (Dashboard, Scenario Lab, Proof Center, Investor
- * Memo) are operator/analyst tools — see ANALYTICS_NAV — and are kept out of
- * the investor rail (still reachable by URL + gated by the proxy).
+ * their portfolio, the vaults they can invest in, their profile, and the
+ * public proof center. Operator/analyst surfaces live in the admin rail.
  */
 export const PRODUCT_NAV: NavItem[] = [
   {
@@ -45,13 +43,19 @@ export const PRODUCT_NAV: NavItem[] = [
     href: "/profile",
     icon: "User",
   },
+  {
+    id: "proof-center",
+    label: "Proof Center",
+    href: "/proof-center",
+    icon: "ShieldCheck",
+  },
 ];
 
 /**
- * Analyst / operator tools. Surfaced inside the admin rail, not the investor
- * rail. These read vault-wide state, not a single investor's position.
+ * Admin rail — group 1: day-to-day operations. Dashboard is the hub and the
+ * first entry (the bare /admin route redirects here).
  */
-export const ANALYTICS_NAV: NavItem[] = [
+export const ADMIN_NAV: NavItem[] = [
   {
     id: "dashboard",
     label: "Dashboard",
@@ -59,9 +63,52 @@ export const ANALYTICS_NAV: NavItem[] = [
     icon: "LayoutDashboard",
   },
   {
+    id: "vaults-admin",
+    label: "Vaults",
+    href: "/admin/vaults",
+    icon: "Vault",
+  },
+  {
+    id: "customers",
+    label: "Customers",
+    href: "/admin/customers",
+    icon: "Users",
+  },
+  {
+    id: "distributions",
+    label: "Distributions",
+    href: "/admin/distributions",
+    icon: "FileText",
+  },
+  {
+    id: "signals",
+    label: "Rebalancing",
+    href: "/admin/signals",
+    icon: "Zap",
+  },
+  {
+    id: "feedback",
+    label: "Feedback",
+    href: "/admin/feedback",
+    icon: "MessageSquare",
+  },
+];
+
+/**
+ * Admin rail — group 2: analyst tools + system. Vault-wide state, not a single
+ * investor's position. Rendered after a separator in the admin rail.
+ */
+export const ANALYTICS_NAV: NavItem[] = [
+  {
     id: "scenario-lab",
     label: "Scenario Lab",
     href: "/admin/scenario-lab",
+    icon: "FlaskConical",
+  },
+  {
+    id: "projection",
+    label: "Projection",
+    href: "/admin/projection",
     icon: "FlaskConical",
   },
   {
@@ -76,19 +123,22 @@ export const ANALYTICS_NAV: NavItem[] = [
     href: "/admin/investor-memo",
     icon: "FileText",
   },
-];
-
-export const ADMIN_NAV: NavItem[] = [
   {
-    id: "admin",
-    label: "Admin",
-    href: "/admin/roadmap",
+    id: "monitoring",
+    label: "Monitoring",
+    href: "/admin/monitoring",
     icon: "Settings2",
   },
   {
-    id: "customers",
-    label: "Customers",
-    href: "/admin/customers",
-    icon: "Users",
+    id: "proofs",
+    label: "Proofs",
+    href: "/admin/proofs",
+    icon: "FileCheck",
+  },
+  {
+    id: "spec",
+    label: "Spec",
+    href: "/admin/spec",
+    icon: "BookOpen",
   },
 ];

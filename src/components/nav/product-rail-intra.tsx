@@ -2,18 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import {
   LayoutDashboard,
   FlaskConical,
   ShieldCheck,
+  FileCheck,
   FileText,
   Settings2,
   Wallet,
   Vault,
   User,
   Users,
+  MessageSquare,
+  Zap,
+  BookOpen,
+  PanelLeftClose,
+  PanelLeftOpen,
   LucideIcon,
 } from "lucide-react";
 
@@ -69,12 +75,16 @@ const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard,
   FlaskConical,
   ShieldCheck,
+  FileCheck,
   FileText,
   Settings2,
   Wallet,
   Vault,
   User,
   Users,
+  MessageSquare,
+  Zap,
+  BookOpen,
 };
 
 // Thin horizontal rule between nav sections.
@@ -84,6 +94,97 @@ function RailSeparator() {
       aria-hidden="true"
       className="ct-rail-sep"
     />
+  );
+}
+
+const RAIL_STORAGE_KEY = "hc-rail-expanded";
+
+// External store backing the rail-expanded preference. Memory is the source of
+// truth (so private mode where localStorage throws still toggles), localStorage
+// is persistence. Read through useSyncExternalStore so SSR/first client render
+// use the default and the client reconciles without a setState-in-effect.
+let railExpandedState: boolean | null = null;
+const railListeners = new Set<() => void>();
+
+function readRailExpanded(): boolean {
+  if (railExpandedState !== null) return railExpandedState;
+  try {
+    railExpandedState = localStorage.getItem(RAIL_STORAGE_KEY) !== "0";
+  } catch {
+    railExpandedState = true;
+  }
+  return railExpandedState;
+}
+
+function writeRailExpanded(next: boolean): void {
+  railExpandedState = next;
+  try {
+    localStorage.setItem(RAIL_STORAGE_KEY, next ? "1" : "0");
+  } catch {
+    // localStorage unavailable (private mode) — memory state still drives the UI.
+  }
+  railListeners.forEach((cb) => cb());
+}
+
+function subscribeRail(cb: () => void): () => void {
+  railListeners.add(cb);
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === RAIL_STORAGE_KEY) {
+      railExpandedState = null; // invalidate cache, re-read on next snapshot
+      cb();
+    }
+  };
+  window.addEventListener("storage", onStorage);
+  return () => {
+    railListeners.delete(cb);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+
+/**
+ * Collapsible rail state. Default expanded (labels shown). Persisted in
+ * localStorage and reflected onto <html data-rail-mode> so the shell's reserved
+ * column (.ct-rail-left) can widen in lockstep and push the content, instead of
+ * the rail overlaying it.
+ */
+function useRailExpanded(): { expanded: boolean; toggle: () => void } {
+  // Default expanded on the server + first client render; the store reconciles
+  // to the persisted value on the client (no setState-in-effect).
+  const expanded = useSyncExternalStore(subscribeRail, readRailExpanded, () => true);
+
+  useEffect(() => {
+    document.documentElement.dataset.railMode = expanded ? "expanded" : "collapsed";
+  }, [expanded]);
+
+  const toggle = useCallback(() => {
+    writeRailExpanded(!readRailExpanded());
+  }, []);
+
+  return { expanded, toggle };
+}
+
+function RailToggle({
+  expanded,
+  onToggle,
+}: {
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const Icon = expanded ? PanelLeftClose : PanelLeftOpen;
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={expanded ? "Collapse navigation" : "Expand navigation"}
+      aria-expanded={expanded}
+      title={expanded ? "Collapse" : "Expand"}
+      className="ct-rail-item ct-rail-toggle"
+    >
+      <Icon size={20} strokeWidth={1.8} />
+      <span className="ct-rail-item-tooltip">
+        {expanded ? "Collapse" : "Expand"}
+      </span>
+    </button>
   );
 }
 
@@ -141,15 +242,18 @@ export function ProductRailIntra({ items = PRODUCT_NAV }: Props) {
 export function InvestorRailIntra({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
   const { container, mounted } = useBodyPortal();
+  const { expanded, toggle } = useRailExpanded();
 
-  const adminEntry = ADMIN_NAV.find((item) => item.id === "admin");
+  const adminEntry = ADMIN_NAV.find((item) => item.id === "dashboard");
 
   const nav = (
     <nav
       className="ct-rail-intra"
       aria-label="Investor navigation"
       data-testid="investor-rail-intra"
+      data-rail="investor"
     >
+      <RailToggle expanded={expanded} onToggle={toggle} />
       {PRODUCT_NAV.map((item) => (
         <RailItem key={item.id} item={item} pathname={pathname} />
       ))}
@@ -174,6 +278,7 @@ export function InvestorRailIntra({ isAdmin = false }: { isAdmin?: boolean }) {
 export function AdminRailIntra() {
   const pathname = usePathname();
   const { container, mounted } = useBodyPortal();
+  const { expanded, toggle } = useRailExpanded();
 
   const nav = (
     <nav
@@ -181,6 +286,7 @@ export function AdminRailIntra() {
       aria-label="Admin navigation"
       data-testid="admin-rail-intra"
     >
+      <RailToggle expanded={expanded} onToggle={toggle} />
       {ADMIN_NAV.map((item) => (
         <RailItem key={item.id} item={item} pathname={pathname} />
       ))}
