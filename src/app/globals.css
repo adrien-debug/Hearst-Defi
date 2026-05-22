@@ -4,6 +4,11 @@
 @layer cockpit, theme, base, components, utilities;
 @import "tailwindcss";
 
+/* Docs hold illustrative class names (e.g. wildcards like duration-[var(--ct-dur-*)])
+   that are NOT valid CSS — keep them out of Tailwind's content scan so example
+   snippets never leak into the generated utilities. */
+@source not "../../docs";
+
 @font-face {
   font-family: "Satoshi Variable";
   src: url("/fonts/Satoshi-Variable.woff2") format("woff2-variations");
