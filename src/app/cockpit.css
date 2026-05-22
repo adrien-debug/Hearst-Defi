@@ -22,6 +22,11 @@
   --ct-accent-soft: color-mix(in srgb, var(--ct-accent) 18%, transparent);
   --ct-border-accent: color-mix(in srgb, var(--ct-accent) 55%, transparent);
 
+  /* tokens.css définit --ct-accent-maroon en mélangeant l'accent avec le
+     bordeaux hardcodé #1A050B → contamine le glow ambiant (.ct-ambient-glow)
+     même accent vert. On le redérive sur le fond noir : zéro bordeaux. */
+  --ct-accent-maroon: color-mix(in srgb, var(--ct-accent) 70%, var(--ct-bg-deep));
+
   --ct-text-faint: rgba(245, 245, 245, 0.40);
 
   /* Status semantic colors (source of truth — tokens.css n'en a pas) */
