@@ -550,59 +550,74 @@
 
 /* ── RAIL INTRA-APP — nav verticale dans la zone .ct-rail-left ──
    Position fixed, superposée au rail du shell @hearst/cockpit-shell
-   (qui ne supporte pas de slot nav intra-app en v0.1.0). */
+   (qui ne supporte pas de slot nav intra-app en v0.1.0).
+   Largeur : 88px fixe (verrouillé dans .ct-rail-left ci-dessus).
+   Démarre sous le launcher header, pousse les items vers le bas. */
 .ct-rail-intra {
   position: fixed;
   left: 0;
   top: var(--ct-shell-header-h);
-  width: var(--ct-rail-left, 5.5rem);
+  width: 88px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.5rem 0;
+  gap: var(--ct-space-1);
+  padding: var(--ct-space-3) 0;
   z-index: var(--ct-z-rail);
+  pointer-events: auto;
 }
 
+/* Bouton nav : 44×44px, icône centrée H+V. */
 .ct-rail-item {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 2.75rem;   /* 44px */
+  height: 2.75rem;  /* 44px */
   border-radius: var(--ct-radius-md);
   color: var(--ct-text-muted);
   background: transparent;
   border: 1px solid transparent;
+  text-decoration: none;
+  flex-shrink: 0;
   transition:
     color var(--ct-dur-base) var(--ct-ease),
-    background var(--ct-dur-base) var(--ct-ease),
-    border-color var(--ct-dur-base) var(--ct-ease);
-  text-decoration: none;
+    background var(--ct-dur-fast) var(--ct-ease),
+    border-color var(--ct-dur-base) var(--ct-ease),
+    box-shadow var(--ct-dur-base) var(--ct-ease);
 }
 
 .ct-rail-item:hover {
   color: var(--ct-text-primary);
-  background: var(--ct-surface-2);
+  background: color-mix(in srgb, var(--ct-surface-2) 80%, transparent);
   border-color: var(--ct-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .ct-rail-item-active {
-  color: var(--ct-text-strong);
+  color: var(--ct-accent-strong);
   background: var(--ct-accent-soft);
   border-color: var(--ct-border-accent);
+  box-shadow:
+    0 0 10px color-mix(in srgb, var(--ct-accent) 25%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--ct-accent) 15%, transparent);
 }
 
 .ct-rail-item-active:hover {
-  background: var(--ct-accent-soft);
+  color: var(--ct-accent-strong);
+  background: color-mix(in srgb, var(--ct-accent-soft) 85%, var(--ct-surface-2));
   border-color: var(--ct-border-accent);
+  box-shadow:
+    0 0 14px color-mix(in srgb, var(--ct-accent) 35%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--ct-accent) 20%, transparent);
 }
 
-/* Tooltip au hover */
+/* Tooltip label au hover — apparaît à droite de l'icône. */
 .ct-rail-item-tooltip {
   position: absolute;
-  left: calc(100% + 0.75rem);
+  left: calc(100% + 0.625rem);
   top: 50%;
   transform: translateY(-50%);
   background: var(--ct-surface-3);
@@ -611,14 +626,15 @@
   font-size: var(--ct-text-xs);
   font-weight: var(--ct-font-medium);
   padding: 0.25rem 0.625rem;
-  border-radius: 0.375rem;
+  border-radius: var(--ct-radius-sm);
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
-  transition: opacity var(--ct-dur-base) var(--ct-ease);
+  transition: opacity var(--ct-dur-fast) var(--ct-ease);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   z-index: var(--ct-z-rail-tooltip);
+  box-shadow: var(--ct-shadow-depth);
 }
 
 .ct-rail-item:hover .ct-rail-item-tooltip {
@@ -636,7 +652,7 @@
   width: 2rem;
   border: none;
   border-top: 1px solid var(--ct-border-soft);
-  margin: var(--ct-space-1) 0;
+  margin: var(--ct-space-1_5) 0;
   flex-shrink: 0;
 }
 
