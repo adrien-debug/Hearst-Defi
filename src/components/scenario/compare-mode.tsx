@@ -47,54 +47,17 @@ function Placeholder({ side, pending }: PlaceholderProps) {
     >
       {pending ? (
         <>
-          <svg
-            className="h-4 w-4 animate-spin text-[var(--ct-text-strong)]"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            aria-hidden
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-            />
-          </svg>
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--ct-text-strong)] border-t-transparent" />
           <p className="stat-label text-[var(--ct-text-body)]">Computing…</p>
         </>
       ) : (
-        <>
-          <svg
-            className="h-10 w-10 text-[var(--ct-text-muted)]"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            aria-hidden
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"
-            />
-          </svg>
-          <p className="text-center text-sm text-[var(--ct-text-muted)]">
-            <span className="font-semibold text-[var(--ct-text-body)]">
-              Scenario {side}
-            </span>
-            <br />
-            Pick a preset to compare
-          </p>
-        </>
+        <div className="ct-empty-state">
+          <span className="font-semibold text-[var(--ct-text-body)]">
+            Scenario {side}
+          </span>
+          <br />
+          Pick a preset to compare
+        </div>
       )}
     </div>
   );
