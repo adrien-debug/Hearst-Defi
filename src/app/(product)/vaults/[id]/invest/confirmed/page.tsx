@@ -95,14 +95,14 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
         {/* Transaction row */}
         <div className="w-full flex flex-col gap-2 p-4 rounded-[--ct-radius-md] bg-[--ct-surface-1] border border-[--ct-border-soft]">
           <div className="flex items-center justify-between gap-3">
-            <span className="eyebrow text-[--ct-text-muted]">
+            <span className="eyebrow ct-text-muted">
               Transaction
             </span>
             <ProvenanceBadge kind="attested" />
           </div>
 
           <div className="flex items-center justify-between gap-3">
-            <span className="tabular mono text-sm text-[--ct-text-primary]">
+            <span className="tabular mono text-sm ct-text-primary">
               {hasHash ? abbreviateTx(txHash) : "Pending on-chain confirmation"}
             </span>
             {hasHash && (
@@ -120,7 +120,7 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
 
         {/* What's next */}
         <div className="w-full flex flex-col gap-3 text-left">
-          <span className="eyebrow text-[--ct-text-muted]">
+          <span className="eyebrow ct-text-muted">
             What&apos;s next
           </span>
           <ul className="flex flex-col gap-2 list-none p-0 m-0">
@@ -131,7 +131,7 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
             ].map((item) => (
               <li
                 key={item}
-                className="flex items-start gap-2 text-sm text-[--ct-text-body]"
+                className="flex items-start gap-2 text-sm ct-text-body"
               >
                 <span
                   aria-hidden="true"
@@ -156,7 +156,7 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
         </div>
 
         {/* Disclaimer — non-negotiable #10 */}
-        <p className="body-xs text-[--ct-text-faint] text-center">
+        <p className="body-xs ct-text-faint text-center">
           APY ranges are target projections — not a commitment of future returns.
           Subject to vault conditions and Methodology v1.0 assumptions.
         </p>
@@ -164,9 +164,9 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
 
       {/* Suppress unused id param warning — id used for back-navigation context */}
       {/* Route: /vaults/{id}/invest/confirmed */}
-      <p className="body-xs text-[--ct-text-faint] text-center">
+      <p className="body-xs ct-text-faint text-center">
         Vault{" "}
-        <span className="tabular mono text-[--ct-text-muted]">
+        <span className="tabular mono ct-text-muted">
           {id}
         </span>{" "}
         · Hearst Yield Vault

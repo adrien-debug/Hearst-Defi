@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 
 import { AdminRailIntra } from "@/components/nav/product-rail-intra";
+import { DemoModeToggleSlot } from "@/components/demo/demo-mode-toggle-slot";
 import { getSession } from "@/lib/auth/session";
 import { requireAdmin } from "@/lib/auth/require-admin";
 
@@ -41,6 +42,7 @@ export default async function AdminLayout({
   return (
     <>
       <AdminRailIntra />
+      <DemoModeToggleSlot />
       {children}
     </>
   );

@@ -103,8 +103,8 @@ export function DepositSummary({ vault, amount }: DepositSummaryProps) {
 
       <p className="body-xs ct-text-faint mt-4 leading-relaxed">
         Yield figures are conditional projections at the midpoint of the APY
-        range — not a projection of future returns. Subject to soft lock-up
-        and fee terms. Not a projection of future returns.
+        range — not a commitment of future returns. Subject to soft lock-up
+        and fee terms. Methodology v1.0.
       </p>
     </Card>
   );

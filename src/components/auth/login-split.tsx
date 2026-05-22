@@ -11,7 +11,7 @@ const WHY = [
 
 export function LoginSplit() {
   return (
-    <main className="ct-page-area min-h-dvh relative">
+    <div className="ct-page-area min-h-dvh relative">
       <AmbientLights />
       <div className="grid min-h-dvh grid-cols-1 lg:grid-cols-2 relative z-[var(--ct-z-raised)]">
       {/* ── Left: product hero ───────────────────────────────────────────── */}
@@ -82,6 +82,6 @@ export function LoginSplit() {
         </div>
       </section>
       </div>
-    </main>
+    </div>
   );
 }

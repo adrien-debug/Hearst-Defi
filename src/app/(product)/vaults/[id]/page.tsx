@@ -65,7 +65,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
         <div className="flex items-center gap-3">
           <Link
             href="/vaults"
-            className="body-sm ct-text-muted hover:ct-text-primary transition-colors"
+            className="body-sm ct-text-muted hover:opacity-80 transition-opacity"
             aria-label="Back to product list"
           >
             ← Products
@@ -76,7 +76,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
         <div className="flex flex-wrap items-start gap-3">
           <h1 className="h1 flex-1">{vault.name}</h1>
           <div className="flex items-center gap-2 pt-1">
-          <span className="ct-pill accent mono text-[length:var(--ct-text-micro)]">
+            <span className="ct-pill accent mono text-[length:var(--ct-text-micro)]">
               {vault.ticker}
             </span>
             <Badge variant={STATUS_VARIANT[vault.status] ?? "default"}>

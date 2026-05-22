@@ -29,7 +29,7 @@ export default async function InvestPage({ params }: PageProps) {
   if (vault.status !== "live") notFound();
 
   return (
-    <div className="ct-section space-y-6 px-6 py-8 max-w-5xl mx-auto w-full">
+    <div className="ct-section space-y-6 max-w-5xl mx-auto w-full">
       {/* Eyebrow + step indicator */}
       <header className="flex flex-col gap-3">
         <span className="eyebrow">Deposit</span>

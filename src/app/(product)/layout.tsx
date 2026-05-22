@@ -1,7 +1,6 @@
 // All product routes require auth data and live vault state — disable static prerendering.
 export const dynamic = "force-dynamic";
 
-import { DemoModeToggleSlot } from "@/components/demo/demo-mode-toggle-slot";
 import { HubModeStyles } from "@/components/hub-mode-styles";
 import { HeaderConnect } from "@/components/connect/header-connect";
 import { InvestorRailIntra } from "@/components/nav/product-rail-intra";
@@ -22,12 +21,10 @@ export default async function ProductLayout({
       {/* Left rail — investor nav (Portfolio / Vaults / Profile).
           Watertight: admin items never appear here. */}
       <InvestorRailIntra />
-      {/* Identity slot — docked into the bottom of the left rail (Section 1),
-          stacked just above the rail's user badge. HeaderConnect renders only
-          when Privy authenticated. DemoModeToggleSlot hidden in prod. */}
+      {/* Identity slot — docked into the bottom of the left rail (Section 1).
+          HeaderConnect renders only when Privy authenticated. */}
       <div className="connect-rail-identity">
         <HeaderConnect />
-        <DemoModeToggleSlot />
       </div>
       {children}
     </>
