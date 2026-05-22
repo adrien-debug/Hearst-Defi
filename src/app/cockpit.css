@@ -197,6 +197,11 @@
 .ct-divide-soft > * + * { border-top: 1px solid var(--ct-border-soft); }
 .ct-divide-base > * + * { border-top: 1px solid var(--ct-border); }
 
+/* Shadow utilities */
+.ct-shadow-soft { box-shadow: var(--ct-shadow-soft); }
+.ct-shadow-elevated { box-shadow: var(--ct-shadow-elevated); }
+.ct-shadow-depth { box-shadow: var(--ct-shadow-depth); }
+
 /* ── UTILITAIRES RÉCURRENTS (factorise les patterns dupliqués) ── */
 
 /* État vide — dashed border, centré, muted text */
