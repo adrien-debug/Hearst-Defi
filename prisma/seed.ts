@@ -56,12 +56,19 @@ const BACKTEST_KEYS: BacktestKey[] = [
   "mining_crunch_2024",
 ];
 
+// Preset/scenario snapshots are anchored ~90 days in the past so they sit well
+// outside the dashboard's 30-day trailing window. They feed the memo/scenario
+// loaders (which query by preset), never the live dashboard KPIs.
+const PRESET_ANCHOR = new Date(SEED_NOW.getTime() - 90 * 24 * 60 * 60 * 1000);
+const presetDate = (offsetDays: number): Date =>
+  new Date(PRESET_ANCHOR.getTime() + offsetDays * 24 * 60 * 60 * 1000);
+
 const SNAPSHOT_DATES: Record<Preset, Date> = {
-  base: shifted(new Date("2026-05-09T12:00:00Z")),
-  btc_bear: shifted(new Date("2026-05-10T12:00:00Z")),
-  btc_bull: shifted(new Date("2026-05-11T12:00:00Z")),
-  mining_compression: shifted(new Date("2026-05-12T12:00:00Z")),
-  extreme_stress: shifted(new Date("2026-05-13T12:00:00Z")),
+  base: presetDate(0),
+  btc_bear: presetDate(1),
+  btc_bull: presetDate(2),
+  mining_compression: presetDate(3),
+  extreme_stress: presetDate(4),
 };
 
 const MINING_BASE_INPUTS: ScenarioInputs = getPresetInputs("base");

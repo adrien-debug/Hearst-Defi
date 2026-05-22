@@ -110,6 +110,11 @@ export interface DashboardData {
 const FALLBACK_AUM = 24_600_000;
 const FALLBACK_APY = { low: 9.4, high: 12.8 } as const;
 
+// Snapshot `source` values that represent the real vault timeline (vs the
+// `computed` preset/scenario snapshots used by the memo loader). The dashboard
+// reads only these so a stress-preset never leaks into the live KPIs.
+const TIMELINE_SOURCES: string[] = ["daily-seed", "live", "oracle", "attested"];
+
 /**
  * Loads everything the `/dashboard` page needs in parallel.
  *
@@ -131,6 +136,11 @@ export async function loadDashboardData(): Promise<DashboardData> {
     trailingSnapshots,
   ] = await Promise.all([
     prisma.vaultSnapshot.findFirst({
+      // Exclude scenario/preset snapshots (`source: "computed"`) — those are
+      // anchored to preset dates for the memo/scenario loaders and would
+      // otherwise pollute the dashboard's "latest" with extreme stress values.
+      // Only the real timeline counts here: daily seed locally, live in prod.
+      where: { source: { in: TIMELINE_SOURCES } },
       orderBy: { takenAt: "desc" },
       include: { allocations: true },
     }),
@@ -144,7 +154,7 @@ export async function loadDashboardData(): Promise<DashboardData> {
       take: 5,
     }),
     prisma.vaultSnapshot.findMany({
-      where: { takenAt: { gte: thirtyDaysAgo } },
+      where: { takenAt: { gte: thirtyDaysAgo }, source: { in: TIMELINE_SOURCES } },
       orderBy: { takenAt: "asc" },
       select: {
         takenAt: true,
@@ -280,11 +290,12 @@ async function buildVault(
   const thirtyDaysAgo = new Date(snapshot.takenAt.getTime() - 30 * 24 * 60 * 60 * 1000);
   const [prior, oldest] = await Promise.all([
     prisma.vaultSnapshot.findFirst({
-      where: { takenAt: { lte: thirtyDaysAgo } },
+      where: { takenAt: { lte: thirtyDaysAgo }, source: { in: TIMELINE_SOURCES } },
       orderBy: { takenAt: "desc" },
       select: { aumUsdc: true },
     }),
     prisma.vaultSnapshot.findFirst({
+      where: { source: { in: TIMELINE_SOURCES } },
       orderBy: { takenAt: "asc" },
       select: { aumUsdc: true },
     }),
