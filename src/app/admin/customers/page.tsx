@@ -73,7 +73,7 @@ export default async function CustomersPage() {
           <Card className="overflow-x-auto p-0">
             <table className="w-full border-collapse text-left">
               <thead>
-                <tr className="border-b border-[--ct-border]">
+                <tr className="border-b border-[var(--ct-border)]">
                   <th className="stat-label px-5 py-3 font-medium">Email</th>
                   <th className="stat-label px-5 py-3 font-medium">Wallet</th>
                   <th className="stat-label px-5 py-3 font-medium">KYC</th>
@@ -90,12 +90,12 @@ export default async function CustomersPage() {
                 {customers.map((c) => (
                   <tr
                     key={c.id}
-                    className="border-b border-[--ct-border] last:border-0"
+                    className="border-b border-[var(--ct-border)] last:border-0"
                   >
-                    <td className="px-5 py-3 text-[--ct-text-strong]">
+                    <td className="px-5 py-3 ct-text-strong">
                       {c.email}
                     </td>
-                    <td className="mono px-5 py-3 text-[--ct-text-muted]">
+                    <td className="mono px-5 py-3 ct-text-muted">
                       {truncateWallet(c.walletAddress)}
                     </td>
                     <td className="px-5 py-3">
@@ -103,13 +103,13 @@ export default async function CustomersPage() {
                         {KYC_LABEL[c.kycStatus]}
                       </Badge>
                     </td>
-                    <td className="px-5 py-3 text-right tabular-nums text-[--ct-text-body]">
+                    <td className="px-5 py-3 text-right tabular-nums ct-text-body">
                       {c.activePositions}
                     </td>
-                    <td className="px-5 py-3 text-right tabular-nums text-[--ct-text-strong]">
+                    <td className="px-5 py-3 text-right tabular-nums ct-text-strong">
                       {usdFull.format(c.totalPrincipalUsdc)}
                     </td>
-                    <td className="px-5 py-3 text-[--ct-text-muted]">
+                    <td className="px-5 py-3 ct-text-muted">
                       {joinedFmt.format(c.joinedAt)}
                     </td>
                   </tr>

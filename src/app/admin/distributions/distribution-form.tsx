@@ -158,7 +158,7 @@ export function DistributionForm() {
 
       {/* Error */}
       {error && (
-        <p className="body-xs ct-status-danger-bg px-3 py-2 rounded-[--ct-radius-lg]">
+        <p className="body-xs ct-status-danger-bg px-3 py-2 rounded-[var(--ct-radius-lg)]">
           {error}
         </p>
       )}
@@ -194,7 +194,7 @@ export function DistributionForm() {
               </div>
 
               {confirmResult && !confirmResult.confirmed && (
-                <p className="body-xs ct-status-info-bg px-3 py-2 rounded-[--ct-radius-lg]">
+                <p className="body-xs ct-status-info-bg px-3 py-2 rounded-[var(--ct-radius-lg)]">
                   Signature {confirmResult.signersCount}/{confirmResult.required}{" "}
                   recorded. Awaiting {confirmResult.required - confirmResult.signersCount} more
                   distinct signer(s).
@@ -259,7 +259,7 @@ export function DistributionForm() {
 
       {/* Confirmed */}
       {confirmResult?.confirmed && (
-        <div className="ct-status-success-bg px-4 py-3 rounded-[--ct-radius-xl] space-y-1">
+        <div className="ct-status-success-bg px-4 py-3 rounded-[var(--ct-radius-xl)] space-y-1">
           <p className="body-sm ct-status-success font-semibold">
             Distribution confirmed for period {period}.
           </p>
