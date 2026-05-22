@@ -9,10 +9,10 @@ import {
 
 describe("allocation-colors", () => {
   it("maps engine buckets to dashboard bento strokes", () => {
-    expect(ALLOCATION_STROKE.mining).toBe("var(--ct-text-strong)");
+    expect(ALLOCATION_STROKE.mining).toBe("var(--ct-text-primary)");
     expect(ALLOCATION_STROKE.btc_tactical).toBe("var(--ct-accent-strong)");
-    expect(ALLOCATION_STROKE.usdc_base).toBe("var(--ct-surface-2)");
-    expect(ALLOCATION_STROKE.stable_reserve).toBe("var(--ct-surface-3)");
+    expect(ALLOCATION_STROKE.usdc_base).toBe("var(--ct-status-info)");
+    expect(ALLOCATION_STROKE.stable_reserve).toBe("var(--ct-status-warning)");
   });
 
   it("maps hyphen mock ids to the same strokes", () => {
