@@ -2,6 +2,12 @@ import "server-only";
 
 import { prisma } from "@/lib/db";
 import { getInvestor } from "@/lib/auth/session";
+import {
+  aggregateLpPnl,
+  computeLpPnl,
+  daysHeldSince,
+  type LpPnl,
+} from "@/lib/engine/lp-pnl";
 
 // ---------------------------------------------------------------------------
 // PositionDetail — extended view for the /portfolio/[positionId] page
@@ -29,6 +35,8 @@ export interface PositionDetail {
   maturedAt: Date | null;
   txHashOpen: string | null;
   transactions: PositionDetailTransaction[];
+  /** Computed P&L for this position. Optional — consumers render when present. */
+  pnl?: LpPnl;
   /** "live" = real DB data, "fallback" = demo / unauthenticated */
   source: "live" | "fallback";
 }
@@ -67,6 +75,8 @@ export interface PortfolioData {
   totalYieldYtdUsdc: number;
   nextDistributionAt: Date;
   recentTransactions: PortfolioTransaction[];
+  /** Aggregate P&L across positions. Optional — consumers render when present. */
+  pnl?: LpPnl;
   /** "live" = real DB data, "fallback" = unauthenticated / empty state */
   source: "live" | "fallback";
 }
@@ -198,12 +208,24 @@ export async function loadPortfolio(): Promise<PortfolioData> {
       : undefined,
   }));
 
+  // Aggregate P&L across positions (clock passed in to keep the engine pure).
+  const now = new Date();
+  const pnl = aggregateLpPnl(
+    rawPositions.map((p) => ({
+      contributedUsdc: toNumber(p.principalUsdc),
+      distributedUsdc: toNumber(p.distributedUsdc),
+      accruedYieldUsdc: toNumber(p.accruedYieldUsdc),
+      daysHeld: daysHeldSince(p.subscribedAt, now),
+    })),
+  );
+
   return {
     positions,
     totalValueUsdc,
     totalYieldYtdUsdc,
     nextDistributionAt: nextEndOfMonth(),
     recentTransactions,
+    pnl,
     source: "live",
   };
 }
@@ -252,6 +274,13 @@ export async function loadPosition(
   // txHashOpen: find the opening deposit transaction hash
   const openTx = rawTxs.find((t) => t.type === "deposit");
 
+  const pnl = computeLpPnl({
+    contributedUsdc: principal,
+    distributedUsdc: distributed,
+    accruedYieldUsdc: accrued,
+    daysHeld: daysHeldSince(raw.subscribedAt, new Date()),
+  });
+
   return {
     id: raw.id,
     vaultName,
@@ -266,6 +295,7 @@ export async function loadPosition(
     maturedAt: null, // populated in Phase 2
     txHashOpen: openTx?.txHash ?? null,
     transactions,
+    pnl,
     source: "live",
   };
 }
