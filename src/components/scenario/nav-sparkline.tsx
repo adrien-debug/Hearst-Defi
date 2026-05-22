@@ -14,7 +14,7 @@ const INITIAL_NAV = 1_000_000; // illustrative $1M notional
 const CHART_LABEL_SIZE = 10;
 const MONTHS = 12;
 
-interface NavPoint {
+interface NavProjection {
   month: number;
   low: number;
   mid: number;
@@ -24,13 +24,13 @@ interface NavPoint {
 function buildNavSeries(
   apyLow: number,
   apyHigh: number,
-): NavPoint[] {
+): NavProjection[] {
   const midApy = (apyLow + apyHigh) / 2;
   const monthlyLow = Math.pow(1 + apyLow / 100, 1 / 12) - 1;
   const monthlyMid = Math.pow(1 + midApy / 100, 1 / 12) - 1;
   const monthlyHigh = Math.pow(1 + apyHigh / 100, 1 / 12) - 1;
 
-  const series: NavPoint[] = [];
+  const series: NavProjection[] = [];
   let navLow = INITIAL_NAV;
   let navMid = INITIAL_NAV;
   let navHigh = INITIAL_NAV;
@@ -52,7 +52,7 @@ function formatUsd(n: number): string {
 // ── SVG sparkline ─────────────────────────────────────────────────────────────
 
 interface SparklineProps {
-  series: NavPoint[];
+  series: NavProjection[];
 }
 
 function Sparkline({ series }: SparklineProps) {

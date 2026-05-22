@@ -30,7 +30,7 @@ Corollaire :
 | Catégorie | Tokens autorisés |
 |---|---|
 | **Fond global** | `--ct-bg-deep` (`#050A05`) |
-| **Accent produit** | `--ct-accent` (`#A7FB90`), `--ct-accent-maroon`, `--ct-accent-strong`, `--ct-accent-soft`, `--ct-border-accent` |
+| **Accent produit** | `--ct-accent` (`#A7FB90`), `--ct-accent-strong`, `--ct-accent-soft`, `--ct-border-accent` |
 | **Surfaces (élévation 0→3)** | `--ct-surface-0`, `--ct-surface-1`, `--ct-surface-2`, `--ct-surface-3` |
 | **Texte** | `--ct-text-strong` (#fff), `--ct-text-primary`, `--ct-text-body`, `--ct-text-muted`, `--ct-text-faint` |
 | **Bordures** | `--ct-border-soft`, `--ct-border`, `--ct-border-strong` |
@@ -67,11 +67,11 @@ Utilisables comme `bg-bg`, `bg-bg-card`, `text-text`, `border-border`, etc. Aucu
 
 ### Z-index
 
-`--ct-z-base 1 · raised 10 · bottom-bar 30 · dropdown 40 · rail 50 · overlay 100 · rail-tooltip 100 · modal 1000`. **Ne pas inventer de z arbitraire.**
+`--ct-z-base 1 · raised 10 · bottom-bar 30 · dropdown 40 · rail 50 · overlay 100 · rail-tooltip 100 · modal 1000 · toast 1100 · popover 1200 · modal-overlay 1300`. **Ne pas inventer de z arbitraire.** (`toast`/`popover`/`modal-overlay` ajoutés 2026-05-22, process §7 — remplacent les `z-[1200]`/`z-[1300]` magiques de `admin-chat-controls.tsx`.)
 
 ### Motion
 
-`--ct-dur-fast 150ms · --ct-dur-base 220ms · --ct-dur-slow 400ms`, `--ct-ease cubic-bezier(.2,.7,.2,1)`. Alias `--transition-fast/base/slow`.
+`--ct-dur-fast 150ms · --ct-dur-base 220ms · --ct-dur-slow 400ms · --ct-dur-slower 500ms`, `--ct-ease cubic-bezier(.2,.7,.2,1)`. Alias `--transition-fast/base/slow`. (`--ct-dur-slower` ajouté 2026-05-22, process §7 — fade-in des `loading.tsx`, remplace `duration-500` magique.)
 
 ### Shadows / glows
 
@@ -83,7 +83,7 @@ Utilisables comme `bg-bg`, `bg-bg-card`, `text-text`, `border-border`, etc. Aucu
 
 ## 4. Primitives UI figées (`src/components/ui/`)
 
-**12 primitives autorisées**, listées ci-dessous. **Aucune nouvelle primitive ne s'ajoute sans validation explicite.**
+**14 primitives autorisées**, listées ci-dessous. **Aucune nouvelle primitive ne s'ajoute sans validation explicite.**
 
 | Fichier | Rôle | Notes |
 |---|---|---|
@@ -98,8 +98,10 @@ Utilisables comme `bg-bg`, `bg-bg-card`, `text-text`, `border-border`, etc. Aucu
 | `ptai.tsx` | **Obligatoire pour simulations/rebal** | Projection → Trigger → Action → Impact |
 | `toaster.tsx` + `client-toaster.tsx` | Sonner Cockpit-themed | Override dans `cockpit.css` `[data-sonner-toaster]` |
 | `confirm-dialog.tsx` | Modale de confirmation accessible (focus trap, Escape, backdrop, `confirmPhrase` retape) | Validé 2026-05-22, confirmation actions destructives (cycle de vie vault). Tokens `--ct-*` only, pas de lib externe |
+| `modal.tsx` | Overlay générique accessible (focus trap, Escape, backdrop) **sans** boutons OK/Cancel — pour contenu arbitraire (panneau, document) | Validé 2026-05-22, même modèle d'accessibilité que `confirm-dialog`. Tokens `--ct-*` only |
+| `preset-picker.tsx` | Dropdown custom (listbox) accessible, navigation clavier (↑↓ Home/End, Escape), générique sur option string | Validé 2026-05-22, extrait de `scenario/compare-mode`. Tokens `--ct-*` only |
 
-**Si tu as besoin d'un nouveau composant** : compose à partir de ces 12 primitives + helpers `.ct-*`, ne crée pas une 12e primitive sans demander.
+**Si tu as besoin d'un nouveau composant** : compose à partir de ces 14 primitives + helpers `.ct-*`, ne crée pas une 15e primitive sans demander.
 
 ---
 
@@ -127,7 +129,7 @@ Définies dans `cockpit.css` (extension projet) et `tokens.css` (canon package).
 ## 6. Layout — invariants
 
 - **Shell** : rail gauche `--ct-rail-left 88px` (fixe) + zone centrale `.ct-page-area` + rail droit `--ct-rail-right 420px` (chat Kimi, **rail unique**).
-- **Halo central** : `radial-gradient(ellipse 80% 70% at 50% 45%, accent-maroon 45%+deep → deep 72%)` — appliqué sur `.ct-page-area`.
+- **Halo central** : `radial-gradient(ellipse 80% 70% at 50% 45%, accent-soft 45%+deep → deep 72%)` — appliqué sur `.ct-page-area`.
 - **Bento dashboard** : grille 12 col, gaps `1px` sur `--ct-border-soft`, cellules `--ct-bg-deep`, `border-radius: var(--ct-radius-lg)`.
 - **Chat IA produit** : **interdit** ailleurs que le rail droit (CLAUDE.md non-négociable #4).
 

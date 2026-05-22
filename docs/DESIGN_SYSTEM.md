@@ -26,7 +26,7 @@ dans `cockpit.css` (pattern établi : Sonner, rails).
 |---|---|---|
 | `--ct-bg-deep` | `#050A05` | Fond global, rails, cellules |
 | `--ct-accent` | `#A7FB90` | Accent produit (piloté ThemeAccent) |
-| `--ct-accent-maroon` | `accent 70% + #050A05` | Halo ambiant, charts maroon |
+| `--ct-accent-soft` | `accent 18% + transparent` | Halo ambiant, charts soft tone |
 | `--ct-accent-strong` | `accent 78% + #fff` | Arc actif jauges/charts |
 | `--ct-accent-soft` | `accent 18% + transparent` | Fills légers |
 | `--ct-surface-0..3` | `rgba(255,255,255,.02→.09)` | Verre dépoli (élévation croissante) |
@@ -89,7 +89,7 @@ non-carré déforme le cercle en ellipse.
 Rails `--ct-rail-left 88px` / `--ct-rail-right 420px` (chat Kimi, rail droit
 unique — pas de chat embarqué ailleurs). Zone contenu = `.ct-page-area`
 (scrollable, padding `32px 40px 80px`). Halo central :
-`radial-gradient(ellipse 80% 70% at 50% 45%, accent-maroon 45%+deep → deep 72%)`.
+`radial-gradient(ellipse 80% 70% at 50% 45%, accent-soft 45%+deep → deep 72%)`.
 Bento dashboard : grille 12 col, gaps `1px` sur `--ct-border-soft`, cellules
 `--ct-bg-deep`, `border-radius: var(--ct-radius-lg)`.
 

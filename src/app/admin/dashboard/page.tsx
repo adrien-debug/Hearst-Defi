@@ -148,7 +148,7 @@ export default async function DashboardPage() {
   const allocSegments = (() => {
     const segs: Array<{
       bucket: string;
-      tone: "primary" | "accent" | "maroon" | "muted";
+      tone: "primary" | "accent" | "soft" | "muted";
       pct: number;
       valueUsdc: number;
       dashArray: string;

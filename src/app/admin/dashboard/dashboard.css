@@ -57,7 +57,7 @@
 
 .ring-fg.accent { stroke: var(--ct-accent-strong); }
 .ring-fg.muted { stroke: var(--ct-text-muted); }
-.ring-fg.maroon { stroke: var(--ct-accent-maroon); }
+.ring-fg.soft { stroke: var(--ct-accent-soft); }
 
 /* === Depth chart bars (source: kpi-elegant) === */
 .depth-chart {
@@ -102,7 +102,7 @@
 }
 
 .depth-bar.accent { background: var(--ct-accent-strong); }
-.depth-bar.maroon { background: var(--ct-accent-maroon); }
+.depth-bar.soft { background: var(--ct-accent-soft); }
 .depth-bar.muted { background: var(--ct-text-muted); }
 
 .depth-val {

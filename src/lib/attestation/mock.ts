@@ -8,7 +8,6 @@ export const MOCK_ATTESTOR_ADDRESS = attestorAddress();
 
 const PARTNER = "Cathedra Mining (Texas)";
 const DAYS_PER_PERIOD = 30;
-const BASE_HASHRATE_THS = 250_000;
 const BASE_AUM_USD = 42_500_000; // anchors the dashboard's $42.5M AUM
 
 /** Deterministic month index for a `"YYYY-MM"` period. */

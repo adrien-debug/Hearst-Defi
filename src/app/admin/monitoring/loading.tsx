@@ -2,7 +2,7 @@ import { SkeletonCard, Skeleton } from "@/components/ui/skeleton";
 
 export default function MonitoringLoading() {
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-[var(--ct-dur-slower)]">
       {/* Header */}
       <div className="space-y-1">
         <Skeleton className="h-12 w-52" />

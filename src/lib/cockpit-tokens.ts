@@ -18,19 +18,24 @@
 
 // ── Accent (Connect product colour — mirrors --ct-accent) ──────────────────
 export const CT_ACCENT_HEX = "#A7FB90" as const;
-export const CT_ACCENT_STRONG_HEX = "#C8FDB8" as const; // ≈ accent 78% + white 22%
+// NOTE: en CSS, --ct-accent-strong est DYNAMIQUE — `color-mix(in srgb, accent
+// 82%, #fff)` dans cockpit.css (78% dans le package). Cette constante n'est
+// qu'une approximation figée pour les surfaces non-CSS (PDF / SDK qui ne savent
+// pas faire color-mix). Ne pas l'utiliser comme source de vérité visuelle ;
+// la vérité reste le token CSS. Actuellement inutilisée — gardée par symétrie.
+export const CT_ACCENT_STRONG_HEX = "#C8FDB8" as const;
 
 // Connect product colour (CockpitShell registry, Privy theme, error pages).
 export const CT_PRODUCT_CONNECT_HEX = "#A7FB90" as const;
 
 // Foreground colour for content rendered on top of CT_PRODUCT_CONNECT_HEX
-// (e.g. CTA button label on maroon). Dark for AA contrast on the light accent.
+// (e.g. CTA button label on dark surface). Dark for AA contrast on the light accent.
 export const CT_PRODUCT_CONNECT_FG_HEX = "#0A0A0A" as const;
 
 // ── Cockpit chrome base (dark) — minimal hex mirror for surfaces that
 //    cannot rely on the global CSS (Next.js standalone error pages, etc.) ──
 export const CT_CHROME = {
-  bgDeep: "#030603", // mirror of --ct-bg-deep
+  bgDeep: "#000000", // mirror of --ct-bg-deep (cockpit.css = #000000, iOS black)
   textPrimary: "#ededed", // approx mirror of --ct-text-primary (light on dark)
 } as const;
 
@@ -82,7 +87,7 @@ export const CT_PDF = {
 
 // ── Allocation palette (PDF / light print only) ───────────────────────────
 // Web UI strokes: `ALLOCATION_STROKE` in `src/lib/allocation-colors.ts`
-// (dark Cockpit: accent-strong, accent-maroon, surface-3 — not these hex).
+// (dark Cockpit: accent-strong, accent-soft, surface-3 — not these hex).
 export const CT_ALLOCATION = {
   mining: CT_PDF.textPrimary, // mining = anchor / strongest ink
   usdc_base: CT_PDF.textMuted,

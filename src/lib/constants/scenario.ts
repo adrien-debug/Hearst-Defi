@@ -1,3 +1,8 @@
+// UI-only constants for the Scenario Lab output panels.
+// Pure presentation maps (labels / variant names / colors) — NO business logic,
+// NO engine math. Moved here from scenario/output-panel-shared.tsx so both the
+// full and compact OutputPanel variants share a single source.
+
 import { ALLOCATION_LABELS, ALLOCATION_STROKE } from "@/lib/allocation-colors";
 import type { AllocationBucket, ScenarioOutput } from "@/lib/engine/types";
 
@@ -17,6 +22,21 @@ export const CONFIDENCE_VARIANT: Record<
   low: "danger",
   medium: "warning",
   high: "success",
+};
+
+export const MODE_LABEL: Record<ScenarioOutput["mode"], string> = {
+  defensive: "Defensive",
+  balanced: "Balanced",
+  opportunistic: "Opportunistic",
+};
+
+export const MODE_VARIANT: Record<
+  ScenarioOutput["mode"],
+  "danger" | "default" | "success"
+> = {
+  defensive: "danger",
+  balanced: "default",
+  opportunistic: "success",
 };
 
 /** Progress bar fill class for risk (inverted) and mining scores. */

@@ -26,7 +26,7 @@
 .dash-chart-circle.color-primary { stroke: var(--ct-text-strong); }
 .dash-chart-circle.color-accent { stroke: var(--ct-accent-strong); }
 .dash-chart-circle.color-accent-raw { stroke: var(--ct-accent); }
-.dash-chart-circle.color-maroon { stroke: var(--ct-accent-maroon); }
+.dash-chart-circle.color-soft { stroke: var(--ct-accent-soft); }
 .dash-chart-circle.color-muted { stroke: var(--ct-surface-3); }
 
 .donut-center {
@@ -89,7 +89,7 @@
 .dash-legend-dot.dot-primary { background: var(--ct-text-strong); }
 .dash-legend-dot.dot-accent { background: var(--ct-accent-strong); }
 .dash-legend-dot.dot-accent-raw { background: var(--ct-accent); }
-.dash-legend-dot.dot-maroon { background: var(--ct-accent-maroon); }
+.dash-legend-dot.dot-soft { background: var(--ct-accent-soft); }
 .dash-legend-dot.dot-muted { background: var(--ct-surface-3); }
 
 .dash-legend-val {

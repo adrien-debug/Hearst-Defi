@@ -4,8 +4,9 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 
 import { runComparisonAction } from "@/app/admin/scenario-lab/actions";
 import { DeltaRow } from "@/components/scenario/delta-row";
-import { OutputPanelCompact } from "@/components/scenario/output-panel-compact";
+import { OutputPanel } from "@/components/scenario/output-panel";
 import { PRESETS } from "@/components/scenario/preset-bar";
+import { PresetPicker } from "@/components/ui/preset-picker";
 import { cn } from "@/lib/cn";
 import type { Preset, ScenarioOutput } from "@/lib/engine/types";
 
@@ -15,190 +16,11 @@ function labelFor(preset: Preset): string {
   return PRESETS.find((p) => p.id === preset)?.label ?? preset;
 }
 
-// ── Preset picker (dropdown) ─────────────────────────────────────────────────
-
-interface PresetPickerProps {
-  side: "A" | "B";
-  value: Preset | null;
-  /** When provided, this preset is greyed out / disabled in the menu (already
-   * chosen on the other side). */
-  excluded: Preset | null;
-  disabled: boolean;
-  onChange: (preset: Preset) => void;
-}
-
-function PresetPicker({
-  side,
-  value,
-  excluded,
-  disabled,
-  onChange,
-}: PresetPickerProps) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const listboxRef = useRef<HTMLUListElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function onDocClick(e: MouseEvent) {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
-    }
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        setOpen(false);
-        triggerRef.current?.focus();
-      }
-    }
-    document.addEventListener("mousedown", onDocClick);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDocClick);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-
-  // Move focus to the first selectable option when the listbox opens so the
-  // keyboard user can act on the menu they just summoned. Without this the
-  // focus stays on the trigger and Tab leaves the dropdown entirely.
-  useEffect(() => {
-    if (!open) return;
-    const first = listboxRef.current?.querySelector<HTMLButtonElement>(
-      'button[role="option"]:not([disabled])',
-    );
-    first?.focus();
-  }, [open]);
-
-  // Arrow key navigation within the listbox. Up/Down cycle through enabled
-  // options; Home/End jump to first/last.
-  function onListKeyDown(e: React.KeyboardEvent<HTMLUListElement>) {
-    if (!listboxRef.current) return;
-    const options = Array.from(
-      listboxRef.current.querySelectorAll<HTMLButtonElement>(
-        'button[role="option"]:not([disabled])',
-      ),
-    );
-    if (options.length === 0) return;
-    const active = document.activeElement as HTMLButtonElement | null;
-    const idx = active ? options.indexOf(active) : -1;
-    let next = idx;
-    if (e.key === "ArrowDown") next = idx < 0 ? 0 : (idx + 1) % options.length;
-    else if (e.key === "ArrowUp")
-      next = idx < 0 ? options.length - 1 : (idx - 1 + options.length) % options.length;
-    else if (e.key === "Home") next = 0;
-    else if (e.key === "End") next = options.length - 1;
-    else return;
-    e.preventDefault();
-    options[next]?.focus();
-  }
-
-  const sideAccent =
-    side === "A"
-      ? "border-l-[var(--ct-border-strong)]"
-      : "border-l-[var(--ct-text-strong)]";
-
-  return (
-    <div ref={rootRef} className="relative">
-      <button
-        ref={triggerRef}
-        type="button"
-        disabled={disabled}
-        onClick={() => setOpen((o) => !o)}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-label={`Scenario ${side}: ${value ? labelFor(value) : "select a scenario"}`}
-        className={cn(
-          "flex w-full items-center justify-between gap-3 glass-panel",
-          "border-l-4",
-          sideAccent,
-          "px-4 py-3 text-left",
-          "disabled:cursor-not-allowed disabled:opacity-40",
-          "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
-        )}
-      >
-        <span className="flex min-w-0 flex-col gap-0.5">
-          <span className="eyebrow">Scenario {side}</span>
-          <span
-            className={cn(
-              "h4 truncate",
-              !value && "text-[var(--ct-text-muted)] font-medium",
-            )}
-          >
-            {value ? labelFor(value) : "Select a scenario"}
-          </span>
-        </span>
-        <svg
-          className={cn(
-            "h-4 w-4 shrink-0 text-[var(--ct-text-body)] transition-transform duration-[var(--ct-dur-fast)]",
-            open && "rotate-180",
-          )}
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth="2"
-          aria-hidden
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
-      </button>
-
-      {open && (
-        <ul
-          ref={listboxRef}
-          role="listbox"
-          aria-label={`Pick a scenario for ${side}`}
-          onKeyDown={onListKeyDown}
-          className={cn(
-            "absolute z-[var(--ct-z-dropdown)] mt-2 w-full overflow-hidden",
-            "glass-panel p-0",
-            "shadow-[var(--ct-shadow-elevated)]",
-          )}
-        >
-          {PRESETS.map((p) => {
-            const isSelected = value === p.id;
-            const isExcluded = excluded === p.id;
-            return (
-              <li key={p.id}>
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={isSelected}
-                  disabled={isExcluded}
-                  onClick={() => {
-                    onChange(p.id);
-                    setOpen(false);
-                    triggerRef.current?.focus();
-                  }}
-                  title={p.description}
-                  className={cn(
-                    "flex w-full flex-col items-start gap-0.5 px-4 py-3 text-left",
-                    "transition-colors duration-[var(--ct-dur-fast)]",
-                    "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
-                    isSelected
-                      ? "bg-[var(--ct-surface-1)] text-[var(--ct-text-strong)]"
-                      : "text-[var(--ct-text-body)] hover:bg-[var(--ct-surface-3)] hover:text-[var(--ct-text-primary)]",
-                    isExcluded &&
-                      "cursor-not-allowed opacity-40 hover:bg-transparent",
-                  )}
-                >
-                  <span className="text-sm font-semibold">{p.label}</span>
-                  <span className="text-micro text-[var(--ct-text-muted)]">
-                    {isExcluded ? "Already on the other side" : p.description}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
-  );
-}
+const PRESET_OPTIONS = PRESETS.map((p) => ({
+  value: p.id,
+  label: p.label,
+  description: p.description,
+}));
 
 // ── Placeholder panel (empty / loading) ──────────────────────────────────────
 
@@ -352,6 +174,7 @@ export function CompareMode({ active = true }: { active?: boolean }) {
         <PresetPicker
           side="A"
           value={presetA}
+          options={PRESET_OPTIONS}
           excluded={presetB}
           disabled={pending}
           onChange={handleSelectA}
@@ -359,6 +182,7 @@ export function CompareMode({ active = true }: { active?: boolean }) {
         <PresetPicker
           side="B"
           value={presetB}
+          options={PRESET_OPTIONS}
           excluded={presetA}
           disabled={pending}
           onChange={handleSelectB}
@@ -377,7 +201,8 @@ export function CompareMode({ active = true }: { active?: boolean }) {
       {/* Panels row */}
       <div className="grid gap-6 md:grid-cols-2">
         {showOutputs && presetA && outputs.a ? (
-          <OutputPanelCompact
+          <OutputPanel
+            variant="compact"
             output={outputs.a}
             presetLabel={labelFor(presetA)}
             side="A"
@@ -388,7 +213,8 @@ export function CompareMode({ active = true }: { active?: boolean }) {
         )}
 
         {showOutputs && presetB && outputs.b ? (
-          <OutputPanelCompact
+          <OutputPanel
+            variant="compact"
             output={outputs.b}
             presetLabel={labelFor(presetB)}
             side="B"

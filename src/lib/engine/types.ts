@@ -147,3 +147,6 @@ export interface BacktestOutput {
   hearstRulesMode: boolean;
   assumptions: string[];
 }
+
+// NOTE: StatusVariant / BadgeVariant / Tone / PillTone sont des alias sémantiques
+// qui devraient être unifiés dans une future refactor. Voir audit #3.

@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
+import { Modal } from "@/components/ui/modal";
 import { Markdown } from "@/components/admin/markdown";
 import { cn } from "@/lib/cn";
 
@@ -15,6 +16,17 @@ const MODELS = [
   { value: "kimi-k2.6", label: "Kimi K2.6" },
   { value: "kimi-k2.6-anthropic", label: "Kimi K2.6 (Anthropic)" },
 ] as const;
+
+/** `false` on the server + first client render, `true` after hydration — gates
+ * a client-only portal so it never causes an SSR mismatch. */
+const emptySubscribe = () => () => {};
+function useHydrated(): boolean {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+}
 
 interface AdminChatControlsProps {
   /** Server-resolved current mode for this admin. */
@@ -33,7 +45,13 @@ interface AdminChatControlsProps {
  */
 export function AdminChatControls({ initialMode }: AdminChatControlsProps) {
   const [mode, setMode] = useState<Mode>(initialMode);
-  const [model, setModel] = useState<string>("kimi-k2.6");
+  // Hydrate the model once from the same localStorage key the package chat
+  // reads (client-only; falls back to the default during SSR).
+  const [model, setModel] = useState<string>(() => {
+    if (typeof window === "undefined") return "kimi-k2.6";
+    const stored = window.localStorage.getItem(LS_MODEL);
+    return stored && MODELS.some((m) => m.value === stored) ? stored : "kimi-k2.6";
+  });
   const [savingMode, setSavingMode] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,27 +60,22 @@ export function AdminChatControls({ initialMode }: AdminChatControlsProps) {
 
   // Portal target on document.body so the fixed bar escapes the
   // `ct-panels-row` stacking context (z-index:10) that would otherwise paint
-  // over it — same reason InvestorRailIntra portals.
-  const portalRef = useRef<HTMLDivElement | null>(null);
-  const [portalReady, setPortalReady] = useState(false);
-  useEffect(() => {
+  // over it — same reason InvestorRailIntra portals. Created once via lazy
+  // initial state (client-only); the effect only attaches/detaches it, so no
+  // setState runs inside the effect and reading it during render is safe.
+  const [portalEl] = useState<HTMLDivElement | null>(() => {
+    if (typeof document === "undefined") return null;
     const el = document.createElement("div");
     el.setAttribute("data-portal", "admin-chat-controls");
-    document.body.appendChild(el);
-    portalRef.current = el;
-    setPortalReady(true);
-    return () => {
-      document.body.removeChild(el);
-    };
-  }, []);
-
-  // Hydrate the model from the same localStorage key the package chat uses.
+    return el;
+  });
   useEffect(() => {
-    const stored = window.localStorage.getItem(LS_MODEL);
-    if (stored && MODELS.some((m) => m.value === stored)) {
-      setModel(stored);
-    }
-  }, []);
+    if (!portalEl) return;
+    document.body.appendChild(portalEl);
+    return () => {
+      document.body.removeChild(portalEl);
+    };
+  }, [portalEl]);
 
   const onModelChange = useCallback((value: string) => {
     setModel(value);
@@ -123,12 +136,13 @@ export function AdminChatControls({ initialMode }: AdminChatControlsProps) {
     URL.revokeObjectURL(url);
   }, [doc]);
 
-  if (!portalReady || !portalRef.current) return null;
+  const hydrated = useHydrated();
+  if (!hydrated || !portalEl) return null;
 
   return createPortal(
     <>
       <div
-        className="fixed bottom-4 left-1/2 z-[1200] flex -translate-x-1/2 items-center gap-2 rounded-[var(--ct-radius-full)] border border-[var(--ct-border-soft)] bg-[var(--ct-surface-1)] px-2 py-1.5 shadow-[var(--ct-shadow-soft)] backdrop-blur-xl"
+        className="fixed bottom-4 left-1/2 z-[var(--ct-z-popover)] flex -translate-x-1/2 items-center gap-2 rounded-[var(--ct-radius-full)] border border-[var(--ct-border-soft)] bg-[var(--ct-surface-1)] px-2 py-1.5 shadow-[var(--ct-shadow-soft)] backdrop-blur-xl"
         role="toolbar"
         aria-label="Contrôles du chat admin"
       >
@@ -205,48 +219,31 @@ export function AdminChatControls({ initialMode }: AdminChatControlsProps) {
 
       {error && (
         <div
-          className="fixed bottom-16 left-1/2 z-[1200] -translate-x-1/2 rounded-[var(--ct-radius-md)] border border-[var(--ct-status-danger-border)] bg-[var(--ct-status-danger-soft)] px-3 py-1.5 text-xs text-[var(--ct-status-danger)]"
+          className="fixed bottom-16 left-1/2 z-[var(--ct-z-toast)] -translate-x-1/2 rounded-[var(--ct-radius-md)] border border-[var(--ct-status-danger-border)] bg-[var(--ct-status-danger-soft)] px-3 py-1.5 text-xs text-[var(--ct-status-danger)]"
           role="alert"
         >
           {error}
         </div>
       )}
 
-      {panelOpen && doc && (
-        <div
-          className="fixed inset-0 z-[1300] flex items-center justify-center bg-black/50 p-6"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Document de modifications suggérées"
-          onClick={() => setPanelOpen(false)}
-        >
-          <div
-            className="flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-[var(--ct-radius-lg)] border border-[var(--ct-border-soft)] bg-[var(--ct-surface-1)] shadow-[var(--ct-shadow-soft)]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between gap-2 border-b border-[var(--ct-border-soft)] px-5 py-3">
-              <span className="text-sm font-semibold text-[var(--ct-text-strong)]">
-                Plan de modifications suggérées
-              </span>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={copyDoc}>
-                  Copier
-                </Button>
-                <Button variant="secondary" size="sm" onClick={downloadDoc}>
-                  Télécharger .md
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => setPanelOpen(false)}>
-                  Fermer
-                </Button>
-              </div>
-            </div>
-            <div className="overflow-y-auto px-5 py-4">
-              <Markdown content={doc} />
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        isOpen={panelOpen && doc !== null}
+        onClose={() => setPanelOpen(false)}
+        title="Plan de modifications suggérées"
+        headerActions={
+          <>
+            <Button variant="ghost" size="sm" onClick={copyDoc}>
+              Copier
+            </Button>
+            <Button variant="secondary" size="sm" onClick={downloadDoc}>
+              Télécharger .md
+            </Button>
+          </>
+        }
+      >
+        {doc && <Markdown content={doc} />}
+      </Modal>
     </>,
-    portalRef.current,
+    portalEl,
   );
 }

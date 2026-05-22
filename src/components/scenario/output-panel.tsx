@@ -4,21 +4,19 @@ import { useState } from "react";
 
 import { Markdown } from "@/components/admin/markdown";
 import { NavSparkline } from "@/components/scenario/nav-sparkline";
+import {
+  AllocationSection,
+  ApyHero,
+  ScoreGrid,
+  VaultMode,
+} from "@/components/scenario/output-panel-sections";
 import { PtaiBlock } from "@/components/scenario/ptai-block";
 import { RebalancingActions } from "@/components/scenario/rebalancing-actions";
-import { ApyRange } from "@/components/ui/apy-range";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
-import {
-  BUCKET_COLOR,
-  BUCKET_LABEL,
-  CONFIDENCE_VARIANT,
-  progressScoreFillClass,
-} from "@/components/scenario/output-panel-shared";
 import type { ScenarioNarrativeOutput } from "@/lib/agents/schemas";
 import type {
   BtcGuardrail,
@@ -26,8 +24,12 @@ import type {
   ScenarioOutput,
 } from "@/lib/engine/types";
 
-interface OutputPanelProps {
+interface OutputPanelBaseProps {
   output: ScenarioOutput;
+}
+
+interface OutputPanelFullProps extends OutputPanelBaseProps {
+  variant?: "full";
   isPending: boolean;
   /**
    * AI-generated narrative from the Scenario Narrative agent (Sonnet 4.6).
@@ -38,22 +40,19 @@ interface OutputPanelProps {
   narrative?: ScenarioNarrativeOutput | null;
 }
 
-// ── helpers ──────────────────────────────────────────────────────────────────
+interface OutputPanelCompactProps extends OutputPanelBaseProps {
+  variant: "compact";
+  presetLabel: string;
+  side: "A" | "B";
+  /** Optional comparison reference (the other panel). When present on side B,
+   * deltas are rendered under hero APY and risk score. */
+  vs?: ScenarioOutput | null;
+  isPending?: boolean;
+}
 
-const MODE_LABEL: Record<ScenarioOutput["mode"], string> = {
-  defensive: "Defensive",
-  balanced: "Balanced",
-  opportunistic: "Opportunistic",
-};
+type OutputPanelProps = OutputPanelFullProps | OutputPanelCompactProps;
 
-const MODE_VARIANT: Record<
-  ScenarioOutput["mode"],
-  "danger" | "default" | "success"
-> = {
-  defensive: "danger",
-  balanced: "default",
-  opportunistic: "success",
-};
+// ── shared map helpers (full-only sections) ──────────────────────────────────
 
 const GUARDRAIL_STATUS_VARIANT: Record<
   BtcGuardrail["status"],
@@ -84,15 +83,32 @@ function parseAssumption(line: string): { key: string | null; value: string } {
   return { key, value };
 }
 
-// ── sub-components ────────────────────────────────────────────────────────────
+// ── compact delta helpers ─────────────────────────────────────────────────────
+
+function computeApyDelta(a: ScenarioOutput, b: ScenarioOutput): number {
+  const midA = (a.apy_range.low + a.apy_range.high) / 2;
+  const midB = (b.apy_range.low + b.apy_range.high) / 2;
+  return midB - midA;
+}
+
+function formatSignedFixed(n: number, precision: number): string {
+  const sign = n > 0 ? "+" : n < 0 ? "−" : "±";
+  return `${sign}${Math.abs(n).toFixed(precision)}`;
+}
+
+function formatSignedInt(n: number): string {
+  const sign = n > 0 ? "+" : n < 0 ? "−" : "±";
+  return `${sign}${Math.abs(Math.round(n))}`;
+}
+
+// ── full-only sub-components ──────────────────────────────────────────────────
 
 function AssumptionsList({ assumptions }: { assumptions: string[] }) {
   const [expanded, setExpanded] = useState(false);
   const THRESHOLD = 5;
   const shouldTruncate = assumptions.length > THRESHOLD;
-  const visible = shouldTruncate && !expanded
-    ? assumptions.slice(0, THRESHOLD)
-    : assumptions;
+  const visible =
+    shouldTruncate && !expanded ? assumptions.slice(0, THRESHOLD) : assumptions;
 
   return (
     <div>
@@ -113,9 +129,7 @@ function AssumptionsList({ assumptions }: { assumptions: string[] }) {
                     {key}
                   </span>
                   <span className="text-[var(--ct-text-muted)]">: </span>
-                  <span className="mono text-[var(--ct-text-body)]">
-                    {value}
-                  </span>
+                  <span className="mono text-[var(--ct-text-body)]">{value}</span>
                 </span>
               ) : (
                 <span className="text-[var(--ct-text-body)]">{value}</span>
@@ -132,44 +146,214 @@ function AssumptionsList({ assumptions }: { assumptions: string[] }) {
           onClick={() => setExpanded((x) => !x)}
           className="mt-3 text-[var(--ct-text-strong)] hover:text-[var(--ct-text-strong)]"
         >
-          {expanded
-            ? "Show less"
-            : `Show ${assumptions.length - THRESHOLD} more`}
+          {expanded ? "Show less" : `Show ${assumptions.length - THRESHOLD} more`}
         </Button>
       )}
     </div>
   );
 }
 
-function AllocationBar({
-  allocations,
+function NarrativeCard({
+  narrative,
 }: {
-  allocations: ScenarioOutput["allocations"];
+  narrative: ScenarioNarrativeOutput | null;
 }) {
+  if (narrative === null) {
+    return (
+      <Card>
+        <div className="flex items-center gap-3">
+          <span
+            className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--ct-status-warning)]"
+            aria-hidden
+          />
+          <p className="text-xs text-[var(--ct-text-muted)]">
+            AI narrative unavailable — engine output shown above.
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
   return (
-    <div className="flex h-2 w-full overflow-hidden rounded-full">
-      {allocations.map((a) => (
-        <div
-          key={a.bucket}
-          className="h-full bg-current"
-          style={{
-            width: `${a.pct}%`,
-            color: BUCKET_COLOR[a.bucket],
-          }}
-          title={`${BUCKET_LABEL[a.bucket]}: ${a.pct.toFixed(0)}%`}
-        />
-      ))}
-    </div>
+    <Card>
+      <CardHeader className="mb-3">
+        <CardTitle>Narrative</CardTitle>
+        <ProvenanceBadge kind="estimated" />
+      </CardHeader>
+      <Markdown content={narrative.narrative_md} />
+      {narrative.risk_warning ? (
+        <div className="mt-4 rounded-[var(--ct-radius-full)] border border-[var(--ct-status-warning)] bg-[var(--ct-status-warning-soft)] px-4 py-3">
+          <p className="stat-label mb-1 text-[var(--ct-status-warning)]">
+            Risk warning
+          </p>
+          <p className="text-sm text-[var(--ct-text-body)]">
+            {narrative.risk_warning}
+          </p>
+        </div>
+      ) : null}
+    </Card>
+  );
+}
+
+function BtcTacticalCard({ output }: { output: ScenarioOutput }) {
+  const armedTriggers = output.btc_tactical.triggers.filter((t) => t.armed);
+
+  return (
+    <Card>
+      <CardHeader className="mb-4">
+        <CardTitle>BTC Tactical</CardTitle>
+        <span className="stat-label">
+          Target {output.btc_tactical.targetExposurePct.toFixed(0)}%
+        </span>
+      </CardHeader>
+
+      <div className="flex flex-wrap gap-2">
+        {output.btc_tactical.guardrails.map((g) => (
+          <Badge
+            key={g.id}
+            variant={GUARDRAIL_STATUS_VARIANT[g.status]}
+            title={g.detail}
+          >
+            {GUARDRAIL_KIND_LABEL[g.kind]}
+          </Badge>
+        ))}
+      </div>
+
+      {armedTriggers.length > 0 && (
+        <div className="mt-4 border-t border-[var(--ct-border-soft)] pt-4">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--ct-text-muted)]">
+            Armed triggers
+          </p>
+          <ul className="space-y-1.5">
+            {armedTriggers.map((t) => (
+              <li key={t.id} className="flex items-start gap-2 text-sm">
+                <span
+                  className="mt-0.5 shrink-0 text-micro text-[var(--ct-status-warning)]"
+                  aria-hidden
+                >
+                  ▸
+                </span>
+                <span className="text-[var(--ct-text-body)]">{t.condition}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ── compact variant ───────────────────────────────────────────────────────────
+
+function CompactPanel({
+  output,
+  presetLabel,
+  side,
+  vs,
+  isPending,
+}: Omit<OutputPanelCompactProps, "variant">) {
+  const showDeltas = side === "B" && vs !== null && vs !== undefined;
+  const apyDeltaValue = showDeltas ? computeApyDelta(vs, output) : null;
+  const riskDeltaValue = showDeltas ? output.risk_score - vs.risk_score : null;
+
+  // For APY: higher is "better" (positive delta = green).
+  // For Risk: higher is "worse" (positive delta = red).
+  const apyDeltaToneClass =
+    apyDeltaValue !== null
+      ? apyDeltaValue > 0.05
+        ? "text-[var(--ct-status-success)]"
+        : apyDeltaValue < -0.05
+          ? "text-[var(--ct-status-danger)]"
+          : "text-[var(--ct-text-muted)]"
+      : "";
+
+  const riskDeltaToneClass =
+    riskDeltaValue !== null
+      ? riskDeltaValue > 0.5
+        ? "text-[var(--ct-status-danger)]"
+        : riskDeltaValue < -0.5
+          ? "text-[var(--ct-status-success)]"
+          : "text-[var(--ct-text-muted)]"
+      : "";
+
+  const apyDelta =
+    apyDeltaValue !== null ? (
+      <p
+        className={cn(
+          "mt-3 mono text-xs font-semibold tabular-nums",
+          apyDeltaToneClass,
+        )}
+        aria-label={`APY midpoint delta vs Scenario A: ${apyDeltaValue.toFixed(2)} percentage points`}
+      >
+        Δ {formatSignedFixed(apyDeltaValue, 2)} pts{" "}
+        <span className="font-sans font-normal text-[var(--ct-text-muted)]">
+          midpoint vs Scenario A
+        </span>
+      </p>
+    ) : undefined;
+
+  const riskFooter =
+    riskDeltaValue !== null ? (
+      <p
+        className={cn(
+          "mt-2 mono text-micro font-semibold tabular-nums",
+          riskDeltaToneClass,
+        )}
+        aria-label={`Risk score delta vs Scenario A: ${Math.round(riskDeltaValue)}`}
+      >
+        Δ {formatSignedInt(riskDeltaValue)}{" "}
+        <span className="font-sans font-normal text-[var(--ct-text-muted)]">
+          vs A
+        </span>
+      </p>
+    ) : undefined;
+
+  return (
+    <section
+      className={cn(
+        "relative flex flex-col gap-4 glass-panel p-5",
+        "border-l-4",
+        side === "A"
+          ? "border-l-[var(--ct-border-strong)]"
+          : "border-l-[var(--ct-text-strong)]",
+        "transition-opacity duration-[var(--ct-dur-fast)]",
+        isPending && "pointer-events-none opacity-50",
+      )}
+      aria-busy={isPending}
+      aria-label={`Scenario ${side}: ${presetLabel}`}
+    >
+      <header className="flex flex-col gap-0.5">
+        <span className="eyebrow">Scenario {side}</span>
+        <h3 className="h3 truncate" title={presetLabel}>
+          {presetLabel}
+        </h3>
+      </header>
+
+      <ApyHero output={output} variant="compact" delta={apyDelta} />
+      <ScoreGrid output={output} variant="compact" riskFooter={riskFooter} />
+      <VaultMode output={output} variant="compact" />
+      <AllocationSection output={output} variant="compact" />
+    </section>
   );
 }
 
 // ── main ──────────────────────────────────────────────────────────────────────
 
-export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) {
-  const riskColorClass = progressScoreFillClass(output.risk_score, true);
-  const miningColorClass = progressScoreFillClass(output.mining_margin_score, false);
+export function OutputPanel(props: OutputPanelProps) {
+  if (props.variant === "compact") {
+    const { output, presetLabel, side, vs, isPending } = props;
+    return (
+      <CompactPanel
+        output={output}
+        presetLabel={presetLabel}
+        side={side}
+        vs={vs}
+        isPending={isPending}
+      />
+    );
+  }
 
-  const armedTriggers = output.btc_tactical.triggers.filter((t) => t.armed);
+  const { output, isPending, narrative } = props;
 
   return (
     <div
@@ -185,250 +369,36 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
         </div>
       )}
 
-      {/* ── Section 1: APY Hero ─────────────────────────────────────────── */}
-      <Card>
-        <CardHeader className="mb-4">
-          <CardTitle>Projected APY Range</CardTitle>
-          <ProvenanceBadge kind="estimated" />
-        </CardHeader>
+      {/* Section 1: APY Hero */}
+      <ApyHero output={output} variant="full" />
 
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <ApyRange
-            low={output.apy_range.low}
-            high={output.apy_range.high}
-            className="mono text-5xl font-extrabold tabular-nums text-[var(--ct-text-strong)] leading-none"
-          />
-          <div className="flex flex-col items-end gap-1.5">
-            <span className="stat-label">Confidence</span>
-            <Badge
-              variant={CONFIDENCE_VARIANT[output.confidence]}
-              className="text-xs"
-            >
-              {output.confidence.toUpperCase()}
-            </Badge>
-          </div>
-        </div>
-
-        <div className="mt-4 border-t border-[var(--ct-border-soft)] pt-4">
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <span className="stat-label">Stressed APY</span>
-            <ProvenanceBadge kind="estimated" />
-          </div>
-          <span className="mono text-2xl font-extrabold tabular-nums text-[var(--ct-text-primary)]">
-            {output.stressed_apy.toFixed(1)}%
-          </span>
-          <span className="ml-2 text-xs text-[var(--ct-text-muted)]">
-            bear scenario floor
-          </span>
-        </div>
-      </Card>
-
-      {/* ── Section 2: PTAI block ────────────────────────────────────────── */}
+      {/* Section 2: PTAI block */}
       <PtaiBlock output={output} />
 
-      {/* ── Section 2.5: AI Narrative (Sonnet 4.6) ───────────────────────── */}
-      {narrative !== undefined ? (
-        narrative !== null ? (
-          <Card>
-            <CardHeader className="mb-3">
-              <CardTitle>Narrative</CardTitle>
-              <ProvenanceBadge kind="estimated" />
-            </CardHeader>
-            <Markdown content={narrative.narrative_md} />
-            {narrative.risk_warning ? (
-              <div className="mt-4 rounded-[var(--ct-radius-full)] border border-[var(--ct-status-warning)] bg-[var(--ct-status-warning-soft)] px-4 py-3">
-                <p className="stat-label mb-1 text-[var(--ct-status-warning)]">
-                  Risk warning
-                </p>
-                <p className="text-sm text-[var(--ct-text-body)]">
-                  {narrative.risk_warning}
-                </p>
-              </div>
-            ) : null}
-          </Card>
-        ) : (
-          <Card>
-            <div className="flex items-center gap-3">
-              <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--ct-status-warning)]" aria-hidden />
-              <p className="text-xs text-[var(--ct-text-muted)]">
-                AI narrative unavailable — engine output shown above.
-              </p>
-            </div>
-          </Card>
-        )
-      ) : null}
+      {/* Section 2.5: AI Narrative (Sonnet 4.6) */}
+      {narrative !== undefined ? <NarrativeCard narrative={narrative} /> : null}
 
-      {/* ── Section 3: 12-Month NAV Projection ──────────────────────────── */}
+      {/* Section 3: 12-Month NAV Projection */}
       <NavSparkline output={output} />
 
-      {/* ── Section 4: Risk & Mining 2×2 grid ───────────────────────────── */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        {/* Risk Score */}
-        <Card>
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <span className="stat-label">Risk Score</span>
-            <ProvenanceBadge kind="estimated" />
-          </div>
-          <div className="mb-1 flex items-baseline gap-1">
-            <span className="mono text-2xl font-extrabold tabular-nums text-[var(--ct-text-primary)]">
-              {output.risk_score.toFixed(0)}
-            </span>
-            <span className="text-sm text-[var(--ct-text-muted)]">/100</span>
-          </div>
-          <Progress
-            value={output.risk_score}
-            fillClassName={riskColorClass}
-            className="mt-2"
-          />
-          <p className="mt-2 text-xs text-[var(--ct-text-muted)]">
-            Lower = lower risk
-          </p>
-        </Card>
+      {/* Section 4: Risk & Mining 2×2 grid */}
+      <ScoreGrid output={output} variant="full" />
 
-        {/* Mining Margin Score */}
-        <Card>
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <span className="stat-label">Mining Margin</span>
-            <ProvenanceBadge kind="estimated" />
-          </div>
-          <div className="mb-1 flex items-baseline gap-1">
-            <span className="mono text-2xl font-extrabold tabular-nums text-[var(--ct-text-primary)]">
-              {output.mining_margin_score.toFixed(0)}
-            </span>
-            <span className="text-sm text-[var(--ct-text-muted)]">/100</span>
-          </div>
-          <Progress
-            value={output.mining_margin_score}
-            fillClassName={miningColorClass}
-            className="mt-2"
-          />
-          <p className="mt-2 text-xs text-[var(--ct-text-muted)]">
-            Current vs target
-          </p>
-        </Card>
-      </div>
+      {/* Section 5: Vault Mode */}
+      <VaultMode output={output} variant="full" />
 
-      {/* ── Section 3: Vault Mode ────────────────────────────────────────── */}
-      <Card>
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="stat-label mb-1">Vault Mode</p>
-            <p className="text-xs text-[var(--ct-text-muted)]">
-              Current allocation posture
-            </p>
-          </div>
-          <Badge
-            variant={MODE_VARIANT[output.mode]}
-            className="px-4 py-2 text-sm"
-          >
-            {MODE_LABEL[output.mode]}
-          </Badge>
-        </div>
-      </Card>
+      {/* Section 6: Allocation */}
+      <AllocationSection output={output} variant="full" />
 
-      {/* ── Section 4: Allocation ────────────────────────────────────────── */}
-      <Card>
-        <CardHeader className="mb-4">
-          <CardTitle>Allocation</CardTitle>
-          <ProvenanceBadge kind="estimated" />
-        </CardHeader>
-
-        {/* Stacked bar */}
-        <AllocationBar allocations={output.allocations} />
-
-        {/* Table */}
-        <div className="mt-4">
-          {/* Header */}
-          <div className="mb-2 grid grid-cols-[1fr_auto_auto] gap-x-4 text-micro font-semibold uppercase tracking-wide text-[var(--ct-text-muted)]">
-            <span>Bucket</span>
-            <span className="text-right">Pct</span>
-            <span className="text-right">Yield contribution</span>
-          </div>
-          {/* Rows */}
-          <ul className="divide-y divide-[var(--ct-border-soft)]">
-            {output.allocations.map((a) => (
-              <li
-                key={a.bucket}
-                className="grid grid-cols-[1fr_auto_auto] items-center gap-x-4 py-2.5 text-sm first:pt-1 last:pb-1"
-              >
-                <span className="flex items-center gap-2 text-[var(--ct-text-body)]">
-                  <span
-                    className="inline-block h-2 w-2 shrink-0 rounded-full shadow-[var(--ct-glow-dot)] bg-current"
-                    style={{ color: BUCKET_COLOR[a.bucket] }}
-                    aria-hidden
-                  />
-                  {BUCKET_LABEL[a.bucket]}
-                </span>
-                <span className="text-right mono tabular-nums text-[var(--ct-text-primary)]">
-                  {a.pct.toFixed(0)}%
-                </span>
-                <span className="text-right mono tabular-nums text-[var(--ct-text-muted)]">
-                  {a.yield_contribution_bps > 0
-                    ? `+${a.yield_contribution_bps} bps`
-                    : "P&L variable"}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </Card>
-
-      {/* ── Section 5: BTC Tactical ─────────────────────────────────────── */}
+      {/* Section 7: BTC Tactical */}
       {output.btc_tactical.guardrails.length > 0 && (
-        <Card>
-          <CardHeader className="mb-4">
-            <CardTitle>BTC Tactical</CardTitle>
-            <span className="stat-label">
-              Target {output.btc_tactical.targetExposurePct.toFixed(0)}%
-            </span>
-          </CardHeader>
-
-          {/* Guardrails pills */}
-          <div className="flex flex-wrap gap-2">
-            {output.btc_tactical.guardrails.map((g) => (
-              <Badge
-                key={g.id}
-                variant={GUARDRAIL_STATUS_VARIANT[g.status]}
-                title={g.detail}
-              >
-                {GUARDRAIL_KIND_LABEL[g.kind]}
-              </Badge>
-            ))}
-          </div>
-
-          {/* Armed triggers */}
-          {armedTriggers.length > 0 && (
-            <div className="mt-4 border-t border-[var(--ct-border-soft)] pt-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--ct-text-muted)]">
-                Armed triggers
-              </p>
-              <ul className="space-y-1.5">
-                {armedTriggers.map((t) => (
-                  <li
-                    key={t.id}
-                    className="flex items-start gap-2 text-sm"
-                  >
-                    <span
-                      className="mt-0.5 shrink-0 text-micro text-[var(--ct-status-warning)]"
-                      aria-hidden
-                    >
-                      ▸
-                    </span>
-                    <span className="text-[var(--ct-text-body)]">
-                      {t.condition}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </Card>
+        <BtcTacticalCard output={output} />
       )}
 
-      {/* ── Section 6: Rebalancing Actions ──────────────────────────────── */}
+      {/* Section 8: Rebalancing Actions */}
       <RebalancingActions output={output} />
 
-      {/* ── Section 7: Assumptions ──────────────────────────────────────── */}
+      {/* Section 9: Assumptions */}
       <Card>
         <CardHeader className="mb-4">
           <CardTitle>Assumptions</CardTitle>
@@ -436,14 +406,14 @@ export function OutputPanel({ output, isPending, narrative }: OutputPanelProps) 
         <AssumptionsList assumptions={output.assumptions} />
       </Card>
 
-      {/* ── Disclaimer ──────────────────────────────────────────────────── */}
+      {/* Disclaimer */}
       <p className="border-t border-[var(--ct-border-soft)] pt-4 text-xs italic text-[var(--ct-text-muted)]">
         <span className="font-semibold not-italic text-[var(--ct-text-body)]">
           Not guaranteed.
         </span>{" "}
         Projections are conditional on stated assumptions. Methodology v1.0.
-        Forward projections are conditional on the stated assumptions and are
-        not guaranteed. Past performance does not predict future results.
+        Forward projections are conditional on the stated assumptions and are not
+        guaranteed. Past performance does not predict future results.
       </p>
     </div>
   );

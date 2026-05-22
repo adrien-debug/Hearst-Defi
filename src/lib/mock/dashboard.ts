@@ -31,15 +31,12 @@ export interface MiningHealth {
  * This shape is intentionally distinct (label/ruleId for display) and lives
  * only in the mock layer.
  */
-export interface MockBtcTrigger {
+export interface DisplayBtcTrigger {
   id: string;
   label: string;
   condition: string;
   ruleId: string;
 }
-
-/** @deprecated use the canonical `BtcTrigger` from `@/lib/engine/types`. */
-export type BtcTrigger = MockBtcTrigger;
 
 export interface BtcGuardrail {
   id: string;
@@ -56,7 +53,7 @@ export interface BtcTactical {
   currentPrice: number;
   pnlUsd: number;
   pnlPct: number;
-  nextTriggers: MockBtcTrigger[];
+  nextTriggers: DisplayBtcTrigger[];
   guardrails: BtcGuardrail[];
   provenance: Provenance;
 }

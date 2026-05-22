@@ -14,6 +14,7 @@ import {
 import { loadVaultMonthlyHistory, type VaultMonthlyRow } from "@/lib/agents/loaders/vault";
 import { fetchBtcPrice, type BtcPriceData } from "@/lib/data/btc-price";
 import { prisma } from "@/lib/db";
+import type { VaultMode } from "@/lib/engine/types";
 
 // ---------------------------------------------------------------------------
 // Public dashboard contract.
@@ -25,7 +26,9 @@ import { prisma } from "@/lib/db";
 // `DashboardSnapshot` so the existing dashboard components stay untouched.
 // ---------------------------------------------------------------------------
 
-export type VaultMode = "defensive" | "balanced" | "opportunistic";
+// VaultMode is canonical in `@/lib/engine/types`; re-exported here so existing
+// dashboard consumers keep importing it from this module (dedup, single source).
+export type { VaultMode };
 
 export interface DashboardVault {
   aumUsdc: number;

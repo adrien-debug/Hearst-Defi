@@ -2,7 +2,7 @@ import { SkeletonCard, Skeleton } from "@/components/ui/skeleton";
 
 export default function RoadmapLoading() {
   return (
-    <section className="ct-section space-y-16 animate-in fade-in duration-500">
+    <section className="ct-section space-y-16 animate-in fade-in duration-[var(--ct-dur-slower)]">
       {/* Header */}
       <div className="space-y-5">
         <Skeleton className="h-3 w-28" variant="text" />

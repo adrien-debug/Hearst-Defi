@@ -38,6 +38,18 @@ Cayman SPV structure, $250k min ticket, 60-day soft lock-up.
     from scratch** using this project's locked design system (Cockpit tokens) and conventions.
     No `git mv`, no copy-paste, no symlink, no new dependency added just because A had it.
 
+## Méthode de travail visuel (RÈGLE DURE — aucune exception)
+
+> **1 seul changement atomique → 1 screenshot → STOP → attendre la validation explicite d'Adrien.**
+
+- **Un changement à la fois.** Jamais de refonte structurelle d'un coup, **même si Adrien a validé une direction** (un "oui" sur une structure cible ≠ feu vert pour tout construire d'un bloc). On exécute pas à pas, le plus petit incrément possible.
+- **Validation visuelle obligatoire entre chaque pas.** Après chaque modif, prendre une capture Playwright (`http://localhost:4105`), la regarder (Read l'image, pas seulement les coordonnées), puis **s'arrêter** et attendre qu'Adrien valide avant le pas suivant.
+- **Pas de lot empilé.** Empiler plusieurs changements visuels = rejet. Déjà reproché.
+- **Réversibilité.** Toute modif doit pouvoir être annulée vite. Pas de `git add/commit/push/reset` sans demande explicite.
+- **Après chaque modif CSS/Turbopack** : `browser_close` puis re-`navigate` (sinon CSS servi en cache, Playwright garde l'ancien chunk).
+- **Accent = vert `#A7FB90` uniquement** (jamais bleu, jamais bordeaux). Fond noir `--ct-bg-deep`. Glassmorphism = surfaces translucides ; seule couleur opaque = `--ct-bg-deep`.
+- **Ne jamais "améliorer" ce qui n'a pas été demandé.**
+
 ## Stack
 
 - Next.js 16 (App Router, Server Components by default)

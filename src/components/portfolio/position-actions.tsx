@@ -8,6 +8,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import type { PositionDetail } from "@/lib/data/portfolio";
 
 const usdFull = new Intl.NumberFormat("en-US", {
@@ -40,7 +41,7 @@ interface PositionActionsProps {
  * Exit:  visible when position is active (soft lock-up enforcement is
  *        server-side in Phase 2; MVP shows the button for any active position).
  *
- * Exit confirmation uses native window.confirm — no Dialog primitive needed.
+ * Exit confirmation uses the canonical <ConfirmDialog> primitive.
  */
 export function PositionActions({ position }: PositionActionsProps) {
   const [claiming, setClaiming] = useState(false);
@@ -73,7 +74,6 @@ export function PositionActions({ position }: PositionActionsProps) {
 
   async function handleExitConfirmed() {
     if (!isActive || exiting) return;
-    setConfirmExit(false);
     setExiting(true);
     try {
       const result = await stubExit(position.id);
@@ -115,43 +115,23 @@ export function PositionActions({ position }: PositionActionsProps) {
           onClick={() => setConfirmExit(true)}
           disabled={exiting || confirmExit}
           aria-busy={exiting}
+          aria-haspopup="dialog"
           aria-expanded={confirmExit}
         >
           {exiting ? "Exiting…" : "Exit position"}
         </Button>
       </div>
 
-      {/* Inline exit confirmation — no Dialog primitive (design-lock §4, MVP) */}
-      {confirmExit && (
-        <div
-          role="alert"
-          className="glass-panel flex flex-col gap-3 p-4 max-w-md"
-          aria-label="Confirm exit"
-        >
-          <p className="body-sm ct-text-body">
-            Your principal will be returned after the standard settlement period.
-            This action cannot be undone.
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={handleExitConfirmed}
-              disabled={exiting}
-            >
-              Confirm exit
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setConfirmExit(false)}
-              disabled={exiting}
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Exit confirmation — canonical ConfirmDialog primitive */}
+      <ConfirmDialog
+        open={confirmExit}
+        onOpenChange={setConfirmExit}
+        title="Confirm exit"
+        description="Your principal will be returned after the standard settlement period. This action cannot be undone."
+        confirmLabel="Confirm exit"
+        confirmVariant="danger"
+        onConfirm={handleExitConfirmed}
+      />
     </section>
   );
 }

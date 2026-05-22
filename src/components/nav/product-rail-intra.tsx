@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import {
   LayoutDashboard,
@@ -21,27 +21,48 @@ import { cn } from "@/lib/cn";
 import type { NavItem } from "./product-nav-items";
 import { PRODUCT_NAV, ANALYTICS_NAV, ADMIN_NAV } from "./product-nav-items";
 
+/** Render `false` on the server and on the first client render, then `true`
+ * after hydration — so a client-only portal never causes an SSR mismatch
+ * without running setState inside an effect. */
+const emptySubscribe = () => () => {};
+function useHydrated(): boolean {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+}
+
 /**
  * Portal target lives on document.body so the rail escapes the
  * ct-panels-row stacking context (z-index:10) that would otherwise
  * paint over our fixed nav even when ct-rail-intra has z-index:1001.
  */
 function useBodyPortal() {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
+  // Create the portal node once via lazy initial state (client-only — guard
+  // against SSR where `document` is undefined). The effect only attaches /
+  // detaches it from the DOM, so no setState runs inside the effect body
+  // (react-hooks/set-state-in-effect) and reading it during render is safe.
+  const [container] = useState<HTMLDivElement | null>(() => {
+    if (typeof document === "undefined") return null;
     const el = document.createElement("div");
     el.setAttribute("data-portal", "rail-intra");
-    document.body.appendChild(el);
-    containerRef.current = el;
-    setMounted(true);
-    return () => {
-      document.body.removeChild(el);
-    };
-  }, []);
+    return el;
+  });
 
-  return { container: containerRef.current, mounted };
+  useEffect(() => {
+    if (!container) return;
+    document.body.appendChild(container);
+    return () => {
+      document.body.removeChild(container);
+    };
+  }, [container]);
+
+  // Gate on hydration, not on `container`: the lazy state already has the node
+  // on the first client render, but the SSR pass rendered nothing — so we must
+  // also render nothing on the first client render to match, then portal.
+  const hydrated = useHydrated();
+  return { container, mounted: hydrated && container !== null };
 }
 
 const ICON_MAP: Record<string, LucideIcon> = {

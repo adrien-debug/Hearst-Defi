@@ -1,5 +1,3 @@
-"use client";
-
 import { CockpitShell } from "@hearst/cockpit-shell";
 import type { ChatConfig } from "@hearst/cockpit-shell";
 import type { ReactNode } from "react";

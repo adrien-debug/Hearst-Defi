@@ -18,7 +18,6 @@
   --ct-accent: #A7FB90 !important;
 
   /* Dérivés d'accent — recalés sur le bleu iOS, plus vifs et lumineux */
-  --ct-accent-maroon: color-mix(in srgb, var(--ct-accent) 22%, var(--ct-bg-deep));
   --ct-accent-strong: color-mix(in srgb, var(--ct-accent) 82%, #ffffff);
   --ct-accent-soft: color-mix(in srgb, var(--ct-accent) 18%, transparent);
   --ct-border-accent: color-mix(in srgb, var(--ct-accent) 55%, transparent);
@@ -59,6 +58,9 @@
   --ct-z-raised: 10;
   --ct-z-overlay: 100;
   --ct-z-modal: 1000;
+  --ct-z-toast: 1100;          /* messages transitoires (erreurs, notifications) */
+  --ct-z-popover: 1200;        /* contrôles flottants (toolbar, dropdowns) */
+  --ct-z-modal-overlay: 1300;  /* backdrop de modale */
   --ct-z-rail: 50;
   --ct-z-bottom-bar: 30;
   --ct-z-dropdown: 40;
@@ -86,6 +88,7 @@
   --ct-dur-fast: 150ms;
   --ct-dur-base: 220ms;
   --ct-dur-slow: 400ms;
+  --ct-dur-slower: 500ms; /* page/skeleton fade-in (loading.tsx) — pure ms for duration-* utility */
   --ct-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 
   /* Spacing scale (rem-based, mirrors Tailwind v4 — adopté comme source de
@@ -538,12 +541,12 @@
 
 /* ── SECTION CENTRALE — halo lumineux centré, bords noirs ──
    .ct-page-area est la zone de contenu (transparente par défaut).
-   Dégradé radial : teinté --ct-accent-maroon au centre → deep
+   Dégradé radial : teinté --ct-accent-soft au centre → deep
    #050A05 noir vers tous les bords (haut, bas, gauche, droite). */
 .ct-page-area {
   background: radial-gradient(
     ellipse 80% 70% at 50% 45%,
-    color-mix(in srgb, var(--ct-accent-maroon) 45%, var(--ct-bg-deep)) 0%,
+    color-mix(in srgb, var(--ct-accent-soft) 45%, var(--ct-bg-deep)) 0%,
     var(--ct-bg-deep) 72%
   );
 }

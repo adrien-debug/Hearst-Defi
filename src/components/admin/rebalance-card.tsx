@@ -18,7 +18,7 @@ import {
 // Types
 // ---------------------------------------------------------------------------
 
-interface AllocationBucket {
+interface RebalanceAllocation {
   bucket: string;
   pct?: number;
   bps?: number;
@@ -42,7 +42,7 @@ interface RebalanceCardProps {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function parseAllocation(raw: string): AllocationBucket[] {
+function parseAllocation(raw: string): RebalanceAllocation[] {
   try {
     const parsed: unknown = JSON.parse(raw);
     const result = AllocationBucketArraySchema.safeParse(parsed);
@@ -106,8 +106,8 @@ function AllocationDiffTable({
   from,
   to,
 }: {
-  from: AllocationBucket[];
-  to: AllocationBucket[];
+  from: RebalanceAllocation[];
+  to: RebalanceAllocation[];
 }) {
   const buckets = Array.from(
     new Set([...from.map((b) => b.bucket), ...to.map((b) => b.bucket)]),
