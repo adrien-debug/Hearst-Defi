@@ -7,6 +7,7 @@ import { AllocationDonut } from "@/components/dashboard/dashboard-charts";
 import { allocationStrokeFor, allocationLabelFor } from "@/lib/allocation-colors";
 import { loadDashboardData } from "@/lib/demo/loaders";
 import { loadCustody } from "@/lib/data/custody";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,7 @@ const usdCompact = new Intl.NumberFormat("en-US", {
 });
 
 export default async function DashboardPage() {
+  await requireAdmin();
   const [data, custody] = await Promise.all([loadDashboardData(), loadCustody()]);
   const { vault } = data;
 
