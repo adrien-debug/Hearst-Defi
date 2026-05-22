@@ -2,11 +2,17 @@ import "server-only";
 
 import { type VaultDeployment } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import {
+  VAULT_DEFENSIVE,
+  VAULT_BTC_PLUS,
+  type VaultDefinition,
+} from "@/lib/engine/vaults";
 
 // ---------------------------------------------------------------------------
 // VaultProduct — the canonical shape consumed by /vaults and /vaults/[id].
-// Single vault at MVP (CLAUDE.md non-negotiable #9). Grid is forward-compatible
-// for future vaults without multi-vault UI abstractions today.
+// Multi-vault enabled per ADR-006 (lifts #9): Yield / Defensive / BTC Plus.
+// Each vault carries its own assumptions/share-class/provenance — derived from
+// the engine VaultDefinition presets so numbers are never duplicated.
 // ---------------------------------------------------------------------------
 
 export interface VaultProduct {
@@ -67,6 +73,58 @@ const HEARST_YIELD_VAULT_FIXTURE: VaultProduct = {
   targetUsdcBaseBps: 1000,
   targetStableReserveBps: 500,
 };
+
+// Derive a VaultProduct fixture from an engine VaultDefinition (Defensive /
+// BTC Plus). Strategy + risk follow the dominant sleeve; share-class A terms
+// drive ticket/lock-up/fees. AUM defaults to 0 (no live snapshot for these yet).
+function fixtureFromDefinition(def: VaultDefinition): VaultProduct {
+  const a = def.allocationTargets;
+  const classA = def.shareClasses[0];
+  const strategy: VaultProduct["strategy"] =
+    a.btc_tactical >= a.mining
+      ? "btc_tactical"
+      : a.mining >= 40
+        ? "mining_yield"
+        : "stable_reserve";
+  return {
+    id: `hearst-${def.id}-vault`,
+    ticker: `${def.ticker}-A`,
+    name: def.label,
+    description: def.description,
+    strategy,
+    status: "review",
+    apyLow: def.apyTarget.low,
+    apyHigh: def.apyTarget.high,
+    minTicketUsdc: classA?.minTicketUsdc ?? 250_000,
+    softLockupDays: classA?.softLockupDays ?? 60,
+    capacityUsdc: 100_000_000,
+    currentAumUsdc: 0,
+    fees: {
+      mgmtBps: classA?.mgmtFeeBps ?? 200,
+      perfBps: classA?.perfFeeBps ?? 1000,
+      hurdleBps: classA?.hurdleBps ?? 0,
+    },
+    riskLevel: a.mining >= 7500 ? "moderate" : a.mining >= 40 ? "low-moderate" : "low",
+    spvJurisdiction: "cayman",
+    shareClass: "A",
+    regExemption: "regS",
+    disclaimers: def.assumptions.join(" "),
+    targetMiningBps: a.mining * 100,
+    targetBtcTacticalBps: a.btc_tactical * 100,
+    targetUsdcBaseBps: a.usdc_base * 100,
+    targetStableReserveBps: a.stable_reserve * 100,
+  };
+}
+
+const DEFENSIVE_VAULT_FIXTURE = fixtureFromDefinition(VAULT_DEFENSIVE);
+const BTC_PLUS_VAULT_FIXTURE = fixtureFromDefinition(VAULT_BTC_PLUS);
+
+/** All fixture vaults returned when the DB has no VaultDeployment rows. */
+const FIXTURE_VAULTS: VaultProduct[] = [
+  HEARST_YIELD_VAULT_FIXTURE,
+  DEFENSIVE_VAULT_FIXTURE,
+  BTC_PLUS_VAULT_FIXTURE,
+];
 
 // ---------------------------------------------------------------------------
 // Map Prisma VaultDeployment row → VaultProduct.
@@ -150,7 +208,7 @@ export async function listVaults(): Promise<VaultProduct[]> {
       orderBy: { createdAt: "asc" },
     });
 
-    if (rows.length === 0) return [HEARST_YIELD_VAULT_FIXTURE];
+    if (rows.length === 0) return FIXTURE_VAULTS;
 
     // Fetch the latest AUM snapshot for each vault
     const latestSnapshots = await prisma.vaultSnapshot.findMany({
@@ -163,9 +221,19 @@ export async function listVaults(): Promise<VaultProduct[]> {
       toVaultProduct(row, latestAum),
     );
   } catch {
-    // DB unavailable (e.g. fresh dev box) — return fixture
-    return [HEARST_YIELD_VAULT_FIXTURE];
+    // DB unavailable (e.g. fresh dev box) — return fixtures
+    return FIXTURE_VAULTS;
   }
+}
+
+/** Resolve a fixture vault by id or ticker (case-insensitive). */
+function fixtureByIdOrTicker(idOrTicker: string): VaultProduct | null {
+  const key = idOrTicker.toLowerCase();
+  return (
+    FIXTURE_VAULTS.find(
+      (v) => v.id.toLowerCase() === key || v.ticker.toLowerCase() === key,
+    ) ?? null
+  );
 }
 
 export async function getVault(
@@ -208,13 +276,13 @@ export async function getVault(
         orderBy: { takenAt: "desc" },
       }),
     ]);
-    if (!row) return null;
+    if (!row) return fixtureByIdOrTicker(idOrTicker);
 
     return toVaultProduct(
       row,
       snapshot?.aumUsdc?.toNumber() ?? 0,
     );
   } catch {
-    return null;
+    return fixtureByIdOrTicker(idOrTicker);
   }
 }
