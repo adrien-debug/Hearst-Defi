@@ -58,7 +58,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
   const investHref = `/vaults/${id}/invest`;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="space-y-8">
       {/* Page header */}
       <header className="flex flex-col gap-4">
         <div className="flex items-center gap-3">

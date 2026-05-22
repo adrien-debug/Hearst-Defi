@@ -17,7 +17,7 @@ export default async function VaultsPage() {
   const vaults = await listVaults();
 
   return (
-    <>
+    <div className="space-y-8">
       {/* Page header */}
       <header className="flex flex-col gap-5">
         <span className="eyebrow">Invest</span>
@@ -34,7 +34,7 @@ export default async function VaultsPage() {
       </header>
 
       {/* Product grid — auto-fit, single card at MVP */}
-      <section aria-labelledby="vaults-heading" className="mt-12">
+      <section aria-labelledby="vaults-heading">
         <h2 id="vaults-heading" className="ct-section-title mb-6">
           Available products
         </h2>
@@ -56,7 +56,7 @@ export default async function VaultsPage() {
       </section>
 
       {/* Global disclaimer (#10) */}
-      <footer className="mt-12">
+      <footer>
         <p className="body-xs ct-text-faint max-w-2xl">
           Products listed are offered exclusively to professional and qualified
           investors. Past performance does not indicate future results. APY
@@ -64,6 +64,6 @@ export default async function VaultsPage() {
           subscription, jurisdictional restrictions, and soft lock-up terms.
         </p>
       </footer>
-    </>
+    </div>
   );
 }
