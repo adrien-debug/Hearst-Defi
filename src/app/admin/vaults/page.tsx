@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/db";
+import { STRATEGY_LABELS } from "@/lib/constants/vault";
 
 import { pauseVault, resumeVault } from "./actions";
 
@@ -26,12 +27,6 @@ type FilterKey = (typeof FILTER_TABS)[number]["key"];
 function isFilterKey(v: unknown): v is FilterKey {
   return FILTER_TABS.some((t) => t.key === v);
 }
-
-const STRATEGY_LABELS: Record<string, string> = {
-  mining_yield: "Mining Yield",
-  btc_tactical: "BTC Tactical",
-  stable_reserve: "Stable Reserve",
-};
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

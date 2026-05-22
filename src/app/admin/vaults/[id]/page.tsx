@@ -9,6 +9,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/db";
+import { STRATEGY_LABELS, REG_LABELS, SPV_LABELS } from "@/lib/constants/vault";
 
 import {
   closeVault,
@@ -20,25 +21,6 @@ import {
 } from "../actions";
 
 export const dynamic = "force-dynamic";
-
-const STRATEGY_LABELS: Record<string, string> = {
-  mining_yield: "Mining Yield",
-  btc_tactical: "BTC Tactical",
-  stable_reserve: "Stable Reserve",
-};
-
-const REG_LABELS: Record<string, string> = {
-  regD_506c: "Reg D 506(c)",
-  regS: "Reg S",
-  art2_lux: "Art. 2 Lux",
-};
-
-const SPV_LABELS: Record<string, string> = {
-  cayman: "Cayman Islands",
-  bvi: "British Virgin Islands",
-  delaware: "Delaware",
-  lux: "Luxembourg",
-};
 
 function pct(bps: number) {
   return (bps / 100).toFixed(1);
