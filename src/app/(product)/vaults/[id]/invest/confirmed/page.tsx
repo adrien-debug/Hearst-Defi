@@ -59,26 +59,12 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
 
       {/* Confirmation card */}
       <div className="ct-card w-full max-w-lg flex flex-col items-center gap-6 text-center">
-        {/* Success icon */}
+        {/* Success icon placeholder */}
         <span
           aria-hidden="true"
           className="inline-flex items-center justify-center w-12 h-12 rounded-full ct-status-success-bg shadow-[var(--ct-glow-soft)] ct-status-success shrink-0"
         >
-          <svg
-            width="28"
-            height="28"
-            viewBox="0 0 28 28"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M6 14l6 6 10-10"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <span className="inline-block w-7 h-7 rounded-sm bg-current" />
         </span>
 
         <div className="flex flex-col gap-[var(--ct-space-2)]">

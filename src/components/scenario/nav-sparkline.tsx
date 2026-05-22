@@ -10,8 +10,6 @@ import type { ScenarioOutput } from "@/lib/engine/types";
 // compound interest layout for rendering only (no new business logic).
 
 const INITIAL_NAV = 1_000_000; // illustrative $1M notional
-// 10px = --ct-text-micro (SVG cannot read CSS vars at runtime)
-const CHART_LABEL_SIZE = 10;
 const MONTHS = 12;
 
 interface NavProjection {
@@ -47,121 +45,6 @@ function buildNavSeries(
 function formatUsd(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(3)}M`;
   return `$${(n / 1_000).toFixed(0)}K`;
-}
-
-// ── SVG sparkline ─────────────────────────────────────────────────────────────
-
-interface SparklineProps {
-  series: NavProjection[];
-}
-
-function Sparkline({ series }: SparklineProps) {
-  const W = 600;
-  const H = 120;
-  const PAD_X = 8;
-  const PAD_Y = 10;
-
-  const allValues = series.flatMap((p) => [p.low, p.high]);
-  const minVal = Math.min(...allValues) * 0.998;
-  const maxVal = Math.max(...allValues) * 1.002;
-  const range = maxVal - minVal === 0 ? 1 : maxVal - minVal;
-
-  const count = series.length;
-
-  function xOf(i: number): number {
-    return PAD_X + ((i / (count - 1)) * (W - PAD_X * 2));
-  }
-
-  function yOf(val: number): number {
-    return PAD_Y + (1 - (val - minVal) / range) * (H - PAD_Y * 2);
-  }
-
-  function polyline(vals: number[]): string {
-    return vals.map((v, i) => `${xOf(i)},${yOf(v)}`).join(" ");
-  }
-
-  // Band polygon: high line forward then low line backward
-  const bandPoints = [
-    ...series.map((p, i) => `${xOf(i)},${yOf(p.high)}`),
-    ...[...series].reverse().map((p, i) => `${xOf(count - 1 - i)},${yOf(p.low)}`),
-  ].join(" ");
-
-  const midVals = series.map((p) => p.mid);
-  const highVals = series.map((p) => p.high);
-  const lowVals = series.map((p) => p.low);
-
-  // Month labels at month 1, 3, 6, 9, 12
-  const labelMonths = [1, 3, 6, 9, 12];
-
-  return (
-    <svg
-      viewBox={`0 0 ${W} ${H + 22}`}
-      width="100%"
-      height={H + 22}
-      preserveAspectRatio="none"
-      aria-label="12-month projected NAV range"
-      role="img"
-      className="block"
-    >
-      {/* Band fill */}
-      <polygon
-        points={bandPoints}
-        fill="var(--ct-text-strong)"
-        opacity="0.08"
-      />
-
-      {/* High line */}
-      <polyline
-        points={polyline(highVals)}
-        fill="none"
-        stroke="var(--ct-text-strong)"
-        strokeWidth="1"
-        strokeOpacity="0.35"
-        strokeDasharray="4 3"
-      />
-
-      {/* Low line */}
-      <polyline
-        points={polyline(lowVals)}
-        fill="none"
-        stroke="var(--ct-text-strong)"
-        strokeWidth="1"
-        strokeOpacity="0.35"
-        strokeDasharray="4 3"
-      />
-
-      {/* Mid line */}
-      <polyline
-        points={polyline(midVals)}
-        fill="none"
-        stroke="var(--ct-text-strong)"
-        strokeWidth="2"
-        strokeOpacity="0.85"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-
-      {/* Month labels */}
-      {labelMonths.map((m) => {
-        const idx = m - 1;
-        const p = series[idx];
-        if (!p) return null;
-        return (
-          <text
-            key={m}
-            x={xOf(idx)}
-            y={H + 16}
-            textAnchor="middle"
-            fontSize={CHART_LABEL_SIZE}
-            fill="var(--ct-text-muted)"
-            fontFamily="var(--font-sans)"
-          >
-            {`M${m}`}
-          </text>
-        );
-      })}
-    </svg>
-  );
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -205,7 +88,7 @@ export function NavSparkline({ output }: NavSparklineProps) {
         </div>
       </div>
 
-      <Sparkline series={series} />
+      <div className="h-20 w-full ct-empty-state">Chart placeholder</div>
 
       <div className="mt-3 flex items-center gap-4 text-micro text-[var(--ct-text-muted)]">
         <span className="flex items-center gap-1.5">

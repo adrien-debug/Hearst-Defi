@@ -3,9 +3,7 @@ import type { PortfolioPosition } from "@/lib/data/portfolio";
 import { formatUsdCompact } from "@/lib/format/usd-compact";
 
 /**
- * Allocation donut — SVG with r=15.9155 (C≈100) convention.
- * dasharray = `${arc} ${C - arc}` (DESIGN_SYSTEM §5 — no arcs fantômes).
- * SVG is square (viewBox 42×42, rendered 200×200) — no ellipse distortion.
+ * Allocation donut — SVG removed, placeholder only.
  */
 
 const STATUS_LABELS: Record<string, string> = {
@@ -44,16 +42,11 @@ export function AllocationDonut({
     status: StatusKey;
     pct: number;
     valueUsdc: number;
-    dashArray: string;
-    dashOffset: number;
   }> = [];
 
-  let cumulative = 0;
   for (const [status, value] of grouped.entries()) {
     const pct = totalValueUsdc > 0 ? (value / totalValueUsdc) * 100 : 0;
-    const dashArray = `${pct} ${100 - pct}`;
-    segments.push({ status, pct, valueUsdc: value, dashArray, dashOffset: -cumulative });
-    cumulative += pct;
+    segments.push({ status, pct, valueUsdc: value });
   }
 
   return (
@@ -65,33 +58,7 @@ export function AllocationDonut({
 
       <div className="flex flex-col items-center gap-4 mt-2">
         <div className="dash-chart-container mt-0 w-[var(--ct-donut-size)] h-[var(--ct-donut-size)]">
-          <svg
-            className="dash-chart-svg"
-            viewBox="0 0 42 42"
-            width="200"
-            height="200"
-            aria-hidden="true"
-          >
-            {/* Background track */}
-            <circle
-              className="dash-chart-circle color-muted"
-              cx="21"
-              cy="21"
-              r="15.9155"
-              strokeDasharray="100 0"
-            />
-            {segments.map((s) => (
-              <circle
-                key={s.status}
-                className={`dash-chart-circle color-${STATUS_LEGEND_TONE[s.status] ?? "muted"}`}
-                cx="21"
-                cy="21"
-                r="15.9155"
-                strokeDasharray={s.dashArray}
-                strokeDashoffset={s.dashOffset}
-              />
-            ))}
-          </svg>
+          <div className="dash-chart-svg w-full h-full rounded-full bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)]" />
           <div className="donut-center">
             <span className="donut-val">
               {totalValueUsdc > 0 ? formatUsdCompact(totalValueUsdc) : "—"}

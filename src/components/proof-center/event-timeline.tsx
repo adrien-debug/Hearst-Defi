@@ -65,20 +65,7 @@ export function EventTimeline({ events }: EventTimelineProps) {
 
       {events.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-12 text-center">
-          <svg
-            className="h-10 w-10 text-[var(--ct-text-muted)]"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={1.5}
-            aria-hidden
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-            />
-          </svg>
+          <div className="h-10 w-10 rounded-[var(--ct-radius-lg)] bg-[var(--ct-surface-2)]" aria-hidden />
           <p className="body-sm">
             No on-chain events yet. Contracts are live on Base Sepolia — events
             appear here as the vault operates.

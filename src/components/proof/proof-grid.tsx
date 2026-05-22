@@ -35,20 +35,7 @@ export function ProofGrid({ proofs, filter }: ProofGridProps) {
       : "Proofs (audits, custody attestations, on-chain events) will appear here once published.";
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
-        <svg
-          className="h-10 w-10 text-[var(--ct-text-muted)]"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.5}
-          aria-hidden
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M3 7h18M3 12h18M3 17h12"
-          />
-        </svg>
+        <div className="h-10 w-10 rounded-[var(--ct-radius-lg)] bg-[var(--ct-surface-2)]" aria-hidden />
         <div>
           <p className="body-sm font-medium text-[var(--ct-text-primary)]">
             {emptyTitle}

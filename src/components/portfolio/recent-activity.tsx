@@ -27,65 +27,22 @@ function relativeTime(date: Date, asOf: Date): string {
   return `${diffMonths} months ago`;
 }
 
-// SVG icon paths for each tx type (16×16 viewport, token-only strokes).
+// Placeholder icon for each tx type
 function TxIcon({ type }: { type: string }) {
-  const iconStyle = {
-    flexShrink: 0 as const,
-    color:
-      type === "deposit"
-        ? "var(--ct-status-success)"
-        : type === "distribution"
-          ? "var(--ct-accent-strong)"
-          : type === "withdraw"
-            ? "var(--ct-status-danger)"
-            : "var(--ct-text-muted)",
-  };
+  const colorClass =
+    type === "deposit"
+      ? "bg-[var(--ct-status-success)]"
+      : type === "distribution"
+        ? "bg-[var(--ct-accent-strong)]"
+        : type === "withdraw"
+          ? "bg-[var(--ct-status-danger)]"
+          : "bg-[var(--ct-text-muted)]";
+
   return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="none"
+    <span
       aria-hidden="true"
-      style={iconStyle}
-    >
-      {type === "deposit" && (
-        <path
-          d="M8 2v9M4 7l4 4 4-4M3 13h10"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      )}
-      {type === "withdraw" && (
-        <path
-          d="M8 14V5M4 9l4-4 4 4M3 3h10"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      )}
-      {type === "distribution" && (
-        <path
-          d="M8 2a6 6 0 110 12A6 6 0 018 2zM8 6v2l1.5 1.5"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      )}
-      {type === "claim" && (
-        <path
-          d="M3 8h10M9 5l4 3-4 3"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      )}
-    </svg>
+      className={`inline-block w-4 h-4 rounded-sm shrink-0 ${colorClass}`}
+    />
   );
 }
 

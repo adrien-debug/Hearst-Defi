@@ -274,21 +274,7 @@ export function InvestForm({ vault }: InvestFormProps) {
               )}
             >
               {agreedToTermSheet && (
-                <svg
-                  width="11"
-                  height="9"
-                  viewBox="0 0 11 9"
-                  fill="none"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M1 4.5L4 7.5L10 1.5"
-                    stroke="var(--ct-text-strong)"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <span className="inline-block w-2.5 h-2 rounded-sm bg-[var(--ct-text-strong)]" />
               )}
             </span>
           </span>

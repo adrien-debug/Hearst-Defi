@@ -3,7 +3,7 @@ import type { PortfolioPosition } from "@/lib/data/portfolio";
 import { formatUsdCompact } from "@/lib/format/usd-compact";
 
 /**
- * 12-month value chart (SVG area, accent gradient).
+ * 12-month value chart — SVG removed, placeholder only.
  *
  * Derives a deterministic monthly series from the positions list:
  * start = sum of principals (subscribed month), end = totalValueUsdc today.
@@ -41,32 +41,6 @@ function buildMonthSeries(
   return result;
 }
 
-function toSvgPath(
-  series: Array<{ value: number }>,
-  width: number,
-  height: number,
-  close?: boolean,
-): string {
-  const values = series.map((s) => s.value);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const range = max - min || 1;
-  const pad = height * 0.1;
-  const available = height - pad * 2;
-
-  const pts = values.map((v, i) => {
-    const x = (i / (values.length - 1)) * width;
-    const y = pad + available - ((v - min) / range) * available;
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  });
-
-  const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p}`).join(" ");
-  if (close) {
-    return `${linePath} L${width},${height} L0,${height} Z`;
-  }
-  return linePath;
-}
-
 interface ValueChartProps {
   positions: PortfolioPosition[];
   totalValueUsdc: number;
@@ -77,8 +51,6 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
   const provenance: Provenance = source === "fallback" ? "stale" : "estimated";
   const asOf = new Date(); // rendered server-side; consistent within a request
   const series = buildMonthSeries(positions, totalValueUsdc, asOf);
-  const W = 600;
-  const H = 120;
 
   return (
     <article className="dash-cell" aria-label="Portfolio value — 12-month trend">
@@ -92,36 +64,11 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
         </span>
       </div>
 
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        width="100%"
-        height="100%"
-        preserveAspectRatio="none"
+      <div
+        className="mt-3 block pf-value-chart-placeholder w-full rounded-[var(--ct-radius-md)] bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)]"
+        style={{ minHeight: "5rem", maxHeight: "9rem", height: "120px" }}
         aria-hidden="true"
-        className="mt-3 block pf-value-chart-svg"
-        style={{ minHeight: "5rem", maxHeight: "9rem" }}
-      >
-        <defs>
-          <linearGradient id="pf-area-grad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--ct-accent)" stopOpacity="0.34" />
-            <stop offset="55%" stopColor="var(--ct-accent-strong)" stopOpacity="0.14" />
-            <stop offset="100%" stopColor="var(--ct-accent-strong)" stopOpacity="0.03" />
-          </linearGradient>
-        </defs>
-        {/* Area fill */}
-        <path
-          d={toSvgPath(series, W, H, true)}
-          fill="url(#pf-area-grad)"
-        />
-        {/* Line */}
-        <path
-          d={toSvgPath(series, W, H)}
-          fill="none"
-          stroke="var(--ct-accent)"
-          strokeWidth="1.75"
-          vectorEffect="non-scaling-stroke"
-        />
-      </svg>
+      />
 
       {/* Month labels */}
       <div className="stat-label ct-text-muted flex justify-between mt-1 mono">
