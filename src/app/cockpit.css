@@ -86,6 +86,7 @@
   --ct-dur-fast: 150ms;
   --ct-dur-base: 220ms;
   --ct-dur-slow: 400ms;
+  --ct-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 
   /* Spacing scale (rem-based, mirrors Tailwind v4 — adopté comme source de
      vérité Cockpit pour gaps/paddings/margins/positionnement). */
