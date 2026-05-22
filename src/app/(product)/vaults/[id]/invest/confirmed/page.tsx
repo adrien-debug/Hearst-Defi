@@ -62,7 +62,7 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
         {/* Success icon */}
         <span
           aria-hidden="true"
-          className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[--ct-status-success-soft] border border-[--ct-status-success-border] shadow-[var(--ct-glow-soft)] text-[--ct-status-success] shrink-0"
+          className="inline-flex items-center justify-center w-12 h-12 rounded-full ct-status-success-bg shadow-[var(--ct-glow-soft)] ct-status-success shrink-0"
         >
           <svg
             width="28"

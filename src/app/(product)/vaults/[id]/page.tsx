@@ -76,7 +76,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
         <div className="flex flex-wrap items-start gap-3">
           <h1 className="h1 flex-1">{vault.name}</h1>
           <div className="flex items-center gap-2 pt-1">
-            <span className="ct-pill accent mono text-[length:var(--ct-text-micro)]">
+            <span className="ct-pill accent mono eyebrow">
               {vault.ticker}
             </span>
             <Badge variant={STATUS_VARIANT[vault.status] ?? "default"}>
@@ -91,12 +91,11 @@ export default async function VaultDetailPage({ params }: PageProps) {
             <span className="stat-label">Target APY range</span>
             <ProvenanceBadge kind="estimated" />
           </div>
-          <span className="text-[length:var(--ct-text-2xl)]">
+          <span className="stat-value">
             <ApyRange
               low={vault.apyLow}
               high={vault.apyHigh}
               precision={1}
-              className="stat-value"
             />
           </span>
         </div>

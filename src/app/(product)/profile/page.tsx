@@ -3,6 +3,7 @@ import "./profile.css";
 import { getSession, getInvestor } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
+import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -122,7 +123,10 @@ export default async function ProfilePage() {
 
       {/* ── Investment summary ── */}
       <div className="dash-cell prof-card-summary">
-        <p className="dash-label">Investment summary</p>
+        <p className="dash-label">
+          Investment summary
+          <ProvenanceBadge kind="live" />
+        </p>
 
         <div className="prof-stats">
           <div className="prof-stat">
@@ -212,6 +216,13 @@ export default async function ProfilePage() {
           </li>
         </ul>
       </div>
+      <footer className="mt-8">
+        <p className="body-xs ct-text-faint max-w-2xl">
+          APY ranges are target projections based on stated assumptions — they are
+          not a commitment of future returns. Past performance does not predict
+          future results.
+        </p>
+      </footer>
     </div>
   );
 }
