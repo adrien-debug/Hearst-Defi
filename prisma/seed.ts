@@ -20,7 +20,19 @@ import type {
 const prisma = new PrismaClient();
 
 const AUM_USDC = 25_000_000;
-const SEED_NOW = new Date("2026-05-14T00:00:00Z");
+
+// Seed anchored on the real "now" so freshness windows (e.g. the dashboard's
+// 30-day trailing filter) always hold after a re-seed. Every other date below
+// was authored against the original 2026-05-14 anchor; we shift them all by the
+// same delta so their *relative* spacing/order is preserved exactly.
+const SEED_ANCHOR_ORIGINAL = new Date("2026-05-14T00:00:00Z");
+const SEED_NOW = new Date();
+const SEED_SHIFT_MS = SEED_NOW.getTime() - SEED_ANCHOR_ORIGINAL.getTime();
+
+/** Shift an originally-authored fixed date onto the live anchor. */
+function shifted(d: Date): Date {
+  return new Date(d.getTime() + SEED_SHIFT_MS);
+}
 
 // ---------------------------------------------------------------------------
 // Daily timeline — 30 days back from SEED_NOW.
@@ -45,11 +57,11 @@ const BACKTEST_KEYS: BacktestKey[] = [
 ];
 
 const SNAPSHOT_DATES: Record<Preset, Date> = {
-  base: new Date("2026-05-09T12:00:00Z"),
-  btc_bear: new Date("2026-05-10T12:00:00Z"),
-  btc_bull: new Date("2026-05-11T12:00:00Z"),
-  mining_compression: new Date("2026-05-12T12:00:00Z"),
-  extreme_stress: new Date("2026-05-13T12:00:00Z"),
+  base: shifted(new Date("2026-05-09T12:00:00Z")),
+  btc_bear: shifted(new Date("2026-05-10T12:00:00Z")),
+  btc_bull: shifted(new Date("2026-05-11T12:00:00Z")),
+  mining_compression: shifted(new Date("2026-05-12T12:00:00Z")),
+  extreme_stress: shifted(new Date("2026-05-13T12:00:00Z")),
 };
 
 const MINING_BASE_INPUTS: ScenarioInputs = getPresetInputs("base");
@@ -69,7 +81,7 @@ interface RebalanceFixture {
 const REBALANCE_FIXTURES: RebalanceFixture[] = [
   {
     ruleId: "R1",
-    executedAt: new Date("2026-03-14T15:00:00Z"),
+    executedAt: shifted(new Date("2026-03-14T15:00:00Z")),
     triggerText: "Risk score crossed 65 threshold (current: 68)",
     actionText: "Shift 5% AUM btc_tactical -> usdc_base",
     impactText: "Lowers volatility exposure; APY low slips to 8.9%",
@@ -78,7 +90,7 @@ const REBALANCE_FIXTURES: RebalanceFixture[] = [
   },
   {
     ruleId: "R2",
-    executedAt: new Date("2026-03-29T15:00:00Z"),
+    executedAt: shifted(new Date("2026-03-29T15:00:00Z")),
     triggerText: "Mining margin dropped below 60 (current: 54)",
     actionText: "Rotate 8% AUM mining -> usdc_base",
     impactText: "Reduces hashprice exposure; stabilizes APY low at 9.1%",
@@ -87,7 +99,7 @@ const REBALANCE_FIXTURES: RebalanceFixture[] = [
   },
   {
     ruleId: "R3",
-    executedAt: new Date("2026-04-13T15:00:00Z"),
+    executedAt: shifted(new Date("2026-04-13T15:00:00Z")),
     triggerText: "BTC drawdown -22% with vol_index 38 (accumulate window)",
     actionText: "Convert 5% AUM usdc_base -> btc_tactical",
     impactText: "Builds BTC exposure into weakness; target reverts to balanced",
@@ -96,7 +108,7 @@ const REBALANCE_FIXTURES: RebalanceFixture[] = [
   },
   {
     ruleId: "R4",
-    executedAt: new Date("2026-04-22T15:00:00Z"),
+    executedAt: shifted(new Date("2026-04-22T15:00:00Z")),
     triggerText: "Hashprice 30d avg trending -3.4% vs 60d (watchlist band)",
     actionText: "No allocation change. Operational confidence steady at 81.",
     impactText: "APY range unchanged. Continue monitoring; review trigger at -5%.",
@@ -105,7 +117,7 @@ const REBALANCE_FIXTURES: RebalanceFixture[] = [
   },
   {
     ruleId: "R5",
-    executedAt: new Date("2026-04-28T15:00:00Z"),
+    executedAt: shifted(new Date("2026-04-28T15:00:00Z")),
     triggerText: "Mode shifted defensive -> balanced (risk 58, margin 72)",
     actionText: "Rebalance to balanced mode targets",
     impactText: "Restores mining weight; APY range widens to 9.8-12.4%",
@@ -114,7 +126,7 @@ const REBALANCE_FIXTURES: RebalanceFixture[] = [
   },
   {
     ruleId: "R-DIST-1",
-    executedAt: new Date("2026-05-01T09:00:00Z"),
+    executedAt: shifted(new Date("2026-05-01T09:00:00Z")),
     triggerText: "Distribution window 2026-04 closed; attestation v1 received.",
     actionText: "Distribute $179,400 USDC pro-rata to LP shares.",
     impactText: "Realised APY April = 8.8% annualised. Distribution-to-date $1.04M.",
@@ -123,7 +135,7 @@ const REBALANCE_FIXTURES: RebalanceFixture[] = [
   },
   {
     ruleId: "R-BTC-3",
-    executedAt: new Date("2026-05-05T11:10:00Z"),
+    executedAt: shifted(new Date("2026-05-05T11:10:00Z")),
     triggerText:
       "R-BTC-3 evaluated — BTC 91,800 vs avg entry 58,420 (ratio 1.57, > 1.30) but sleeve < 10% AUM gate not met.",
     actionText: "No execution. Trigger queued; awaiting sleeve > 10% AUM precondition.",
@@ -133,7 +145,7 @@ const REBALANCE_FIXTURES: RebalanceFixture[] = [
   },
   {
     ruleId: "R6",
-    executedAt: new Date("2026-05-12T15:00:00Z"),
+    executedAt: shifted(new Date("2026-05-12T15:00:00Z")),
     triggerText: "Vol index above 80 sustained 7 days (current: 84)",
     actionText: "Reduce btc_tactical to 50% of mode target",
     impactText: "Caps downside; APY low trims by 30 bps",
@@ -150,17 +162,17 @@ interface ProofFixture {
 }
 
 const PROOF_FIXTURES: ProofFixture[] = [
-  { proofType: "mining_attestation", period: "2026-02", postedAt: new Date("2026-03-03T09:00:00Z"), seed: "mining-2026-02" },
-  { proofType: "mining_attestation", period: "2026-03", postedAt: new Date("2026-04-03T09:00:00Z"), seed: "mining-2026-03" },
-  { proofType: "mining_attestation", period: "2026-04", postedAt: new Date("2026-05-03T09:00:00Z"), seed: "mining-2026-04" },
-  { proofType: "mining_attestation", period: "2026-05-week1", postedAt: new Date("2026-05-08T09:00:00Z"), seed: "mining-2026-05w1" },
-  { proofType: "custody", period: "2026-03", postedAt: new Date("2026-04-05T09:00:00Z"), seed: "custody-2026-03" },
-  { proofType: "custody", period: "2026-04", postedAt: new Date("2026-05-05T09:00:00Z"), seed: "custody-2026-04" },
-  { proofType: "custody", period: "2026-05-mid", postedAt: new Date("2026-05-13T09:00:00Z"), seed: "custody-2026-05-mid" },
-  { proofType: "audit", period: "2026-Q1", postedAt: new Date("2026-04-10T09:00:00Z"), seed: "audit-2026-Q1" },
-  { proofType: "audit", period: "2026-Q2", postedAt: new Date("2026-05-10T09:00:00Z"), seed: "audit-2026-Q2" },
-  { proofType: "methodology", period: null, postedAt: new Date("2026-01-15T09:00:00Z"), seed: "methodology-v1.0" },
-  { proofType: "methodology", period: null, postedAt: new Date("2026-04-20T09:00:00Z"), seed: "methodology-v1.0-addendum" },
+  { proofType: "mining_attestation", period: "2026-02", postedAt: shifted(new Date("2026-03-03T09:00:00Z")), seed: "mining-2026-02" },
+  { proofType: "mining_attestation", period: "2026-03", postedAt: shifted(new Date("2026-04-03T09:00:00Z")), seed: "mining-2026-03" },
+  { proofType: "mining_attestation", period: "2026-04", postedAt: shifted(new Date("2026-05-03T09:00:00Z")), seed: "mining-2026-04" },
+  { proofType: "mining_attestation", period: "2026-05-week1", postedAt: shifted(new Date("2026-05-08T09:00:00Z")), seed: "mining-2026-05w1" },
+  { proofType: "custody", period: "2026-03", postedAt: shifted(new Date("2026-04-05T09:00:00Z")), seed: "custody-2026-03" },
+  { proofType: "custody", period: "2026-04", postedAt: shifted(new Date("2026-05-05T09:00:00Z")), seed: "custody-2026-04" },
+  { proofType: "custody", period: "2026-05-mid", postedAt: shifted(new Date("2026-05-13T09:00:00Z")), seed: "custody-2026-05-mid" },
+  { proofType: "audit", period: "2026-Q1", postedAt: shifted(new Date("2026-04-10T09:00:00Z")), seed: "audit-2026-Q1" },
+  { proofType: "audit", period: "2026-Q2", postedAt: shifted(new Date("2026-05-10T09:00:00Z")), seed: "audit-2026-Q2" },
+  { proofType: "methodology", period: null, postedAt: shifted(new Date("2026-01-15T09:00:00Z")), seed: "methodology-v1.0" },
+  { proofType: "methodology", period: null, postedAt: shifted(new Date("2026-04-20T09:00:00Z")), seed: "methodology-v1.0-addendum" },
 ];
 
 interface DistributionFixture {
@@ -174,21 +186,21 @@ interface DistributionFixture {
 // 4 monthly distributions: Feb, Mar, Apr paid; May scheduled.
 const DISTRIBUTION_FIXTURES: DistributionFixture[] = [
   {
-    distributedAt: new Date("2026-03-01T09:00:00Z"),
+    distributedAt: shifted(new Date("2026-03-01T09:00:00Z")),
     period: "2026-02",
     amountUsdc: 68_000,
     txHash: "0xd1a2c4b5e6f7081f2c34a5b6c7d8e9f0a1b2c3d4e5f60718293a4b5c6d7e8f00",
     recipientsCount: 12,
   },
   {
-    distributedAt: new Date("2026-04-02T10:00:00Z"),
+    distributedAt: shifted(new Date("2026-04-02T10:00:00Z")),
     period: "2026-03",
     amountUsdc: 86_400,
     txHash: "0xd2b3c4d5e6f7081f2c34a5b6c7d8e9f0a1b2c3d4e5f60718293a4b5c6d7e8f11",
     recipientsCount: 18,
   },
   {
-    distributedAt: new Date("2026-05-01T09:00:00Z"),
+    distributedAt: shifted(new Date("2026-05-01T09:00:00Z")),
     period: "2026-04",
     amountUsdc: 102_800,
     txHash: "0xd3c4d5e6f7081f2c34a5b6c7d8e9f0a1b2c3d4e5f60718293a4b5c6d7e8f1100",
@@ -196,7 +208,7 @@ const DISTRIBUTION_FIXTURES: DistributionFixture[] = [
   },
   {
     // May 31 — scheduled, not yet paid (txHash null marks "scheduled" in loader).
-    distributedAt: new Date("2026-05-31T09:00:00Z"),
+    distributedAt: shifted(new Date("2026-05-31T09:00:00Z")),
     period: "2026-05",
     amountUsdc: 96_000,
     txHash: null,
