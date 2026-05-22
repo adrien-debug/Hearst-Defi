@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: "/admin",
     },
-    sitemap: "https://hearst.connect/sitemap.xml",
+    sitemap: "https://connect.hearst.app/sitemap.xml",
   };
 }

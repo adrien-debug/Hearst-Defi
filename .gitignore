@@ -57,6 +57,7 @@ advanced-metrics-fixed.png
 
 # Electron build artifacts
 dist-electron/
+release/
 out/
 electron/__tests__/screenshots/
 electron/__tests__/results/

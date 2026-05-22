@@ -12,7 +12,7 @@ import { PRIVY_APP_ID } from "@/lib/auth/privy-config";
 export const metadata: Metadata = {
   title: { default: "Hearst Connect", template: "%s | Hearst Connect" },
   description: "Institutional DeFi vault — Mining-backed structured yield",
-  metadataBase: new URL("https://hearst.connect"),
+  metadataBase: new URL("https://connect.hearst.app"),
   openGraph: {
     type: "website",
     siteName: "Hearst Connect",

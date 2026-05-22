@@ -40,7 +40,9 @@ function writeState(next: Partial<AppState>): void {
 
 const ENV_URLS: Record<"local" | "prod", string> = {
   local: "http://localhost:4105",
-  prod: "https://app.hearst.connect",
+  // Production = deployed Vercel app (verified custom domain). Overridable at
+  // build time via HEARST_APP_URL; falls back to the canonical prod domain.
+  prod: process.env.HEARST_APP_URL ?? "https://connect.hearst.app",
 };
 
 let mainWindow: BrowserWindow | null = null;
@@ -127,13 +129,18 @@ function createMainWindow(env: "local" | "prod"): void {
       submenu: [
         { role: "about" },
         { type: "separator" },
-        {
-          label: "Switch environment…",
-          click: () => {
-            mainWindow?.close();
-            createSplash();
-          },
-        },
+        // Env picker is dev-only — distributed builds always run against prod.
+        ...(app.isPackaged
+          ? []
+          : [
+              {
+                label: "Switch environment…",
+                click: () => {
+                  mainWindow?.close();
+                  createSplash();
+                },
+              } as const,
+            ]),
         {
           label: "Force reload (clear cache)",
           accelerator: "CmdOrCtrl+Shift+R",
@@ -184,8 +191,10 @@ ipcMain.handle("select-env", (_event, env: "local" | "prod") => {
 ipcMain.handle("get-last-env", () => readState().env);
 
 app.whenReady().then(() => {
-  createSplash();
   if (app.isPackaged) {
+    // Distributed build: no local/prod picker — go straight to production.
+    // The env selector splash is a dev-only convenience.
+    createMainWindow("prod");
     // Lazy-load electron-updater AFTER app is ready (its constructor calls
     // app.getVersion()).
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -194,6 +203,8 @@ app.whenReady().then(() => {
     autoUpdater.on("update-downloaded", () => {
       autoUpdater.quitAndInstall();
     });
+  } else {
+    createSplash();
   }
 });
 
@@ -202,5 +213,8 @@ app.on("window-all-closed", () => {
 });
 
 app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) createSplash();
+  if (BrowserWindow.getAllWindows().length === 0) {
+    if (app.isPackaged) createMainWindow("prod");
+    else createSplash();
+  }
 });
