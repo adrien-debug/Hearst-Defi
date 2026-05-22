@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   LayoutDashboard,
   FlaskConical,
@@ -18,6 +20,29 @@ import {
 import { cn } from "@/lib/cn";
 import type { NavItem } from "./product-nav-items";
 import { PRODUCT_NAV, ANALYTICS_NAV, ADMIN_NAV } from "./product-nav-items";
+
+/**
+ * Portal target lives on document.body so the rail escapes the
+ * ct-panels-row stacking context (z-index:10) that would otherwise
+ * paint over our fixed nav even when ct-rail-intra has z-index:1001.
+ */
+function useBodyPortal() {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const el = document.createElement("div");
+    el.setAttribute("data-portal", "rail-intra");
+    document.body.appendChild(el);
+    containerRef.current = el;
+    setMounted(true);
+    return () => {
+      document.body.removeChild(el);
+    };
+  }, []);
+
+  return { container: containerRef.current, mounted };
+}
 
 const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard,
@@ -89,11 +114,13 @@ export function ProductRailIntra({ items = PRODUCT_NAV }: Props) {
 /**
  * Full investor rail — Portfolio / Vaults / Profile.
  * Watertight: never shows admin items.
+ * Portals to document.body to escape ct-panels-row stacking context.
  */
 export function InvestorRailIntra() {
   const pathname = usePathname();
+  const { container, mounted } = useBodyPortal();
 
-  return (
+  const nav = (
     <nav
       className="ct-rail-intra"
       aria-label="Investor navigation"
@@ -104,16 +131,21 @@ export function InvestorRailIntra() {
       ))}
     </nav>
   );
+
+  if (!mounted || !container) return null;
+  return createPortal(nav, container);
 }
 
 /**
  * Admin/operator rail — Admin + Customers / separator / analyst tools.
  * Watertight: never shown to investors.
+ * Portals to document.body to escape ct-panels-row stacking context.
  */
 export function AdminRailIntra() {
   const pathname = usePathname();
+  const { container, mounted } = useBodyPortal();
 
-  return (
+  const nav = (
     <nav
       className="ct-rail-intra"
       aria-label="Admin navigation"
@@ -128,4 +160,7 @@ export function AdminRailIntra() {
       ))}
     </nav>
   );
+
+  if (!mounted || !container) return null;
+  return createPortal(nav, container);
 }
