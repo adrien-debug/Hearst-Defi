@@ -81,7 +81,7 @@ export interface ApyPoint {
 export interface DashboardTimeseries {
   nav30d: NavPoint[];
   apy30d: ApyPoint[];
-  /** `fallback` when the series was synthesised because fewer than 7 DB rows exist. */
+  /** `fallback` when fewer than 7 DB rows exist in the trailing window. */
   source: "db" | "fallback";
 }
 
@@ -105,10 +105,6 @@ export interface DashboardData {
    */
   source: "db" | "partial" | "fallback";
 }
-
-// Synthetic AUM used in fallback mode — matches the long-running mock.
-const FALLBACK_AUM = 24_600_000;
-const FALLBACK_APY = { low: 9.4, high: 12.8 } as const;
 
 // Snapshot `source` values that represent the real vault timeline (vs the
 // `computed` preset/scenario snapshots used by the memo loader). The dashboard
@@ -179,7 +175,7 @@ export async function loadDashboardData(): Promise<DashboardData> {
     usedFallback = true;
   });
 
-  const allocations = buildAllocations(mappedAllocations, vault.aumUsdc, () => {
+  const allocations = buildAllocations(mappedAllocations, () => {
     usedFallback = true;
   });
 
@@ -197,7 +193,7 @@ export async function loadDashboardData(): Promise<DashboardData> {
   }));
   if (recentEvents.length === 0) usedFallback = true;
 
-  const timeseries = buildTimeseries(mappedTrailing, vault, () => {
+  const timeseries = buildTimeseries(mappedTrailing, () => {
     usedFallback = true;
   });
 
@@ -275,12 +271,12 @@ async function buildVault(
   if (snapshot === null) {
     markFallback();
     return {
-      aumUsdc: FALLBACK_AUM,
-      delta30dUsdc: 1_200_000,
-      apyRange: { low: FALLBACK_APY.low, high: FALLBACK_APY.high },
-      stressedApy: 5.2,
-      riskScore: 42,
-      miningMarginScore: 72,
+      aumUsdc: 0,
+      delta30dUsdc: 0,
+      apyRange: { low: 0, high: 0 },
+      stressedApy: 0,
+      riskScore: 0,
+      miningMarginScore: 0,
       mode: "balanced",
       asOf: new Date(),
     };
@@ -350,17 +346,11 @@ function toAllocationRow(row: {
 
 function buildAllocations(
   rows: AllocationRow[],
-  aumUsdc: number,
   markFallback: () => void,
 ): DashboardAllocation[] {
   if (rows.length === 0) {
     markFallback();
-    return [
-      { bucket: "mining", pct: 34, valueUsdc: aumUsdc * 0.34, yieldContributionBps: 620 },
-      { bucket: "usdc_base", pct: 38, valueUsdc: aumUsdc * 0.38, yieldContributionBps: 480 },
-      { bucket: "btc_tactical", pct: 14, valueUsdc: aumUsdc * 0.14, yieldContributionBps: 0 },
-      { bucket: "stable_reserve", pct: 14, valueUsdc: aumUsdc * 0.14, yieldContributionBps: 450 },
-    ];
+    return [];
   }
   return rows.map((r) => ({
     bucket: normaliseBucket(r.bucket),
@@ -447,8 +437,6 @@ function toTrailingSnapshotRow(row: {
   };
 }
 
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
-
 function toIsoDate(d: Date): string {
   const y = d.getUTCFullYear();
   const m = String(d.getUTCMonth() + 1).padStart(2, "0");
@@ -458,12 +446,11 @@ function toIsoDate(d: Date): string {
 
 function buildTimeseries(
   rows: TrailingSnapshotRow[],
-  vault: DashboardVault,
   markFallback: () => void,
 ): DashboardTimeseries {
   if (rows.length < 7) {
     markFallback();
-    return { ...synthesiseTimeseries(vault), source: "fallback" };
+    return { nav30d: [], apy30d: [], source: "fallback" };
   }
 
   // Collapse to one point per day (keep the latest snapshot per UTC date).
@@ -487,36 +474,6 @@ function buildTimeseries(
   }));
 
   return { nav30d, apy30d, source: "db" };
-}
-
-function synthesiseTimeseries(vault: DashboardVault): DashboardTimeseries {
-  const endAum = vault.aumUsdc;
-  const startAum = Math.max(0, endAum - 4_000_000);
-  const today = new Date();
-  // Anchor to start of day UTC.
-  today.setUTCHours(0, 0, 0, 0);
-
-  const nav30d: NavPoint[] = [];
-  const apy30d: ApyPoint[] = [];
-
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(today.getTime() - i * MS_PER_DAY);
-    const t = (29 - i) / 29; // 0 .. 1
-    // Smooth linear growth + tiny deterministic wiggle so the line is not flat.
-    const wiggle = Math.sin(t * Math.PI * 3) * (endAum * 0.01);
-    const aum = Math.round(startAum + (endAum - startAum) * t + wiggle);
-
-    // APY band oscillates around methodology target (12%) within 9-13.
-    const mid = 11 + Math.sin(t * Math.PI * 2.4) * 0.8;
-    const apy_low = Math.round((mid - 1.6) * 10) / 10;
-    const apy_high = Math.round((mid + 1.2) * 10) / 10;
-
-    const date = toIsoDate(d);
-    nav30d.push({ date, aum_usdc: aum });
-    apy30d.push({ date, apy_low, apy_high });
-  }
-
-  return { nav30d, apy30d, source: "fallback" };
 }
 
 // ---------------------------------------------------------------------------
