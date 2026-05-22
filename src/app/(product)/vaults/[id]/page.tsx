@@ -12,7 +12,6 @@ import Link from "next/link";
 import { getVault } from "@/lib/demo/loaders";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { ApyRange } from "@/components/ui/apy-range";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { StepProgress } from "@/components/vaults/step-progress";
@@ -59,7 +58,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
   const investHref = `/vaults/${id}/invest`;
 
   return (
-    <>
+    <div className="flex flex-col gap-8">
       {/* Page header */}
       <header className="flex flex-col gap-4">
         <div className="flex items-center gap-3">
@@ -123,39 +122,40 @@ export default async function VaultDetailPage({ params }: PageProps) {
         <DynamicAllocationCards />
       </section>
 
-      {/* Sticky CTA footer */}
-      <Card
-        className="sticky bottom-6 flex items-center justify-between gap-4 border border-[var(--ct-border-strong)] shadow-[var(--ct-shadow-elevated)]"
-        role="navigation"
+      {/* Sticky CTA footer — single compact row pinned to the scroll
+          container (.ct-page-area). OPAQUE surface + strong border + elevated
+          shadow + bottom-bar z-index so scrolling content never shows through
+          (was a translucent glass <Card> that overlapped — fixed). */}
+      <nav
         aria-label="Invest flow actions"
+        className="sticky bottom-6 z-[var(--ct-z-bottom-bar)] flex items-center justify-between gap-4 rounded-[var(--ct-radius-lg)] border border-[var(--ct-border-strong)] bg-[var(--ct-bg-deep)] px-5 py-3 shadow-[var(--ct-shadow-elevated)]"
       >
-        <div className="flex flex-col gap-0.5">
-          <span className="body-sm font-semibold ct-text-primary">
+        <div className="flex min-w-0 items-center gap-2 flex-wrap">
+          <span className="body-sm font-semibold ct-text-primary truncate">
             {vault.name}
           </span>
-          <div className="flex items-center gap-2">
-            <ApyRange
-              low={vault.apyLow}
-              high={vault.apyHigh}
-              precision={1}
-              className="body-sm mono"
-            />
-            <span className="body-xs ct-text-muted">·</span>
-            <span className="body-xs ct-text-muted">
-              Min. ${(vault.minTicketUsdc / 1000).toFixed(0)}k ·{" "}
-              {vault.softLockupDays}d lock-up
-            </span>
-          </div>
+          <span className="body-xs ct-text-faint">·</span>
+          <ApyRange
+            low={vault.apyLow}
+            high={vault.apyHigh}
+            precision={1}
+            className="body-sm mono"
+          />
+          <span className="body-xs ct-text-faint">·</span>
+          <span className="body-xs ct-text-muted whitespace-nowrap">
+            Min. ${(vault.minTicketUsdc / 1000).toFixed(0)}k ·{" "}
+            {vault.softLockupDays}d lock-up
+          </span>
         </div>
 
         {isLive ? (
-          <Button variant="primary" size="lg" asChild className="font-bold shrink-0">
+          <Button variant="primary" size="md" asChild className="font-bold shrink-0">
             <Link href={investHref}>Continue → Deposit</Link>
           </Button>
         ) : (
           <Button
             variant="secondary"
-            size="lg"
+            size="md"
             disabled
             aria-disabled
             className="shrink-0"
@@ -163,7 +163,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
             Coming soon
           </Button>
         )}
-      </Card>
+      </nav>
 
       {/* Final disclaimer (#10 — "not guaranteed" mandatory) */}
       <footer>
@@ -173,6 +173,6 @@ export default async function VaultDetailPage({ params }: PageProps) {
           notice.
         </p>
       </footer>
-    </>
+    </div>
   );
 }

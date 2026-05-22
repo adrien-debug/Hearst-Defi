@@ -113,12 +113,15 @@ export function ProductRailIntra({ items = PRODUCT_NAV }: Props) {
 
 /**
  * Full investor rail — Portfolio / Vaults / Profile.
- * Watertight: never shows admin items.
+ * When `isAdmin` is true, a separator + "Admin" entry are appended so an admin
+ * reviewing the product surfaces can jump back to their zone.
  * Portals to document.body to escape ct-panels-row stacking context.
  */
-export function InvestorRailIntra() {
+export function InvestorRailIntra({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
   const { container, mounted } = useBodyPortal();
+
+  const adminEntry = ADMIN_NAV.find((item) => item.id === "admin");
 
   const nav = (
     <nav
@@ -129,6 +132,12 @@ export function InvestorRailIntra() {
       {PRODUCT_NAV.map((item) => (
         <RailItem key={item.id} item={item} pathname={pathname} />
       ))}
+      {isAdmin && adminEntry ? (
+        <>
+          <RailSeparator />
+          <RailItem item={adminEntry} pathname={pathname} />
+        </>
+      ) : null}
     </nav>
   );
 

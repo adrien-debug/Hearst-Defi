@@ -11,16 +11,16 @@ export default async function ProductLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Watertight investor gate (mirror of the admin layout's requireAdmin):
-  // no session → /login, admin → /admin (sent back to their own zone).
-  await requireInvestor("/portfolio");
+  // Investor gate: no session → /login. Admins are allowed through (admin ⊇
+  // investor) so they can review the product surfaces A→Z.
+  const session = await requireInvestor("/portfolio");
 
   return (
     <>
       <HubModeStyles />
       {/* Left rail — investor nav (Portfolio / Vaults / Profile).
-          Watertight: admin items never appear here. */}
-      <InvestorRailIntra />
+          Admins additionally get an "Admin" entry to jump to their zone. */}
+      <InvestorRailIntra isAdmin={session.role === "admin"} />
       {/* Identity slot — docked into the bottom of the left rail (Section 1).
           HeaderConnect renders only when Privy authenticated. */}
       <div className="connect-rail-identity">

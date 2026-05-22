@@ -139,7 +139,7 @@ export function ProductSelectCard({ vault }: ProductSelectCardProps) {
           so nothing unlayered overrides it. `shrink-0` keeps it from
           collapsing under the flexible left column.
       */}
-      <div className="flex w-full flex-col gap-8 md:w-80 md:shrink-0 md:pl-10">
+      <div className="flex w-full flex-col justify-center gap-8 md:w-80 md:shrink-0">
         <div className="grid grid-cols-2 items-start gap-x-8 gap-y-6">
           <div className="flex flex-col gap-1">
             <span className="stat-label">Min. ticket</span>
@@ -167,20 +167,18 @@ export function ProductSelectCard({ vault }: ProductSelectCardProps) {
           </div>
         </div>
 
-        {/* CTA — compact, aligned bottom-right */}
-        <div className="mt-auto flex justify-end">
-          {isLive ? (
-            <Button variant="primary" size="md" asChild className="font-bold">
-              <Link href={href} aria-label={`View details for ${vault.name}`}>
-                Select →
-              </Link>
-            </Button>
-          ) : (
-            <Button variant="secondary" size="md" disabled aria-disabled>
-              Coming soon
-            </Button>
-          )}
-        </div>
+        {/* CTA — full width of the KPI block (spans both metric columns) */}
+        {isLive ? (
+          <Button variant="primary" size="md" asChild className="w-full font-bold">
+            <Link href={href} aria-label={`View details for ${vault.name}`}>
+              Select →
+            </Link>
+          </Button>
+        ) : (
+          <Button variant="secondary" size="md" disabled aria-disabled className="w-full">
+            Coming soon
+          </Button>
+        )}
       </div>
       </div>
     </Card>
