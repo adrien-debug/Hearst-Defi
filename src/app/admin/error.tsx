@@ -35,7 +35,7 @@ export default function AdminError({ error, reset }: AdminErrorProps) {
           </Button>
           <Link
             href="/admin"
-            className="inline-flex items-center rounded-[--ct-radius-full] border border-[var(--ct-border-strong)] bg-[var(--ct-surface-1)] px-4 py-2 text-sm font-medium text-[var(--ct-text-primary)] no-underline"
+            className="inline-flex items-center rounded-full border border-[var(--ct-border-strong)] bg-[var(--ct-surface-1)] px-4 py-2 text-sm font-medium text-[var(--ct-text-primary)] no-underline"
           >
             Back to admin
           </Link>

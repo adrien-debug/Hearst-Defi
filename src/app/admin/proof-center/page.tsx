@@ -100,10 +100,10 @@ export default async function ProofCenterPage({
           <ProofFilter />
         </div>
         {proofs.length === 0 ? (
-          <div className="flex flex-col items-center gap-4 rounded-[--ct-radius-lg] border border-[--ct-border-soft] bg-[--ct-surface-1] py-16 text-center">
+          <div className="flex flex-col items-center gap-4 rounded-[var(--ct-radius-lg)] ct-border-soft ct-surface-1 py-16 text-center">
             <ProvenanceBadge kind="stale" />
             <div className="space-y-1">
-              <p className="body-sm font-medium text-[--ct-text-strong]">
+              <p className="body-sm font-medium ct-text-strong">
                 No proofs published yet
               </p>
               <p className="body-xs max-w-md">
@@ -127,7 +127,7 @@ export default async function ProofCenterPage({
       </section>
 
       {/* ── Footer ─────────────────────────────────────────── */}
-      <footer className="border-t border-[--ct-border-soft] pt-6">
+      <footer className="border-t border-[var(--ct-border-soft)] pt-6">
         <p className="body-xs">
           On-chain entries are read directly from Base Sepolia via the
           EventLogger (<span className="mono">0xb07E…3D9E</span>) and

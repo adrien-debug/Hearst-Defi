@@ -37,13 +37,13 @@ export default async function SpecPage({
                 key={entry.slug}
                 href={`/admin/spec/${entry.slug}`}
                 className={cn(
-                  "block rounded-[--ct-radius-lg] px-2 py-1.5 text-sm transition-colors",
+                  "block rounded-[var(--ct-radius-lg)] px-2 py-1.5 text-sm transition-colors",
                   active
-                    ? "glass-panel-subtle text-[--ct-text-primary]"
-                    : "text-[--ct-text-muted] hover:glass-panel-subtle",
+                    ? "glass-panel-subtle ct-text-primary"
+                    : "ct-text-muted hover:glass-panel-subtle",
                 )}
               >
-                <span className="mono tabular mr-2 text-xs text-[--ct-text-faint]">
+                <span className="mono tabular mr-2 text-xs ct-text-faint">
                   {String(entry.order).padStart(2, "0")}
                 </span>
                 {entry.title}
