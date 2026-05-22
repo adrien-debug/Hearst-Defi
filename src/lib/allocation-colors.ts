@@ -16,7 +16,7 @@ export type AllocationDashTone = "primary" | "accent" | "soft" | "muted";
 export const ALLOCATION_STROKE: Record<EngineBucket, string> = {
   mining: "var(--ct-text-strong)",
   btc_tactical: "var(--ct-accent-strong)",
-  usdc_base: "var(--ct-accent-soft)",
+  usdc_base: "var(--ct-surface-2)",
   stable_reserve: "var(--ct-surface-3)",
 };
 
