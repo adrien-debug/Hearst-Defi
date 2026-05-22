@@ -125,7 +125,14 @@ export function SubscribePanel({ vaults, onCancel }: SubscribePanelProps) {
               max={remaining}
               step={1000}
               value={rawAmount}
-              onChange={(e) => setRawAmount(e.target.value)}
+              onChange={(e) => {
+                const v = e.target.value;
+                // Only allow non-negative integers (no e, no decimals, no negatives).
+                if (v === "" || /^\d+$/.test(v)) setRawAmount(v);
+              }}
+              onKeyDown={(e) => {
+                if (["e", "E", "+", "-", "."].includes(e.key)) e.preventDefault();
+              }}
               placeholder={selected.minTicketUsdc.toLocaleString("en-US")}
               aria-invalid={amount > 0 && !amountValid}
               className={cn(

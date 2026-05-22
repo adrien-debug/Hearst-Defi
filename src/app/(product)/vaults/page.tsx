@@ -5,6 +5,7 @@
 import { listVaults } from "@/lib/demo/loaders";
 import { ProductSelectCard } from "@/components/vaults/product-select-card";
 import { StepProgress } from "@/components/vaults/step-progress";
+import { Card } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
 
@@ -38,11 +39,20 @@ export default async function VaultsPage() {
           Available products
         </h2>
 
-        <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(var(--ct-vault-card-min-w),1fr))]">
-          {vaults.map((vault) => (
-            <ProductSelectCard key={vault.id} vault={vault} />
-          ))}
-        </div>
+        {vaults.length === 0 ? (
+          <Card className="p-6">
+            <p className="body-md">Aucun produit disponible pour le moment.</p>
+            <p className="body-sm ct-text-muted mt-1">
+              Revenez bientôt ou contactez votre gestionnaire.
+            </p>
+          </Card>
+        ) : (
+          <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(var(--ct-vault-card-min-w),1fr))]">
+            {vaults.map((vault) => (
+              <ProductSelectCard key={vault.id} vault={vault} />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Global disclaimer (#10) */}

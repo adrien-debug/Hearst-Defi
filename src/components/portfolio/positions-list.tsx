@@ -44,9 +44,9 @@ export function PositionsList({ positions, source }: PositionsListProps) {
           No open positions.
         </p>
       ) : (
-        <div className="flex flex-col gap-2 mt-3">
+        <div className="flex flex-col gap-2 mt-3 overflow-x-auto min-w-0">
           {/* Header row */}
-          <div className="stat-label grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 pb-2 border-b border-[--ct-border-soft]">
+          <div className="stat-label grid grid-cols-[minmax(0,1fr)_auto_auto_auto_auto] gap-4 pb-2 border-b border-[--ct-border-soft] min-w-0">
             <span>Vault</span>
             <span className="text-right">Principal</span>
             <span className="text-right">Value</span>
@@ -57,7 +57,7 @@ export function PositionsList({ positions, source }: PositionsListProps) {
           {positions.map((p) => (
             <div
               key={p.id}
-              className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 items-center pb-2 border-b border-[--ct-border-soft]"
+              className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto_auto] gap-4 items-center pb-2 border-b border-[--ct-border-soft] min-w-0"
             >
               {/* Vault name + status */}
               <div className="flex items-center gap-2 min-w-0">

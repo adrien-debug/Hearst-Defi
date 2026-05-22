@@ -124,8 +124,8 @@ export function RecentActivity({ transactions, source }: RecentActivityProps) {
             >
               <TxIcon type={tx.type} />
 
-              <div className="flex-1 min-w-0">
-                <div className="body-xs ct-text-primary font-semibold">
+              <div className="flex-1 min-w-0 overflow-hidden">
+                <div className="body-xs ct-text-primary font-semibold truncate">
                   {TYPE_LABELS[tx.type] ?? tx.type}
                   {tx.positionVaultName && (
                     <span className="ct-text-muted font-normal">
@@ -133,7 +133,7 @@ export function RecentActivity({ transactions, source }: RecentActivityProps) {
                     </span>
                   )}
                 </div>
-                <div className="stat-label ct-text-muted mt-0.5 mono">
+                <div className="stat-label ct-text-muted mt-0.5 mono truncate">
                   {relativeTime(tx.occurredAt, asOf)}
                 </div>
               </div>

@@ -630,6 +630,15 @@
   display: none !important;
 }
 
+/* Section separator — thin rule between nav groups in the rail. */
+.ct-rail-sep {
+  width: 2rem;
+  border: none;
+  border-top: 1px solid var(--ct-border-soft);
+  margin: var(--ct-space-1) 0;
+  flex-shrink: 0;
+}
+
 /* ──────────────────────────────────────────────────────────────
    Page wrappers (.ct-section utilisé par /admin/roadmap,
    /admin/spec/[slug], /scenario-lab et leur loading.tsx).
@@ -654,36 +663,9 @@
   line-height: 1.65;
 }
 
-/* ── Hub bottom bar — replace the shell's native single-segment HubBottomBar
-   ("Overview" only, hard-coded in node_modules/@hearst/cockpit-shell/src/shell/
-   HubBottomBar.tsx) with our own <ConnectBottomNav> that exposes the 4 product
-   surfaces (Scenario Lab / Dashboard / Proof Center / Investor Memo).
-   Our nav uses the shell's `.ct-hub-bar` look + adds `.connect-nav` to
-   distinguish it from the native one, which is suppressed here. ── */
-.ct-hub-bar:not(.connect-nav) { display: none; }
-
-/* Our nav lives as a sibling of <CockpitShell>, outside `.ct-root`, so the
-   shell's centering formula (which reads --ct-rail-left + --ct-rail-right-eff
-   from `.ct-root`) resolves to `left: auto` and the bar drifts off-screen.
-   We re-anchor with position:fixed and mirror the math using vars promoted
-   to :root so they react to the live rail state via :has(). */
-:root {
-  --connect-rail-left-eff: 88px;
-  --connect-rail-right-eff: 420px;
-}
-:root:has(.ct-rail-left.launcher) {
-  --connect-rail-left-eff: clamp(208px, 15vw, 260px);
-}
-:root:has(.ct-rail-right.collapsed) {
-  --connect-rail-right-eff: 48px;
-}
-.ct-hub-bar.connect-nav {
-  position: fixed;
-  bottom: 24px;
-  left: calc((var(--connect-rail-left-eff) + 100vw - var(--connect-rail-right-eff)) / 2);
-  transform: translateX(-50%);
-  z-index: var(--ct-z-bottom-bar);
-}
+/* ── Hub bottom bar — the shell's native HubBottomBar is suppressed; navigation
+   now lives entirely in the left rail via InvestorRailIntra / AdminRailIntra. ── */
+.ct-hub-bar { display: none; }
 
 /* ── Identity slot docked in the left rail (Section 1) ──
    HeaderConnect (wallet pill / Connect button) + demo toggle, moved out of the
@@ -721,16 +703,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-/* Custom nav: <a> segments instead of <button>, kill default link styling.
-   Active state colour follows the shell convention (.active class). */
-.ct-hub-bar.connect-nav a.ct-hub-bar-seg {
-  text-decoration: none;
-  color: var(--ct-text-body);
-}
-.ct-hub-bar.connect-nav a.ct-hub-bar-seg:hover {
-  color: var(--ct-text-primary);
 }
 
 /* ── Shell padding overrides — restore tokens.css values that get reset to 0

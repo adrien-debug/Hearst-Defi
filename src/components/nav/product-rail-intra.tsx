@@ -10,6 +10,7 @@ import {
   Settings2,
   Wallet,
   Vault,
+  User,
   Users,
   LucideIcon,
 } from "lucide-react";
@@ -18,10 +19,6 @@ import { cn } from "@/lib/cn";
 import type { NavItem } from "./product-nav-items";
 import { PRODUCT_NAV, ANALYTICS_NAV, ADMIN_NAV } from "./product-nav-items";
 
-// ---------------------------------------------------------------------------
-// Icon registry — avoids dynamic imports while keeping product-nav-items.ts
-// data-only (no Lucide imports there).
-// ---------------------------------------------------------------------------
 const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard,
   FlaskConical,
@@ -30,8 +27,43 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Settings2,
   Wallet,
   Vault,
+  User,
   Users,
 };
+
+// Thin horizontal rule between nav sections.
+function RailSeparator() {
+  return (
+    <hr
+      aria-hidden="true"
+      className="ct-rail-sep"
+    />
+  );
+}
+
+interface RailItemProps {
+  item: NavItem;
+  pathname: string;
+}
+
+function RailItem({ item, pathname }: RailItemProps) {
+  const Icon = ICON_MAP[item.icon];
+  const isActive =
+    pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+  return (
+    <Link
+      href={item.href}
+      aria-label={item.label}
+      aria-current={isActive ? "page" : undefined}
+      title={item.label}
+      className={cn("ct-rail-item", isActive && "ct-rail-item-active")}
+    >
+      {Icon ? <Icon size={20} strokeWidth={1.8} /> : null}
+      <span className="ct-rail-item-tooltip">{item.label}</span>
+    </Link>
+  );
+}
 
 interface Props {
   /** Override the default PRODUCT_NAV items (e.g. pass ADMIN_NAV for admin layout). */
@@ -47,34 +79,53 @@ export function ProductRailIntra({ items = PRODUCT_NAV }: Props) {
       aria-label="Intra-app navigation"
       data-testid="product-rail-intra"
     >
-      {items.map((item) => {
-        const Icon = ICON_MAP[item.icon];
-        const isActive =
-          pathname === item.href || pathname.startsWith(`${item.href}/`);
-
-        return (
-          <Link
-            key={item.id}
-            href={item.href}
-            aria-label={item.label}
-            aria-current={isActive ? "page" : undefined}
-            title={item.label}
-            className={cn("ct-rail-item", isActive && "ct-rail-item-active")}
-          >
-            {Icon ? <Icon size={20} strokeWidth={1.8} /> : null}
-            <span className="ct-rail-item-tooltip">{item.label}</span>
-          </Link>
-        );
-      })}
+      {items.map((item) => (
+        <RailItem key={item.id} item={item} pathname={pathname} />
+      ))}
     </nav>
   );
 }
 
 /**
- * Admin/operator rail — full surface: the admin entry plus the analyst tools
- * (Dashboard, Scenario Lab, Proof Center, Investor Memo). Operators still reach
- * everything; investors (PRODUCT_NAV) only see Portfolio + Vaults.
+ * Full investor rail — Portfolio / Vaults / Profile.
+ * Watertight: never shows admin items.
+ */
+export function InvestorRailIntra() {
+  const pathname = usePathname();
+
+  return (
+    <nav
+      className="ct-rail-intra"
+      aria-label="Investor navigation"
+      data-testid="investor-rail-intra"
+    >
+      {PRODUCT_NAV.map((item) => (
+        <RailItem key={item.id} item={item} pathname={pathname} />
+      ))}
+    </nav>
+  );
+}
+
+/**
+ * Admin/operator rail — Admin + Customers / separator / analyst tools.
+ * Watertight: never shown to investors.
  */
 export function AdminRailIntra() {
-  return <ProductRailIntra items={[...ADMIN_NAV, ...ANALYTICS_NAV]} />;
+  const pathname = usePathname();
+
+  return (
+    <nav
+      className="ct-rail-intra"
+      aria-label="Admin navigation"
+      data-testid="admin-rail-intra"
+    >
+      {ADMIN_NAV.map((item) => (
+        <RailItem key={item.id} item={item} pathname={pathname} />
+      ))}
+      <RailSeparator />
+      {ANALYTICS_NAV.map((item) => (
+        <RailItem key={item.id} item={item} pathname={pathname} />
+      ))}
+    </nav>
+  );
 }

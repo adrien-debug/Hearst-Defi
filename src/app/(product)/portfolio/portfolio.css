@@ -81,7 +81,7 @@
 /* Slim KPI band so charts + lists get the vertical room. */
 .pf-fixed-kpis .dash-cell {
   min-height: 0;
-  padding: var(--ct-space-4) var(--ct-space-5);
+  padding: var(--ct-space-4);
 }
 .pf-fixed-kpis .dash-value {
   font-size: var(--ct-text-3xl);
@@ -173,7 +173,6 @@
 .pf-fixed-positions > .dash-cell {
   min-height: 0;
   height: 100%;
-  grid-column: auto; /* neutralise the col-4/col-8 spans from shared components */
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -183,10 +182,10 @@
 .pf-fixed-positions {
   min-height: 0;
   height: 100%;
-  display: flex;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
 }
 .pf-fixed-positions > .dash-cell {
-  flex: 1;
   min-height: 0;
 }
 /* Lists scroll internally past the fold. */
@@ -341,7 +340,7 @@
     grid-template-columns: 1fr;
     flex: 1 1 0;
     margin-top: auto;
-    min-height: 10rem;
+    min-height: 0;
   }
 
   .pf-row-lower > :first-child,
@@ -361,7 +360,7 @@
   }
 
   .pf-row-charts .dash-chart-container {
-    width: 7rem;
-    height: 7rem;
+    width: clamp(5rem, 20vw, 7rem);
+    height: clamp(5rem, 20vw, 7rem);
   }
 }

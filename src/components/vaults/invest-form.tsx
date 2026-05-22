@@ -203,7 +203,7 @@ export function InvestForm({ vault }: InvestFormProps) {
       <div className="flex flex-col gap-5">
         {/* Amount input */}
         <section aria-labelledby="amt-label">
-          <label id="amt-label" className="eyebrow block mb-2">
+          <label htmlFor="amt-input" id="amt-label" className="eyebrow block mb-2">
             Amount (USDC)
           </label>
 
@@ -215,6 +215,7 @@ export function InvestForm({ vault }: InvestFormProps) {
               $
             </span>
             <input
+              id="amt-input"
               type="number"
               min={vault.minTicketUsdc}
               max={maxAmount}

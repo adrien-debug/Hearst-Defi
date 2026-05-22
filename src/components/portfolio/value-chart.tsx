@@ -95,10 +95,11 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
       <svg
         viewBox={`0 0 ${W} ${H}`}
         width="100%"
-        height="7.5rem"
+        height="100%"
         preserveAspectRatio="none"
         aria-hidden="true"
-        className="mt-3 block"
+        className="mt-3 block pf-value-chart-svg"
+        style={{ minHeight: "5rem", maxHeight: "9rem" }}
       >
         <defs>
           <linearGradient id="pf-area-grad" x1="0" y1="0" x2="0" y2="1">

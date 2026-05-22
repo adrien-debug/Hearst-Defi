@@ -64,6 +64,10 @@
   line-height: var(--ct-leading-none);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum", "ss01";
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .dash-value-range {
