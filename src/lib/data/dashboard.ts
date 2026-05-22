@@ -18,7 +18,7 @@ import { prisma } from "@/lib/db";
 // ---------------------------------------------------------------------------
 // Public dashboard contract.
 //
-// Single shape consumed by `src/app/(product)/dashboard/page.tsx`. Every field
+// Single shape consumed by `src/app/admin/dashboard/page.tsx`. Every field
 // either comes from Prisma (`source: "db"`) or from a safe, mock-equivalent
 // fallback when the DB is empty (`source: "fallback"`). The page-level
 // adapter `toDashboardSnapshot` in this file projects this onto the UI

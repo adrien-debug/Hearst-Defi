@@ -6,7 +6,7 @@ import {
   getPresetInputsAction,
   runBacktestAction,
   runScenarioAction,
-} from "@/app/(product)/scenario-lab/actions";
+} from "@/app/admin/scenario-lab/actions";
 import { BacktestPanel } from "@/components/scenario/backtest-panel";
 import { CompareMode } from "@/components/scenario/compare-mode";
 import { InputsPanel } from "@/components/scenario/inputs-panel";

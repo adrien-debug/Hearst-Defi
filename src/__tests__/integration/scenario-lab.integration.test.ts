@@ -117,7 +117,7 @@ describe("runScenarioAction Server Action", () => {
     runScenarioNarrativeMock.mockResolvedValue(NARRATIVE_FIXTURE);
 
     const { runScenarioAction } = await import(
-      "@/app/(product)/scenario-lab/actions"
+      "@/app/admin/scenario-lab/actions"
     );
     const result = await runScenarioAction(VALID_INPUTS, "base");
 
@@ -151,7 +151,7 @@ describe("runScenarioAction Server Action", () => {
     requireAuthMock.mockResolvedValue({ userId: "user_b" });
 
     const { runScenarioAction } = await import(
-      "@/app/(product)/scenario-lab/actions"
+      "@/app/admin/scenario-lab/actions"
     );
 
     await expect(
@@ -169,7 +169,7 @@ describe("runScenarioAction Server Action", () => {
     );
 
     const { runScenarioAction } = await import(
-      "@/app/(product)/scenario-lab/actions"
+      "@/app/admin/scenario-lab/actions"
     );
 
     await expect(runScenarioAction(VALID_INPUTS)).rejects.toThrow(
@@ -186,7 +186,7 @@ describe("runScenarioAction Server Action", () => {
     );
 
     const { runScenarioAction } = await import(
-      "@/app/(product)/scenario-lab/actions"
+      "@/app/admin/scenario-lab/actions"
     );
     const result = await runScenarioAction(VALID_INPUTS, "custom");
 

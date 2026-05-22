@@ -55,25 +55,25 @@ export const ANALYTICS_NAV: NavItem[] = [
   {
     id: "dashboard",
     label: "Dashboard",
-    href: "/dashboard",
+    href: "/admin/dashboard",
     icon: "LayoutDashboard",
   },
   {
     id: "scenario-lab",
     label: "Scenario Lab",
-    href: "/scenario-lab",
+    href: "/admin/scenario-lab",
     icon: "FlaskConical",
   },
   {
     id: "proof-center",
     label: "Proof Center",
-    href: "/proof-center",
+    href: "/admin/proof-center",
     icon: "ShieldCheck",
   },
   {
     id: "investor-memo",
     label: "Investor Memo",
-    href: "/investor-memo",
+    href: "/admin/investor-memo",
     icon: "FileText",
   },
 ];
@@ -84,5 +84,11 @@ export const ADMIN_NAV: NavItem[] = [
     label: "Admin",
     href: "/admin/roadmap",
     icon: "Settings2",
+  },
+  {
+    id: "customers",
+    label: "Customers",
+    href: "/admin/customers",
+    icon: "Users",
   },
 ];

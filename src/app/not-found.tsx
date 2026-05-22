@@ -9,7 +9,7 @@ export default function NotFound() {
       <p style={STANDALONE_STYLES.body}>
         This page does not exist or has been moved.
       </p>
-      <StandaloneBackLink href="/dashboard" label="Go to Dashboard" />
+      <StandaloneBackLink href="/portfolio" label="Go to Portfolio" />
     </div>
   );
 }

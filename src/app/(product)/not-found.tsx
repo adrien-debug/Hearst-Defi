@@ -4,9 +4,9 @@ export default function ProductNotFound() {
   return (
     <SegmentNotFound
       scope="Produit · 404"
-      message="La page que vous cherchez n'existe pas ou a été déplacée. Vérifiez l'URL ou revenez au tableau de bord."
-      homeHref="/dashboard"
-      homeLabel="Aller au dashboard"
+      message="La page que vous cherchez n'existe pas ou a été déplacée. Vérifiez l'URL ou revenez à votre portfolio."
+      homeHref="/portfolio"
+      homeLabel="Aller au portfolio"
     />
   );
 }

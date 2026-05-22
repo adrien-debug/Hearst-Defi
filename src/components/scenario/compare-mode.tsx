@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 
-import { runComparisonAction } from "@/app/(product)/scenario-lab/actions";
+import { runComparisonAction } from "@/app/admin/scenario-lab/actions";
 import { DeltaRow } from "@/components/scenario/delta-row";
 import { OutputPanelCompact } from "@/components/scenario/output-panel-compact";
 import { PRESETS } from "@/components/scenario/preset-bar";

@@ -4,12 +4,17 @@ export const dynamic = "force-dynamic";
 import { DemoModeToggleSlot } from "@/components/demo/demo-mode-toggle-slot";
 import { HubModeStyles } from "@/components/hub-mode-styles";
 import { HeaderConnect } from "@/components/connect/header-connect";
+import { requireInvestor } from "@/lib/auth/require-investor";
 
-export default function ProductLayout({
+export default async function ProductLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Watertight investor gate (mirror of the admin layout's requireAdmin):
+  // no session → /login, admin → /admin (sent back to their own zone).
+  await requireInvestor("/portfolio");
+
   return (
     <>
       <HubModeStyles />

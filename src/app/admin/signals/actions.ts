@@ -102,7 +102,7 @@ export async function approveRebalance(
     });
 
     revalidatePath("/admin/signals");
-    revalidatePath("/proof-center");
+    revalidatePath("/admin/proof-center");
   } catch (err) {
     logger.error("approveRebalance failed", { eventId }, err);
     throw err;
@@ -158,7 +158,7 @@ export async function rejectRebalance(
     logger.info("[signals] reject", { eventId, reason });
 
     revalidatePath("/admin/signals");
-    revalidatePath("/proof-center");
+    revalidatePath("/admin/proof-center");
   } catch (err) {
     logger.error("rejectRebalance failed", { eventId }, err);
     throw err;
@@ -211,7 +211,7 @@ export async function executeRebalance(eventId: string): Promise<void> {
     logger.info("[signals] execute", { eventId, executedAt: now });
 
     revalidatePath("/admin/signals");
-    revalidatePath("/proof-center");
+    revalidatePath("/admin/proof-center");
   } catch (err) {
     logger.error("executeRebalance failed", { eventId }, err);
     throw err;
