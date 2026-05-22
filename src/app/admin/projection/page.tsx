@@ -15,7 +15,7 @@ export default async function ProjectionPage() {
       <header className="space-y-2">
         <p className="eyebrow">Admin — Batch Scenario Engine</p>
         <h1 className="h1">Projection Studio</h1>
-        <p className="body-sm max-w-2xl text-[--ct-text-muted]">
+        <p className="body-sm max-w-2xl ct-text-muted">
           Run single or matrix projections against the deterministic engine
           (methodology v1.0). Single run or batch up to 25 cells (5×5). Promote
           a study to a vault draft when parameters are approved. All projections

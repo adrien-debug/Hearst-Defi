@@ -59,15 +59,15 @@ const METHODOLOGY_VERSIONS = [{ id: "v1.0", label: "v1.0 (current)" }];
 // ─── Risk color helper (uses status tokens, no hardcoded hex) ─────────────────
 
 function riskTextClass(score: number): string {
-  if (score <= 35) return "text-[--ct-status-success]";
-  if (score <= 65) return "text-[--ct-status-warning]";
-  return "text-[--ct-status-danger]";
+  if (score <= 35) return "ct-status-success";
+  if (score <= 65) return "ct-status-warning";
+  return "ct-status-danger";
 }
 
 function riskBgClass(score: number): string {
-  if (score <= 35) return "bg-[--ct-status-success-soft]";
-  if (score <= 65) return "bg-[--ct-status-warning-soft]";
-  return "bg-[--ct-status-danger-soft]";
+  if (score <= 35) return "bg-[var(--ct-status-success-soft)]";
+  if (score <= 65) return "bg-[var(--ct-status-warning-soft)]";
+  return "bg-[var(--ct-status-danger-soft)]";
 }
 
 // ─── Slider primitive (uses ct-input class, Cockpit-themed) ──────────────────
@@ -87,8 +87,8 @@ function SliderField({ label, value, min, max, step, onChange, format }: SliderP
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-2">
-        <span className="body-sm text-[--ct-text-muted]">{label}</span>
-        <span className="mono tabular text-sm text-[--ct-text-primary]">{fmt(value)}</span>
+        <span className="body-sm ct-text-muted">{label}</span>
+        <span className="mono tabular text-sm ct-text-primary">{fmt(value)}</span>
       </div>
       <input
         type="range"
@@ -97,10 +97,10 @@ function SliderField({ label, value, min, max, step, onChange, format }: SliderP
         step={step}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="w-full accent-[--ct-accent] h-1.5 rounded-full cursor-pointer"
+        className="w-full accent-[var(--ct-accent)] h-1.5 rounded-full cursor-pointer"
         aria-label={label}
       />
-      <div className="flex justify-between text-[length:var(--ct-text-micro)] text-[--ct-text-faint]">
+      <div className="flex justify-between eyebrow ct-text-faint">
         <span>{fmt(min)}</span>
         <span>{fmt(max)}</span>
       </div>
@@ -150,13 +150,13 @@ function AllocSliders({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="eyebrow text-[--ct-text-muted]">Allocations</span>
+        <span className="eyebrow ct-text-muted">Allocations</span>
         <span
           className={cn(
             "mono tabular text-xs px-1.5 py-0.5 rounded",
             sumOk
-              ? "text-[--ct-status-success] bg-[--ct-status-success-soft]"
-              : "text-[--ct-status-danger] bg-[--ct-status-danger-soft]",
+              ? "ct-status-success bg-[var(--ct-status-success-soft)]"
+              : "ct-status-danger bg-[var(--ct-status-danger-soft)]",
           )}
         >
           {sum.toFixed(1)}%
@@ -198,11 +198,11 @@ function Heatmap({ cells, xAxis, yAxis, xValues, yValues, selectedRunId, onSelec
   return (
     <div className="space-y-3">
       {xAxis && (
-        <p className="body-xs text-[--ct-text-muted]">
-          X: <span className="mono text-[--ct-text-body]">{xAxis}</span>
+        <p className="body-xs ct-text-muted">
+          X: <span className="mono ct-text-body">{xAxis}</span>
           {yAxis && (
             <>
-              {" "}— Y: <span className="mono text-[--ct-text-body]">{yAxis}</span>
+              {" "}— Y: <span className="mono ct-text-body">{yAxis}</span>
             </>
           )}
         </p>
@@ -227,12 +227,12 @@ function Heatmap({ cells, xAxis, yAxis, xValues, yValues, selectedRunId, onSelec
               aria-selected={isSelected}
               aria-label={`APY ${cell.apyLow.toFixed(1)}–${cell.apyHigh.toFixed(1)}%, risk ${cell.riskScore}. Cell ${idx + 1} of ${cells.length}.`}
               className={cn(
-                "relative p-2.5 rounded-[--ct-radius-md] border text-left transition-all",
+                "relative p-2.5 rounded-[var(--ct-radius-md)] border text-left transition-all",
                 riskBgClass(cell.riskScore),
-                "border-[--ct-border-soft]",
-                isSelected && "ring-2 ring-offset-1 ring-offset-[--ct-bg-deep]",
-                isSelected && "ring-[--ct-accent]",
-                "hover:border-[--ct-border] hover:shadow-[var(--ct-shadow-elevated)] focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
+                "border-[var(--ct-border-soft)]",
+                isSelected && "ring-2 ring-offset-1 ring-offset-[var(--ct-bg-deep)]",
+                isSelected && "ring-[var(--ct-accent)]",
+                "hover:border-[var(--ct-border)] hover:shadow-[var(--ct-shadow-elevated)] focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
               )}
             >
               <div className="flex flex-col gap-0.5">
@@ -241,7 +241,7 @@ function Heatmap({ cells, xAxis, yAxis, xValues, yValues, selectedRunId, onSelec
                 >
                   {cell.apyLow.toFixed(1)}–{cell.apyHigh.toFixed(1)}%
                 </span>
-                <span className="text-[length:var(--ct-text-micro)] text-[--ct-text-muted] mono">
+                <span className="eyebrow ct-text-muted mono">
                   Risk {cell.riskScore}
                 </span>
               </div>
@@ -369,7 +369,7 @@ export function ProjectionStudio() {
       <Card className="space-y-6">
         {/* Preset selector */}
         <div className="space-y-3">
-          <p className="eyebrow text-[--ct-text-muted]">Preset</p>
+          <p className="eyebrow ct-text-muted">Preset</p>
           <div className="flex flex-wrap gap-2">
             {PRESETS.map((p) => (
               <Button
@@ -389,7 +389,7 @@ export function ProjectionStudio() {
 
         {/* Base inputs */}
         <div className="space-y-5">
-          <p className="eyebrow text-[--ct-text-muted]">Market Inputs</p>
+          <p className="eyebrow ct-text-muted">Market Inputs</p>
           <SliderField
             label="BTC Price Change (%)"
             value={btcChange}
@@ -446,7 +446,7 @@ export function ProjectionStudio() {
 
         {/* Batch mode toggle */}
         <div className="space-y-3">
-          <p className="eyebrow text-[--ct-text-muted]">Batch Mode</p>
+          <p className="eyebrow ct-text-muted">Batch Mode</p>
           <div className="flex flex-wrap gap-2">
             {(
               [
@@ -466,14 +466,14 @@ export function ProjectionStudio() {
             ))}
           </div>
           {batchMode === "1d" && (
-            <p className="body-xs text-[--ct-text-muted]">
+            <p className="body-xs ct-text-muted">
               BTC chg sweep:{" "}
               <span className="mono">{DEFAULT_1D_VALUES.join(", ")}%</span>
               {" "}→ 5 parallel runs
             </p>
           )}
           {batchMode === "2d" && (
-            <p className="body-xs text-[--ct-text-muted]">
+            <p className="body-xs ct-text-muted">
               BTC chg × Hashprice — 3×3 = 9 cells, max 25
             </p>
           )}
@@ -483,7 +483,7 @@ export function ProjectionStudio() {
 
         {/* Methodology version */}
         <div className="space-y-2">
-          <p className="eyebrow text-[--ct-text-muted]">Methodology</p>
+          <p className="eyebrow ct-text-muted">Methodology</p>
           <select
             className="ct-select w-full"
             value={methodologyVersion}
@@ -494,7 +494,7 @@ export function ProjectionStudio() {
               <option key={v.id} value={v.id}>{v.label}</option>
             ))}
           </select>
-          <p className="body-xs text-[--ct-text-faint]">
+          <p className="body-xs ct-text-faint">
             Pinned to v1.0. Bump version via ADR + spec update.
           </p>
         </div>
@@ -519,7 +519,7 @@ export function ProjectionStudio() {
         </Button>
 
         {error && (
-          <p className="body-xs text-[--ct-status-danger] bg-[--ct-status-danger-soft] px-3 py-2 rounded-[--ct-radius-md]">
+          <p className="body-xs ct-status-danger-bg px-3 py-2 rounded-[var(--ct-radius-md)]">
             {error}
           </p>
         )}
@@ -529,7 +529,7 @@ export function ProjectionStudio() {
       <div className="space-y-6">
         {!result && (
           <Card className="flex items-center justify-center min-h-48">
-            <p className="body-md text-[--ct-text-muted]">
+            <p className="body-md ct-text-muted">
               Configure inputs and run a scenario or batch to see projections.
             </p>
           </Card>
@@ -545,7 +545,7 @@ export function ProjectionStudio() {
               <Badge variant="brand">
                 {result.runIds.length} run{result.runIds.length > 1 ? "s" : ""}
               </Badge>
-              <span className="body-xs text-[--ct-text-muted] mono">
+              <span className="body-xs ct-text-muted mono">
                 methodology v1.0
               </span>
             </div>
@@ -575,7 +575,7 @@ export function ProjectionStudio() {
             {/* Batch: heatmap */}
             {result.runIds.length > 1 && (
               <Card>
-                <p className="eyebrow text-[--ct-text-muted] mb-4">
+                <p className="eyebrow ct-text-muted mb-4">
                   Projection Heatmap — {result.runIds.length} cells
                 </p>
                 <Heatmap
@@ -623,8 +623,8 @@ export function ProjectionStudio() {
             )}
 
             {/* "Not guaranteed" disclaimer — non-negotiable #10 */}
-            <p className="body-xs text-[--ct-text-faint] border border-[--ct-border-soft] rounded-[--ct-radius-md] px-3 py-2">
-              <strong className="text-[--ct-text-muted]">Disclaimer:</strong>{" "}
+            <p className="body-xs ct-text-faint border border-[var(--ct-border-soft)] rounded-[var(--ct-radius-md)] px-3 py-2">
+              <strong className="ct-text-muted">Disclaimer:</strong>{" "}
               Projections are conditional on stated assumptions and are not guaranteed.
               Rule-based engine — no Monte Carlo. Past performance does not predict future
               results. Hearst Yield Vault is offered exclusively to professional / qualified
@@ -641,7 +641,7 @@ export function ProjectionStudio() {
               >
                 {isPromoting ? "Promoting…" : "Promote to Vault Draft"}
               </Button>
-              <span className="body-xs text-[--ct-text-muted]">
+              <span className="body-xs ct-text-muted">
                 Seeds APY range into a new VaultDeployment (draft)
               </span>
             </div>
