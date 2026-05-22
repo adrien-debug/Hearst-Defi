@@ -1,42 +1,11 @@
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { ApyRange } from "@/components/ui/apy-range";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
-import { cn } from "@/lib/cn";
 import type {
-  ApyPoint,
   DashboardTimeseries,
-  NavPoint,
 } from "@/lib/data/dashboard";
 
-// 11px = --ct-text-xs (SVG cannot read CSS vars at runtime)
-const CHART_LABEL_SIZE = 11;
-
-const VIEWBOX_WIDTH = 600;
-const CHART_HEIGHT = 140;
-const PAD_TOP = 10;
-const PAD_BOTTOM = 24;
-const PLOT_HEIGHT = CHART_HEIGHT - PAD_TOP - PAD_BOTTOM;
-
 const METHODOLOGY_TARGET_APY = 12;
-
-const usdCompact = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
-
-const monthDayFmt = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  timeZone: "UTC",
-});
-
-function formatTick(iso: string): string {
-  const [y, m, d] = iso.split("-").map((s) => Number(s));
-  if (!y || !m || !d) return iso;
-  return monthDayFmt.format(new Date(Date.UTC(y, m - 1, d)));
-}
 
 interface TimeseriesSectionProps {
   data: DashboardTimeseries;
@@ -53,6 +22,11 @@ export function TimeseriesSection({ data }: TimeseriesSectionProps) {
       <ApyChart points={data.apy30d} provenance={provenance} />
     </section>
   );
+}
+
+interface NavPoint {
+  date: string;
+  aum_usdc: number;
 }
 
 interface NavChartProps {
@@ -87,6 +61,13 @@ function ChartEmpty({ title, subtitle, provenance }: ChartEmptyProps) {
   );
 }
 
+const usdCompact = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
 function NavChart({ points, provenance }: NavChartProps) {
   if (points.length === 0) {
     return (
@@ -102,16 +83,6 @@ function NavChart({ points, provenance }: NavChartProps) {
   const last = values[values.length - 1] ?? 0;
   const first = values[0] ?? 0;
   const deltaPct = first === 0 ? 0 : ((last - first) / first) * 100;
-
-  const rawMin = Math.min(...values);
-  const rawMax = Math.max(...values);
-  const span = rawMax - rawMin || Math.max(1, rawMax * 0.05);
-  const padding = span * 0.05;
-  const yMin = rawMin - padding;
-  const yMax = rawMax + padding;
-
-  const projection = projectPoints(values, yMin, yMax);
-  const tickIndices = computeTickIndices(points.length);
   const trendDir: "up" | "down" | "flat" =
     deltaPct > 0.05 ? "up" : deltaPct < -0.05 ? "down" : "flat";
 
@@ -130,12 +101,14 @@ function NavChart({ points, provenance }: NavChartProps) {
           </span>
           <div className="flex items-center gap-3">
             <span
-              className={cn(
-                "mono tabular-nums text-sm font-medium px-2 py-0.5 rounded-[var(--ct-radius-md)] backdrop-blur-md",
-                trendDir === "up" && "ct-status-success-bg",
-                trendDir === "down" && "ct-status-danger-bg",
-                trendDir === "flat" && "ct-surface-1 ct-text-body ct-border-base",
-              )}
+              className={
+                "mono tabular-nums text-sm font-medium px-2 py-0.5 rounded-[var(--ct-radius-md)] backdrop-blur-md " +
+                (trendDir === "up"
+                  ? "ct-status-success-bg"
+                  : trendDir === "down"
+                    ? "ct-status-danger-bg"
+                    : "ct-surface-1 ct-text-body ct-border-base")
+              }
             >
               {deltaPct >= 0 ? "+" : ""}
               {deltaPct.toFixed(1)}% (30d)
@@ -145,87 +118,17 @@ function NavChart({ points, provenance }: NavChartProps) {
         </div>
       </CardHeader>
 
-      <div className="flex-1 min-h-[var(--ct-chart-empty-h)] relative -mx-4 -mb-4 mt-4">
-        <svg
-          viewBox={`0 0 ${VIEWBOX_WIDTH} ${CHART_HEIGHT}`}
-          preserveAspectRatio="none"
-          width="100%"
-          height="100%"
-          role="img"
-          aria-label={`AUM time-series from ${points[0]?.date ?? ""} to ${
-            points[points.length - 1]?.date ?? ""
-          }`}
-          className="absolute inset-0 block"
-        >
-          <defs>
-            <linearGradient id="nav-gradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--ct-surface-3)" />
-              <stop offset="100%" stopColor="transparent" />
-            </linearGradient>
-            <filter id="glow">
-              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-          <path
-            d={projection.areaPath}
-            fill="url(#nav-gradient)"
-          />
-          <path
-            d={projection.linePath}
-            fill="none"
-            stroke="var(--ct-text-primary)"
-            strokeWidth={2.5}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            vectorEffect="non-scaling-stroke"
-            filter="url(#glow)"
-          />
-          {tickIndices.map((i) => {
-            const x = projection.xs[i] ?? 0;
-            const date = points[i]?.date ?? "";
-            return (
-              <text
-                key={`tick-${i}`}
-                x={x}
-                y={CHART_HEIGHT - 6}
-                textAnchor={
-                  i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"
-                }
-                fontSize={CHART_LABEL_SIZE}
-                fill="var(--ct-text-faint)"
-                fontFamily="var(--font-sans)"
-                className="font-medium"
-              >
-                {formatTick(date)}
-              </text>
-            );
-          })}
-          {projection.xs.length > 0 ? (
-            <g>
-              <circle
-                cx={projection.xs[projection.xs.length - 1]}
-                cy={projection.ys[projection.ys.length - 1]}
-                r={8}
-                fill="var(--ct-surface-3)"
-                className="animate-pulse"
-              />
-              <circle
-                cx={projection.xs[projection.xs.length - 1]}
-                cy={projection.ys[projection.ys.length - 1]}
-                r={4}
-                fill="currentColor"
-                filter="url(#glow)"
-              />
-            </g>
-          ) : null}
-        </svg>
+      <div className="flex-1 min-h-[var(--ct-chart-empty-h)] relative -mx-4 -mb-4 mt-4 ct-empty-state">
+        Chart placeholder
       </div>
     </Card>
   );
+}
+
+interface ApyPoint {
+  date: string;
+  apy_low: number;
+  apy_high: number;
 }
 
 interface ApyChartProps {
@@ -245,22 +148,6 @@ function ApyChart({ points, provenance }: ApyChartProps) {
   }
 
   const lastPoint = points[points.length - 1];
-
-  const lows = points.map((p) => p.apy_low);
-  const highs = points.map((p) => p.apy_high);
-  const rawMin = Math.min(...lows, METHODOLOGY_TARGET_APY);
-  const rawMax = Math.max(...highs, METHODOLOGY_TARGET_APY);
-  const span = rawMax - rawMin || 1;
-  const padding = span * 0.05;
-  const yMin = rawMin - padding;
-  const yMax = rawMax + padding;
-
-  const highProj = projectPoints(highs, yMin, yMax);
-  const lowProj = projectPoints(lows, yMin, yMax);
-  const tickIndices = computeTickIndices(points.length);
-
-  const bandPath = buildBandPath(highProj, lowProj);
-  const targetY = mapY(METHODOLOGY_TARGET_APY, yMin, yMax);
 
   return (
     <Card className="flex flex-col">
@@ -283,150 +170,9 @@ function ApyChart({ points, provenance }: ApyChartProps) {
         </div>
       </CardHeader>
 
-      <div className="flex-1 min-h-[var(--ct-chart-empty-h)] relative -mx-4 -mb-4 mt-4">
-        <svg
-          viewBox={`0 0 ${VIEWBOX_WIDTH} ${CHART_HEIGHT}`}
-          preserveAspectRatio="none"
-          width="100%"
-          height="100%"
-          role="img"
-          aria-label={`APY range time-series from ${points[0]?.date ?? ""} to ${
-            points[points.length - 1]?.date ?? ""
-          }`}
-          className="absolute inset-0 block"
-        >
-          <defs>
-            <filter id="glow-green">
-              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-          <path d={bandPath} fill="var(--ct-status-success-soft)" />
-          <line
-            x1={0}
-            x2={VIEWBOX_WIDTH}
-            y1={targetY}
-            y2={targetY}
-            stroke="var(--ct-text-faint)"
-            strokeWidth={1.5}
-            strokeDasharray="4 4"
-            vectorEffect="non-scaling-stroke"
-          />
-          <path
-            d={highProj.linePath}
-            fill="none"
-            stroke="var(--ct-status-success)"
-            strokeWidth={2}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            vectorEffect="non-scaling-stroke"
-            filter="url(#glow-green)"
-          />
-          <path
-            d={lowProj.linePath}
-            fill="none"
-            stroke="var(--ct-status-success-soft)"
-            strokeWidth={2}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            vectorEffect="non-scaling-stroke"
-          />
-          {tickIndices.map((i) => {
-            const x = highProj.xs[i] ?? 0;
-            const date = points[i]?.date ?? "";
-            return (
-              <text
-                key={`tick-${i}`}
-                x={x}
-                y={CHART_HEIGHT - 6}
-                textAnchor={
-                  i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"
-                }
-                fontSize={CHART_LABEL_SIZE}
-                fill="var(--ct-text-faint)"
-                fontFamily="var(--font-sans)"
-                className="font-medium"
-              >
-                {formatTick(date)}
-              </text>
-            );
-          })}
-        </svg>
+      <div className="flex-1 min-h-[var(--ct-chart-empty-h)] relative -mx-4 -mb-4 mt-4 ct-empty-state">
+        Chart placeholder
       </div>
     </Card>
   );
-}
-
-interface Projection {
-  xs: number[];
-  ys: number[];
-  linePath: string;
-  areaPath: string;
-}
-
-function mapY(value: number, yMin: number, yMax: number): number {
-  const span = yMax - yMin || 1;
-  const normalised = (value - yMin) / span;
-  return PAD_TOP + (1 - normalised) * PLOT_HEIGHT;
-}
-
-function projectPoints(values: number[], yMin: number, yMax: number): Projection {
-  const n = values.length;
-  if (n === 0) {
-    return { xs: [], ys: [], linePath: "", areaPath: "" };
-  }
-  const step = n === 1 ? 0 : VIEWBOX_WIDTH / (n - 1);
-  const xs: number[] = [];
-  const ys: number[] = [];
-  for (let i = 0; i < n; i++) {
-    const v = values[i] ?? 0;
-    xs.push(i * step);
-    ys.push(mapY(v, yMin, yMax));
-  }
-
-  const linePath = xs
-    .map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(2)} ${(ys[i] ?? 0).toFixed(2)}`)
-    .join(" ");
-
-  const baselineY = PAD_TOP + PLOT_HEIGHT;
-  const areaPath =
-    `M${xs[0]?.toFixed(2) ?? 0} ${baselineY.toFixed(2)} ` +
-    xs
-      .map((x, i) => `L${x.toFixed(2)} ${(ys[i] ?? 0).toFixed(2)}`)
-      .join(" ") +
-    ` L${(xs[xs.length - 1] ?? 0).toFixed(2)} ${baselineY.toFixed(2)} Z`;
-
-  return { xs, ys, linePath, areaPath };
-}
-
-function buildBandPath(top: Projection, bottom: Projection): string {
-  if (top.xs.length === 0 || bottom.xs.length === 0) return "";
-  const downward = top.xs
-    .map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(2)} ${(top.ys[i] ?? 0).toFixed(2)}`)
-    .join(" ");
-  const upward = bottom.xs
-    .slice()
-    .reverse()
-    .map((x, i) => {
-      const idx = bottom.xs.length - 1 - i;
-      const y = bottom.ys[idx] ?? 0;
-      return `L${x.toFixed(2)} ${y.toFixed(2)}`;
-    })
-    .join(" ");
-  return `${downward} ${upward} Z`;
-}
-
-function computeTickIndices(n: number): number[] {
-  if (n <= 1) return [0];
-  if (n <= 5) return Array.from({ length: n }, (_, i) => i);
-  const step = Math.max(1, Math.floor((n - 1) / 4));
-  const out: number[] = [];
-  for (let i = 0; i < n - 1; i += step) {
-    out.push(i);
-  }
-  out.push(n - 1);
-  return Array.from(new Set(out));
 }

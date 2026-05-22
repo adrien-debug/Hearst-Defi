@@ -75,28 +75,6 @@ function provenanceFor(
   return loaderSource === "fallback" ? "stale" : intrinsic;
 }
 
-/** Generate a deterministic sparkline path from current value + delta30d. */
-function buildSparklinePath(currentValue: number, delta30d: number): string {
-  const start = currentValue - delta30d;
-  const points = 12;
-  const path: string[] = [];
-  for (let i = 0; i < points; i++) {
-    const t = i / (points - 1);
-    const wave = Math.sin(i * 1.3) * Math.abs(delta30d) * 0.18;
-    const linear = start + delta30d * t;
-    const value = linear + wave;
-    const x = (i / (points - 1)) * 200;
-    const rel = currentValue !== 0 ? (value - start) / Math.max(1, Math.abs(delta30d)) : 0;
-    const y = 30 - Math.min(28, Math.max(2, 15 + rel * 12));
-    path.push(`${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`);
-  }
-  return path.join(" ");
-}
-
-function buildSparklineFillPath(currentValue: number, delta30d: number): string {
-  return `${buildSparklinePath(currentValue, delta30d)} L200,40 L0,40 Z`;
-}
-
 export default async function DashboardPage() {
   const [data, hashprice, riskFramework] = await Promise.all([
     loadDashboardData(),
@@ -130,12 +108,6 @@ export default async function DashboardPage() {
   //   path position 0  = RIGHT end of arc = max% on axis
   //   path position 50 = LEFT  end of arc = 0% on axis
   // For axis value v: path position = (1 - v/maxAxis) * 50
-  const apyLowPos = Math.max(0, Math.min(50, (1 - apyLow / apyMaxAxis) * 50));
-  const apyHighPos = Math.max(0, Math.min(50, (1 - apyHigh / apyMaxAxis) * 50));
-  const apyBandArc = Math.max(0.5, apyLowPos - apyHighPos);
-  const apyGaugeDash = `${apyBandArc} ${100 - apyBandArc}`;
-  const apyGaugeOffset = -apyHighPos;
-
   const blendedBps = data.allocations.reduce(
     (acc, a) => acc + (a.pct / 100) * a.yieldContributionBps,
     0,
@@ -285,21 +257,7 @@ export default async function DashboardPage() {
             <div className="dash-value-group">
               <span className="dash-value">{aumValue}</span>
             </div>
-            <svg
-              className="dash-sparkline"
-              viewBox="0 0 200 40"
-              preserveAspectRatio="none"
-              aria-hidden="true"
-            >
-              <path
-                className="spark-fill"
-                d={buildSparklineFillPath(data.vault.aumUsdc, delta30d)}
-              />
-              <path
-                className="spark-path"
-                d={buildSparklinePath(data.vault.aumUsdc, delta30d)}
-              />
-            </svg>
+            <div className="dash-sparkline-placeholder" aria-hidden="true" />
           </article>
 
           {/* W2 — APY range gauge (source: kpi-charts gauge) */}
@@ -309,32 +267,7 @@ export default async function DashboardPage() {
               <ProvenanceBadge kind={apyProvenance} />
             </div>
             <div className="gauge-container">
-              <svg
-                className="gauge-svg"
-                viewBox="0 0 42 42"
-                width="160"
-                height="160"
-                aria-hidden="true"
-              >
-                <circle
-                  className="gauge-svg-circle bg"
-                  cx="21"
-                  cy="21"
-                  r="15.9155"
-                  strokeWidth="6"
-                  strokeDasharray="50 50"
-                />
-                <circle
-                  className="gauge-svg-circle fg"
-                  cx="21"
-                  cy="21"
-                  r="15.9155"
-                  strokeWidth="6"
-                  strokeDasharray={apyGaugeDash}
-                  strokeDashoffset={apyGaugeOffset}
-                />
-              </svg>
-              <div className="gauge-center">
+              <div className="gauge-placeholder" aria-hidden="true">
                 <span className="gauge-val">
                   {apyLow}–{apyHigh}
                 </span>
@@ -399,33 +332,7 @@ export default async function DashboardPage() {
 
             <div className="grid grid-cols-[var(--ct-donut-size)_1fr] gap-6 items-center mt-2">
               <div className="dash-chart-container h-[var(--ct-donut-size)] mt-0">
-                <svg
-                  className="dash-chart-svg"
-                  viewBox="0 0 42 42"
-                  width="100%"
-                  height="100%"
-                  aria-hidden="true"
-                >
-                  <circle
-                    className="dash-chart-circle color-muted"
-                    cx="21"
-                    cy="21"
-                    r="15.9155"
-                    strokeDasharray="100 0"
-                  />
-                  {allocSegments.map((s) => (
-                    <circle
-                      key={s.bucket}
-                      className={`dash-chart-circle color-${s.tone}`}
-                      cx="21"
-                      cy="21"
-                      r="15.9155"
-                      strokeDasharray={s.dashArray}
-                      strokeDashoffset={s.dashOffset}
-                    />
-                  ))}
-                </svg>
-                <div className="donut-center">
+                <div className="donut-placeholder" aria-hidden="true">
                   <span className="donut-val">{usdShort.format(data.vault.aumUsdc)}</span>
                   <span className="donut-lbl">Total AUM</span>
                 </div>
