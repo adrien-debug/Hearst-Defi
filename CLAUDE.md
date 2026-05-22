@@ -27,9 +27,17 @@ Cayman SPV structure, $250k min ticket, 60-day soft lock-up.
 4. **No AI chat.** Agents produce structured JSON outputs only (see `/docs/spec/09-agents.mdx`).
 5. **Forbidden words in agent outputs**: "guarantee", "promise", "certain", "will deliver", "risk-free".
 6. **Scenario Engine is pure-function**: no DB, no fetch, no I/O in `src/lib/engine/*`.
-7. **No Monte Carlo at MVP**, rule-based only.
-8. **Smart contracts**: testnet event logger Phase 2, audited ERC-4626 Phase 3 only.
-9. **Single vault** at MVP. No multi-vault UI abstractions until V1+.
+7. **Monte Carlo allowed (V2, see ADR-006)** *alongside* the rule-based engine —
+   rule-based stays the default. PRNG **seed must be injected** (engine purity #6
+   still holds: no `Math.random()` ungoverned, no `Date.now()`). MC requires
+   Methodology v2.0; headline APY stays a **range** (#1), MC only adds p5/p50/p95.
+8. **Smart contracts**: testnet event logger Phase 2 ✅, ERC-4626 vault written +
+   tested on Base Sepolia (Phase 3). **Mainnet deploy stays gated on a completed
+   Spearbit audit + remediation** (ADR-006) — lifting the lock does NOT authorize
+   unaudited mainnet code.
+9. **Multi-vault allowed (V1+, see ADR-006)**: Yield / Defensive / BTC Plus. Vault id
+   is a first-class key; each vault carries its own assumptions, share classes, and
+   provenance — no vault reuses another's numbers silently.
 10. Every projection must show its **assumptions** and a **"not guaranteed"** disclaimer.
 11. **HARD RULE — no cross-project imports.** It is **forbidden** to copy, move, or import any
     component, file, asset, snippet, type, style, or dependency from `/Users/adrienbeyondcrypto/Dev/hearst-connect`
