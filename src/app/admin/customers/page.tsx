@@ -2,6 +2,7 @@
 // Server Component — inherits the /admin layout's requireAdmin() gate, so no
 // redundant auth check here. Reads via the server-only loadCustomers() loader.
 
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { loadCustomers, type KycStatus } from "@/lib/data/customers";
@@ -49,14 +50,11 @@ export default async function CustomersPage() {
 
   return (
     <div className="space-y-8">
-      <header className="space-y-3">
-        <p className="eyebrow">Admin</p>
-        <h1 className="h1">Customers</h1>
-        <p className="body-sm max-w-2xl ct-text-muted">
-          Every investor provisioned on the platform: KYC status, active
-          positions and principal under management. Read-only supervision view.
-        </p>
-      </header>
+      <AdminPageHeader title="Customers" />
+      <p className="body-sm max-w-2xl ct-text-muted">
+        Every investor provisioned on the platform: KYC status, active
+        positions and principal under management. Read-only supervision view.
+      </p>
 
       <section className="space-y-3" aria-label="Investors">
         <h3 className="stat-label">Investors ({customers.length})</h3>

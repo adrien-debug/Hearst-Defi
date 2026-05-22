@@ -18,14 +18,15 @@ import {
   MessageSquare,
   Zap,
   BookOpen,
-  PanelLeftClose,
-  PanelLeftOpen,
+  ChevronLeft,
+  ChevronRight,
+  ArrowLeft,
   LucideIcon,
 } from "lucide-react";
 
 import { cn } from "@/lib/cn";
-import type { NavItem } from "./product-nav-items";
-import { PRODUCT_NAV, ANALYTICS_NAV, ADMIN_NAV } from "./product-nav-items";
+import type { NavItem, AdminSection } from "./product-nav-items";
+import { PRODUCT_NAV, ADMIN_SECTIONS } from "./product-nav-items";
 
 /** Render `false` on the server and on the first client render, then `true`
  * after hydration — so a client-only portal never causes an SSR mismatch
@@ -85,6 +86,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   MessageSquare,
   Zap,
   BookOpen,
+  ArrowLeft,
 };
 
 // Thin horizontal rule between nav sections.
@@ -170,7 +172,7 @@ function RailToggle({
   expanded: boolean;
   onToggle: () => void;
 }) {
-  const Icon = expanded ? PanelLeftClose : PanelLeftOpen;
+  const Icon = expanded ? ChevronLeft : ChevronRight;
   return (
     <button
       type="button"
@@ -178,12 +180,9 @@ function RailToggle({
       aria-label={expanded ? "Collapse navigation" : "Expand navigation"}
       aria-expanded={expanded}
       title={expanded ? "Collapse" : "Expand"}
-      className="ct-rail-item ct-rail-toggle"
+      className="ct-rail-toggle"
     >
-      <Icon size={20} strokeWidth={1.8} />
-      <span className="ct-rail-item-tooltip">
-        {expanded ? "Collapse" : "Expand"}
-      </span>
+      <Icon size={16} strokeWidth={2} />
     </button>
   );
 }
@@ -191,12 +190,15 @@ function RailToggle({
 interface RailItemProps {
   item: NavItem;
   pathname: string;
+  /** Override the path-based active check (e.g. a section active on any of its
+   *  sibling pages, not just its own href). */
+  active?: boolean;
 }
 
-function RailItem({ item, pathname }: RailItemProps) {
+function RailItem({ item, pathname, active }: RailItemProps) {
   const Icon = ICON_MAP[item.icon];
   const isActive =
-    pathname === item.href || pathname.startsWith(`${item.href}/`);
+    active ?? (pathname === item.href || pathname.startsWith(`${item.href}/`));
 
   return (
     <Link
@@ -212,8 +214,14 @@ function RailItem({ item, pathname }: RailItemProps) {
   );
 }
 
+/** A section's rail item is active on any of its pages (its href or any tab). */
+function isSectionActive(section: AdminSection, pathname: string): boolean {
+  const hrefs = [section.href, ...section.tabs.map((t) => t.href)];
+  return hrefs.some((h) => pathname === h || pathname.startsWith(`${h}/`));
+}
+
 interface Props {
-  /** Override the default PRODUCT_NAV items (e.g. pass ADMIN_NAV for admin layout). */
+  /** Override the default PRODUCT_NAV items. */
   items?: NavItem[];
 }
 
@@ -244,7 +252,15 @@ export function InvestorRailIntra({ isAdmin = false }: { isAdmin?: boolean }) {
   const { container, mounted } = useBodyPortal();
   const { expanded, toggle } = useRailExpanded();
 
-  const adminEntry = ADMIN_NAV.find((item) => item.id === "dashboard");
+  const adminSection = ADMIN_SECTIONS.find((s) => s.id === "dashboard");
+  const adminEntry: NavItem | undefined = adminSection
+    ? {
+        id: adminSection.id,
+        label: adminSection.label,
+        href: adminSection.href,
+        icon: adminSection.icon,
+      }
+    : undefined;
 
   const nav = (
     <nav
@@ -287,13 +303,31 @@ export function AdminRailIntra() {
       data-testid="admin-rail-intra"
     >
       <RailToggle expanded={expanded} onToggle={toggle} />
-      {ADMIN_NAV.map((item) => (
-        <RailItem key={item.id} item={item} pathname={pathname} />
+      {ADMIN_SECTIONS.map((section) => (
+        <RailItem
+          key={section.id}
+          item={{
+            id: section.id,
+            label: section.label,
+            href: section.href,
+            icon: section.icon,
+          }}
+          pathname={pathname}
+          active={isSectionActive(section, pathname)}
+        />
       ))}
       <RailSeparator />
-      {ANALYTICS_NAV.map((item) => (
-        <RailItem key={item.id} item={item} pathname={pathname} />
-      ))}
+      {/* Return to the investor cockpit. Never active (non-admin route). */}
+      <RailItem
+        item={{
+          id: "back-to-app",
+          label: "Investor view",
+          href: "/portfolio",
+          icon: "ArrowLeft",
+        }}
+        pathname={pathname}
+        active={false}
+      />
     </nav>
   );
 

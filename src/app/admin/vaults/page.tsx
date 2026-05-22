@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/db";
 import { STRATEGY_LABELS } from "@/lib/constants/vault";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 import { pauseVault, resumeVault } from "./actions";
 
@@ -51,17 +52,15 @@ export default async function VaultsPage({ searchParams }: PageProps) {
   });
 
   return (
-    <section className="ct-section space-y-10">
-      {/* Header */}
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div className="space-y-1">
-          <p className="eyebrow">Admin</p>
-          <h1 className="h1">Vault Deployments</h1>
-        </div>
-        <Button variant="primary" asChild size="md">
-          <Link href="/admin/vaults/new">+ New deployment</Link>
-        </Button>
-      </header>
+    <div className="space-y-8">
+      <AdminPageHeader
+        title="Vault Deployments"
+        actions={
+          <Button variant="primary" asChild size="md">
+            <Link href="/admin/vaults/new">+ New deployment</Link>
+          </Button>
+        }
+      />
 
       {/* Filter tabs */}
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filter vaults by status">
@@ -181,6 +180,6 @@ export default async function VaultsPage({ searchParams }: PageProps) {
           })}
         </div>
       )}
-    </section>
+    </div>
   );
 }

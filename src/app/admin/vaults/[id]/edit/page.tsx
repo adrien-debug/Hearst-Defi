@@ -54,7 +54,7 @@ export default async function EditVaultPage({ params }: PageProps) {
   };
 
   return (
-    <section className="ct-section space-y-8">
+    <div className="space-y-8">
       <header className="space-y-1">
         <p className="eyebrow">Admin / Vaults / {vault.ticker}</p>
         <h1 className="h1">Edit Vault Draft</h1>
@@ -67,6 +67,6 @@ export default async function EditVaultPage({ params }: PageProps) {
       </header>
 
       <VaultForm mode="edit" vaultId={id} initial={initial} />
-    </section>
+    </div>
   );
 }

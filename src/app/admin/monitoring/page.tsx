@@ -1,5 +1,4 @@
-import Link from "next/link";
-
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Card } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { getMonitoringStats } from "@/lib/data/monitoring";
@@ -12,20 +11,10 @@ export default async function MonitoringPage() {
 
   return (
     <div className="space-y-8">
-      <header className="space-y-1">
-        <div className="flex items-center gap-4">
-          <h1 className="h1">Monitoring</h1>
-          <Link
-            href="/admin/roadmap"
-            className="text-xs font-medium ct-text-muted hover:ct-text-strong transition-colors"
-          >
-            ← Back to admin
-          </Link>
-        </div>
-        <p className="body-sm max-w-2xl">
-          Observability dashboard for LLM runs, costs, and system health.
-        </p>
-      </header>
+      <AdminPageHeader title="Monitoring" />
+      <p className="body-sm max-w-2xl">
+        Observability dashboard for LLM runs, costs, and system health.
+      </p>
 
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-4">

@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { RebalanceCard } from "@/components/admin/rebalance-card";
 import { cn } from "@/lib/cn";
 import Link from "next/link";
@@ -75,16 +76,12 @@ export default async function SignalsPage({ searchParams }: SignalsPageProps) {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <header className="space-y-3">
-        <p className="eyebrow">Admin</p>
-        <h1 className="h1">Rebalance signals</h1>
-        <p className="body-sm max-w-2xl ct-text-muted">
-          Review engine-triggered rebalance signals. Each signal requires{" "}
-          <strong className="ct-text-body">2 distinct signer approvals</strong>{" "}
-          before execution. Actions are off-chain at MVP.
-        </p>
-      </header>
+      <AdminPageHeader title="Rebalance signals" />
+      <p className="body-sm max-w-2xl ct-text-muted">
+        Review engine-triggered rebalance signals. Each signal requires{" "}
+        <strong className="ct-text-body">2 distinct signer approvals</strong>{" "}
+        before execution. Actions are off-chain at MVP.
+      </p>
 
       {/* Filter tabs */}
       <nav

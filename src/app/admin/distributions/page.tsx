@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { DistributionForm } from "./distribution-form";
 
 export const dynamic = "force-dynamic";
@@ -30,17 +31,13 @@ export default async function DistributionsPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <header className="space-y-3">
-        <p className="eyebrow">Admin</p>
-        <h1 className="h1">Distributions</h1>
-        <p className="body-sm max-w-2xl ct-text-muted">
-          Compute and confirm monthly USDC distributions to active investors.
-          Requires{" "}
-          <strong className="ct-text-body">2 distinct signer approvals</strong>{" "}
-          before finalisation.
-        </p>
-      </header>
+      <AdminPageHeader title="Distributions" />
+      <p className="body-sm max-w-2xl ct-text-muted">
+        Compute and confirm monthly USDC distributions to active investors.
+        Requires{" "}
+        <strong className="ct-text-body">2 distinct signer approvals</strong>{" "}
+        before finalisation.
+      </p>
 
       {/* Compute + confirm form (client) */}
       <DistributionForm />

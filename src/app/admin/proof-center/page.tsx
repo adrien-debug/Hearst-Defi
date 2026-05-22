@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { ChainStatusBadge } from "@/components/proof/chain-status-badge";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { ProofFilter } from "@/components/proof/proof-filter";
@@ -60,23 +61,22 @@ export default async function ProofCenterPage({
   return (
     <div className="space-y-12">
       {/* ── Header ─────────────────────────────────────────── */}
-      <header className="space-y-3">
-        <p className="eyebrow">Hearst Yield Vault</p>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="h1">Proof Center</h1>
+      <AdminPageHeader
+        title="Proof Center"
+        actions={
           <ChainStatusBadge
             configured={chainConfigured}
             eventCount={onChainEvents.length}
             attestationCount={onChainAttestations.length}
           />
-        </div>
-        <p className="body-sm max-w-2xl">
-          Every data point that backs the vault — mining attestations, custody
-          snapshots, audits, and the methodology itself — hashed and posted with
-          its source URI. Built so the LP committee has nothing to attack on
-          provenance.
-        </p>
-      </header>
+        }
+      />
+      <p className="body-sm max-w-2xl">
+        Every data point that backs the vault — mining attestations, custody
+        snapshots, audits, and the methodology itself — hashed and posted with
+        its source URI. Built so the LP committee has nothing to attack on
+        provenance.
+      </p>
 
       {/* ── Proof of Reserves summary ───────────────────────── */}
       <section aria-labelledby="por-heading">

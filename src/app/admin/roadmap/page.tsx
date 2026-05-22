@@ -1,3 +1,4 @@
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { RoadmapItemRow } from "@/components/admin/roadmap-item-row";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,35 +18,32 @@ export default async function RoadmapPage() {
     : 0;
 
   return (
-    <section className="ct-section space-y-16">
-      <header className="space-y-5">
-        <p className="eyebrow">Build progress</p>
-        <div className="flex flex-wrap items-center gap-4">
-          <h1 className="h1">Roadmap</h1>
-          <Badge variant="default">v {version}</Badge>
-        </div>
-        <p className="body-md max-w-3xl">
-          Source of truth lives in{" "}
-          <span className="mono ct-text-primary">
-            /docs/roadmap.json
-          </span>{" "}
-          (git-versioned). Status is persisted in Postgres / SQLite. Modifying
-          the roadmap = PR on the JSON file. Marking progress = click here.
-        </p>
-        {mvpPhase ? (
-          <Card className="max-w-xl">
-            <div className="flex items-center justify-between gap-3">
-              <span className="stat-label">MVP progress</span>
-              <span className="mono tabular text-base ct-text-primary">
-                {mvpPhase.doneCount} / {mvpPhase.total} ({mvpPct}%)
-              </span>
-            </div>
-            <div className="mt-4">
-              <Progress value={mvpPct} />
-            </div>
-          </Card>
-        ) : null}
-      </header>
+    <div className="space-y-16">
+      <AdminPageHeader
+        title="Roadmap"
+        actions={<Badge variant="default">v {version}</Badge>}
+      />
+      <p className="body-md max-w-3xl">
+        Source of truth lives in{" "}
+        <span className="mono ct-text-primary">
+          /docs/roadmap.json
+        </span>{" "}
+        (git-versioned). Status is persisted in Postgres / SQLite. Modifying
+        the roadmap = PR on the JSON file. Marking progress = click here.
+      </p>
+      {mvpPhase ? (
+        <Card className="max-w-xl">
+          <div className="flex items-center justify-between gap-3">
+            <span className="stat-label">MVP progress</span>
+            <span className="mono tabular text-base ct-text-primary">
+              {mvpPhase.doneCount} / {mvpPhase.total} ({mvpPct}%)
+            </span>
+          </div>
+          <div className="mt-4">
+            <Progress value={mvpPct} />
+          </div>
+        </Card>
+      ) : null}
 
       {phases.map((phase) => (
         <div key={phase.id} className="space-y-6">
@@ -84,6 +82,6 @@ export default async function RoadmapPage() {
           </div>
         </div>
       ))}
-    </section>
+    </div>
   );
 }

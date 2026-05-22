@@ -8,6 +8,7 @@ import { allocationStrokeFor, allocationLabelFor } from "@/lib/allocation-colors
 import { loadDashboardData } from "@/lib/demo/loaders";
 import { loadCustody } from "@/lib/data/custody";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -37,11 +38,8 @@ export default async function DashboardPage() {
   }));
 
   return (
-    <section className="ct-section space-y-8">
-      <header className="space-y-2">
-        <p className="eyebrow">Hearst Yield Vault</p>
-        <h1 className="h1">Dashboard</h1>
-      </header>
+    <div className="space-y-8">
+      <AdminPageHeader title="Dashboard" />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Metric
@@ -104,6 +102,6 @@ export default async function DashboardPage() {
           </div>
         )}
       </Card>
-    </section>
+    </div>
   );
 }

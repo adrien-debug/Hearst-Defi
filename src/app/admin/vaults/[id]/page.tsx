@@ -85,7 +85,7 @@ export default async function VaultDetailPage({ params }: PageProps) {
   };
 
   return (
-    <section className="ct-section space-y-8">
+    <div className="space-y-8">
       {/* Header */}
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-1">
@@ -379,6 +379,6 @@ export default async function VaultDetailPage({ params }: PageProps) {
         </CardHeader>
         <p className="body-sm ct-text-muted whitespace-pre-wrap">{vault.disclaimers}</p>
       </Card>
-    </section>
+    </div>
   );
 }

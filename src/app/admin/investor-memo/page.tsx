@@ -1,21 +1,19 @@
 export const dynamic = "force-dynamic";
 
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { MemoShell } from "@/components/memo/memo-shell";
 
 export default function InvestorMemoPage() {
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <p className="eyebrow">Institutional export</p>
-        <h1 className="h1">Investor Memo</h1>
-        <p className="body-sm max-w-2xl">
-          Eight sections, generated on demand by Claude Opus 4.7 against the
-          current vault snapshot, scenarios, and backtests. Methodology v1.0,
-          structured-output enforced (no chat), forbidden-words linted on every
-          field. Nothing is auto-distributed — the memo only leaves this page
-          when you download it.
-        </p>
-      </header>
+      <AdminPageHeader title="Investor Memo" />
+      <p className="body-sm max-w-2xl">
+        Eight sections, generated on demand by Claude Opus 4.7 against the
+        current vault snapshot, scenarios, and backtests. Methodology v1.0,
+        structured-output enforced (no chat), forbidden-words linted on every
+        field. Nothing is auto-distributed — the memo only leaves this page
+        when you download it.
+      </p>
 
       <MemoShell />
 

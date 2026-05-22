@@ -7,7 +7,7 @@ export default async function NewVaultPage() {
   await requireAdmin();
 
   return (
-    <section className="ct-section space-y-8">
+    <div className="space-y-8">
       <header className="space-y-1">
         <p className="eyebrow">Admin / Vaults</p>
         <h1 className="h1">New Vault Deployment</h1>
@@ -18,6 +18,6 @@ export default async function NewVaultPage() {
       </header>
 
       <VaultWizard />
-    </section>
+    </div>
   );
 }

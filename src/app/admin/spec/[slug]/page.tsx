@@ -26,7 +26,7 @@ export default async function SpecPage({
   }
 
   return (
-    <section className="ct-section grid gap-8 md:grid-cols-[var(--ct-spec-nav-w)_1fr]">
+    <div className="grid gap-8 md:grid-cols-[var(--ct-spec-nav-w)_1fr]">
       <aside className="md:sticky md:top-24 md:self-start">
         <p className="eyebrow mb-3">Spec — v1.0</p>
         <nav className="space-y-1">
@@ -58,6 +58,6 @@ export default async function SpecPage({
         <h1 className="h1 mb-6">{doc.title}</h1>
         <Markdown content={doc.content} />
       </article>
-    </section>
+    </div>
   );
 }

@@ -688,9 +688,8 @@
   box-shadow: var(--ct-shadow-depth);
 }
 
-.ct-rail-item:hover .ct-rail-item-tooltip {
-  opacity: 1;
-}
+/* Pas de popover au survol en mode replié : le label n'apparaît QUE déplié
+   (inline, via la règle html[data-rail-mode="expanded"] plus bas). */
 
 /* ── RAIL COLLAPSIBLE — déplié (html[data-rail-mode="expanded"]) ──
    On élargit la colonne réservée du shell (.ct-rail-left) ET le rail intra
@@ -748,9 +747,32 @@ html[data-rail-mode="expanded"] .ct-rail-sep {
 }
 
 /* Bouton repli/dépli — même gabarit qu'un item. */
+/* Toggle repli/dépli — petite flèche discrète, PAS un bouton de menu.
+   Pas de box/bordure : juste un chevron en couleur muette qui s'éclaircit au survol. */
 .ct-rail-toggle {
-  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
   margin-bottom: var(--ct-space-2);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ct-text-muted);
+  cursor: pointer;
+  border-radius: var(--ct-radius-sm);
+  flex-shrink: 0;
+  transition: color var(--ct-dur-fast) var(--ct-ease);
+}
+
+.ct-rail-toggle:hover {
+  color: var(--ct-text-primary);
+}
+
+/* En mode déplié, la flèche s'aligne à droite de la colonne élargie. */
+html[data-rail-mode="expanded"] .ct-rail-toggle {
+  align-self: flex-end;
 }
 
 /* Hub-mode : masque le rail intra (le hub fournit sa propre nav) */
