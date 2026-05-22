@@ -16,7 +16,7 @@ export default async function MonitoringPage() {
           <h1 className="h1">Monitoring</h1>
           <Link
             href="/admin/roadmap"
-            className="text-xs font-medium text-[--ct-text-muted] hover:text-[--ct-text-strong] transition-colors"
+            className="text-xs font-medium ct-text-muted hover:ct-text-strong transition-colors"
           >
             ← Back to admin
           </Link>
@@ -49,15 +49,15 @@ export default async function MonitoringPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[--ct-border]">
-                <th className="text-left ct-table-header font-medium text-[--ct-text-muted]">Agent</th>
-                <th className="text-right ct-table-header font-medium text-[--ct-text-muted]">Runs</th>
-                <th className="text-right ct-table-header font-medium text-[--ct-text-muted]">Cost (USD)</th>
+              <tr className="border-b border-[var(--ct-border)]">
+                <th className="text-left ct-table-header font-medium ct-text-muted">Agent</th>
+                <th className="text-right ct-table-header font-medium ct-text-muted">Runs</th>
+                <th className="text-right ct-table-header font-medium ct-text-muted">Cost (USD)</th>
               </tr>
             </thead>
             <tbody>
               {stats.runsByAgent.map((row) => (
-                <tr key={row.agentName} className="border-b border-[--ct-border-soft]">
+                <tr key={row.agentName} className="border-b border-[var(--ct-border-soft)]">
                   <td className="ct-table-cell">{row.agentName}</td>
                   <td className="ct-table-cell text-right">{row.count}</td>
                   <td className="ct-table-cell text-right">${row.costUsd.toFixed(4)}</td>
@@ -65,7 +65,7 @@ export default async function MonitoringPage() {
               ))}
               {stats.runsByAgent.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="py-8 text-center text-[--ct-text-muted]">
+                  <td colSpan={3} className="py-8 text-center ct-text-muted">
                     No runs recorded yet.
                   </td>
                 </tr>
@@ -81,18 +81,18 @@ export default async function MonitoringPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[--ct-border]">
-                <th className="text-left ct-table-header font-medium text-[--ct-text-muted]">Agent</th>
-                <th className="text-left ct-table-header font-medium text-[--ct-text-muted]">Model</th>
-                <th className="text-left ct-table-header font-medium text-[--ct-text-muted]">Status</th>
-                <th className="text-right ct-table-header font-medium text-[--ct-text-muted]">Latency</th>
-                <th className="text-right ct-table-header font-medium text-[--ct-text-muted]">Cost</th>
-                <th className="text-right ct-table-header font-medium text-[--ct-text-muted]">Time</th>
+              <tr className="border-b border-[var(--ct-border)]">
+                <th className="text-left ct-table-header font-medium ct-text-muted">Agent</th>
+                <th className="text-left ct-table-header font-medium ct-text-muted">Model</th>
+                <th className="text-left ct-table-header font-medium ct-text-muted">Status</th>
+                <th className="text-right ct-table-header font-medium ct-text-muted">Latency</th>
+                <th className="text-right ct-table-header font-medium ct-text-muted">Cost</th>
+                <th className="text-right ct-table-header font-medium ct-text-muted">Time</th>
               </tr>
             </thead>
             <tbody>
               {stats.recentRuns.map((run) => (
-                <tr key={run.id} className="border-b border-[--ct-border-soft]">
+                <tr key={run.id} className="border-b border-[var(--ct-border-soft)]">
                   <td className="ct-table-cell">{run.agentName}</td>
                   <td className="ct-table-cell">{run.model}</td>
                   <td className="ct-table-cell">
@@ -104,14 +104,14 @@ export default async function MonitoringPage() {
                   <td className="ct-table-cell text-right">
                     {run.costUsd ? `$${run.costUsd.toFixed(4)}` : "—"}
                   </td>
-                  <td className="ct-table-cell text-right text-[--ct-text-muted]">
+                  <td className="ct-table-cell text-right ct-text-muted">
                     {run.createdAt.toLocaleString()}
                   </td>
                 </tr>
               ))}
               {stats.recentRuns.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-[--ct-text-muted]">
+                  <td colSpan={6} className="py-8 text-center ct-text-muted">
                     No runs recorded yet.
                   </td>
                 </tr>
@@ -129,7 +129,7 @@ function KpiCard({ title, value }: { title: string; value: string }) {
     <div className="glass-panel p-6 relative overflow-hidden">
       <div className="relative z-[var(--ct-z-raised)]">
         <p className="stat-label mb-1">{title}</p>
-        <p className="stat-value text-[--ct-text-strong]">{value}</p>
+        <p className="stat-value ct-text-strong">{value}</p>
       </div>
     </div>
   );
@@ -145,7 +145,7 @@ function StatusBadge({ status }: { status: string }) {
 
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-[--ct-radius-full] text-xs font-medium ${colors[status] ?? "bg-[--ct-surface-2] text-[--ct-text-muted]"}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-[var(--ct-radius-full)] text-xs font-medium ${colors[status] ?? "ct-surface-2 ct-text-muted"}`}
     >
       {status}
     </span>

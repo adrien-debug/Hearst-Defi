@@ -443,8 +443,8 @@ export default async function DashboardPage() {
                     </span>
                   </div>
                 ))}
-                <div className="dash-legend-row mt-2 pt-2 border-t border-[--ct-border-soft]">
-                  <span className="dash-legend-left text-[--ct-text-muted]">
+                <div className="dash-legend-row mt-2 pt-2 border-t border-[var(--ct-border-soft)]">
+                  <span className="dash-legend-left ct-text-muted">
                     Blended target
                   </span>
                   <span className="dash-legend-val">
@@ -544,7 +544,7 @@ export default async function DashboardPage() {
                 />
               ))}
             </div>
-            <div className="mt-2 flex justify-between mono text-[length:var(--ct-text-micro)] text-[--ct-text-muted] tracking-wide">
+            <div className="mt-2 flex justify-between mono eyebrow ct-text-muted tracking-wide">
               <span>120d ago</span>
               <span>60d ago</span>
               <span>Today</span>
