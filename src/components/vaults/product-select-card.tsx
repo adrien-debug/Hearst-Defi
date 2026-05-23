@@ -152,9 +152,24 @@ export function ProductSelectCard({ vault }: ProductSelectCardProps) {
           </div>
           <div className="flex flex-col gap-1">
             <span className="stat-label">AUM</span>
-            <span className="tabular text-base font-semibold ct-text-strong whitespace-nowrap">
-              {USD_COMPACT.format(vault.currentAumUsdc)}
-            </span>
+            {vault.currentAumUsdc > 0 ? (
+              <span className="tabular text-base font-semibold ct-text-strong whitespace-nowrap">
+                {USD_COMPACT.format(vault.currentAumUsdc)}
+              </span>
+            ) : (
+              <>
+                {/* ADR-006 #9: do NOT show the Yield Vault AUM under a
+                    different vault. Until per-vault snapshots land (Phase 3)
+                    we surface "—" + an explicit pending label. */}
+                <span
+                  className="tabular text-base font-semibold ct-text-muted whitespace-nowrap"
+                  aria-label="AUM pending — per-vault snapshot not yet available"
+                >
+                  —
+                </span>
+                <span className="body-xs ct-text-faint">AUM pending</span>
+              </>
+            )}
           </div>
         </div>
 

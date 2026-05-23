@@ -14,7 +14,13 @@ import {
 import { loadVaultMonthlyHistory, type VaultMonthlyRow } from "@/lib/agents/loaders/vault";
 import { fetchBtcPrice, type BtcPriceData } from "@/lib/data/btc-price";
 import { prisma } from "@/lib/db";
-import type { VaultMode } from "@/lib/engine/types";
+import type { VaultMode, VaultId } from "@/lib/engine/types";
+import {
+  VAULTS,
+  VAULT_YIELD,
+  type AllocationTargets,
+  type VaultDefinition,
+} from "@/lib/engine/vaults";
 
 // ---------------------------------------------------------------------------
 // Public dashboard contract.
@@ -96,8 +102,36 @@ export interface DashboardTimeseries {
   source: "db" | "fallback";
 }
 
+/**
+ * Vault metadata used by the dashboard hero — sourced from the engine
+ * `VaultDefinition` for the requested `vaultId`. ADR-006 #9: every vault
+ * carries its OWN apy range / allocation targets / name / disclaimers; the
+ * dashboard surfaces these directly so two different vaults never silently
+ * reuse each other's projections.
+ */
+export interface DashboardVaultMeta {
+  id: VaultId;
+  /** Human label, e.g. "Hearst Yield Vault". */
+  name: string;
+  /** Vault's OWN projected APY band (engine preset, never another vault's). */
+  apyTarget: { low: number; high: number };
+  /** Target sleeve allocation (percent, sums to ~100). */
+  allocationTargets: AllocationTargets;
+  /** Vault's OWN assumptions (cited on dashboard tooltips / disclaimers). */
+  assumptions: string[];
+  /**
+   * True when the live snapshot (`vault.aumUsdc`, allocations, etc.) is the
+   * Yield Vault timeline but the user requested a non-live vault. Lets the UI
+   * label the live KPIs as "preview" while still showing the requested vault's
+   * own metadata. Per-vault snapshots land with Phase 3 multi-vault DB schema.
+   */
+  livePreview: boolean;
+}
+
 export interface DashboardData {
   vault: DashboardVault;
+  /** Metadata for the *selected* vault — engine-sourced, never mixed. */
+  vaultMeta: DashboardVaultMeta;
   allocations: DashboardAllocation[];
   miningOps: MiningOpsSnapshot;
   /** Latest mining margin trend signal (negative = compressing). */
@@ -131,6 +165,12 @@ const TIMELINE_SOURCES: string[] = ["daily-seed", "live", "oracle", "attested"];
  */
 const STRESSED_APY_BAND = 0.15;
 
+// Fallback values used when no DB row exists (empty DB / first boot).
+// These mirror the seed-time "paper phase" operating metrics so the dashboard
+// renders plausible numbers before the first `pnpm db:seed` run.
+const FALLBACK_HASHPRICE_TREND_PCT = -3.4;
+const FALLBACK_OPERATIONAL_CONFIDENCE = 81;
+
 /**
  * Derives the stressed APY range from the engine's single-point projection.
  * Returns `{ low, high }` with `low <= high`. Negative centres are kept
@@ -144,13 +184,57 @@ function stressedRangeFor(centre: number): { low: number; high: number } {
 }
 
 /**
+ * Resolves the requested vault id to an engine `VaultDefinition`. Unknown ids
+ * fall back to YIELD with a single console warning so a typo in `?vault=` never
+ * silently substitutes another vault's data. Returns the canonical id used by
+ * the rest of the loader (which the UI re-anchors links against).
+ */
+function resolveVaultDefinition(
+  requested: string | undefined,
+): { def: VaultDefinition; resolvedId: VaultId; usedFallback: boolean } {
+  if (requested === undefined) {
+    return { def: VAULT_YIELD, resolvedId: VAULT_YIELD.id, usedFallback: false };
+  }
+  if (requested === "yield" || requested === "defensive" || requested === "btc-plus") {
+    return { def: VAULTS[requested], resolvedId: requested, usedFallback: false };
+  }
+  // Unknown id — log once and fall back. We deliberately do NOT throw so a
+  // bad query param never takes the dashboard down for an admin.
+  console.warn(
+    `[loadDashboardData] unknown vaultId="${requested}" — falling back to Yield Vault. ` +
+      `Known ids: yield, defensive, btc-plus.`,
+  );
+  return { def: VAULT_YIELD, resolvedId: VAULT_YIELD.id, usedFallback: true };
+}
+
+/**
  * Loads everything the `/dashboard` page needs in parallel.
+ *
+ * Multi-vault behaviour (ADR-006 #9):
+ *   - `vaultMeta` is ALWAYS derived from the engine `VaultDefinition` for the
+ *     requested vault id. apy target, allocation targets, name, assumptions —
+ *     these are vault-specific and never mixed across vaults.
+ *   - The live snapshot fields (AUM, allocations, mining ops) are not yet
+ *     scoped per vault: the DB only carries the Yield Vault timeline. When a
+ *     non-yield vault is requested we therefore set `vaultMeta.livePreview =
+ *     true` so the UI can label live KPIs as "Yield Vault data — preview"
+ *     while still showing the requested vault's OWN metadata above the fold.
+ *   - TODO (Phase 3): per-vault snapshots when the DB schema lands
+ *     `VaultSnapshot.vaultDeploymentId`. Then this loader filters the snapshot
+ *     query by vault and the `livePreview` flag goes away.
  *
  * Never throws on missing data: each section degrades to a fallback that
  * matches the historical mock values so the visual rendering stays stable
  * even when the DB is empty (e.g. fresh `db:push` without `db:seed`).
  */
-export async function loadDashboardData(): Promise<DashboardData> {
+export async function loadDashboardData(
+  vaultId?: string,
+): Promise<DashboardData> {
+  const { def: vaultDef, resolvedId, usedFallback: vaultFallback } =
+    resolveVaultDefinition(vaultId);
+  const isYield = resolvedId === VAULT_YIELD.id;
+  const livePreview = !isYield || vaultFallback;
+
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
   const [
@@ -211,8 +295,8 @@ export async function loadDashboardData(): Promise<DashboardData> {
     usedFallback = true;
   });
 
-  const hashpriceTrendPct = latestMiningRow?.hashpriceTrendPct ?? -3.4;
-  const operationalConfidence = latestMiningRow?.operationalConfidence ?? 81;
+  const hashpriceTrendPct = latestMiningRow?.hashpriceTrendPct ?? FALLBACK_HASHPRICE_TREND_PCT;
+  const operationalConfidence = latestMiningRow?.operationalConfidence ?? FALLBACK_OPERATIONAL_CONFIDENCE;
   if (latestMiningRow === null) usedFallback = true;
 
   const recentEvents: DashboardRecentEvent[] = rebalanceRows.map((r) => ({
@@ -236,8 +320,18 @@ export async function loadDashboardData(): Promise<DashboardData> {
         ? "partial"
         : "db";
 
+  const vaultMeta: DashboardVaultMeta = {
+    id: resolvedId,
+    name: vaultDef.label,
+    apyTarget: { low: vaultDef.apyTarget.low, high: vaultDef.apyTarget.high },
+    allocationTargets: { ...vaultDef.allocationTargets },
+    assumptions: [...vaultDef.assumptions],
+    livePreview,
+  };
+
   return {
     vault,
+    vaultMeta,
     allocations,
     miningOps,
     hashpriceTrendPct,
@@ -411,7 +505,7 @@ async function safeLoadLatestMining(): Promise<{
     ]);
     if (row === null) {
       // `loadLatestMiningMetrics` would have thrown, but guard for type safety.
-      return { hashpriceTrendPct: m.difficulty_change_pct, operationalConfidence: 81 };
+      return { hashpriceTrendPct: m.difficulty_change_pct, operationalConfidence: FALLBACK_OPERATIONAL_CONFIDENCE };
     }
     return {
       // Decimal → number at the read boundary.

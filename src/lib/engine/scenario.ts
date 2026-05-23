@@ -14,6 +14,7 @@ import type {
   ScenarioParams,
   ScenarioResult,
 } from "./types";
+import { VAULT_YIELD, type VaultDefinition } from "./vaults";
 
 export const METHODOLOGY_VERSION = "v1.0";
 
@@ -80,6 +81,14 @@ const PRESET_BASELINE_INPUTS: Record<Preset, ScenarioInputs> = {
 export interface RunScenarioOpts {
   preset?: Preset;
   now?: Date;
+  /**
+   * Vault context for the run (ADR-006 #9). Defaults to the Hearst Yield Vault
+   * so existing call-sites stay byte-identical. When a non-yield vault is
+   * supplied, the engine surfaces the vault's OWN id and assumptions in the
+   * output so consumers can never silently mix two vaults' numbers. The vault
+   * itself is plain data — no I/O — so the engine purity rule (#6) holds.
+   */
+  vault?: VaultDefinition;
 }
 
 export function getPresetInputs(preset: Preset): ScenarioInputs {
@@ -103,6 +112,7 @@ function runScenarioV1(
   opts: RunScenarioOpts = {},
 ): ScenarioOutput {
   const now = opts.now ?? new Date(0);
+  const vault = opts.vault ?? VAULT_YIELD;
 
   const mining = computeMiningRevenue(inputs);
   const risk_score = computeRiskScore(inputs);
@@ -118,7 +128,7 @@ function runScenarioV1(
   const stressed_apy = round(apy_range.low * BEAR_STRESS_FACTOR, 2);
   const confidence = deriveConfidence(inputs, apy_range);
 
-  const assumptions = buildAssumptions(inputs, mode, now, opts.preset);
+  const assumptions = buildAssumptions(inputs, mode, now, opts.preset, vault);
   assertNoForbiddenWords(assumptions);
 
   const btc_tactical = assessBtcTactical(inputs, mode);
@@ -179,12 +189,14 @@ function buildAssumptions(
   mode: string,
   now: Date,
   preset: Preset | undefined,
+  vault: VaultDefinition,
 ): string[] {
   const timestamp = now.toISOString();
   const presetLabel = preset ?? "custom";
 
   return [
     `methodology_version=${METHODOLOGY_VERSION}`,
+    `vault=${vault.id} (${vault.label}); apy_target=${vault.apyTarget.low}-${vault.apyTarget.high}%`,
     `preset=${presetLabel}; vault_mode=${mode}; generated_at=${timestamp}`,
     `hashprice=${inputs.hashprice_usd_th_day} USD/TH/day, energy=${inputs.energy_cost_kwh} USD/kWh, uptime=98% (paper phase)`,
     `btc_price_change_30d=${inputs.btc_price_change_pct}%, vol_index=${inputs.vol_index}, stable_base_apy=${inputs.stable_apy_pct}%`,

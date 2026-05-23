@@ -1,10 +1,14 @@
 "use server";
 
+import { z } from "zod";
+
 import type { InvestorMemoOutput } from "@/lib/agents/schemas";
 import { loadMemoInput } from "@/lib/agents/loaders/vault";
 import { loadMemoPdfExtras, periodFromIso } from "@/lib/pdf/memo-data";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { assertRateLimit } from "@/lib/rate-limit";
+
+const VaultIdSchema = z.enum(["yield", "defensive", "btc-plus"] as const);
 
 /**
  * Generates the 8-page Investor Memo PDF on the server.
@@ -22,13 +26,18 @@ import { assertRateLimit } from "@/lib/rate-limit";
  */
 export async function generateMemoPdfAction(
   memo: InvestorMemoOutput | null,
+  vaultId?: string,
 ): Promise<{ bytes: Uint8Array; filename: string }> {
   const { userId } = await requireAuth();
   await assertRateLimit(`generate-pdf:${userId}`, 3, 60_000);
   const { renderToBuffer } = await import("@react-pdf/renderer");
   const { MemoDocument } = await import("@/lib/pdf/memo-template");
 
-  const input = await loadMemoInput();
+  // Resolve vault id explicitly — an unknown value must fail loudly rather
+  // than silently swap to another vault's data (ADR-006 #9).
+  const resolvedVaultId =
+    vaultId === undefined ? undefined : VaultIdSchema.parse(vaultId);
+  const input = await loadMemoInput(resolvedVaultId);
   const generatedAt = new Date().toISOString();
   const period = periodFromIso(generatedAt);
 
@@ -54,6 +63,7 @@ export async function generateMemoPdfAction(
 
   const bytes = new Uint8Array(buffer);
   const stamp = generatedAt.slice(0, 7); // YYYY-MM
-  const filename = `hearst-yield-vault-memo_${stamp}.pdf`;
+  const slug = (input.vault.id ?? "yield-vault").replace(/[^a-z0-9-]/gi, "-");
+  const filename = `hearst-${slug}-memo_${stamp}.pdf`;
   return { bytes, filename };
 }

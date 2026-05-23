@@ -6,6 +6,7 @@ import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { ActivityFeed } from "@/components/admin/activity-feed";
 import { AdvancedModeToggle } from "@/components/admin/advanced-mode-toggle";
 import { BtcTacticalCard } from "@/components/admin/btc-tactical-card";
+import { VaultSelector } from "@/components/admin/vault-selector";
 import { AllocationDonut } from "@/components/dashboard/dashboard-charts";
 import { MiningHealthSection } from "@/components/dashboard/mining-health";
 import { RiskFrameworkSection } from "@/components/dashboard/risk-framework";
@@ -52,7 +53,7 @@ const YIELD_SOURCE_TARGETS = [
 ];
 
 interface DashboardPageProps {
-  searchParams: Promise<{ mode?: string }>;
+  searchParams: Promise<{ mode?: string; vault?: string }>;
 }
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
@@ -60,13 +61,14 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const params = await searchParams;
   const mode: "simple" | "advanced" =
     params.mode === "advanced" ? "advanced" : "simple";
+  const requestedVault = params.vault;
 
   const [data, custody, risk] = await Promise.all([
-    loadDashboardData(),
+    loadDashboardData(requestedVault),
     loadCustody(),
     loadRiskFramework(),
   ]);
-  const { vault } = data;
+  const { vault, vaultMeta } = data;
 
   // Donut segments — canonical SVG convention (C=100): dashArray = pct, offset
   // is the running cumulative so each arc starts where the previous ended.
@@ -102,75 +104,143 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         ? `${vault.delta30dUsdc >= 0 ? "+" : ""}${usdCompact.format(vault.delta30dUsdc)} (30d)`
         : "Fireblocks scope not pinned";
 
+  // Vault APY range shown in the hero — ALWAYS from the engine preset for the
+  // selected vault. ADR-006 #9: when live snapshots are not yet per-vault, we
+  // surface the vault's OWN apy target instead of reusing the Yield snapshot's
+  // numbers. For Yield itself the snapshot range and the engine range converge
+  // once the seeded data is in sync.
+  const headlineApy = vaultMeta.livePreview
+    ? vaultMeta.apyTarget
+    : vault.apyRange;
+
   return (
     <div className="space-y-10">
       <AdminPageHeader
         title="Dashboard"
-        actions={<AdvancedModeToggle active={mode} />}
+        actions={
+          <div className="flex flex-wrap items-center gap-3">
+            <VaultSelector
+              active={vaultMeta.id}
+              preserveParams={
+                mode === "advanced" ? { mode: "advanced" } : undefined
+              }
+            />
+            <AdvancedModeToggle active={mode} />
+          </div>
+        }
       />
 
-      {/* Hero — 5 cards */}
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
+        <h2 className="h3">{vaultMeta.name}</h2>
+      </div>
+
+      {/* Hero — live KPI grid for Yield, methodology-only fallback for the
+          other vaults. ADR-006 #9: when no per-vault snapshot exists yet, the
+          Yield AUM/Risk/Mining/Stressed numbers must NOT be reused under the
+          other vaults' names — we surface the engine preset (APY range, next
+          distribution) and a Card explaining the gap, rather than masking the
+          mismatch behind discreet copy. */}
       <section aria-label="Vault overview">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <Metric
-            label="AUM"
-            provenance={custody.provenance}
-            value={usdCompact.format(
-              custody.configured && custody.totalUsdcReserves > 0
-                ? custody.totalUsdcReserves
-                : vault.aumUsdc,
-            )}
-            sublabel={aumSublabel}
-            tooltip="Assets Under Management. Total USDC equivalent of all vault holdings, marked to market."
-          />
-          <Metric
-            label="APY range"
-            provenance="estimated"
-            value={
-              <ApyRange
-                low={vault.apyRange.low}
-                high={vault.apyRange.high}
-                precision={1}
+        {vaultMeta.livePreview ? (
+          <Card
+            className="border-[var(--ct-status-warning-border)] bg-[var(--ct-status-warning-soft)]"
+            aria-label={`${vaultMeta.name} live snapshot pending`}
+          >
+            <p className="eyebrow">Per-vault live snapshot pending</p>
+            <p className="mt-2 body-sm ct-text-muted">
+              {vaultMeta.name} live KPIs (AUM, risk score, mining margin,
+              stressed APY) land with Phase 3 multi-vault DB schema. The numbers
+              below are the {vaultMeta.name} methodology preset only — not the
+              Hearst Yield Vault timeline relabelled. Allocation, Mining Health,
+              BTC Tactical, Activity, Risk, and Time-series sections that
+              follow still reflect Yield Vault live data and are shown as
+              preview context only.
+            </p>
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Metric
+                label="APY range"
+                provenance="estimated"
+                value={
+                  <ApyRange
+                    low={headlineApy.low}
+                    high={headlineApy.high}
+                    precision={1}
+                  />
+                }
+                sublabel={`${vaultMeta.name} · methodology preset`}
+                tooltip={`Forward 12m projected APY range for ${vaultMeta.name}, sourced from its methodology preset (allocation targets × asset-class yield assumptions). Not guaranteed. Methodology v1.0.`}
               />
-            }
-            sublabel="forward 12m · conditional"
-            tooltip="Forward 12m projected APY range, calculated from current allocation × asset-class yield assumptions. Not guaranteed. Methodology v1.0."
-          />
-          <Metric
-            label="Stressed APY"
-            provenance="estimated"
-            value={
-              <ApyRange
-                low={vault.stressedApyRange.low}
-                high={vault.stressedApyRange.high}
-                precision={1}
+              <Metric
+                label="Next distribution"
+                provenance="estimated"
+                value={<span className="tabular">{nextDistLabel}</span>}
+                sublabel={nextDistAmount}
+                tooltip="Next monthly USDC distribution. Estimate from current mining margin + base yield accrual. Cadence shared across vaults; per-vault amounts arrive with Phase 3."
               />
-            }
-            sublabel="Bear + mining compression"
-            tooltip="Projected APY under combined Bear scenario (BTC −40%, hashprice −30%). Conditional projection. Range = ±15% of the projection bear (méthodologie v1.0)."
-          />
-          <Metric
-            label="Risk score"
-            provenance="estimated"
-            value={
-              <span className="tabular">
-                {vault.riskScore}
-                <span className="text-[0.6em] font-medium opacity-80 ml-1 ct-text-faint">
-                  /100
+            </div>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <Metric
+              label="AUM"
+              provenance={custody.provenance}
+              value={usdCompact.format(
+                custody.configured && custody.totalUsdcReserves > 0
+                  ? custody.totalUsdcReserves
+                  : vault.aumUsdc,
+              )}
+              sublabel={aumSublabel}
+              tooltip="Assets Under Management. Total USDC equivalent of all vault holdings, marked to market."
+            />
+            <Metric
+              label="APY range"
+              provenance="estimated"
+              value={
+                <ApyRange
+                  low={headlineApy.low}
+                  high={headlineApy.high}
+                  precision={1}
+                />
+              }
+              sublabel="forward 12m · conditional"
+              tooltip={`Forward 12m projected APY range for ${vaultMeta.name}, sourced from its methodology preset (allocation targets × asset-class yield assumptions). Not guaranteed. Methodology v1.0.`}
+            />
+            <Metric
+              label="Stressed APY"
+              provenance="estimated"
+              value={
+                <ApyRange
+                  low={vault.stressedApyRange.low}
+                  high={vault.stressedApyRange.high}
+                  precision={1}
+                />
+              }
+              sublabel="Bear + mining compression"
+              tooltip="Projected APY under combined Bear scenario (BTC −40%, hashprice −30%). Conditional projection. Range = ±15% of the projection bear (méthodologie v1.0)."
+            />
+            <Metric
+              label="Risk score"
+              provenance="estimated"
+              value={
+                <span className="tabular">
+                  {vault.riskScore}
+                  <span className="text-[0.6em] font-medium opacity-80 ml-1 ct-text-faint">
+                    /100
+                  </span>
                 </span>
-              </span>
-            }
-            sublabel={riskBandLabel}
-            tooltip="Composite score (Market, Mining, Liquidity, Smart Contract, Counterparty). Lower = lower risk."
-          />
-          <Metric
-            label="Next distribution"
-            provenance="estimated"
-            value={<span className="tabular">{nextDistLabel}</span>}
-            sublabel={nextDistAmount}
-            tooltip="Next monthly USDC distribution. Estimate from current mining margin + base yield accrual."
-          />
-        </div>
+              }
+              sublabel={riskBandLabel}
+              tooltip="Composite score (Market, Mining, Liquidity, Smart Contract, Counterparty). Lower = lower risk."
+            />
+            <Metric
+              label="Next distribution"
+              provenance="estimated"
+              value={<span className="tabular">{nextDistLabel}</span>}
+              sublabel={nextDistAmount}
+              tooltip="Next monthly USDC distribution. Estimate from current mining margin + base yield accrual."
+            />
+          </div>
+        )}
       </section>
 
       {/* Allocation */}
@@ -289,7 +359,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         </Suspense>
       </section>
 
-      {mode === "advanced" ? (
+      {mode === "advanced" && !vaultMeta.livePreview ? (
         <Suspense
           fallback={
             <section aria-label="Advanced metrics">

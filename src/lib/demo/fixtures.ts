@@ -332,6 +332,27 @@ const DEMO_MONTHLY_HISTORY: VaultMonthlyRow[] = [
 
 export const DEMO_DASHBOARD_DATA: DashboardData = {
   vault: DEMO_VAULT,
+  // Demo mode always exposes the Hearst Yield Vault metadata. The vault
+  // selector is hidden in demo mode (no per-vault demo fixtures yet), so the
+  // metadata block matches the Yield engine preset verbatim — ADR-006 #9: no
+  // silent reuse of another vault's apy range or allocation targets.
+  vaultMeta: {
+    id: "yield",
+    name: "Hearst Yield Vault",
+    apyTarget: { low: 8, high: 15 },
+    allocationTargets: {
+      mining: 60,
+      btc_tactical: 25,
+      usdc_base: 10,
+      stable_reserve: 5,
+    },
+    assumptions: [
+      "Balanced sleeve mix; mining is the dominant yield source.",
+      "Monthly USDC distributions, 60-day soft lock-up (class A).",
+      "Outputs are projections, not guaranteed. Past performance does not predict future results.",
+    ],
+    livePreview: false,
+  },
   allocations: DEMO_ALLOCATIONS,
   miningOps: DEMO_MINING_OPS,
   hashpriceTrendPct: -3.2,

@@ -25,9 +25,9 @@ const SECTIONS: ReadonlyArray<SectionMeta> = [
   { key: "disclaimer", title: "8 · Disclaimer" },
 ];
 
-function buildMarkdown(memo: InvestorMemoOutput): string {
+function buildMarkdown(memo: InvestorMemoOutput, vaultName: string): string {
   const generatedHeader = [
-    "# Hearst Yield Vault — Investor Memo",
+    `# ${vaultName} — Investor Memo`,
     "",
     `_Generated ${new Date().toISOString()}_`,
     "_Methodology v1.0_",
@@ -39,14 +39,18 @@ function buildMarkdown(memo: InvestorMemoOutput): string {
   return `${generatedHeader}\n${body}\n`;
 }
 
-function downloadMarkdown(memo: InvestorMemoOutput): void {
-  const md = buildMarkdown(memo);
+function downloadMarkdown(memo: InvestorMemoOutput, vaultName: string): void {
+  const md = buildMarkdown(memo, vaultName);
   const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const slug = vaultName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
   a.href = url;
-  a.download = `hearst-yield-vault-memo_${stamp}.md`;
+  a.download = `${slug || "hearst-vault"}-memo_${stamp}.md`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -84,7 +88,21 @@ function downloadPdfBytes(bytes: Uint8Array, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-export function MemoShell() {
+export interface MemoShellProps {
+  /**
+   * Vault id this memo is being generated for. Threaded into every server
+   * action call so the loader binds to the right vault. ADR-006 #9: a memo
+   * is bound to exactly one vault — switching vaults is a fresh navigation.
+   */
+  vaultId?: string;
+  /** Human label of the active vault (used for filename + Markdown header). */
+  vaultName?: string;
+}
+
+export function MemoShell({
+  vaultId,
+  vaultName = "Hearst Yield Vault",
+}: MemoShellProps) {
   const [memo, setMemo] = useState<InvestorMemoOutput | null>(null);
   const [lastGeneratedAt, setLastGeneratedAt] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -102,33 +120,37 @@ export function MemoShell() {
       if (!confirmed) return;
     }
     setError(null);
-    const toastId = toast.loading("Generating investor memo with Claude Opus 4.7...");
+    const toastId = toast.loading(
+      `Generating ${vaultName} memo with Claude Opus 4.7...`,
+    );
     startTransition(async () => {
       try {
-        const result = await generateMemoAction();
+        const result = await generateMemoAction(vaultId);
         setMemo(result);
         setLastGeneratedAt(new Date().toISOString());
-        toast.success("Investor memo generated successfully", { id: toastId });
+        toast.success(`${vaultName} memo generated successfully`, {
+          id: toastId,
+        });
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         setError(message);
         toast.error(`Generation failed: ${message}`, { id: toastId });
       }
     });
-  }, [memo]);
+  }, [memo, vaultId, vaultName]);
 
   const handleDownload = useCallback(() => {
     if (!memo) return;
-    downloadMarkdown(memo);
+    downloadMarkdown(memo, vaultName);
     toast.success("Markdown memo downloaded");
-  }, [memo]);
+  }, [memo, vaultName]);
 
   const handleDownloadPdf = useCallback(() => {
     setError(null);
     const toastId = toast.loading("Generating PDF...");
     startPdfTransition(async () => {
       try {
-        const { bytes, filename } = await generateMemoPdfAction(memo);
+        const { bytes, filename } = await generateMemoPdfAction(memo, vaultId);
         downloadPdfBytes(bytes, filename);
         toast.success("PDF downloaded", { id: toastId });
       } catch (e) {
@@ -137,7 +159,7 @@ export function MemoShell() {
         toast.error(`PDF generation failed: ${message}`, { id: toastId });
       }
     });
-  }, [memo]);
+  }, [memo, vaultId]);
 
   return (
     <div className="space-y-6">

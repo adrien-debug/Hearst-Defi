@@ -11,8 +11,10 @@ import type {
   Confidence,
   MonthlyPoint,
   ScenarioOutput,
+  VaultId,
   VaultMode,
 } from "@/lib/engine/types";
+import { VAULTS, VAULT_YIELD } from "@/lib/engine/vaults";
 
 /**
  * Shape returned to the Investor Memo cron — mirrors `InvestorMemoInput` but
@@ -21,14 +23,32 @@ import type {
  */
 export interface MemoLoadResult {
   vault: {
+    /** Vault id this memo run is bound to (ADR-006 #9). */
+    id: VaultId;
+    /** Human label, e.g. "Hearst Yield Vault". */
+    name: string;
     aumUsdc: number;
     apyRange: { low: number; high: number };
     mode: string;
     riskScore: number;
+    /** Vault's OWN assumptions — cited verbatim by the memo agent. */
+    assumptions: string[];
   };
   scenarios: ScenarioOutput[];
   backtests: BacktestOutput[];
   generatedAt: string;
+}
+
+function resolveVaultDefinition(vaultId: string | undefined) {
+  if (vaultId === undefined) return VAULT_YIELD;
+  if (vaultId === "yield" || vaultId === "defensive" || vaultId === "btc-plus") {
+    return VAULTS[vaultId];
+  }
+  // Reject unknown ids loudly — the memo would otherwise mix a phantom vault
+  // identity into a structured artifact that ships to investors. ADR-006 #9.
+  throw new Error(
+    `loadMemoInput: unknown vaultId="${vaultId}". Known ids: yield, defensive, btc-plus.`,
+  );
 }
 
 const SCENARIO_LIMIT = 3;
@@ -45,7 +65,11 @@ const BACKTEST_LIMIT = 3;
  * monthly. If the persisted JSON ever drifts from `ScenarioOutput`, we throw
  * with a clear, schema-pointing message rather than silently coercing.
  */
-export async function loadMemoInput(): Promise<MemoLoadResult> {
+export async function loadMemoInput(
+  vaultId?: string,
+): Promise<MemoLoadResult> {
+  const def = resolveVaultDefinition(vaultId);
+
   const [snapshot, scenarioRows, backtestRows] = await Promise.all([
     prisma.vaultSnapshot.findFirst({ orderBy: { takenAt: "desc" } }),
     prisma.scenarioRun.findMany({
@@ -63,7 +87,20 @@ export async function loadMemoInput(): Promise<MemoLoadResult> {
   }
 
   // Decimal → number at the loader boundary (engine/agent shapes are `number`).
-  const vault = projectVault(toVaultSnapshotRow(snapshot));
+  // ADR-006 #9: the AUM/risk/mode fields come from the live snapshot (Yield
+  // Vault timeline — per-vault snapshots land with Phase 3); but the headline
+  // apy range, label and assumptions are pinned to the REQUESTED vault's own
+  // engine preset so two vaults never share the same projection text.
+  const liveVault = projectVault(toVaultSnapshotRow(snapshot));
+  const vault: MemoLoadResult["vault"] = {
+    id: def.id,
+    name: def.label,
+    aumUsdc: liveVault.aumUsdc,
+    apyRange: { low: def.apyTarget.low, high: def.apyTarget.high },
+    mode: liveVault.mode,
+    riskScore: liveVault.riskScore,
+    assumptions: [...def.assumptions],
+  };
   const scenarios = scenarioRows.map(parseScenarioOutput);
   const backtests = backtestRows.map((r) => parseBacktestOutput(toBacktestRunRow(r)));
 
@@ -108,13 +145,21 @@ function toVaultSnapshotRow(row: {
   };
 }
 
-function projectVault(row: VaultSnapshotRow): MemoLoadResult["vault"] {
-  if (row.aumUsdc === null || row.aumUsdc === undefined) {
-    throw new Error("VaultSnapshot.aumUsdc is null — invalid seed data.");
-  }
-  if (row.currentApyLow === null || row.currentApyHigh === null) {
-    throw new Error("VaultSnapshot APY range fields are null — invalid seed data.");
-  }
+/**
+ * Live snapshot projection — narrow shape produced from the latest
+ * `VaultSnapshot`. The full `MemoLoadResult["vault"]` is assembled in
+ * `loadMemoInput` by composing this with the requested vault's engine preset
+ * (id, name, apyRange, assumptions) so two different vaults never share the
+ * same projection text (ADR-006 #9).
+ */
+interface LiveVaultProjection {
+  aumUsdc: number;
+  apyRange: { low: number; high: number };
+  mode: string;
+  riskScore: number;
+}
+
+function projectVault(row: VaultSnapshotRow): LiveVaultProjection {
   return {
     aumUsdc: row.aumUsdc,
     apyRange: { low: row.currentApyLow, high: row.currentApyHigh },

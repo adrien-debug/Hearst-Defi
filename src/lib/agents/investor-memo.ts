@@ -31,10 +31,16 @@ export const INVESTOR_MEMO_MODEL = "kimi-k2.6" as const;
 
 export type InvestorMemoInput = {
   vault: {
+    /** Vault id this memo run is bound to (ADR-006 #9). Optional for back-compat. */
+    id?: string;
+    /** Human label, e.g. "Hearst Yield Vault". Optional for back-compat. */
+    name?: string;
     aumUsdc: number;
     apyRange: { low: number; high: number };
     mode: string;
     riskScore: number;
+    /** Vault's OWN assumptions cited verbatim by the memo agent. Optional for back-compat. */
+    assumptions?: string[];
   };
   scenarios: ScenarioOutput[];
   backtests: BacktestOutput[];
@@ -132,15 +138,26 @@ function buildBacktestBlock(bt: BacktestOutput, idx: number): string {
 function buildUserPrompt(input: InvestorMemoInput): string {
   const scenarioBlocks = input.scenarios.map(buildScenarioBlock).join("\n\n");
   const backtestBlocks = input.backtests.map(buildBacktestBlock).join("\n\n");
+  const vaultName = input.vault.name ?? "Hearst Yield Vault";
+  const vaultId = input.vault.id ?? "yield";
+  const vaultAssumptions = input.vault.assumptions ?? [];
+  const vaultAssumptionLines =
+    vaultAssumptions.length > 0
+      ? vaultAssumptions.map((a) => `    - ${a}`).join("\n")
+      : "    (none provided — fall back to the methodology v1.0 defaults)";
 
   return [
-    "Produce an Investor Memo for the following vault state, scenarios, and backtests.",
+    `Produce an Investor Memo for the ${vaultName} (vault id=${vaultId}). Use ONLY this vault's name and assumptions throughout — do not silently substitute another vault's posture or projections.`,
     "",
     "Vault state:",
+    `  id: ${vaultId}`,
+    `  name: ${vaultName}`,
     `  aumUsdc: ${input.vault.aumUsdc}`,
     `  apyRange (use verbatim when quoting headline APY): ${formatApyRange(input.vault.apyRange, 2)}`,
     `  mode: ${input.vault.mode}`,
     `  riskScore: ${input.vault.riskScore}`,
+    `  vault_assumptions (cite at least one verbatim in vault_structure):`,
+    vaultAssumptionLines,
     "",
     `Scenarios (${input.scenarios.length}):`,
     scenarioBlocks || "  (none provided — state this explicitly in scenario_analysis)",

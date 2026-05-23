@@ -54,6 +54,29 @@ describe("listVaults (multi-vault, ADR-006)", () => {
       expect(sum).toBe(10_000);
     }
   });
+
+  it("pins each vault to its OWN id and ticker — no silent reuse (ADR-006 #9)", async () => {
+    const vaults = await listVaults();
+    const yieldVault = vaults.find((v) => v.id === "hearst-yield-vault");
+    const defensive = vaults.find((v) => v.id === "hearst-defensive-vault");
+    const btcPlus = vaults.find((v) => v.id === "hearst-btc-plus-vault");
+
+    expect(yieldVault?.ticker).toBe("HYV-A");
+    expect(defensive?.ticker).toBe("HDV-A");
+    expect(btcPlus?.ticker).toBe("HBP-A");
+
+    // No two vaults share the same ticker, name, or apy range (a silent reuse
+    // would surface here as a duplicate triple).
+    const triples = vaults.map((v) => `${v.ticker}|${v.name}|${v.apyLow}-${v.apyHigh}`);
+    expect(new Set(triples).size).toBe(vaults.length);
+  });
+
+  it("returns identical fixtures across repeated calls (idempotent)", async () => {
+    const a = await listVaults();
+    const b = await listVaults();
+    expect(a).toEqual(b);
+    expect(a.map((v) => v.id)).toEqual(b.map((v) => v.id));
+  });
 });
 
 describe("getVault (multi-vault resolution)", () => {

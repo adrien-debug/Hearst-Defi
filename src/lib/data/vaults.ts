@@ -202,6 +202,19 @@ function toVaultProduct(row: VaultDeployment, aumUsdc: number): VaultProduct {
 // Public API
 // ---------------------------------------------------------------------------
 
+// Yield Vault recognition — ADR-006 #9: the current `VaultSnapshot` schema is
+// not yet keyed per vault, so the only snapshot we hold is the Hearst Yield
+// Vault timeline. Any other row in `VaultDeployment` MUST keep `currentAumUsdc
+// = 0` until Phase 3 adds `VaultSnapshot.vaultDeploymentId`; otherwise the
+// Yield AUM would silently appear under every vault's card.
+function isYieldVaultRow(row: VaultDeployment): boolean {
+  return (
+    row.ticker === "HYV-A" ||
+    row.ticker.toUpperCase().startsWith("HYV") ||
+    row.id === "hearst-yield-vault"
+  );
+}
+
 export async function listVaults(): Promise<VaultProduct[]> {
   try {
     const rows = await prisma.vaultDeployment.findMany({
@@ -210,7 +223,8 @@ export async function listVaults(): Promise<VaultProduct[]> {
 
     if (rows.length === 0) return FIXTURE_VAULTS;
 
-    // Fetch the latest AUM snapshot for each vault
+    // Fetch the latest AUM snapshot — only applied to the Yield Vault row.
+    // Non-Yield vaults stay at 0 until per-vault snapshots land (Phase 3).
     const latestSnapshots = await prisma.vaultSnapshot.findMany({
       orderBy: { takenAt: "desc" },
       take: 1,
@@ -218,7 +232,7 @@ export async function listVaults(): Promise<VaultProduct[]> {
     const latestAum = latestSnapshots[0]?.aumUsdc?.toNumber() ?? 0;
 
     return rows.map((row) =>
-      toVaultProduct(row, latestAum),
+      toVaultProduct(row, isYieldVaultRow(row) ? latestAum : 0),
     );
   } catch {
     // DB unavailable (e.g. fresh dev box) — return fixtures

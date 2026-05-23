@@ -1,21 +1,49 @@
 export const dynamic = "force-dynamic";
 
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { VaultSelector } from "@/components/admin/vault-selector";
 import { MemoShell } from "@/components/memo/memo-shell";
+import { VAULTS, VAULT_YIELD } from "@/lib/engine/vaults";
+import type { VaultId } from "@/lib/engine/types";
 
-export default function InvestorMemoPage() {
+interface InvestorMemoPageProps {
+  searchParams: Promise<{ vault?: string }>;
+}
+
+function resolveVaultId(raw: string | undefined): VaultId {
+  if (raw === "yield" || raw === "defensive" || raw === "btc-plus") return raw;
+  return VAULT_YIELD.id;
+}
+
+export default async function InvestorMemoPage({
+  searchParams,
+}: InvestorMemoPageProps) {
+  const params = await searchParams;
+  const vaultId = resolveVaultId(params.vault);
+  const vault = VAULTS[vaultId];
+
   return (
     <div className="space-y-6">
-      <AdminPageHeader title="Investor Memo" />
+      <AdminPageHeader
+        title="Investor Memo"
+        actions={
+          <VaultSelector
+            active={vaultId}
+            basePath="/admin/investor-memo"
+            ariaLabel="Investor Memo vault selector"
+          />
+        }
+      />
       <p className="body-sm max-w-2xl">
-        Eight sections, generated on demand by Claude Opus 4.7 against the
-        current vault snapshot, scenarios, and backtests. Methodology v1.0,
-        structured-output enforced (no chat), forbidden-words linted on every
-        field. Nothing is auto-distributed — the memo only leaves this page
-        when you download it.
+        Eight sections for{" "}
+        <span className="ct-text-strong">{vault.label}</span>, generated on
+        demand by Claude Opus 4.7 against the current vault snapshot, scenarios,
+        and backtests. Methodology v1.0, structured-output enforced (no chat),
+        forbidden-words linted on every field. Nothing is auto-distributed —
+        the memo only leaves this page when you download it.
       </p>
 
-      <MemoShell />
+      <MemoShell vaultId={vaultId} vaultName={vault.label} />
 
       <footer className="border-t ct-border-soft pt-6">
         <p className="body-xs">

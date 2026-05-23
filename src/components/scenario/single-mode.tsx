@@ -11,10 +11,15 @@ import { Spinner } from "@/components/scenario/scenario-spinner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 import { useScenario } from "@/hooks/use-scenario";
+import type { VaultId } from "@/lib/engine/types";
 
-export function SingleMode() {
+export interface SingleModeProps {
+  vaultId: VaultId;
+}
+
+export function SingleMode({ vaultId }: SingleModeProps) {
   const { state, pending, error, submit, selectPreset, setInputs } =
-    useScenario();
+    useScenario({ vaultId });
 
   return (
     <div className="space-y-6">

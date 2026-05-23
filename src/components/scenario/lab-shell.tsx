@@ -17,8 +17,18 @@ import {
   type ScenarioMode,
 } from "@/components/scenario/scenario-mode-toggle";
 import { SingleMode } from "@/components/scenario/single-mode";
+import type { VaultId } from "@/lib/engine/types";
 
-export function LabShell() {
+export interface LabShellProps {
+  /**
+   * Vault context for this Lab session. Threaded into the scenario hook and
+   * comparison sub-view so every server-action call carries the vault id —
+   * ADR-006 #9: a scenario run is always bound to exactly one vault.
+   */
+  vaultId: VaultId;
+}
+
+export function LabShell({ vaultId }: LabShellProps) {
   const [activeTab, setActiveTab] = useState<LabTab>("scenario");
   const [scenarioMode, setScenarioMode] = useState<ScenarioMode>("single");
 
@@ -53,7 +63,7 @@ export function LabShell() {
             hidden={scenarioMode !== "single"}
             tabIndex={0}
           >
-            {scenarioMode === "single" && <SingleMode />}
+            {scenarioMode === "single" && <SingleMode vaultId={vaultId} />}
           </div>
           <div
             role="tabpanel"
@@ -62,7 +72,10 @@ export function LabShell() {
             hidden={scenarioMode !== "compare"}
             tabIndex={0}
           >
-            <CompareMode active={scenarioMode === "compare"} />
+            <CompareMode
+              active={scenarioMode === "compare"}
+              vaultId={vaultId}
+            />
           </div>
         </div>
       </div>

@@ -38,8 +38,11 @@ import {
  * demo data.
  */
 
-export function loadDashboardData() {
-  return withDemoFallback(realLoadDashboardData, DEMO_DASHBOARD_DATA);
+export function loadDashboardData(vaultId?: string) {
+  return withDemoFallback(
+    () => realLoadDashboardData(vaultId),
+    DEMO_DASHBOARD_DATA,
+  );
 }
 
 export function loadAdvancedMetrics() {

@@ -16,6 +16,12 @@ import type {
   ScenarioInputs,
   ScenarioOutput,
 } from "../src/lib/engine/types";
+import {
+  VAULT_BTC_PLUS,
+  VAULT_DEFENSIVE,
+  VAULT_YIELD,
+  type VaultDefinition,
+} from "../src/lib/engine/vaults";
 
 const prisma = new PrismaClient();
 
@@ -607,6 +613,89 @@ function round6(n: number): number {
 }
 
 // ---------------------------------------------------------------------------
+// Vault deployments — 3 first-class vaults (ADR-006). Idempotent upserts so
+// re-seeding never duplicates rows nor mutates a manually-edited deployment in
+// a destructive way. Each vault has its OWN id, ticker, APY range, allocation
+// targets, assumptions — no silent reuse across vaults (#9).
+//
+// Status policy (paper phase): the flagship Hearst Yield Vault is "live"; the
+// two new vaults stay in "review" until they have their own attested numbers.
+// ---------------------------------------------------------------------------
+
+interface VaultDeploymentFixture {
+  id: string;
+  status: "live" | "review";
+  strategy: "mining_yield" | "btc_tactical" | "stable_reserve";
+  definition: VaultDefinition;
+}
+
+const VAULT_DEPLOYMENT_FIXTURES: VaultDeploymentFixture[] = [
+  {
+    id: "hearst-yield-vault",
+    status: "live",
+    strategy: "mining_yield",
+    definition: VAULT_YIELD,
+  },
+  {
+    id: "hearst-defensive-vault",
+    status: "review",
+    strategy: "stable_reserve",
+    definition: VAULT_DEFENSIVE,
+  },
+  {
+    id: "hearst-btc-plus-vault",
+    status: "review",
+    strategy: "btc_tactical",
+    definition: VAULT_BTC_PLUS,
+  },
+];
+
+async function seedVaultDeployments(): Promise<number> {
+  let count = 0;
+  for (const f of VAULT_DEPLOYMENT_FIXTURES) {
+    const d = f.definition;
+    const a = d.allocationTargets;
+    const classA = d.shareClasses[0];
+    const data = {
+      ticker: `${d.ticker}-A`,
+      name: d.label,
+      description: d.description,
+      strategy: f.strategy,
+      colorTag: "accent",
+      status: f.status,
+      minTicketUsdc: classA?.minTicketUsdc ?? 250_000,
+      capacityUsdc: 100_000_000,
+      mgmtFeeBps: classA?.mgmtFeeBps ?? 200,
+      perfFeeBps: classA?.perfFeeBps ?? 1000,
+      hurdleBps: classA?.hurdleBps ?? 0,
+      softLockupDays: classA?.softLockupDays ?? 60,
+      targetApyLowBps: Math.round(d.apyTarget.low * 100),
+      targetApyHighBps: Math.round(d.apyTarget.high * 100),
+      spvJurisdiction: "cayman",
+      shareClass: "A",
+      regExemption: "regS",
+      // Disclaimers join the vault's own assumptions verbatim (no silent reuse
+      // across vaults). ADR-006 #9: each vault carries its own assumptions.
+      disclaimers: d.assumptions.join(" "),
+      targetMiningBps: a.mining * 100,
+      targetBtcTacticalBps: a.btc_tactical * 100,
+      targetUsdcBaseBps: a.usdc_base * 100,
+      targetStableReserveBps: a.stable_reserve * 100,
+      requiredSigners: 2,
+      signersWhitelist: JSON.stringify(["multisig:0xAAA", "multisig:0xBBB"]),
+      createdBy: "seed-user",
+    };
+    await prisma.vaultDeployment.upsert({
+      where: { id: f.id },
+      update: data,
+      create: { id: f.id, ...data },
+    });
+    count++;
+  }
+  return count;
+}
+
+// ---------------------------------------------------------------------------
 // Admin users — idempotent. Reads ADMIN_EMAILS (CSV) + ADMIN_INITIAL_PASSWORD.
 // Upserts a role="admin" User per email. Does NOT create an Investor for the
 // admin. No-op when either env var is unset. Intentionally OUTSIDE resetTables()
@@ -651,6 +740,10 @@ async function seedAdminUsers(): Promise<number> {
 
 async function main(): Promise<void> {
   await resetTables();
+  // VaultDeployment is seeded BEFORE resetTables would otherwise wipe positions
+  // referencing it — but the row is not part of resetTables (deployments live
+  // in admin scope). Idempotent upsert keeps it safe to re-run N times.
+  const vaultDeployments = await seedVaultDeployments();
   const admins = await seedAdminUsers();
   const presetVault = await seedPresetVaultSnapshots();
   const dailyVault = await seedDailyVaultTimeline();
@@ -662,6 +755,7 @@ async function main(): Promise<void> {
   const proofs = await seedProofs();
 
   console.log("Hearst Connect seed complete:");
+  console.log(`  VaultDeployment: ${vaultDeployments} (3 first-class vaults — ADR-006)`);
   console.log(`  AdminUser:       ${admins}`);
   console.log(`  VaultSnapshot:   ${presetVault.snapshots + dailyVault.snapshots} (${presetVault.snapshots} preset + ${dailyVault.snapshots} daily)`);
   console.log(`  Allocation:      ${presetVault.allocations + dailyVault.allocations}`);

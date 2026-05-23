@@ -2,12 +2,14 @@
 
 import { z } from "zod";
 import { getPresetInputs, runScenario } from "@/lib/engine/scenario";
+import { VAULTS, VAULT_YIELD } from "@/lib/engine/vaults";
 import type {
   BacktestKey,
   BacktestOutput,
   Preset,
   ScenarioInputs,
   ScenarioOutput,
+  VaultId,
 } from "@/lib/engine/types";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { logger } from "@/lib/logger";
@@ -23,6 +25,20 @@ const PresetSchema = z.enum([
   "mining_compression",
   "extreme_stress",
 ] as const);
+
+const VaultIdSchema = z.enum(["yield", "defensive", "btc-plus"] as const);
+
+/**
+ * Resolves the requested vault id (optional) to a concrete `VaultDefinition`,
+ * defaulting to the Hearst Yield Vault. ADR-006 #9: never reuse another vault's
+ * preset silently — an unknown id is rejected by Zod so the engine call cannot
+ * be tricked into mixing vaults.
+ */
+function resolveVault(vaultId: string | undefined) {
+  if (vaultId === undefined) return VAULT_YIELD;
+  const parsed: VaultId = VaultIdSchema.parse(vaultId);
+  return VAULTS[parsed];
+}
 
 const BacktestKeySchema = z.enum([
   "bear_2022",
@@ -77,6 +93,7 @@ function assertBounds(inputs: ScenarioInputs): void {
 export async function runScenarioAction(
   inputs: ScenarioInputs,
   scenarioId: string = "custom",
+  vaultId?: string,
 ): Promise<
   ScenarioOutput & {
     runId: string | null;
@@ -87,14 +104,23 @@ export async function runScenarioAction(
   try {
     await assertRateLimit(`run-scenario:${userId}`, 10, 60_000);
     assertBounds(inputs);
-    const outputs = runScenario(inputs, { now: new Date() });
+    const vault = resolveVault(vaultId);
+    const outputs = runScenario(inputs, { now: new Date(), vault });
 
     let runId: string | null = null;
     try {
+      // `ScenarioRun` does not yet carry a `vaultDeploymentId` column. Until
+      // the Phase 3 schema migration lands, persist the vault id inside the
+      // `inputs` JSON envelope so the run is fully reproducible without losing
+      // which vault it was bound to (ADR-006 #9: no silent reuse).
+      const inputsEnvelope = {
+        ...inputs,
+        _vaultId: vault.id,
+      };
       const run = await prisma.scenarioRun.create({
         data: {
           userId,
-          inputs: JSON.stringify(inputs),
+          inputs: JSON.stringify(inputsEnvelope),
           outputs: JSON.stringify(outputs),
           status: "completed",
           confidence: outputs.confidence,
@@ -145,7 +171,6 @@ export async function runScenarioAction(
           { userId, runId, scenarioId },
           agentErr,
         );
-        narrative = null;
       }
     }
 
@@ -171,17 +196,17 @@ export async function getPresetInputsAction(
 
 export async function runComparisonAction(
   presets: [Preset, Preset],
+  vaultId?: string,
 ): Promise<[ScenarioOutput, ScenarioOutput]> {
   const { userId } = await requireAuth();
   try {
     await assertRateLimit(`run-comparison:${userId}`, 15, 60_000);
     PresetSchema.parse(presets[0]);
     PresetSchema.parse(presets[1]);
+    const vault = resolveVault(vaultId);
     const now = new Date();
-    const [a, b] = await Promise.all([
-      Promise.resolve(runScenario(getPresetInputs(presets[0]), { now, preset: presets[0] })),
-      Promise.resolve(runScenario(getPresetInputs(presets[1]), { now, preset: presets[1] })),
-    ]);
+    const a = runScenario(getPresetInputs(presets[0]), { now, preset: presets[0], vault });
+    const b = runScenario(getPresetInputs(presets[1]), { now, preset: presets[1], vault });
     return [a, b];
   } catch (err) {
     logger.error("runComparisonAction failed", { userId }, err);

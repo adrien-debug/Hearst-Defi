@@ -8,7 +8,7 @@ import { OutputPanel } from "@/components/scenario/output-panel";
 import { PRESETS } from "@/components/scenario/preset-bar";
 import { PresetPicker } from "@/components/ui/preset-picker";
 import { cn } from "@/lib/cn";
-import type { Preset, ScenarioOutput } from "@/lib/engine/types";
+import type { Preset, ScenarioOutput, VaultId } from "@/lib/engine/types";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -70,24 +70,37 @@ interface ComparisonState {
   b: ScenarioOutput | null;
 }
 
-export function CompareMode({ active = true }: { active?: boolean }) {
+export interface CompareModeProps {
+  active?: boolean;
+  /**
+   * Vault context for both legs of the comparison. Both legs run against the
+   * same vault — comparing two presets across two different vaults at once
+   * would mix vault data, which ADR-006 #9 forbids.
+   */
+  vaultId?: VaultId;
+}
+
+export function CompareMode({ active = true, vaultId }: CompareModeProps) {
   const [presetA, setPresetA] = useState<Preset | null>("base");
   const [presetB, setPresetB] = useState<Preset | null>("extreme_stress");
   const [outputs, setOutputs] = useState<ComparisonState>({ a: null, b: null });
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const runComparison = useCallback((a: Preset, b: Preset) => {
-    setError(null);
-    startTransition(async () => {
-      try {
-        const [outA, outB] = await runComparisonAction([a, b]);
-        setOutputs({ a: outA, b: outB });
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Unknown error");
-      }
-    });
-  }, []);
+  const runComparison = useCallback(
+    (a: Preset, b: Preset) => {
+      setError(null);
+      startTransition(async () => {
+        try {
+          const [outA, outB] = await runComparisonAction([a, b], vaultId);
+          setOutputs({ a: outA, b: outB });
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "Unknown error");
+        }
+      });
+    },
+    [vaultId],
+  );
 
   // Auto-run on initial mount with the default pair. The refs capture the
   // initial preset values so the effect can be declared with a stable deps
