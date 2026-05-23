@@ -147,7 +147,10 @@
   },
   "pnpm": {
     "overrides": {
-      "ws": ">=8.20.1"
+      "ws": ">=8.20.1",
+      "js-cookie": ">=3.0.7",
+      "postcss": ">=8.5.10",
+      "uuid": ">=11.1.1"
     }
   },
   "devDependencies": {
