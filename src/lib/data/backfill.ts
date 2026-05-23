@@ -7,7 +7,7 @@ import {
   computeMiningRevenue,
   computeOperationalConfidence,
 } from "../engine/mining";
-import { deriveHashpriceUsdPerThDay } from "./hashprice-formula";
+import { deriveHashpriceUsdPerThDay } from "../engine/hashprice-formula";
 import { startOfUtcDay, type DailyMarketPoint } from "./history";
 
 // Operating assumptions — kept in lock-step with the hourly cron

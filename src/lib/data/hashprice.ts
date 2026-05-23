@@ -4,7 +4,7 @@ import { fetchBtcPrice } from "@/lib/data/btc-price";
 import {
   BLOCK_REWARD_BTC,
   deriveHashpriceUsdPerThDay,
-} from "@/lib/data/hashprice-formula";
+} from "@/lib/engine/hashprice-formula";
 
 /**
  * Live hashprice ($/TH/day) derived from public, free data sources.
