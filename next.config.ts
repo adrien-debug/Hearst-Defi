@@ -19,14 +19,26 @@ const nextConfig: NextConfig = {
     },
   },
   serverExternalPackages: ["@prisma/client", "@fireblocks/ts-sdk"],
+  // Drop only safe-to-exclude bloat: wrong-platform Prisma binary (darwin),
+  // build-time schema-engine, and the SWC/esbuild compilers. DO NOT exclude
+  // `@prisma/engines/**` or `.prisma/client/**` — Prisma resolves the runtime
+  // query engine through those paths on Vercel (rhel-openssl-3.0.x.so.node).
   outputFileTracingExcludes: {
     "*": [
-      "node_modules/@prisma/engines/**",
-      "node_modules/.pnpm/@prisma+engines*/**",
       "node_modules/**/libquery_engine-darwin*",
       "node_modules/**/schema-engine-*",
       "node_modules/@swc/core-*/**",
       "node_modules/esbuild/**",
+    ],
+  },
+  // Force the linux Prisma query engine into every serverless function bundle.
+  // serverExternalPackages alone isn't enough on Vercel: nft sometimes misses
+  // the .node binary that lives under .prisma/client when the import path is
+  // dynamic. This explicitly includes the rhel engine so runtime can locate it.
+  outputFileTracingIncludes: {
+    "*": [
+      "node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client/libquery_engine-rhel-openssl-3.0.x.so.node",
+      "node_modules/.prisma/client/libquery_engine-rhel-openssl-3.0.x.so.node",
     ],
   },
   experimental: {
