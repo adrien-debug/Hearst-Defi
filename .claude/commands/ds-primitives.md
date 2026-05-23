@@ -5,9 +5,9 @@ description: Audit des primitives UI — vérifier qu'aucune n'est dupliquée ou
 # /ds-primitives — Design System Primitives Audit
 
 ## Objectif
-Vérifier que les 12 primitives UI de `src/components/ui/` sont utilisées et jamais dupliquées/recréées inline.
+Vérifier que les 14 primitives UI de `src/components/ui/` sont utilisées et jamais dupliquées/recréées inline.
 
-## Les 12 primitives autorisées
+## Les 14 primitives autorisées
 
 | Primitive | Fichier | Usage obligatoire |
 |-----------|---------|-------------------|
@@ -23,12 +23,14 @@ Vérifier que les 12 primitives UI de `src/components/ui/` sont utilisées et ja
 | Toaster | `toaster.tsx` | Sonner Cockpit-themed |
 | ClientToaster | `client-toaster.tsx` | Toaster côté client |
 | ConfirmDialog | `confirm-dialog.tsx` | Modale de confirmation |
+| Modal | `modal.tsx` | Panneau overlay générique (≠ ConfirmDialog) |
+| PresetPicker | `preset-picker.tsx` | Custom listbox accessible (keyboard nav) |
 
 ## Commande
 
 ### 1. Vérifier les imports
 ```bash
-rg -n 'from.*ui/(card|metric|badge|button|progress|skeleton|provenance-badge|apy-range|ptai|toaster|client-toaster|confirm-dialog)' src/app src/components --type tsx
+rg -n 'from.*ui/(card|metric|badge|button|progress|skeleton|provenance-badge|apy-range|ptai|toaster|client-toaster|confirm-dialog|modal|preset-picker)' src/app src/components --type tsx
 ```
 
 ### 2. Détecter les duplications
@@ -54,7 +56,7 @@ rg -n 'projection|trigger|action|impact' src/app src/components --type tsx | gre
 ```
 🧱 DS Primitives Audit Report
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✅/❌ 12 primitives — présentes et utilisées
+✅/❌ 14 primitives — présentes et utilisées
 ✅/❌ ProvenanceBadge — sur chaque métrique
 ✅/❌ ApyRange — jamais APY ponctuel
 ✅/❌ Ptai — simulations/rebal

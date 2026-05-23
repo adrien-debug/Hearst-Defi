@@ -3,7 +3,10 @@ import type { PortfolioPosition } from "@/lib/data/portfolio";
 import { formatUsdCompact } from "@/lib/format/usd-compact";
 
 /**
- * Allocation donut — SVG removed, placeholder only.
+ * Allocation donut — SVG arcs grouped by position status (active / matured /
+ * exited). Canonical convention (r=15.9155 → C=100, dashArray `${pct} ${100-pct}`,
+ * cumulative dashOffset). Strokes via `.dash-chart-circle.color-*` (charts-shared.css,
+ * tokens only). Mirrors the dashboard donut pattern.
  */
 
 const STATUS_LABELS: Record<string, string> = {
@@ -38,15 +41,21 @@ export function AllocationDonut({
     grouped.set(p.status, (grouped.get(p.status) ?? 0) + p.valueUsdc);
   }
 
+  // Canonical donut convention (r=15.9155 → C=100, pct maps 1:1 to dasharray):
+  // dashArray = `${pct} ${100 - pct}`, dashOffset = -running cumulative.
+  // Derived immutably so each arc starts where the previous ended.
   const segments: Array<{
     status: StatusKey;
     pct: number;
     valueUsdc: number;
+    dashOffset: number;
   }> = [];
 
+  let cumulative = 0;
   for (const [status, value] of grouped.entries()) {
     const pct = totalValueUsdc > 0 ? (value / totalValueUsdc) * 100 : 0;
-    segments.push({ status, pct, valueUsdc: value });
+    segments.push({ status, pct, valueUsdc: value, dashOffset: -cumulative });
+    cumulative += pct;
   }
 
   return (
@@ -58,7 +67,32 @@ export function AllocationDonut({
 
       <div className="flex flex-col items-center gap-4 mt-2">
         <div className="dash-chart-container mt-0 w-[var(--ct-donut-size)] h-[var(--ct-donut-size)]">
-          <div className="dash-chart-svg w-full h-full rounded-full bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)]" />
+          <svg
+            className="dash-chart-svg w-full h-full"
+            viewBox="0 0 42 42"
+            role="img"
+            aria-label="Allocation by status"
+          >
+            <circle
+              className="dash-chart-circle"
+              cx="21"
+              cy="21"
+              r="15.9155"
+              stroke="var(--ct-surface-3)"
+              strokeDasharray="100 0"
+            />
+            {segments.map((s) => (
+              <circle
+                key={s.status}
+                className={`dash-chart-circle color-${STATUS_LEGEND_TONE[s.status] ?? "muted"}`}
+                cx="21"
+                cy="21"
+                r="15.9155"
+                strokeDasharray={`${s.pct.toFixed(2)} ${(100 - s.pct).toFixed(2)}`}
+                strokeDashoffset={s.dashOffset.toFixed(2)}
+              />
+            ))}
+          </svg>
           <div className="donut-center">
             <span className="donut-val">
               {totalValueUsdc > 0 ? formatUsdCompact(totalValueUsdc) : "—"}

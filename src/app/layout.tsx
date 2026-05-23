@@ -41,7 +41,7 @@ export default function RootLayout({
         <AppChrome>
           <a
             href="#main-content"
-            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[var(--ct-z-overlay)] focus:rounded-[var(--ct-radius-lg)] focus:bg-[var(--ct-text-strong)] focus:px-4 focus:py-2 focus:text-[var(--ct-bg-deep)]"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[var(--ct-z-overlay)] focus:rounded-[var(--ct-radius-lg)] focus:bg-[var(--ct-accent)] focus:px-4 focus:py-2 focus:text-[var(--ct-bg-deep)]"
           >
             Skip to main content
           </a>

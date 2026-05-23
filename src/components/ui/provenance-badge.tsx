@@ -29,7 +29,7 @@ const variants: Record<
   estimated: "warning",
   partial: "warning",
   manual: "default",
-  stale: "danger",
+  stale: "default",
 };
 
 export function ProvenanceBadge({ kind }: { kind: Provenance }) {

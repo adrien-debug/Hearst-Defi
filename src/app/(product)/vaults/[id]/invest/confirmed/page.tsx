@@ -96,7 +96,7 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
                 href={baseScanHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="body-xs text-[var(--ct-accent-strong)] no-underline font-medium shrink-0 transition-opacity duration-150 hover:opacity-80"
+                className="body-xs text-[var(--ct-accent-strong)] no-underline font-medium shrink-0 transition-opacity duration-[var(--ct-dur-fast)] hover:opacity-80"
               >
                 View on BaseScan ↗
               </a>

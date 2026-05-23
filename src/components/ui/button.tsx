@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/cn";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-[var(--ct-radius-full)] text-sm font-medium transition-all duration-[var(--ct-dur-base)] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)] active:scale-[0.98]",
+  "inline-flex items-center justify-center gap-2 rounded-[var(--ct-radius-full)] text-sm font-medium transition-[background-color,border-color,color,transform,opacity] duration-[var(--ct-dur-base)] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)] active:scale-[0.98]",
   {
     variants: {
       variant: {
@@ -15,7 +15,7 @@ const buttonVariants = cva(
         ghost:
           "text-[var(--ct-text-muted)] hover:bg-[var(--ct-surface-1)] hover:text-[var(--ct-text-strong)]",
         danger:
-          "border border-[var(--ct-status-danger-border)] bg-[var(--ct-status-danger-soft)] text-[var(--ct-status-danger)] hover:bg-[var(--ct-status-danger-soft)] shadow-[var(--ct-glow-subtle)] hover:shadow-[var(--ct-glow-soft)]",
+          "border border-[var(--ct-status-danger-border)] bg-[var(--ct-status-danger-soft)] text-[var(--ct-status-danger)] hover:bg-[var(--ct-status-danger-soft)] shadow-[var(--ct-shadow-soft)]",
       },
       size: {
         sm: "h-8 px-4 text-xs",

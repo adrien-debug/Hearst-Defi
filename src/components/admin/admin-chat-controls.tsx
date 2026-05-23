@@ -163,7 +163,8 @@ export function AdminChatControls() {
             disabled={savingMode}
             aria-pressed={mode === "normal"}
             className={cn(
-              "h-8 rounded-[var(--ct-radius-full)] px-3 text-xs font-medium transition-all",
+              "h-8 rounded-[var(--ct-radius-full)] px-3 text-xs font-medium transition-[background-color,color] duration-[var(--ct-dur-base)]",
+              "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
               mode === "normal"
                 ? "bg-[var(--ct-accent)] text-[var(--ct-bg-deep)]"
                 : "text-[var(--ct-text-muted)] hover:text-[var(--ct-text-strong)]",
@@ -177,7 +178,8 @@ export function AdminChatControls() {
             disabled={savingMode}
             aria-pressed={mode === "review"}
             className={cn(
-              "h-8 rounded-[var(--ct-radius-full)] px-3 text-xs font-medium transition-all",
+              "h-8 rounded-[var(--ct-radius-full)] px-3 text-xs font-medium transition-[background-color,color] duration-[var(--ct-dur-base)]",
+              "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
               mode === "review"
                 ? "bg-[var(--ct-accent)] text-[var(--ct-bg-deep)]"
                 : "text-[var(--ct-text-muted)] hover:text-[var(--ct-text-strong)]",

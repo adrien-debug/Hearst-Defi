@@ -94,7 +94,7 @@ export function EventTimeline({ events }: EventTimelineProps) {
                         ? "bg-[var(--ct-status-success)]"
                         : event.kind === "TriggerArmed"
                           ? "bg-[var(--ct-status-warning)]"
-                          : "bg-[var(--ct-text-strong)]",
+                          : "bg-[var(--ct-accent)]",
                   )}
                 />
               </div>

@@ -47,7 +47,7 @@ export function ScenarioTabBar({ active, onChange }: ScenarioTabBarProps) {
             className={cn(
               "rounded-[var(--ct-radius-sm)] px-5 py-2 text-sm font-semibold capitalize shadow-none active:scale-100",
               isActive
-                ? "bg-[var(--ct-text-strong)] text-[var(--ct-bg-deep)] hover:bg-[var(--ct-text-strong)] hover:text-[var(--ct-bg-deep)]"
+                ? "bg-[var(--ct-accent)] text-[var(--ct-bg-deep)] hover:bg-[var(--ct-accent)] hover:text-[var(--ct-bg-deep)]"
                 : "text-[var(--ct-text-body)] hover:text-[var(--ct-text-primary)]",
             )}
           >

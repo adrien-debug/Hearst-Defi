@@ -42,12 +42,15 @@ Vérifier que seules les classes utilitaires `.ct-*` figées sont utilisées. Au
 ### Cards/KPI
 `.ct-card`, `.ct-kpi-card`
 
+### Tables & empty states
+`.ct-table-cell`, `.ct-table-header`, `.ct-empty-state`
+
 ### Prose
 `.prose-spec`
 
 ## Commande
 ```bash
-rg -n 'className=.*ct-[a-z-]+' src/app src/components --type tsx | grep -vE '\b(ct-text-primary|ct-text-body|ct-text-muted|ct-text-faint|ct-text-strong|ct-surface-0|ct-surface-1|ct-surface-2|ct-surface-3|ct-hover-surface|ct-border-soft|ct-border-base|ct-border-strong|ct-divide-soft|ct-divide-base|ct-status-success|ct-status-warning|ct-status-danger|ct-status-info|ct-pill|ct-input|ct-select|ct-textarea|ct-root|ct-rail-left|ct-rail-right|ct-page-area|ct-panels-row|ct-ambient-deep|ct-ambient-glow|ct-section|ct-rail-intra|ct-rail-item|ct-bottom-bar|ct-seg-track|ct-seg-btn|ct-card|ct-kpi-card|glass-panel|glass-panel-subtle|prose-spec|h1|h2|h3|h4|eyebrow|stat-value|stat-label|body-lg|body-md|body-sm|body-xs|ct-section-title)\b'
+rg -n 'className=.*ct-[a-z-]+' src/app src/components --type tsx | grep -vE '\b(ct-text-primary|ct-text-body|ct-text-muted|ct-text-faint|ct-text-strong|ct-surface-0|ct-surface-1|ct-surface-2|ct-surface-3|ct-hover-surface|ct-border-soft|ct-border-base|ct-border-strong|ct-divide-soft|ct-divide-base|ct-status-success|ct-status-warning|ct-status-danger|ct-status-info|ct-pill|ct-input|ct-select|ct-textarea|ct-root|ct-rail-left|ct-rail-right|ct-page-area|ct-panels-row|ct-ambient-deep|ct-ambient-glow|ct-section|ct-rail-intra|ct-rail-item|ct-bottom-bar|ct-seg-track|ct-seg-btn|ct-card|ct-kpi-card|ct-table-cell|ct-table-header|ct-empty-state|glass-panel|glass-panel-subtle|prose-spec|h1|h2|h3|h4|eyebrow|stat-value|stat-label|body-lg|body-md|body-sm|body-xs|ct-section-title)\b'
 ```
 
 ## Rapport

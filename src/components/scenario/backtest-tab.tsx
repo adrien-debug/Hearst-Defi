@@ -64,7 +64,7 @@ export function BacktestTab() {
                 "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
                 isActive
                   ? [
-                      "border-[var(--ct-text-strong)] bg-[var(--ct-text-strong)] text-[var(--ct-bg-deep)]",
+                      "border-[var(--ct-accent)] bg-[var(--ct-accent)] text-[var(--ct-bg-deep)]",
                       "shadow-[var(--ct-shadow-focus-ring)]",
                     ]
                   : [

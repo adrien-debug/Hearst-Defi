@@ -93,7 +93,7 @@ export function StepProgress({ active }: StepProgressProps) {
               className={cn(
                 "eyebrow font-medium whitespace-nowrap",
                 isActive
-                  ? "ct-text-strong"
+                  ? "text-[var(--ct-accent)]"
                   : isDone
                     ? "ct-text-primary"
                     : "ct-text-muted",

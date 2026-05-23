@@ -93,13 +93,13 @@ export function NavSparkline({ output }: NavSparklineProps) {
       <div className="mt-3 flex items-center gap-4 text-micro text-[var(--ct-text-muted)]">
         <span className="flex items-center gap-1.5">
           <span
-            className="inline-block h-0.5 w-4 rounded-full bg-[var(--ct-text-strong)] opacity-85"
+            className="inline-block h-0.5 w-4 rounded-full bg-[var(--ct-accent)] opacity-85"
           />
           Midpoint
         </span>
         <span className="flex items-center gap-1.5">
           <span
-            className="inline-block h-0.5 w-4 rounded-full bg-[var(--ct-text-strong)] opacity-35 border-t border-dashed border-[var(--ct-text-strong)]"
+            className="inline-block h-0.5 w-4 rounded-full bg-[var(--ct-accent)] opacity-35 border-t border-dashed border-[var(--ct-accent)]"
           />
           Low / High range
         </span>

@@ -120,7 +120,7 @@ function AllocationBar({ label, pct, tone }: AllocationBarProps) {
       <span className="body-xs ct-text-muted w-20 shrink-0">{label}</span>
       <div className="flex-1 h-1.5 rounded-full ct-surface-2 overflow-hidden">
         <div
-          className={cn("h-full rounded-full transition-all", barColor)}
+          className={cn("h-full rounded-full transition-[width,background-color] duration-[var(--ct-dur-slow)]", barColor)}
           style={{ width: `${pct}%` }}
           aria-label={`${label}: ${pct}%`}
         />

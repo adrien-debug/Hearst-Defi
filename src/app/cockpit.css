@@ -22,11 +22,6 @@
   --ct-accent-soft: color-mix(in srgb, var(--ct-accent) 18%, transparent);
   --ct-border-accent: color-mix(in srgb, var(--ct-accent) 55%, transparent);
 
-  /* tokens.css définit --ct-accent-maroon en mélangeant l'accent avec le
-     bordeaux hardcodé #1A050B → contamine le glow ambiant (.ct-ambient-glow)
-     même accent vert. On le redérive sur le fond noir : zéro bordeaux. */
-  --ct-accent-maroon: color-mix(in srgb, var(--ct-accent) 70%, var(--ct-bg-deep));
-
   --ct-text-faint: rgba(245, 245, 245, 0.40);
 
   /* Status semantic colors (source of truth — tokens.css n'en a pas) */
@@ -79,7 +74,7 @@
   --ct-glow-soft:   0 0 32px color-mix(in srgb, var(--ct-accent) 62%, transparent);
   --ct-glow-strong: 0 0 22px color-mix(in srgb, var(--ct-accent) 75%, transparent);
   --ct-glow-dot: 0 0 8px currentColor;
-  --ct-shadow-focus-ring: 0 0 0 3px var(--ct-glow-soft);
+  --ct-shadow-focus-ring: 0 0 0 3px color-mix(in srgb, var(--ct-accent) 45%, transparent);
   --ct-scrollbar-size: 6px;
 
   /* Layout — hauteur du header inter-apps du shell Cockpit (launcher + offset).

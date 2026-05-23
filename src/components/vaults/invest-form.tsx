@@ -274,7 +274,7 @@ export function InvestForm({ vault }: InvestFormProps) {
               )}
             >
               {agreedToTermSheet && (
-                <span className="inline-block w-2.5 h-2 rounded-sm bg-[var(--ct-text-strong)]" />
+                <span className="inline-block w-2.5 h-2 rounded-sm bg-[var(--ct-accent)]" />
               )}
             </span>
           </span>
