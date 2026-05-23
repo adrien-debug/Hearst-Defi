@@ -35,7 +35,18 @@ export interface DashboardVault {
   /** AUM delta over the past 30 days, USDC. Can be negative. */
   delta30dUsdc: number;
   apyRange: { low: number; high: number };
+  /**
+   * Stressed APY centre (Bear scenario, methodology v1.0).
+   * @deprecated UI consumes `stressedApyRange` to comply with CLAUDE.md rule
+   * #1 (APY always as range). Kept here for engine/agent loaders that already
+   * read the single-point projection.
+   */
   stressedApy: number;
+  /**
+   * Stressed APY as a range — UI surface. ±15% band around the bear scenario
+   * projection (methodology v1.0 MVP proxy until per-scenario p5/p95 land).
+   */
+  stressedApyRange: { low: number; high: number };
   riskScore: number;
   miningMarginScore: number;
   mode: VaultMode;
@@ -110,6 +121,27 @@ export interface DashboardData {
 // `computed` preset/scenario snapshots used by the memo loader). The dashboard
 // reads only these so a stress-preset never leaks into the live KPIs.
 const TIMELINE_SOURCES: string[] = ["daily-seed", "live", "oracle", "attested"];
+
+/**
+ * Stressed APY band width — ±15% around the centre bear-scenario projection.
+ * Methodology v1.0 MVP proxy: until the scenario engine exposes per-scenario
+ * p5/p95 quantiles, the dashboard widens the single-point stress into a range
+ * so CLAUDE.md rule #1 (APY always as a range, never a single point) holds for
+ * the stressed surface too.
+ */
+const STRESSED_APY_BAND = 0.15;
+
+/**
+ * Derives the stressed APY range from the engine's single-point projection.
+ * Returns `{ low, high }` with `low <= high`. Negative centres are kept
+ * negative (band widens symmetrically around the magnitude).
+ */
+function stressedRangeFor(centre: number): { low: number; high: number } {
+  const magnitude = Math.abs(centre) * STRESSED_APY_BAND;
+  const low = centre - magnitude;
+  const high = centre + magnitude;
+  return low <= high ? { low, high } : { low: high, high: low };
+}
 
 /**
  * Loads everything the `/dashboard` page needs in parallel.
@@ -275,6 +307,7 @@ async function buildVault(
       delta30dUsdc: 0,
       apyRange: { low: 0, high: 0 },
       stressedApy: 0,
+      stressedApyRange: { low: 0, high: 0 },
       riskScore: 0,
       miningMarginScore: 0,
       mode: "balanced",
@@ -312,6 +345,7 @@ async function buildVault(
     delta30dUsdc,
     apyRange: { low: snapshot.currentApyLow, high: snapshot.currentApyHigh },
     stressedApy: snapshot.stressedApy,
+    stressedApyRange: stressedRangeFor(snapshot.stressedApy),
     riskScore: snapshot.riskScore,
     miningMarginScore: snapshot.miningMarginScore,
     mode: normaliseMode(snapshot.mode),

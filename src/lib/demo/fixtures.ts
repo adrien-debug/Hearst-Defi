@@ -73,11 +73,21 @@ const DEMO_DELTA_30D_USDC = 1_200_000;
 const DEMO_APY_LOW = 9.4;
 const DEMO_APY_HIGH = 12.8;
 
+// Stressed APY centre (Bear scenario, methodology v1.0). Surfaced as a range
+// via `stressedApyRange` (±15% band) to comply with CLAUDE.md rule #1.
+const DEMO_STRESSED_APY = 5.6;
+const DEMO_STRESSED_BAND = 0.15;
+const DEMO_STRESSED_LOW =
+  Math.round(DEMO_STRESSED_APY * (1 - DEMO_STRESSED_BAND) * 10) / 10;
+const DEMO_STRESSED_HIGH =
+  Math.round(DEMO_STRESSED_APY * (1 + DEMO_STRESSED_BAND) * 10) / 10;
+
 const DEMO_VAULT: DashboardVault = {
   aumUsdc: DEMO_AUM_USDC,
   delta30dUsdc: DEMO_DELTA_30D_USDC,
   apyRange: { low: DEMO_APY_LOW, high: DEMO_APY_HIGH },
-  stressedApy: 5.6,
+  stressedApy: DEMO_STRESSED_APY,
+  stressedApyRange: { low: DEMO_STRESSED_LOW, high: DEMO_STRESSED_HIGH },
   riskScore: 42,
   miningMarginScore: 72,
   mode: "balanced",

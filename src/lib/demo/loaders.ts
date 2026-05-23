@@ -1,5 +1,6 @@
 import "server-only";
 
+import { loadAdvancedMetrics as realLoadAdvancedMetrics } from "@/lib/data/advanced-metrics";
 import { loadDashboardData as realLoadDashboardData } from "@/lib/data/dashboard";
 import { fetchHashprice as realFetchHashprice } from "@/lib/data/hashprice";
 import { getProofs as realGetProofs } from "@/lib/data/proofs";
@@ -15,6 +16,7 @@ import {
 
 import { withDemoFallback } from ".";
 import {
+  DEMO_ADVANCED_METRICS,
   DEMO_DASHBOARD_DATA,
   DEMO_HASHPRICE,
   DEMO_PROOFS,
@@ -38,6 +40,10 @@ import {
 
 export function loadDashboardData() {
   return withDemoFallback(realLoadDashboardData, DEMO_DASHBOARD_DATA);
+}
+
+export function loadAdvancedMetrics() {
+  return withDemoFallback(realLoadAdvancedMetrics, DEMO_ADVANCED_METRICS);
 }
 
 export function loadRiskFramework() {
