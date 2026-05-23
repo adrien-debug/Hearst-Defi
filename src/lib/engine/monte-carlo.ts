@@ -13,7 +13,7 @@
 // The headline output stays a RANGE [p25, p75]; no single-point APY is emitted
 // (non-negotiable #1).
 
-import { deriveHashpriceUsdPerThDay } from "../data/hashprice-formula";
+import { deriveHashpriceUsdPerThDay } from "./hashprice-formula";
 import { createPrng } from "./prng";
 
 const DEFAULT_PATHS = 10_000;

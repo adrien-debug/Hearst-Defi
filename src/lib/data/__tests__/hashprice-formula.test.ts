@@ -5,7 +5,7 @@ import {
   BLOCKS_PER_DAY,
   deriveHashpriceUsdPerThDay,
   networkHashrateThs,
-} from "../hashprice-formula";
+} from "../../engine/hashprice-formula";
 
 describe("deriveHashpriceUsdPerThDay", () => {
   it("produces a plausible hashprice for current-era inputs", () => {
