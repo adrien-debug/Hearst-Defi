@@ -29,7 +29,9 @@ const SCHEMA_PATH = resolve(__dirname, "../prisma/schema.prisma");
 
 const ALLOWED = new Set(["sqlite", "postgresql"]);
 
-const target = process.env.PRISMA_PROVIDER;
+// Trim defensively — `vercel env add` via `echo "x"` stores a trailing newline,
+// which would fail the strict membership check below.
+const target = process.env.PRISMA_PROVIDER?.trim();
 
 if (!target) {
   console.log("[prisma-provider] PRISMA_PROVIDER not set — keeping current provider (no-op)");
