@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { RejectDeploymentButton } from "@/components/admin/reject-deployment-button";
 import { VaultActionButton } from "@/components/admin/vault-action-button";
 import { VaultStatusPill } from "@/components/admin/vault-status-pill";
 import { ApyRange } from "@/components/ui/apy-range";
@@ -15,6 +16,7 @@ import {
   closeVault,
   markAsLive,
   pauseVault,
+  rejectDeployment,
   resumeVault,
   signApproval,
   submitForReview,
@@ -83,6 +85,10 @@ export default async function VaultDetailPage({ params }: PageProps) {
     "use server";
     await closeVault(id);
   };
+  const rejectDeploymentAction = async (reason: string) => {
+    "use server";
+    await rejectDeployment(id, reason);
+  };
 
   return (
     <div className="space-y-8">
@@ -128,32 +134,39 @@ export default async function VaultDetailPage({ params }: PageProps) {
             </>
           )}
 
-          {vault.status === "review" && whitelist.includes(actorWallet) && !alreadySigned && (
+          {vault.status === "review" && (
             <>
-              <VaultActionButton
-                label="Sign Approval"
-                variant="primary"
-                action={approveAction}
-                confirm={{
-                  title: "Signer l'approbation ?",
-                  description:
-                    "Votre signature d'approbation sera enregistrée de façon permanente.",
-                  confirmLabel: "Signer",
-                  confirmVariant: "primary",
-                }}
-              />
-              <VaultActionButton
-                label="Sign Rejection"
-                variant="danger"
-                action={rejectAction}
-                confirm={{
-                  title: "Signer le rejet ?",
-                  description:
-                    "Votre signature de rejet sera enregistrée de façon permanente.",
-                  confirmLabel: "Rejeter",
-                  confirmVariant: "danger",
-                }}
-              />
+              {whitelist.includes(actorWallet) && !alreadySigned && (
+                <>
+                  <VaultActionButton
+                    label="Sign Approval"
+                    variant="primary"
+                    action={approveAction}
+                    confirm={{
+                      title: "Signer l'approbation ?",
+                      description:
+                        "Votre signature d'approbation sera enregistrée de façon permanente.",
+                      confirmLabel: "Signer",
+                      confirmVariant: "primary",
+                    }}
+                  />
+                  <VaultActionButton
+                    label="Sign Rejection"
+                    variant="danger"
+                    action={rejectAction}
+                    confirm={{
+                      title: "Signer le rejet ?",
+                      description:
+                        "Votre signature de rejet sera enregistrée de façon permanente.",
+                      confirmLabel: "Rejeter",
+                      confirmVariant: "danger",
+                    }}
+                  />
+                </>
+              )}
+              {whitelist.includes(actorWallet) && (
+                <RejectDeploymentButton action={rejectDeploymentAction} />
+              )}
             </>
           )}
 

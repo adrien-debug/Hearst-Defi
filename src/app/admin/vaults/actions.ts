@@ -365,20 +365,42 @@ export async function signApproval(
 
 export async function rejectDeployment(id: string, reason: string): Promise<void> {
   const admin = await requireAdmin();
+  const actorWallet = admin.walletAddress ?? admin.userId;
 
   const vault = await prisma.vaultDeployment.findUnique({ where: { id } });
   if (!vault) throw new Error("VaultDeployment not found");
 
-  assertTransition(vault.status, "draft"); // review → draft
+  // P0-C — Sécurité : seul un signer whitelisté peut hard-reject (cohérent multisig).
+  // Sans ce check, n'importe quel admin pouvait annuler un quorum en cours via POST direct.
+  const whitelist: string[] = JSON.parse(vault.signersWhitelist) as string[];
+  if (!whitelist.includes(actorWallet)) {
+    throw new Error("Only whitelisted signers can hard-reject a deployment");
+  }
+
+  // P1 — UX : si une race condition a fait avancer le vault (ex. quorum atteint
+  // entre la lecture et le click), on renvoie un message clair plutôt que le
+  // throw technique d'assertTransition.
+  if (vault.status !== "review") {
+    throw new Error(
+      `Cannot reject this deployment: status is now "${vault.status}" (was likely approved or modified by another admin). Refresh the page to see the current state.`,
+    );
+  }
 
   try {
-    await prisma.vaultDeployment.update({
-      where: { id },
-      data: { status: "draft" },
-    });
+    // P0-B — Purge des votes du round précédent dans la même transaction.
+    // Sans cette purge, un nouveau `submitForReview` réutilisait les approvals
+    // existantes et le quorum pouvait être franchi avec 1 seul vote du nouveau
+    // round. `submittedAt: null` reset le timestamp de soumission.
+    await prisma.$transaction([
+      prisma.vaultDeploymentApproval.deleteMany({ where: { deploymentId: id } }),
+      prisma.vaultDeployment.update({
+        where: { id },
+        data: { status: "draft", submittedAt: null },
+      }),
+    ]);
 
     await recordAdminAudit({
-      actorWallet: admin.walletAddress ?? admin.userId,
+      actorWallet,
       action: "vault.rejectDeployment",
       entityType: "VaultDeployment",
       entityId: id,

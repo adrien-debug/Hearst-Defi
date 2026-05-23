@@ -1,6 +1,5 @@
 // Stub for optional Solana/x402 peer deps not installed in this project.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const s: any = () => undefined;
+const s: unknown = () => undefined;
 export default s;
 
 // @solana/kit

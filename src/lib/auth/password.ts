@@ -28,7 +28,7 @@ const ARGON2_OPTIONS = {
   parallelism: 1,
 } as const;
 
-/** Hash a plaintext password with argon2id. Returns the encoded hash string. */
+/** Canonical OWASP-tuned argon2id hasher. Used by tests (roundtrip) and reserved for the V1 KYC signup flow — seed scripts bypass this module via direct `@node-rs/argon2` import (server-only constraint under tsx). */
 export async function hashPassword(plain: string): Promise<string> {
   return hash(plain, ARGON2_OPTIONS);
 }
