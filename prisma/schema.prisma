@@ -1,3 +1,7 @@
+// Provider is swapped at build-time by scripts/prisma-provider.mjs based on
+// the PRISMA_PROVIDER env var (default: keep sqlite for local dev; set to
+// "postgresql" in CI/Vercel prod). Do NOT edit the provider line by hand for prod.
+//
 // Hearst Connect — Prisma schema
 // MVP tables. Postgres in production, SQLite for local dev.
 // Source of truth for data model: /docs/spec/* + plan section 15.
