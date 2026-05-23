@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { makePrismaClient } from "../scripts/lib/prisma-cli";
 // `@node-rs/argon2` is imported directly here (not via src/lib/auth/password.ts)
 // because that module is `server-only` and would throw under `tsx`. Params must
 // stay in sync with password.ts (OWASP argon2id: 19 MiB, t=2, p=1, Argon2id=2).
@@ -23,7 +23,7 @@ import {
   type VaultDefinition,
 } from "../src/lib/engine/vaults";
 
-const prisma = new PrismaClient();
+const prisma = makePrismaClient();
 
 const AUM_USDC = 25_000_000;
 

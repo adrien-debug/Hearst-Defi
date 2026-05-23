@@ -10,6 +10,13 @@
 //   userId columns added to Feedback, ReportExport, LlmRun (+ ScenarioRun).
 //   No formal SQL migration here (sqlite local, db push workflow).
 //   Apply with: `pnpm db:push` then `pnpm db:generate`.
+//
+// PRISMA 7 UPGRADE NOTE
+//   `url = env("DATABASE_URL")` is no longer allowed in the schema.
+//   The runtime PrismaClient is now constructed with a driver adapter
+//   (`@prisma/adapter-better-sqlite3` for dev / `@prisma/adapter-pg` for prod);
+//   see `src/lib/db.ts`. The CLI (`prisma generate / db push / migrate / studio`)
+//   reads its connection through `prisma.config.ts` (also env-driven).
 
 generator client {
   provider      = "prisma-client-js"
@@ -18,7 +25,6 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
 // =============================================================================

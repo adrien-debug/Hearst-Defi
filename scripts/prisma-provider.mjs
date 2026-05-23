@@ -2,10 +2,13 @@
  * scripts/prisma-provider.mjs
  *
  * WHY THIS EXISTS:
- * Prisma 6 does NOT support env() inside the `datasource.provider` field
- * (only `url` supports env interpolation). This means we cannot switch the
- * provider between sqlite (local dev) and postgresql (CI / Vercel prod) via a
- * plain env var in schema.prisma.
+ * Prisma 6/7 does NOT support env() inside the `datasource.provider` field.
+ * This means we cannot switch the provider between sqlite (local dev) and
+ * postgresql (CI / Vercel prod) via a plain env var in schema.prisma. As of
+ * Prisma 7, `url` itself is no longer allowed in `datasource` — the runtime
+ * connection is made through a driver adapter in src/lib/db.ts, and the CLI
+ * reads its connection from prisma.config.ts (also env-driven). All that
+ * remains schema-side is the static `provider` line, which this script flips.
  *
  * This script runs BEFORE `prisma generate` in the build pipeline. It reads
  * PRISMA_PROVIDER and rewrites ONLY the `provider = "..."` line inside the

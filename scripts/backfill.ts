@@ -70,9 +70,9 @@
  *     then throws with a clear message. No silent fallbacks to fake data.
  */
 
-import { PrismaClient } from "@prisma/client";
+import { makePrismaClient } from "./lib/prisma-cli";
 
-const prisma = new PrismaClient();
+const prisma = makePrismaClient();
 
 // =============================================================================
 // Constants
@@ -358,8 +358,6 @@ function deriveMonthly(
 interface SimRow {
   derived: MonthlyDerived;
   miningApyAnnual: number;
-  usdcApyAnnual: number;
-  reserveApyAnnual: number;
   btcDrawdownPct: number; // 0..1
   weightedApyAnnual: number;
   monthlyReturn: number;
@@ -473,8 +471,6 @@ function runSim(derivedSeries: readonly MonthlyDerived[]): SimRow[] {
     rows.push({
       derived: d,
       miningApyAnnual,
-      usdcApyAnnual: USDC_APY,
-      reserveApyAnnual: RESERVE_APY,
       btcDrawdownPct: btcDrawdown,
       weightedApyAnnual,
       monthlyReturn,

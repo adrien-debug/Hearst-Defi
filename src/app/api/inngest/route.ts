@@ -1,6 +1,9 @@
 import { serve } from "inngest/next";
 
 import { env } from "@/lib/env";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 import { inngest } from "@/lib/inngest/client";
 import { investorMemoMonthly } from "@/lib/inngest/functions/investor-memo-monthly";
 import { marketDataHourly } from "@/lib/inngest/functions/market-data-hourly";

@@ -9,7 +9,7 @@
 // (hearst-yield-vault, hearst-defensive-vault, hearst-btc-plus-vault).
 // Existing rows are upserted, never deleted. Other tables are untouched.
 
-import { PrismaClient } from "@prisma/client";
+import { makePrismaClient } from "./lib/prisma-cli";
 
 import {
   VAULT_YIELD,
@@ -32,7 +32,7 @@ const FIXTURES: VaultFixture[] = [
 ];
 
 async function main(): Promise<void> {
-  const prisma = new PrismaClient();
+  const prisma = makePrismaClient();
   let count = 0;
   try {
     for (const f of FIXTURES) {

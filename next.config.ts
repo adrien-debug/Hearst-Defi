@@ -18,27 +18,26 @@ const nextConfig: NextConfig = {
       "@solana/transaction-confirmation": { browser: "./src/lib/empty-module.ts", default: "./src/lib/empty-module.ts" },
     },
   },
-  serverExternalPackages: ["@prisma/client", "@fireblocks/ts-sdk"],
-  // Drop only safe-to-exclude bloat: wrong-platform Prisma binary (darwin),
-  // build-time schema-engine, and the SWC/esbuild compilers. DO NOT exclude
-  // `@prisma/engines/**` or `.prisma/client/**` — Prisma resolves the runtime
-  // query engine through those paths on Vercel (rhel-openssl-3.0.x.so.node).
+  serverExternalPackages: [
+    "@prisma/client",
+    "@prisma/adapter-better-sqlite3",
+    "@prisma/adapter-pg",
+    "better-sqlite3",
+    "pg",
+    "@fireblocks/ts-sdk",
+  ],
+  // Prisma 7 ships a WASM query compiler in @prisma/client (no per-platform
+  // native query engine), and the runtime connection is made through a driver
+  // adapter (@prisma/adapter-pg / @prisma/adapter-better-sqlite3) — both
+  // listed in serverExternalPackages above so they stay outside the bundle and
+  // pull in their native deps (pg, better-sqlite3) via `require` at runtime.
+  // Therefore: no more `libquery_engine-rhel-openssl-3.0.x.so.node` to include
+  // (removed) and no more darwin engine to exclude (also removed).
   outputFileTracingExcludes: {
     "*": [
-      "node_modules/**/libquery_engine-darwin*",
       "node_modules/**/schema-engine-*",
       "node_modules/@swc/core-*/**",
       "node_modules/esbuild/**",
-    ],
-  },
-  // Force the linux Prisma query engine into every serverless function bundle.
-  // serverExternalPackages alone isn't enough on Vercel: nft sometimes misses
-  // the .node binary that lives under .prisma/client when the import path is
-  // dynamic. This explicitly includes the rhel engine so runtime can locate it.
-  outputFileTracingIncludes: {
-    "*": [
-      "node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client/libquery_engine-rhel-openssl-3.0.x.so.node",
-      "node_modules/.prisma/client/libquery_engine-rhel-openssl-3.0.x.so.node",
     ],
   },
   experimental: {

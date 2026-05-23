@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { makePrismaClient } from "../scripts/lib/prisma-cli";
 
 import {
   buildMiningMetricRows,
@@ -14,7 +14,7 @@ import { buildMarketHistory } from "../src/lib/data/history";
 //   pnpm db:backfill            # 36 months
 //   pnpm db:backfill 12         # 12 months
 
-const prisma = new PrismaClient();
+const prisma = makePrismaClient();
 const SQLITE_CHUNK = 80; // keep bound params per INSERT well under SQLite's 999
 
 async function main(): Promise<void> {
