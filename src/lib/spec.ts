@@ -2,11 +2,17 @@ import "server-only";
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import matter from "gray-matter";
 import { z } from "zod";
 
-const SPEC_DIR = path.join(process.cwd(), "docs", "spec");
+// Resolve SPEC_DIR against this module's URL rather than process.cwd() so
+// Next.js' static NFT tracer can bound the trace (process.cwd() defeats it
+// and inflates the serverless bundle). Same pattern as src/lib/product-routes.ts.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const SPEC_DIR = path.join(__dirname, "..", "..", "docs", "spec");
 
 /**
  * Frontmatter is author-controlled MDX; both fields are optional so an
@@ -61,13 +67,20 @@ export async function getSpecIndex(): Promise<SpecIndexEntry[]> {
 }
 
 async function computeSpecIndex(): Promise<SpecIndexEntry[]> {
-  const files = await fs.readdir(SPEC_DIR);
+  // turbopackIgnore: SPEC_DIR is statically scoped to docs/spec via import.meta.url;
+  // file names come from the directory listing and can't be statically known.
+  // Without this hint, Turbopack's NFT tracer pulls the whole project into the
+  // serverless bundle.
+  const files = await fs.readdir(/*turbopackIgnore: true*/ SPEC_DIR);
   const entries: SpecIndexEntry[] = [];
 
   for (const file of files) {
     if (!file.endsWith(".mdx") && !file.endsWith(".md")) continue;
     const slug = slugFromFilename(file);
-    const raw = await fs.readFile(path.join(SPEC_DIR, file), "utf8");
+    const raw = await fs.readFile(
+      /*turbopackIgnore: true*/ path.join(SPEC_DIR, file),
+      "utf8",
+    );
     const fm = parseFrontmatter(matter(raw).data);
     entries.push({
       slug,
@@ -90,7 +103,7 @@ export async function getSpecDoc(slug: string): Promise<SpecDoc | null> {
     // Path traversal guard: resolved path must stay within SPEC_DIR
     if (!filepath.startsWith(specDirPrefix)) continue;
     try {
-      const raw = await fs.readFile(filepath, "utf8");
+      const raw = await fs.readFile(/*turbopackIgnore: true*/ filepath, "utf8");
       const parsed = matter(raw);
       const fm = parseFrontmatter(parsed.data);
       return {
