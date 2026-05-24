@@ -125,6 +125,11 @@ jobs:
     name: Deploy to Railway
     runs-on: ubuntu-latest
     needs: build
+    # Manual gate: requires a reviewer to approve before the step runs.
+    # Configure required reviewers in repo Settings → Environments → production.
+    environment:
+      name: production
+      url: https://connect.hearst.app
 
     steps:
       - name: Checkout

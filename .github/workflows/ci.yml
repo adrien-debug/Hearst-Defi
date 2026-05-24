@@ -129,3 +129,29 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+  # ────────────────────────────────────────────────────────────────
+  # Job 4 — Foundry smart contracts (BLOCKING when contracts/ touched)
+  # ────────────────────────────────────────────────────────────────
+  foundry:
+    name: Foundry (smart contracts)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Build contracts
+        working-directory: contracts
+        run: forge build --sizes
+
+      - name: Run Foundry tests
+        working-directory: contracts
+        run: forge test --summary -vvv
