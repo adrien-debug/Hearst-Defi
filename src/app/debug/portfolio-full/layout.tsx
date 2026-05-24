@@ -1,20 +1,21 @@
 import type { ReactNode } from "react";
 
-import { ChatToolbarDebug } from "./_components/chat-toolbar-debug";
 import { InvestorRailDebug } from "./_components/investor-rail-debug";
 
 /**
  * Layout local au clone debug.
  *
- * Le shell racine (`AppChrome` → `ConnectShell` du package `@hearst/cockpit-shell`)
- * fournit déjà le frame visuel global (rail-left vide, page-area, chat Kimi
- * à droite). Ce layout y monte EN PLUS :
+ * Le shell racine (`AppChrome` → `ConnectShell` du package
+ * `@hearst/cockpit-shell`) fournit déjà le frame visuel global (rail-left
+ * vide, page-area, chat Kimi à droite). `AppChrome` monte aussi globalement
+ * `<AdminChatControls />` qui pose la toolbar Conversation / Review DANS le
+ * body du rail droit (admin-gated, se cache pour les non-admins).
  *
- *   - InvestorRailDebug : le rail gauche (fork simplifié, portalisé).
- *   - ChatToolbarDebug : la toolbar Conversation/Review au-dessus du chat
- *     (fork sans gate admin, toujours visible).
+ * Ce layout y monte EN PLUS :
  *
- * Modifier ces deux fichiers ne touche QUE cette URL.
+ *   - `InvestorRailDebug` : le rail gauche (fork simplifié, portalisé).
+ *
+ * Modifier ce fichier ne touche QUE cette URL.
  *
  * Note : le rail prod (`InvestorRailIntra`) vit dans `(product)/layout.tsx`,
  * lui-même protégé par `requireInvestor` ; il n'est PAS chargé ici, donc pas
@@ -28,7 +29,6 @@ export default function PortfolioFullDebugLayout({
   return (
     <>
       <InvestorRailDebug />
-      <ChatToolbarDebug />
       {children}
     </>
   );

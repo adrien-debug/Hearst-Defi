@@ -11,7 +11,7 @@ import { cn } from "@/lib/cn";
 type Mode = "normal" | "review";
 
 /** `false` on the server + first client render, `true` after hydration — gates
- * a client-only portal so it never causes an SSR mismatch. */
+ * the client-only portal so it never causes an SSR mismatch. */
 const emptySubscribe = () => () => {};
 function useHydrated(): boolean {
   return useSyncExternalStore(
@@ -21,40 +21,38 @@ function useHydrated(): boolean {
   );
 }
 
-/* ── Rail open state (from @hearst/cockpit-shell) ───────────────────────── */
+const PILL_BASE_CLASS = cn(
+  "h-8 rounded-[var(--ct-radius-full)] px-3 text-xs font-medium",
+  "transition-[background-color,color] duration-[var(--ct-dur-base)]",
+  "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
+  "disabled:cursor-not-allowed disabled:opacity-60",
+);
 
-const RAIL_LS_KEY = "cockpit:rail-right-open";
-
-function getRailOpenSnapshot(): boolean {
-  if (typeof window === "undefined") return true;
-  const s = window.localStorage.getItem(RAIL_LS_KEY);
-  return s === null ? true : s === "1";
-}
-
-function getRailOpenServerSnapshot(): boolean {
-  return true;
-}
-
-function subscribeRailOpen(cb: () => void): () => void {
-  const onStorage = (e: StorageEvent) => {
-    if (e.key === RAIL_LS_KEY) cb();
-  };
-  window.addEventListener("storage", onStorage);
-  return () => window.removeEventListener("storage", onStorage);
+function pillClass(active: boolean): string {
+  return cn(
+    PILL_BASE_CLASS,
+    active
+      ? "bg-[var(--ct-accent)] text-[var(--ct-bg-deep)]"
+      : "text-[var(--ct-text-muted)] hover:text-[var(--ct-text-strong)]",
+  );
 }
 
 /**
- * Mode selector for the Cockpit chat (Normal / Review), mounted GLOBALLY in the
- * product shell (AppChrome) so it is available on every product page — not just
- * /admin. Admin-gated: on mount it calls `GET /api/admin/review-mode`, which is
- * `requireAdmin`-protected; a 403 means "not an admin" and the component renders
- * nothing. So only admins (Pierre, etc.) ever see the selector.
+ * Mode selector for the Cockpit chat (Conversation / Review), mounted GLOBALLY
+ * in the product shell (AppChrome) so it is available on every product page —
+ * not just /admin. Admin-gated: on mount it calls `GET /api/admin/review-mode`,
+ * which is `requireAdmin`-protected; a 403 means "not an admin" and the
+ * component renders nothing. So only admins ever see the selector.
  *
- * Visually anchored to the TOP of the right rail (the Kimi chat), under its
- * header — not a floating centred bar. In Review mode it exposes a "Générer le
- * document" action that distils the conversation into a structured change doc.
+ * Visually: portaled INSIDE `<div class="ct-rail-right-body">` (the chat body
+ * exposed by `@hearst/cockpit-shell`), positioned `sticky top-0`. The toolbar
+ * is part of the chat layout — width inherits from the rail, collapse with
+ * the rail, no fixed positioning math, no z-index war with the cockpit
+ * stacking context. The optional Review-document Modal still overlays the
+ * full viewport (its own portal lives inside the Modal primitive).
  *
- * Styling uses existing Cockpit CSS vars only (no new tokens / primitives).
+ * In Review mode it exposes a "Générer le document" action that distills the
+ * conversation into a structured change doc.
  */
 export function AdminChatControls() {
   // null = not yet resolved / not an admin → render nothing.
@@ -64,12 +62,7 @@ export function AdminChatControls() {
   const [error, setError] = useState<string | null>(null);
   const [doc, setDoc] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
-
-  const railOpen = useSyncExternalStore(
-    subscribeRailOpen,
-    getRailOpenSnapshot,
-    getRailOpenServerSnapshot,
-  );
+  const [target, setTarget] = useState<Element | null>(null);
 
   // Resolve admin status + current mode in one call. The route is
   // requireAdmin-gated: 200 → admin (use the returned mode); anything else
@@ -95,23 +88,13 @@ export function AdminChatControls() {
     };
   }, []);
 
-  // Portal target on document.body so the anchored bar escapes the
-  // `ct-panels-row` stacking context (z-index:10) that would otherwise paint
-  // over it. Created once via lazy initial state (client-only); the effect only
-  // attaches/detaches it, so no setState runs inside the effect.
-  const [portalEl] = useState<HTMLDivElement | null>(() => {
-    if (typeof document === "undefined") return null;
-    const el = document.createElement("div");
-    el.setAttribute("data-portal", "chat-mode-controls");
-    return el;
-  });
+  // Anchor the toolbar inside the chat rail body so it scrolls/collapses with
+  // the rail natively instead of floating fixed above it.
   useEffect(() => {
-    if (!portalEl) return;
-    document.body.appendChild(portalEl);
-    return () => {
-      document.body.removeChild(portalEl);
-    };
-  }, [portalEl]);
+    const el = document.querySelector(".ct-rail-right-body");
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTarget(el);
+  }, []);
 
   const switchMode = useCallback(async (next: Mode) => {
     setError(null);
@@ -170,84 +153,80 @@ export function AdminChatControls() {
   }, [doc]);
 
   const hydrated = useHydrated();
-  // Hidden until hydrated, portal ready, admin status resolved, and rail is open.
-  if (!hydrated || !portalEl || mode === null || !railOpen) return null;
+  // Hidden until hydrated, anchor resolved, and admin status confirmed.
+  if (!hydrated || !target || mode === null) return null;
 
-  return createPortal(
+  return (
     <>
-      {/* Anchored to the TOP of the right rail (chat), under its header.
-          Width tracks --ct-rail-right-eff (420px open / 48px collapsed); the
-          top offset clears the rail header ("Assistant" + product name).
-          No backdrop-blur — the bar sits flush inside the rail, not floating. */}
-      <div
-        className="fixed right-0 top-[60px] z-[var(--ct-z-popover)] flex w-[var(--ct-rail-right-eff,420px)] items-center gap-2 border-b border-[var(--ct-border-soft)] bg-[var(--ct-surface-1)] px-4 py-2"
-        role="toolbar"
-        aria-label="Mode du chat"
-      >
-        {/* Mode toggle */}
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => switchMode("normal")}
-            disabled={savingMode}
-            aria-pressed={mode === "normal"}
-            className={cn(
-              "h-8 rounded-[var(--ct-radius-full)] px-3 text-xs font-medium transition-[background-color,color] duration-[var(--ct-dur-base)]",
-              "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
-              mode === "normal"
-                ? "bg-[var(--ct-accent)] text-[var(--ct-bg-deep)]"
-                : "text-[var(--ct-text-muted)] hover:text-[var(--ct-text-strong)]",
-            )}
-          >
-            Conversation
-          </button>
-          <button
-            type="button"
-            onClick={() => switchMode("review")}
-            disabled={savingMode}
-            aria-pressed={mode === "review"}
-            className={cn(
-              "h-8 rounded-[var(--ct-radius-full)] px-3 text-xs font-medium transition-[background-color,color] duration-[var(--ct-dur-base)]",
-              "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
-              mode === "review"
-                ? "bg-[var(--ct-accent)] text-[var(--ct-bg-deep)]"
-                : "text-[var(--ct-text-muted)] hover:text-[var(--ct-text-strong)]",
-            )}
-          >
-            Review
-          </button>
-        </div>
-
-        {mode === "review" && (
-          <>
-            <span
-              className="h-5 w-px bg-[var(--ct-border-soft)]"
-              aria-hidden="true"
-            />
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={generateDocument}
-              disabled={generating}
+      {createPortal(
+        <div
+          className={cn(
+            "sticky top-0 z-10 flex items-center gap-2",
+            "border-b border-[var(--ct-border-soft)] bg-[var(--ct-surface-1)]",
+            "px-4 py-2",
+          )}
+          role="toolbar"
+          aria-label="Mode du chat"
+        >
+          {/* Mode toggle */}
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => switchMode("normal")}
+              disabled={savingMode}
+              aria-pressed={mode === "normal"}
+              className={pillClass(mode === "normal")}
             >
-              {generating ? "Génération…" : "Générer le document"}
-            </Button>
-            {doc && !panelOpen && (
+              Conversation
+            </button>
+            <button
+              type="button"
+              onClick={() => switchMode("review")}
+              disabled={savingMode}
+              aria-pressed={mode === "review"}
+              className={pillClass(mode === "review")}
+            >
+              Review
+            </button>
+          </div>
+
+          {mode === "review" && (
+            <>
+              <span
+                className="h-5 w-px bg-[var(--ct-border-soft)]"
+                aria-hidden="true"
+              />
               <Button
-                variant="ghost"
+                variant="primary"
                 size="sm"
-                onClick={() => setPanelOpen(true)}
+                onClick={generateDocument}
+                disabled={generating}
               >
-                Voir
+                {generating ? "Génération…" : "Générer le document"}
               </Button>
-            )}
-          </>
-        )}
-      </div>
+              {doc && !panelOpen && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setPanelOpen(true)}
+                >
+                  Voir
+                </Button>
+              )}
+            </>
+          )}
+        </div>,
+        target,
+      )}
 
       {error && (
         <div
-          className="fixed right-4 top-[112px] z-[var(--ct-z-toast)] rounded-[var(--ct-radius-md)] border border-[var(--ct-status-danger-border)] bg-[var(--ct-status-danger-soft)] px-3 py-1.5 text-xs text-[var(--ct-status-danger)]"
+          className={cn(
+            "fixed right-4 top-[112px] z-[var(--ct-z-toast)]",
+            "rounded-[var(--ct-radius-md)] border px-3 py-1.5 text-xs",
+            "border-[var(--ct-status-danger-border)] bg-[var(--ct-status-danger-soft)]",
+            "text-[var(--ct-status-danger)]",
+          )}
           role="alert"
         >
           {error}
@@ -271,7 +250,6 @@ export function AdminChatControls() {
       >
         {doc && <Markdown content={doc} />}
       </Modal>
-    </>,
-    portalEl,
+    </>
   );
 }
