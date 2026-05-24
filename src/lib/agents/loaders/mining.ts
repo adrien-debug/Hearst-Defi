@@ -143,6 +143,11 @@ export async function loadMiningOpsSnapshot(
     prisma.miningMetric.findMany({
       where: { takenAt: { gte: periodStart, lte: periodEnd } },
       orderBy: { takenAt: "desc" },
+      select: {
+        deployedHashrate: true,
+        uptimePct: true,
+        miningMarginScore: true,
+      },
     }),
     prisma.proof.count({
       where: {

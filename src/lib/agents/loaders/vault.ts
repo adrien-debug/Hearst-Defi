@@ -475,6 +475,12 @@ export async function loadVaultMonthlyHistory(
     where: { source: "backfill" },
     orderBy: { takenAt: "desc" },
     take: safeMonths * 6,
+    select: {
+      takenAt: true,
+      aumUsdc: true,
+      currentApyLow: true,
+      currentApyHigh: true,
+    },
   });
 
   // Group by YYYY-MM and keep the most recent snapshot per month.
@@ -502,6 +508,7 @@ export async function loadVaultMonthlyHistory(
     periods.length > 0
       ? await prisma.distribution.findMany({
           where: { period: { in: periods } },
+          select: { period: true, amountUsdc: true },
         })
       : [];
   const distByPeriod = new Map<string, number>();
