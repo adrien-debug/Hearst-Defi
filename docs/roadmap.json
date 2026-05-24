@@ -1,5 +1,6 @@
 {
-  "version": "2026-05-13",
+  "version": "2026-05-24",
+  "snapshot_doc": "/docs/roadmap-status-2026-05-24.md",
   "phases": [
     {
       "id": "mvp",
