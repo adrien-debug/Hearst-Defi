@@ -45,7 +45,22 @@ function slugFromFilename(filename: string): string {
   return filename.replace(/\.mdx?$/, "");
 }
 
+let specIndexCache: Promise<SpecIndexEntry[]> | null = null;
+
 export async function getSpecIndex(): Promise<SpecIndexEntry[]> {
+  if (process.env.NODE_ENV !== "production") {
+    return computeSpecIndex();
+  }
+  if (!specIndexCache) {
+    specIndexCache = computeSpecIndex().catch((err) => {
+      specIndexCache = null;
+      throw err;
+    });
+  }
+  return specIndexCache;
+}
+
+async function computeSpecIndex(): Promise<SpecIndexEntry[]> {
   const files = await fs.readdir(SPEC_DIR);
   const entries: SpecIndexEntry[] = [];
 
