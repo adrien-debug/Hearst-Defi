@@ -1,12 +1,39 @@
 import type { MetadataRoute } from "next";
 
+const BASE_URL = "https://connect.hearst.app";
+
 export default function sitemap(): MetadataRoute.Sitemap {
+  const now = new Date();
   return [
     {
-      url: "https://connect.hearst.app",
-      lastModified: new Date(),
+      url: BASE_URL,
+      lastModified: now,
       changeFrequency: "weekly",
       priority: 1,
+    },
+    {
+      url: `${BASE_URL}/legal`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${BASE_URL}/legal/privacy`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.4,
+    },
+    {
+      url: `${BASE_URL}/legal/terms`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.4,
+    },
+    {
+      url: `${BASE_URL}/legal/disclaimer`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.4,
     },
   ];
 }
