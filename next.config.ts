@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
   turbopack: {
     resolveAlias: {
       // Privy optional peer deps (Solana ecosystem) — not installed, stub out
+      // NOTE: empty-module.ts was removed — these peer deps are optional.
+      // If any are actually imported, install the real package or restore the stub.
       "x402": { browser: "./src/lib/empty-module.ts", default: "./src/lib/empty-module.ts" },
       "@solana-program/system": { browser: "./src/lib/empty-module.ts", default: "./src/lib/empty-module.ts" },
       "@solana-program/token": { browser: "./src/lib/empty-module.ts", default: "./src/lib/empty-module.ts" },
@@ -56,6 +58,8 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  // Body size limits are enforced per-route via NextRequest constraints
+  // (see individual route.ts files for max body validation)
   async headers() {
     return [
       {
@@ -79,6 +83,10 @@ const nextConfig: NextConfig = {
             value: "max-age=63072000; includeSubDomains; preload",
           },
           {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+          },
+          {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
@@ -88,7 +96,9 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: https:",
               "connect-src 'self' https: wss:",
               "frame-src https://auth.privy.io",
-              "frame-ancestors 'self' http://localhost:4200 http://localhost:4201",
+              process.env.NODE_ENV === "production"
+                ? "frame-ancestors 'self'"
+                : "frame-ancestors 'self' http://localhost:4200 http://localhost:4201",
               "font-src 'self' data:",
             ].join("; "),
           },
