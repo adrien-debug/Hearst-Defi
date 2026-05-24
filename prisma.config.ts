@@ -12,8 +12,20 @@
  */
 import { defineConfig } from "prisma/config";
 
-const databaseUrl =
-  process.env.DATABASE_URL?.trim() ?? "file:./prisma/dev.db";
+const rawUrl = process.env.DATABASE_URL?.trim() ?? "";
+const FALLBACK_DEV_URL = "file:./prisma/dev.db";
+
+if (
+  process.env.NODE_ENV === "production" &&
+  (!rawUrl || rawUrl === FALLBACK_DEV_URL)
+) {
+  throw new Error(
+    "DATABASE_URL must point to a production database when NODE_ENV=production. " +
+      `Refusing to fall back to "${FALLBACK_DEV_URL}".`,
+  );
+}
+
+const databaseUrl = rawUrl || FALLBACK_DEV_URL;
 
 export default defineConfig({
   schema: "./prisma/schema.prisma",
