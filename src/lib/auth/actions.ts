@@ -10,8 +10,6 @@ import {
   createSession,
   setSessionCookie,
   destroySession,
-  ensureDevUser,
-  ensureDevAdminUser,
 } from "@/lib/auth/session";
 import { safeFrom } from "@/lib/safe-redirect";
 import { assertRateLimit } from "@/lib/rate-limit";
@@ -155,53 +153,4 @@ export async function login(
 export async function logout(): Promise<void> {
   await destroySession();
   redirect("/login");
-}
-
-/**
- * DEV ONLY — one-click sign-in as the seeded dev investor.
- *
- * Creates a REAL DB session (so logout, sessions list, and every gate behave
- * normally) and redirects. Hard-gated by NODE_ENV: in a production build this
- * is a no-op that immediately redirects to /login, and `ensureDevUser` also
- * refuses in production as defence-in-depth. Surfaced via a dev-only button on
- * the login screen.
- */
-export async function devLogin(from?: string): Promise<void> {
-  if (process.env.NODE_ENV === "production") {
-    redirect("/login");
-  }
-
-  const user = await ensureDevUser();
-  const { token, expiresAt } = await createSession(user.id);
-  await setSessionCookie(token, expiresAt);
-  logger.info("dev sign-in", { userId: user.id });
-
-  // Outside try/catch: redirect throws NEXT_REDIRECT which must propagate.
-  redirect(safeFrom(from));
-}
-
-/**
- * DEV ONLY — one-click sign-in as the seeded dev admin.
- *
- * Creates a REAL DB session with role `admin` (so `requireAdmin()` and every
- * admin gate pass normally) and redirects. Hard-gated by NODE_ENV: in a
- * production build this is a no-op that immediately redirects to /login, and
- * `ensureDevAdminUser` also refuses in production as defence-in-depth.
- * Surfaced via a dev-only button on the login screen, distinct from the
- * investor dev sign-in.
- */
-export async function devLoginAdmin(from?: string): Promise<void> {
-  if (process.env.NODE_ENV === "production") {
-    redirect("/login");
-  }
-
-  const user = await ensureDevAdminUser();
-  const { token, expiresAt } = await createSession(user.id);
-  await setSessionCookie(token, expiresAt);
-  logger.info("dev admin sign-in", { userId: user.id });
-
-  // Outside try/catch: redirect throws NEXT_REDIRECT which must propagate.
-  // Default an admin sign-in to the admin area (not the investor /portfolio
-  // fallback); an explicit `from` is still honoured when present.
-  redirect(safeFrom(from, "/admin"));
 }

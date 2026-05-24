@@ -1,15 +1,11 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Landing page", () => {
-  test("loads and shows hero", async ({ page }) => {
+test.describe("Landing / login screen", () => {
+  test("redirects unauthenticated visitors to the login form", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: /Institutional Mining Yield Vaults/i })).toBeVisible();
-    await expect(page.getByText(/Mining-backed structured yield/i)).toBeVisible();
-  });
-
-  test("has dev sign-in button", async ({ page }) => {
-    await page.goto("/");
-    const btn = page.getByRole("button", { name: /Dev sign-in \(skip login\)/i });
-    await expect(btn).toBeVisible();
+    // Either we land on /login directly, or `/` renders the login split-screen.
+    await expect(page.getByLabel(/^Sign in$/i)).toBeVisible();
+    await expect(page.getByLabel(/email/i).first()).toBeVisible();
+    await expect(page.getByLabel(/password/i).first()).toBeVisible();
   });
 });

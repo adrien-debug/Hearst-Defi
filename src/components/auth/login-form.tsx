@@ -4,11 +4,8 @@ import { useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
-import { login, devLogin, devLoginAdmin } from "@/lib/auth/actions";
+import { login } from "@/lib/auth/actions";
 import { safeFrom } from "@/lib/safe-redirect";
-
-/** Dev-only one-click sign-in is shown only outside production builds. */
-const SHOW_DEV_SIGN_IN = process.env.NODE_ENV !== "production";
 
 /**
  * Email + password sign-in form (database auth).
@@ -40,24 +37,7 @@ export function LoginForm() {
     });
   }
 
-  function onDevSignIn() {
-    setError(null);
-    startTransition(async () => {
-      await devLogin(from);
-    });
-  }
-
-  function onDevAdminSignIn() {
-    setError(null);
-    startTransition(async () => {
-      // Pass the RAW ?from= (not the investor-defaulted `from`, which resolves
-      // to /portfolio) so devLoginAdmin can default to /admin when absent.
-      await devLoginAdmin(searchParams.get("from") ?? undefined);
-    });
-  }
-
   return (
-    <>
     <form action={onSubmit} className="space-y-4" aria-label="Sign in">
       <label className="block text-xs" htmlFor="login-email">
         <span className="mb-1 block ct-text-muted uppercase tracking-wide">
@@ -113,37 +93,5 @@ export function LoginForm() {
         {isPending ? "Signing in…" : "Sign in"}
       </Button>
     </form>
-
-      {SHOW_DEV_SIGN_IN ? (
-        <div className="mt-4 border-t ct-border-soft pt-4">
-          <Button
-            type="button"
-            variant="secondary"
-            size="md"
-            className="w-full"
-            onClick={onDevSignIn}
-            disabled={isPending}
-          >
-            Dev sign-in (skip login)
-          </Button>
-          <p className="mt-2 text-center eyebrow ct-text-faint">
-            Development only · creates a session as the dev investor
-          </p>
-          <Button
-            type="button"
-            variant="secondary"
-            size="md"
-            className="mt-3 w-full"
-            onClick={onDevAdminSignIn}
-            disabled={isPending}
-          >
-            Dev sign-in (admin)
-          </Button>
-          <p className="mt-2 text-center eyebrow ct-text-faint">
-            Development only · creates an ADMIN session
-          </p>
-        </div>
-      ) : null}
-    </>
   );
 }
