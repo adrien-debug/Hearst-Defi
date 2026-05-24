@@ -105,6 +105,16 @@ if (IS_RUNTIME_PRODUCTION && parsed.success) {
         "fail at runtime. Set HYPERCLI_API_KEY to enable them.",
     );
   }
+  // P0: Redis is REQUIRED in production for distributed rate limiting.
+  // Without it, rate limits are per-instance only and can be bypassed
+  // by distributing requests across serverless instances.
+  if (!d.UPSTASH_REDIS_REST_URL || !d.UPSTASH_REDIS_REST_TOKEN) {
+    throw new Error(
+      "UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are required in production. " +
+        "Without Redis, rate limiting is per-instance only and ineffective against " +
+        "distributed attacks. Set both variables to enable distributed rate limiting.",
+    );
+  }
 }
 
 /**

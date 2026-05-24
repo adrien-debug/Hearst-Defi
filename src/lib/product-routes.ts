@@ -2,6 +2,7 @@ import "server-only";
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 /**
  * Derives the real route inventory of the WHOLE app from the filesystem
@@ -14,7 +15,9 @@ import path from "node:path";
  * pattern as `spec.ts`.
  */
 
-const APP_DIR = path.join(process.cwd(), "src", "app");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const APP_DIR = path.join(__dirname, "..", "..", "src", "app");
 
 /** Recursively collect directories containing a `page.tsx` under `(product)`. */
 async function collectPageDirs(

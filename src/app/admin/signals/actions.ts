@@ -7,6 +7,11 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { recordAdminAudit } from "@/lib/admin/audit";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { assertRateLimit } from "@/lib/rate-limit";
+
+/** Admin signal actions rate limit: 20 requests / 60s / admin. */
+const SIGNAL_RATE_MAX = 20;
+const SIGNAL_RATE_WINDOW_MS = 60_000;
 
 // ---------------------------------------------------------------------------
 // Validation schemas
@@ -42,6 +47,16 @@ export async function approveRebalance(
 ): Promise<void> {
   const admin = await requireAdmin();
 
+  try {
+    await assertRateLimit(
+      `admin:signals:${admin.userId}`,
+      SIGNAL_RATE_MAX,
+      SIGNAL_RATE_WINDOW_MS,
+    );
+  } catch {
+    throw new Error("Too many requests");
+  }
+
   const parsed = ApproveSchema.safeParse({ eventId, signerWallet });
   if (!parsed.success) {
     throw new Error(`Invalid input: ${parsed.error.message}`);
@@ -51,14 +66,19 @@ export async function approveRebalance(
     const event = await prisma.rebalanceEvent.findUnique({
       where: { id: eventId },
     });
-    if (!event) throw new Error(`RebalanceEvent ${eventId} not found`);
+    if (!event) throw new Error("Not found");
     if (event.status !== "pending") {
       throw new Error(
         `Cannot approve a signal with status "${event.status}". Expected "pending".`,
       );
     }
 
-    const currentSigners: string[] = JSON.parse(event.approvedBy) as string[];
+    let currentSigners: string[];
+    try {
+      currentSigners = JSON.parse(event.approvedBy ?? "[]") as string[];
+    } catch {
+      throw new Error("Invalid approvedBy format");
+    }
 
     // Idempotent: skip if signer already present
     if (currentSigners.includes(signerWallet)) {
@@ -119,6 +139,16 @@ export async function rejectRebalance(
 ): Promise<void> {
   const admin = await requireAdmin();
 
+  try {
+    await assertRateLimit(
+      `admin:signals:${admin.userId}`,
+      SIGNAL_RATE_MAX,
+      SIGNAL_RATE_WINDOW_MS,
+    );
+  } catch {
+    throw new Error("Too many requests");
+  }
+
   const parsed = RejectSchema.safeParse({ eventId, reason });
   if (!parsed.success) {
     throw new Error(`Invalid input: ${parsed.error.message}`);
@@ -128,7 +158,7 @@ export async function rejectRebalance(
     const event = await prisma.rebalanceEvent.findUnique({
       where: { id: eventId },
     });
-    if (!event) throw new Error(`RebalanceEvent ${eventId} not found`);
+    if (!event) throw new Error("Not found");
     if (event.status !== "pending" && event.status !== "approved") {
       throw new Error(
         `Cannot reject a signal with status "${event.status}".`,
@@ -172,6 +202,16 @@ export async function rejectRebalance(
 export async function executeRebalance(eventId: string): Promise<void> {
   const admin = await requireAdmin();
 
+  try {
+    await assertRateLimit(
+      `admin:signals:${admin.userId}`,
+      SIGNAL_RATE_MAX,
+      SIGNAL_RATE_WINDOW_MS,
+    );
+  } catch {
+    throw new Error("Too many requests");
+  }
+
   const parsed = ExecuteSchema.safeParse({ eventId });
   if (!parsed.success) {
     throw new Error(`Invalid input: ${parsed.error.message}`);
@@ -181,7 +221,7 @@ export async function executeRebalance(eventId: string): Promise<void> {
     const event = await prisma.rebalanceEvent.findUnique({
       where: { id: eventId },
     });
-    if (!event) throw new Error(`RebalanceEvent ${eventId} not found`);
+    if (!event) throw new Error("Not found");
     if (event.status !== "approved") {
       throw new Error(
         `Cannot execute a signal with status "${event.status}". Expected "approved".`,

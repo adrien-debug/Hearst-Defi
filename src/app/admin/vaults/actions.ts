@@ -7,6 +7,11 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { recordAdminAudit } from "@/lib/admin/audit";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { assertRateLimit } from "@/lib/rate-limit";
+
+/** Admin vault actions rate limit: 30 requests / 60s / admin. */
+const VAULT_RATE_MAX = 30;
+const VAULT_RATE_WINDOW_MS = 60_000;
 
 // ---------------------------------------------------------------------------
 // Forbidden words in disclaimers (CLAUDE.md non-négociable #5)
@@ -116,6 +121,16 @@ export async function createDraftVault(
 ): Promise<VaultActionResult> {
   const admin = await requireAdmin();
 
+  try {
+    await assertRateLimit(
+      `admin:vaults:${admin.userId}`,
+      VAULT_RATE_MAX,
+      VAULT_RATE_WINDOW_MS,
+    );
+  } catch {
+    return { ok: false, issues: "Too many requests" };
+  }
+
   const parsed = CreateDraftSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, issues: parsed.error.issues };
@@ -181,6 +196,16 @@ export async function updateDraftVault(
 ): Promise<VaultActionResult> {
   const admin = await requireAdmin();
 
+  try {
+    await assertRateLimit(
+      `admin:vaults:${admin.userId}`,
+      VAULT_RATE_MAX,
+      VAULT_RATE_WINDOW_MS,
+    );
+  } catch {
+    return { ok: false, issues: "Too many requests" };
+  }
+
   const parsed = CreateDraftSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, issues: parsed.error.issues };
@@ -189,7 +214,7 @@ export async function updateDraftVault(
   const d = parsed.data;
 
   const existing = await prisma.vaultDeployment.findUnique({ where: { id } });
-  if (!existing) throw new Error("VaultDeployment not found");
+  if (!existing) throw new Error("Not found");
   if (existing.status !== "draft") {
     throw new Error("Only draft vaults can be edited");
   }
@@ -248,8 +273,18 @@ export async function updateDraftVault(
 export async function submitForReview(id: string): Promise<void> {
   const admin = await requireAdmin();
 
+  try {
+    await assertRateLimit(
+      `admin:vaults:${admin.userId}`,
+      VAULT_RATE_MAX,
+      VAULT_RATE_WINDOW_MS,
+    );
+  } catch {
+    throw new Error("Too many requests");
+  }
+
   const vault = await prisma.vaultDeployment.findUnique({ where: { id } });
-  if (!vault) throw new Error("VaultDeployment not found");
+  if (!vault) throw new Error("Not found");
 
   assertTransition(vault.status, "review");
 
@@ -286,19 +321,34 @@ export async function signApproval(
   reason?: string,
 ): Promise<void> {
   const admin = await requireAdmin();
+
+  try {
+    await assertRateLimit(
+      `admin:vaults:${admin.userId}`,
+      VAULT_RATE_MAX,
+      VAULT_RATE_WINDOW_MS,
+    );
+  } catch {
+    throw new Error("Too many requests");
+  }
   const actorWallet = admin.walletAddress ?? admin.userId;
 
   const vault = await prisma.vaultDeployment.findUnique({
     where: { id },
     include: { approvals: true },
   });
-  if (!vault) throw new Error("VaultDeployment not found");
+  if (!vault) throw new Error("Not found");
   if (vault.status !== "review") {
     throw new Error("Only vaults in review status can be signed");
   }
 
   // Check signer is in the whitelist
-  const whitelist: string[] = JSON.parse(vault.signersWhitelist) as string[];
+  let whitelist: string[];
+  try {
+    whitelist = JSON.parse(vault.signersWhitelist ?? "[]") as string[];
+  } catch {
+    throw new Error("Invalid signer whitelist format");
+  }
   if (!whitelist.includes(actorWallet)) {
     throw new Error("Signer not in the whitelist");
   }
@@ -365,14 +415,29 @@ export async function signApproval(
 
 export async function rejectDeployment(id: string, reason: string): Promise<void> {
   const admin = await requireAdmin();
+
+  try {
+    await assertRateLimit(
+      `admin:vaults:${admin.userId}`,
+      VAULT_RATE_MAX,
+      VAULT_RATE_WINDOW_MS,
+    );
+  } catch {
+    throw new Error("Too many requests");
+  }
   const actorWallet = admin.walletAddress ?? admin.userId;
 
   const vault = await prisma.vaultDeployment.findUnique({ where: { id } });
-  if (!vault) throw new Error("VaultDeployment not found");
+  if (!vault) throw new Error("Not found");
 
   // P0-C — Sécurité : seul un signer whitelisté peut hard-reject (cohérent multisig).
   // Sans ce check, n'importe quel admin pouvait annuler un quorum en cours via POST direct.
-  const whitelist: string[] = JSON.parse(vault.signersWhitelist) as string[];
+  let whitelist: string[];
+  try {
+    whitelist = JSON.parse(vault.signersWhitelist ?? "[]") as string[];
+  } catch {
+    throw new Error("Invalid signer whitelist format");
+  }
   if (!whitelist.includes(actorWallet)) {
     throw new Error("Only whitelisted signers can hard-reject a deployment");
   }
@@ -423,8 +488,18 @@ export async function rejectDeployment(id: string, reason: string): Promise<void
 export async function markAsLive(id: string): Promise<void> {
   const admin = await requireAdmin();
 
+  try {
+    await assertRateLimit(
+      `admin:vaults:${admin.userId}`,
+      VAULT_RATE_MAX,
+      VAULT_RATE_WINDOW_MS,
+    );
+  } catch {
+    throw new Error("Too many requests");
+  }
+
   const vault = await prisma.vaultDeployment.findUnique({ where: { id } });
-  if (!vault) throw new Error("VaultDeployment not found");
+  if (!vault) throw new Error("Not found");
 
   assertTransition(vault.status, "live");
 
@@ -458,8 +533,18 @@ export async function markAsLive(id: string): Promise<void> {
 export async function pauseVault(id: string): Promise<void> {
   const admin = await requireAdmin();
 
+  try {
+    await assertRateLimit(
+      `admin:vaults:${admin.userId}`,
+      VAULT_RATE_MAX,
+      VAULT_RATE_WINDOW_MS,
+    );
+  } catch {
+    throw new Error("Too many requests");
+  }
+
   const vault = await prisma.vaultDeployment.findUnique({ where: { id } });
-  if (!vault) throw new Error("VaultDeployment not found");
+  if (!vault) throw new Error("Not found");
 
   assertTransition(vault.status, "paused");
 
@@ -493,8 +578,18 @@ export async function pauseVault(id: string): Promise<void> {
 export async function resumeVault(id: string): Promise<void> {
   const admin = await requireAdmin();
 
+  try {
+    await assertRateLimit(
+      `admin:vaults:${admin.userId}`,
+      VAULT_RATE_MAX,
+      VAULT_RATE_WINDOW_MS,
+    );
+  } catch {
+    throw new Error("Too many requests");
+  }
+
   const vault = await prisma.vaultDeployment.findUnique({ where: { id } });
-  if (!vault) throw new Error("VaultDeployment not found");
+  if (!vault) throw new Error("Not found");
 
   assertTransition(vault.status, "live");
 
@@ -528,8 +623,18 @@ export async function resumeVault(id: string): Promise<void> {
 export async function closeVault(id: string): Promise<void> {
   const admin = await requireAdmin();
 
+  try {
+    await assertRateLimit(
+      `admin:vaults:${admin.userId}`,
+      VAULT_RATE_MAX,
+      VAULT_RATE_WINDOW_MS,
+    );
+  } catch {
+    throw new Error("Too many requests");
+  }
+
   const vault = await prisma.vaultDeployment.findUnique({ where: { id } });
-  if (!vault) throw new Error("VaultDeployment not found");
+  if (!vault) throw new Error("Not found");
 
   assertTransition(vault.status, "closed");
 

@@ -219,6 +219,7 @@ export async function listVaults(): Promise<VaultProduct[]> {
   try {
     const rows = await prisma.vaultDeployment.findMany({
       orderBy: { createdAt: "asc" },
+      take: 100,
     });
 
     if (rows.length === 0) return FIXTURE_VAULTS;

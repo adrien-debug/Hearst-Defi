@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { z } from "zod";
 
 import { requireAuth } from "@/lib/auth/require-auth";
-import { assertRateLimit } from "@/lib/rate-limit";
+import { assertRateLimit, assertBodySize } from "@/lib/rate-limit";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { runBacktest } from "@/lib/engine/backtest";
@@ -67,6 +67,16 @@ function jsonError(body: ErrorBody, status: number, extraHeaders?: HeadersInit):
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  // 0. Body size guard — prevent DoS via oversized payloads.
+  try {
+    await assertBodySize(req);
+  } catch (sizeErr) {
+    return jsonError(
+      { error: sizeErr instanceof Error ? sizeErr.message : "Request too large" },
+      413,
+    );
+  }
+
   // 1. Auth — 401 distinct from any other error path.
   let userId: string;
   try {

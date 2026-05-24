@@ -1,6 +1,12 @@
 import "server-only";
 
 import { prisma } from "@/lib/db";
+import {
+  clampPageSize,
+  toPrismaSkip,
+  toPaginatedResult,
+  type PaginatedResult,
+} from "@/lib/pagination";
 
 // ---------------------------------------------------------------------------
 // Customers supervision contract.
@@ -34,21 +40,31 @@ function normaliseKyc(status: string): KycStatus {
 }
 
 /**
- * Loads every investor with their auth user + positions for the admin
- * customers table. Never throws on empty data — returns `[]`.
+ * Loads investors with their auth user + positions for the admin customers
+ * table. Never throws on empty data — returns empty paginated result.
  *
  * Uses a manual batch join instead of Prisma's `include: { user }` to handle
  * orphaned Investor rows (userId references a deleted/missing User). Prisma
  * throws "Field user is required, got null" on those rows; fetching users
  * separately and filtering lets us skip orphans without crashing.
  */
-export async function loadCustomers(): Promise<CustomerRow[]> {
-  const investors = await prisma.investor.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      positions: { select: { status: true, principalUsdc: true } },
-    },
-  });
+export async function loadCustomers(
+  page: number = 1,
+  pageSize: number = 50,
+): Promise<PaginatedResult<CustomerRow>> {
+  const ps = clampPageSize(pageSize);
+
+  const [investors, total] = await Promise.all([
+    prisma.investor.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        positions: { select: { status: true, principalUsdc: true } },
+      },
+      skip: toPrismaSkip(page, ps),
+      take: ps,
+    }),
+    prisma.investor.count(),
+  ]);
 
   const userIds = investors.map((inv) => inv.userId).filter(Boolean);
   const users = await prisma.user.findMany({
@@ -57,11 +73,13 @@ export async function loadCustomers(): Promise<CustomerRow[]> {
   });
   const userById = new Map(users.map((u) => [u.id, u.email]));
 
-  return investors
+  const rows = investors
     .filter((inv) => {
       const known = userById.has(inv.userId);
       if (!known) {
-        console.warn(`[customers] orphaned Investor ${inv.id} — userId ${inv.userId} has no User row, skipping`);
+        console.warn(
+          `[customers] orphaned Investor ${inv.id} — userId ${inv.userId} has no User row, skipping`,
+        );
       }
       return known;
     })
@@ -86,4 +104,6 @@ export async function loadCustomers(): Promise<CustomerRow[]> {
         joinedAt: inv.createdAt,
       };
     });
+
+  return toPaginatedResult(rows, total, page, ps);
 }

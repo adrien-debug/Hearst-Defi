@@ -7,7 +7,7 @@ import { z } from "zod";
 import { kimi, KIMI_MODEL } from "@/lib/llm/kimi";
 import { env } from "@/lib/env";
 import { requireAuth } from "@/lib/auth/require-auth";
-import { assertRateLimit } from "@/lib/rate-limit";
+import { assertRateLimit, assertBodySize } from "@/lib/rate-limit";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import {
@@ -136,6 +136,7 @@ function createUserScopedPersistence(
         where: { chatId },
         orderBy: { createdAt: "asc" },
         select: { id: true, role: true, content: true, createdAt: true },
+        take: 200,
       });
       return rows
         .filter(
@@ -168,6 +169,18 @@ function createUserScopedPersistence(
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  // 0. Body size guard — prevent DoS via oversized payloads.
+  try {
+    await assertBodySize(req);
+  } catch (sizeErr) {
+    return new Response(
+      JSON.stringify({
+        error: sizeErr instanceof Error ? sizeErr.message : "Request too large",
+      }),
+      { status: 413, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
   // 1. Auth — failure here is a 401, distinct from handler failures below.
   let userId: string;
   try {

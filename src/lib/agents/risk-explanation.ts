@@ -127,7 +127,11 @@ function extractJson(raw: string): unknown {
   const trimmed = raw.trim();
   const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
   const candidate = fenced && fenced[1] !== undefined ? fenced[1] : trimmed;
-  return JSON.parse(candidate);
+  try {
+    return JSON.parse(candidate);
+  } catch {
+    throw new Error(`Invalid JSON in model response: ${candidate.slice(0, 200)}`);
+  }
 }
 
 export async function runRiskExplanation(

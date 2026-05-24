@@ -1,4 +1,5 @@
 // Stub for optional Solana/x402 peer deps not installed in this project.
+// This file is referenced by next.config.ts turbopack resolveAlias.
 const s: unknown = () => undefined;
 export default s;
 

@@ -9,7 +9,7 @@ import { getPresetInputs, runScenario } from "../src/lib/engine/scenario";
 import {
   MOCK_ATTESTOR_ADDRESS,
   signMockAttestation,
-} from "../src/lib/attestation";
+} from "../src/lib/attestation/mock";
 import type {
   BacktestKey,
   Preset,

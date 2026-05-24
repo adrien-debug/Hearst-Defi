@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { assertRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,6 +29,8 @@ export async function DELETE(
   }
 
   const { id } = await params;
+
+  await assertRateLimit(`cockpit-chats:delete:${userId}`, 20, 60_000);
 
   // Scope the delete to the owner — cascade removes the chat's messages.
   const { count } = await prisma.cockpitChat.deleteMany({

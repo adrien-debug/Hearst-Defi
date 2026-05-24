@@ -160,7 +160,7 @@ describe("rejectDeployment", () => {
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
-  it("Sanity — vault not found → throws 'VaultDeployment not found'", async () => {
+  it("Sanity — vault not found → throws 'Not found'", async () => {
     vi.mocked(requireAdmin).mockResolvedValue({
       userId: "user_a",
       walletAddress: SIGNER_A,
@@ -168,7 +168,7 @@ describe("rejectDeployment", () => {
     vi.mocked(prisma.vaultDeployment.findUnique).mockResolvedValue(null);
 
     await expect(rejectDeployment(VAULT_ID, "reason")).rejects.toThrow(
-      "VaultDeployment not found",
+      "Not found",
     );
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });

@@ -5,7 +5,12 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { recordAdminAudit } from "@/lib/admin/audit";
 import { runScenario, getPresetInputs } from "@/lib/engine/scenario";
 import { prisma } from "@/lib/db";
+import { assertRateLimit } from "@/lib/rate-limit";
 import type { ScenarioOutput } from "@/lib/engine/types";
+
+/** Admin projection actions rate limit: 10 requests / 60s / admin. */
+const PROJ_RATE_MAX = 10;
+const PROJ_RATE_WINDOW_MS = 60_000;
 
 // ─── Input schemas ────────────────────────────────────────────────────────────
 
@@ -111,6 +116,17 @@ export async function runProjectionStudy(input: {
   notes?: string;
 }): Promise<RunProjectionStudyResult> {
   const { userId, walletAddress } = await requireAdmin();
+
+  try {
+    await assertRateLimit(
+      `admin:projection:${userId}`,
+      PROJ_RATE_MAX,
+      PROJ_RATE_WINDOW_MS,
+    );
+  } catch {
+    throw new Error("Too many requests");
+  }
+
   const actor = walletAddress ?? userId;
 
   // Validate all inputs
@@ -220,6 +236,17 @@ export async function promoteStudyToDraft(
   ticker?: string,
 ): Promise<{ deploymentId: string }> {
   const { userId, walletAddress } = await requireAdmin();
+
+  try {
+    await assertRateLimit(
+      `admin:projection:${userId}`,
+      PROJ_RATE_MAX,
+      PROJ_RATE_WINDOW_MS,
+    );
+  } catch {
+    throw new Error("Too many requests");
+  }
+
   const actor = walletAddress ?? userId;
 
   const studyIdParsed = z.string().cuid().parse(studyId);
@@ -232,7 +259,12 @@ export async function promoteStudyToDraft(
     select: { id: true, scenarioRunIds: true, label: true },
   });
 
-  const runIds: string[] = JSON.parse(study.scenarioRunIds) as string[];
+  let runIds: string[];
+  try {
+    runIds = JSON.parse(study.scenarioRunIds ?? "[]") as string[];
+  } catch {
+    throw new Error("Invalid scenarioRunIds format");
+  }
   const firstRunId = runIds[0];
   if (!firstRunId) {
     throw new Error("Study has no associated ScenarioRun rows.");
@@ -243,7 +275,12 @@ export async function promoteStudyToDraft(
     select: { outputs: true, inputs: true },
   });
 
-  const outputs = JSON.parse(scenarioRun.outputs) as ScenarioOutput;
+  let outputs: ScenarioOutput;
+  try {
+    outputs = JSON.parse(scenarioRun.outputs ?? "{}") as ScenarioOutput;
+  } catch {
+    throw new Error("Invalid scenario outputs format");
+  }
 
   // Derive allocation targets (bps) from engine output
   const findAlloc = (bucket: string) =>

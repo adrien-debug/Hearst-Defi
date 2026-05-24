@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { assertRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,7 +32,7 @@ interface ChatSummary {
 }
 
 /** GET — list the authenticated user's conversations, most recent first. */
-export async function GET(): Promise<NextResponse> {
+export async function GET(_req: NextRequest): Promise<NextResponse> {
   let userId: string;
   try {
     ({ userId } = await requireAuth());
@@ -39,10 +40,13 @@ export async function GET(): Promise<NextResponse> {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
+  await assertRateLimit(`cockpit-chats:list:${userId}`, 60, 60_000);
+
   const rows = await prisma.cockpitChat.findMany({
     where: { userId },
     orderBy: { updatedAt: "desc" },
     select: { id: true, title: true, createdAt: true, updatedAt: true },
+    take: 100,
   });
 
   const chats: ChatSummary[] = rows.map((r) => ({
@@ -63,6 +67,8 @@ export async function DELETE(_req: NextRequest): Promise<NextResponse> {
   } catch {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
+
+  await assertRateLimit(`cockpit-chats:clear:${userId}`, 10, 60_000);
 
   // onDelete: Cascade on CockpitMessage.chat removes the messages too.
   const { count } = await prisma.cockpitChat.deleteMany({ where: { userId } });

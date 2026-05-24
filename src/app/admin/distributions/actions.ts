@@ -7,6 +7,11 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { recordAdminAudit } from "@/lib/admin/audit";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { assertRateLimit } from "@/lib/rate-limit";
+
+/** Admin distribution actions rate limit: 10 requests / 60s / admin. */
+const DIST_RATE_MAX = 10;
+const DIST_RATE_WINDOW_MS = 60_000;
 
 // ---------------------------------------------------------------------------
 // Schemas
@@ -52,21 +57,9 @@ export interface ComputeDistributionResult {
 
 const REQUIRED_SIGNERS = 2;
 
-// State key for multisig accumulation per period
-// We track pending confirmations in-memory (MVP: process restarts reset it —
-// acceptable for admin ops that complete within a single session).
-// Production: persist in a table row like DistributionApproval.
-//
-// Each entry stores:
-//   - signers: wallets that have signed so far
-//   - totalUsdc: the amount locked in by the FIRST signer (reference amount).
-//     Any subsequent signer submitting a different amount is REJECTED — the
-//     multisig must protect the amount, not just the count.
-interface PendingConfirmation {
-  signers: string[];
-  totalUsdc: number;
-}
-const pendingSigners = new Map<string, PendingConfirmation>();
+// Pending confirmations are now persisted in the DistributionApproval table
+// (replaced the in-memory Map). This survives server restarts and works
+// across multiple instances. See prisma/schema.prisma for the model.
 
 // ---------------------------------------------------------------------------
 // computeDistribution — pure dry-run, no DB writes
@@ -76,7 +69,17 @@ export async function computeDistribution(
   period: string,
   totalUsdc: number,
 ): Promise<ComputeDistributionResult> {
-  await requireAdmin();
+  const admin = await requireAdmin();
+
+  try {
+    await assertRateLimit(
+      `admin:distributions:${admin.userId}`,
+      DIST_RATE_MAX,
+      DIST_RATE_WINDOW_MS,
+    );
+  } catch {
+    throw new Error("Too many requests");
+  }
 
   const parsed = ComputeSchema.safeParse({ period, totalUsdc });
   if (!parsed.success) {
@@ -137,6 +140,16 @@ export async function confirmDistribution(
 ): Promise<{ confirmed: boolean; signersCount: number; required: number }> {
   const admin = await requireAdmin();
 
+  try {
+    await assertRateLimit(
+      `admin:distributions:${admin.userId}`,
+      DIST_RATE_MAX,
+      DIST_RATE_WINDOW_MS,
+    );
+  } catch {
+    throw new Error("Too many requests");
+  }
+
   const parsed = ConfirmSchema.safeParse({ period, signerWallet, totalUsdc });
   if (!parsed.success) {
     throw new Error(`Invalid input: ${parsed.error.message}`);
@@ -152,32 +165,43 @@ export async function confirmDistribution(
     );
   }
 
-  // Accumulate signer — amount is locked in by the first signer
-  const pending = pendingSigners.get(period);
+  // Accumulate signer — amount is locked in by the first signer.
+  // Persisted in DistributionApproval table for resilience across restarts.
+  const approvals = await prisma.distributionApproval.findMany({
+    where: { period },
+  });
 
-  if (pending === undefined) {
-    // First signer: initialise and lock in the reference amount
-    pendingSigners.set(period, { signers: [signerWallet], totalUsdc });
+  if (approvals.length === 0) {
+    // First signer: create approval and lock in the reference amount
+    await prisma.distributionApproval.create({
+      data: { period, signerWallet, totalUsdc },
+    });
   } else {
     // Subsequent signer: reject if the submitted amount differs from reference
-    if (totalUsdc !== pending.totalUsdc) {
+    const reference = approvals[0]!.totalUsdc;
+    if (totalUsdc !== reference.toNumber()) {
       throw new Error(
         `Distribution amount mismatch for period "${period}": ` +
-          `first signer approved $${pending.totalUsdc}, this signer submitted $${totalUsdc}. ` +
+          `first signer approved $${reference}, this signer submitted $${totalUsdc}. ` +
           `All signers must approve the same amount.`,
       );
     }
-    if (!pending.signers.includes(signerWallet)) {
-      pending.signers.push(signerWallet);
-    }
+    // Idempotent create — @@unique([period, signerWallet]) prevents duplicates
+    await prisma.distributionApproval
+      .create({
+        data: { period, signerWallet, totalUsdc: reference },
+      })
+      .catch(() => {
+        /* already approved by this signer, ignore */
+      });
   }
 
-  // Re-read from the map so the rest of the function always uses the reference amount
-  const confirmed = pendingSigners.get(period)!;
-  const signers = confirmed.signers;
-  const signersCount = signers.length;
-  // Use the locked-in reference amount, not the caller's argument
-  const lockedUsdc = confirmed.totalUsdc;
+  // Re-count approvals for this period
+  const signersCount = await prisma.distributionApproval.count({
+    where: { period },
+  });
+  // Use the locked-in reference amount from the first approval
+  const lockedUsdc = approvals[0]?.totalUsdc.toNumber() ?? totalUsdc;
 
   logger.info("[distributions] confirm partial", {
     period,
@@ -245,13 +269,13 @@ export async function confirmDistribution(
           period,
           totalUsdc: computed.totalUsdc,
           recipientsCount: computed.recipients.length,
-          signers: signers.slice(),
+          signersCount,
         },
       });
-    });
 
-    // Clear the pending signers for this period
-    pendingSigners.delete(period);
+      // Clear the pending approvals for this period
+      await tx.distributionApproval.deleteMany({ where: { period } });
+    });
 
     logger.info("[distributions] confirmed", {
       period,

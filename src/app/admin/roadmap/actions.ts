@@ -1,77 +1,92 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { safeUrl } from "@/lib/safe-url";
+import { assertRateLimit } from "@/lib/rate-limit";
 import type { RoadmapStatus } from "@/lib/roadmap-types";
+
+/** Admin roadmap actions rate limit: 30 requests / 60s / admin. */
+const ROADMAP_RATE_MAX = 30;
+const ROADMAP_RATE_WINDOW_MS = 60_000;
 
 // Field length caps (defensive — UI textareas are already bounded by these)
 const MAX_NOTES = 2000;
 const MAX_BLOCKERS = 1000;
 const MAX_VALIDATED_BY = 200;
 
-const VALID_STATUS: RoadmapStatus[] = [
-  "todo",
-  "in_progress",
-  "done",
-  "blocked",
-  "validated",
-];
+const StatusEnum = z.enum(["todo", "in_progress", "done", "blocked", "validated"]);
 
-function parseStatus(value: FormDataEntryValue | null): RoadmapStatus | null {
-  if (typeof value !== "string") return null;
-  return VALID_STATUS.includes(value as RoadmapStatus)
-    ? (value as RoadmapStatus)
-    : null;
-}
+const UpdateRoadmapSchema = z.object({
+  itemId: z.string().min(1).max(200),
+  status: StatusEnum,
+  evidenceUrl: z.string().max(2048).optional().nullable(),
+  notes: z.string().max(MAX_NOTES).optional().nullable(),
+  blockers: z.string().max(MAX_BLOCKERS).optional().nullable(),
+  validatedBy: z.string().max(MAX_VALIDATED_BY).optional().nullable(),
+});
 
-function asString(value: FormDataEntryValue | null): string | null {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
+const QuickSetStatusSchema = z.object({
+  itemId: z.string().min(1).max(200),
+  status: StatusEnum,
+});
+
+/**
+ * Validate and sanitize an evidence URL.
+ * Returns null for empty/invalid URLs, throws for malformed URLs.
+ */
+function validateEvidenceUrl(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) return null;
+  const lower = trimmed.toLowerCase();
+  if (!lower.startsWith("https://") && !lower.startsWith("http://")) {
+    throw new Error("Evidence URL must be a valid https:// or http:// URL.");
+  }
+  const safe = safeUrl(trimmed);
+  if (!safe) {
+    throw new Error("Evidence URL must be a valid https:// or http:// URL.");
+  }
+  return safe;
 }
 
 export async function updateRoadmapItem(formData: FormData): Promise<void> {
-  await requireAdmin();
+  const admin = await requireAdmin();
 
   try {
-    const itemId = asString(formData.get("itemId"));
-    if (!itemId) return;
+    await assertRateLimit(
+      `admin:roadmap:${admin.userId}`,
+      ROADMAP_RATE_MAX,
+      ROADMAP_RATE_WINDOW_MS,
+    );
+  } catch {
+    throw new Error("Too many requests");
+  }
 
-    const status = parseStatus(formData.get("status"));
-    if (!status) return;
+  try {
+    // Extract and validate all fields with Zod
+    const raw = Object.fromEntries(formData.entries());
+    const parsed = UpdateRoadmapSchema.safeParse({
+      itemId: raw.itemId,
+      status: raw.status,
+      evidenceUrl: raw.evidenceUrl ?? null,
+      notes: raw.notes ?? null,
+      blockers: raw.blockers ?? null,
+      validatedBy: raw.validatedBy ?? null,
+    });
 
-    // evidenceUrl: must be empty OR a safe http(s) URL
-    const rawEvidenceUrl = asString(formData.get("evidenceUrl"));
-    const evidenceUrl = rawEvidenceUrl !== null
-      ? (rawEvidenceUrl.toLowerCase().startsWith("https://") ||
-         rawEvidenceUrl.toLowerCase().startsWith("http://")
-          ? safeUrl(rawEvidenceUrl) || null
-          : null)
-      : null;
-    if (rawEvidenceUrl !== null && evidenceUrl === null) {
-      throw new Error("Evidence URL must be a valid https:// or http:// URL.");
+    if (!parsed.success) {
+      throw new Error(`Invalid input: ${parsed.error.message}`);
     }
 
-    // Length-bounded fields
-    const notes = asString(
-      typeof formData.get("notes") === "string"
-        ? (formData.get("notes") as string).slice(0, MAX_NOTES)
-        : formData.get("notes"),
-    );
-    const blockers = asString(
-      typeof formData.get("blockers") === "string"
-        ? (formData.get("blockers") as string).slice(0, MAX_BLOCKERS)
-        : formData.get("blockers"),
-    );
-    const validatedBy = asString(
-      typeof formData.get("validatedBy") === "string"
-        ? (formData.get("validatedBy") as string).slice(0, MAX_VALIDATED_BY)
-        : formData.get("validatedBy"),
-    );
+    const { itemId, status, evidenceUrl: rawEvidenceUrl, notes, blockers, validatedBy } = parsed.data;
+
+    // Validate evidence URL separately (needs safeUrl helper)
+    const evidenceUrl = validateEvidenceUrl(rawEvidenceUrl);
 
     const validatedAt =
       status === "validated"
@@ -112,24 +127,36 @@ export async function quickSetStatus(
   itemId: string,
   status: RoadmapStatus,
 ): Promise<void> {
-  await requireAdmin();
+  const admin = await requireAdmin();
 
   try {
-    // Validate the status against the known enum before touching the DB.
-    if (!VALID_STATUS.includes(status)) {
-      throw new Error(`Invalid roadmap status: ${String(status)}`);
+    await assertRateLimit(
+      `admin:roadmap:${admin.userId}`,
+      ROADMAP_RATE_MAX,
+      ROADMAP_RATE_WINDOW_MS,
+    );
+  } catch {
+    throw new Error("Too many requests");
+  }
+
+  try {
+    const parsed = QuickSetStatusSchema.safeParse({ itemId, status });
+    if (!parsed.success) {
+      throw new Error(`Invalid input: ${parsed.error.message}`);
     }
 
+    const { itemId: validItemId, status: validStatus } = parsed.data;
+
     await prisma.roadmapValidation.upsert({
-      where: { itemId },
+      where: { itemId: validItemId },
       create: {
-        itemId,
-        status,
-        validatedAt: status === "validated" ? new Date() : null,
+        itemId: validItemId,
+        status: validStatus,
+        validatedAt: validStatus === "validated" ? new Date() : null,
       },
       update: {
-        status,
-        validatedAt: status === "validated" ? new Date() : null,
+        status: validStatus,
+        validatedAt: validStatus === "validated" ? new Date() : null,
       },
     });
     revalidatePath("/admin/roadmap");

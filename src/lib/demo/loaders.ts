@@ -57,8 +57,15 @@ export function fetchHashprice() {
   return withDemoFallback(realFetchHashprice, DEMO_HASHPRICE);
 }
 
-export function getProofs() {
-  return withDemoFallback(realGetProofs, DEMO_PROOFS);
+export async function getProofs() {
+  const result = await withDemoFallback(realGetProofs, {
+    data: DEMO_PROOFS,
+    total: DEMO_PROOFS.length,
+    page: 1,
+    pageSize: DEMO_PROOFS.length,
+    hasMore: false,
+  });
+  return result.data;
 }
 
 export function loadPortfolio() {

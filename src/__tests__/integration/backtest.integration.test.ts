@@ -39,9 +39,11 @@ vi.mock("@/lib/auth/require-auth", () => ({
 }));
 
 const assertRateLimitMock = vi.fn();
+const assertBodySizeMock = vi.fn();
 vi.mock("@/lib/rate-limit", () => ({
   assertRateLimit: (id: string, max: number, windowMs: number) =>
     assertRateLimitMock(id, max, windowMs),
+  assertBodySize: () => assertBodySizeMock(),
 }));
 
 // Import AFTER mocks so the route picks them up.

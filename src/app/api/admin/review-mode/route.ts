@@ -4,9 +4,14 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { assertRateLimit, assertBodySize } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/** Admin routes are heavily rate-limited: 20 requests / 60s / admin. */
+const ADMIN_RATE_MAX = 20;
+const ADMIN_RATE_WINDOW_MS = 60_000;
 
 const BodySchema = z.object({
   mode: z.enum(["normal", "review"]),
@@ -28,6 +33,15 @@ export async function GET(): Promise<Response> {
     return unauthorized();
   }
 
+  try {
+    await assertRateLimit(`admin:review-mode:${userId}`, ADMIN_RATE_MAX, ADMIN_RATE_WINDOW_MS);
+  } catch {
+    return new Response(JSON.stringify({ error: "Too many requests" }), {
+      status: 429,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   const row = await prisma.adminChatMode.findUnique({
     where: { userId },
     select: { mode: true },
@@ -38,11 +52,32 @@ export async function GET(): Promise<Response> {
 
 /** Sets the chat mode (normal | review) for the authenticated admin. */
 export async function POST(req: NextRequest): Promise<Response> {
+  // 0. Body size guard — prevent DoS via oversized payloads.
+  try {
+    await assertBodySize(req);
+  } catch (sizeErr) {
+    return new Response(
+      JSON.stringify({
+        error: sizeErr instanceof Error ? sizeErr.message : "Request too large",
+      }),
+      { status: 413, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
   let userId: string;
   try {
     ({ userId } = await requireAdmin());
   } catch {
     return unauthorized();
+  }
+
+  try {
+    await assertRateLimit(`admin:review-mode:${userId}`, ADMIN_RATE_MAX, ADMIN_RATE_WINDOW_MS);
+  } catch {
+    return new Response(JSON.stringify({ error: "Too many requests" }), {
+      status: 429,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   let body: z.infer<typeof BodySchema>;

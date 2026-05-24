@@ -70,21 +70,21 @@ export async function subscribe(
     select: { id: true },
   });
 
+  // Atomic: position + transaction are created in a single implicit transaction
+  // via Prisma nested write. If either fails, neither is persisted.
   const position = await prisma.position.create({
     data: {
       investorId: investor.id,
       vaultDeploymentId: deployment?.id ?? null,
       principalUsdc: amountUsdc,
       status: "active",
-    },
-  });
-
-  await prisma.investorTransaction.create({
-    data: {
-      investorId: investor.id,
-      positionId: position.id,
-      type: "deposit",
-      amountUsdc,
+      transactions: {
+        create: {
+          investorId: investor.id,
+          type: "deposit",
+          amountUsdc,
+        },
+      },
     },
   });
 

@@ -47,7 +47,7 @@ const SERVICE = "hearst-connect";
 
 const LEVEL_RANK: Record<LogLevel, number> = { debug: 0, info: 1, warn: 2, error: 3 };
 
-function hashId(id: string): string {
+export function hashId(id: string): string {
   return createHash("sha256").update(id).digest("hex").slice(0, 8);
 }
 

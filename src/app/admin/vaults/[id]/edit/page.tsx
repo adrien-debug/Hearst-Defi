@@ -25,7 +25,12 @@ export default async function EditVaultPage({ params }: PageProps) {
   }
 
   // Map DB row → FormState for pre-population
-  const stored = JSON.parse(vault.signersWhitelist) as string[];
+  let stored: string[];
+  try {
+    stored = JSON.parse(vault.signersWhitelist ?? "[]") as string[];
+  } catch {
+    stored = [];
+  }
   const signersWhitelist =
     stored.length >= 2 ? stored : [...stored, ...Array(2 - stored.length).fill("")];
 

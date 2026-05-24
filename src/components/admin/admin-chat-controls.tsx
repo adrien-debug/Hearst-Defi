@@ -21,6 +21,28 @@ function useHydrated(): boolean {
   );
 }
 
+/* ── Rail open state (from @hearst/cockpit-shell) ───────────────────────── */
+
+const RAIL_LS_KEY = "cockpit:rail-right-open";
+
+function getRailOpenSnapshot(): boolean {
+  if (typeof window === "undefined") return true;
+  const s = window.localStorage.getItem(RAIL_LS_KEY);
+  return s === null ? true : s === "1";
+}
+
+function getRailOpenServerSnapshot(): boolean {
+  return true;
+}
+
+function subscribeRailOpen(cb: () => void): () => void {
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === RAIL_LS_KEY) cb();
+  };
+  window.addEventListener("storage", onStorage);
+  return () => window.removeEventListener("storage", onStorage);
+}
+
 /**
  * Mode selector for the Cockpit chat (Normal / Review), mounted GLOBALLY in the
  * product shell (AppChrome) so it is available on every product page — not just
@@ -42,6 +64,12 @@ export function AdminChatControls() {
   const [error, setError] = useState<string | null>(null);
   const [doc, setDoc] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
+
+  const railOpen = useSyncExternalStore(
+    subscribeRailOpen,
+    getRailOpenSnapshot,
+    getRailOpenServerSnapshot,
+  );
 
   // Resolve admin status + current mode in one call. The route is
   // requireAdmin-gated: 200 → admin (use the returned mode); anything else
@@ -142,16 +170,17 @@ export function AdminChatControls() {
   }, [doc]);
 
   const hydrated = useHydrated();
-  // Hidden until hydrated, portal ready, and admin status resolved.
-  if (!hydrated || !portalEl || mode === null) return null;
+  // Hidden until hydrated, portal ready, admin status resolved, and rail is open.
+  if (!hydrated || !portalEl || mode === null || !railOpen) return null;
 
   return createPortal(
     <>
       {/* Anchored to the TOP of the right rail (chat), under its header.
           Width tracks --ct-rail-right-eff (420px open / 48px collapsed); the
-          top offset clears the rail header ("Assistant" + product name). */}
+          top offset clears the rail header ("Assistant" + product name).
+          No backdrop-blur — the bar sits flush inside the rail, not floating. */}
       <div
-        className="fixed right-0 top-[60px] z-[var(--ct-z-popover)] flex w-[var(--ct-rail-right-eff,420px)] items-center gap-2 border-b border-[var(--ct-border-soft)] bg-[var(--ct-surface-1)]/80 px-4 py-2 backdrop-blur-xl"
+        className="fixed right-0 top-[60px] z-[var(--ct-z-popover)] flex w-[var(--ct-rail-right-eff,420px)] items-center gap-2 border-b border-[var(--ct-border-soft)] bg-[var(--ct-surface-1)] px-4 py-2"
         role="toolbar"
         aria-label="Mode du chat"
       >

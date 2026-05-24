@@ -15,7 +15,7 @@ import {
 } from "@/lib/auth/session";
 import { safeFrom } from "@/lib/safe-redirect";
 import { assertRateLimit } from "@/lib/rate-limit";
-import { logger } from "@/lib/logger";
+import { logger, hashId } from "@/lib/logger";
 
 /**
  * Database email/password authentication actions.
@@ -92,12 +92,30 @@ export async function login(
   input: FormData | { email?: string; password?: string },
   from?: string,
 ): Promise<LoginResult> {
+  const ip = await clientIp();
+  const emailRaw = input instanceof FormData
+    ? input.get("email")
+    : input.email;
+  const emailKey = typeof emailRaw === "string"
+    ? emailRaw.trim().toLowerCase()
+    : "";
+
   // Rate-limit by IP: 10 attempts / minute. Throttling here blunts both
   // credential-stuffing and enumeration probing.
   try {
-    await assertRateLimit(`login:${await clientIp()}`, 10, 60_000);
+    await assertRateLimit(`login:${ip}`, 10, 60_000);
   } catch {
     return { ok: false, error: "Too many attempts. Please try again shortly." };
+  }
+
+  // Defence-in-depth: also rate-limit by email to prevent distributed
+  // attacks from bypassing the IP-based limit via proxy rotation.
+  if (emailKey) {
+    try {
+      await assertRateLimit(`login-email:${emailKey}`, 5, 900_000); // 5 per 15min
+    } catch {
+      return { ok: false, error: "Too many attempts. Please try again shortly." };
+    }
   }
 
   const parsed = loginSchema.safeParse(readLoginInput(input));
@@ -121,7 +139,7 @@ export async function login(
     : await verifyPassword(DUMMY_HASH, password);
 
   if (!user || !ok) {
-    logger.warn("login failed", { email });
+    logger.warn("login failed", { emailHash: hashId(email) });
     return { ok: false, error: INVALID_CREDENTIALS };
   }
 

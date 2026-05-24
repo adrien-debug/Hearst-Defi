@@ -52,7 +52,12 @@ export default async function VaultDetailPage({ params }: PageProps) {
   const apyLow = Number(vault.targetApyLowBps) / 100;
   const apyHigh = Number(vault.targetApyHighBps) / 100;
 
-  const whitelist: string[] = JSON.parse(vault.signersWhitelist) as string[];
+  let whitelist: string[];
+  try {
+    whitelist = JSON.parse(vault.signersWhitelist ?? "[]") as string[];
+  } catch {
+    whitelist = [];
+  }
   const actorWallet = admin.walletAddress ?? admin.userId;
   const alreadySigned = vault.approvals.some((a) => a.signerWallet === actorWallet);
   const approveCount = vault.approvals.filter((a) => a.decision === "approve").length;

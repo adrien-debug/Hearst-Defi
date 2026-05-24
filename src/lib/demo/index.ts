@@ -28,7 +28,10 @@ const COOKIE_NAME = "hearst-demo-mode";
  * checker complain at build time before that happens).
  */
 export async function isDemoMode(): Promise<boolean> {
-  if (process.env.DEMO_MODE_DEFAULT === "1") return true;
+  // Defence-in-depth: the cookie-based demo mode is ONLY honoured when the
+  // env var explicitly enables it. In production (DEMO_MODE_DEFAULT !== "1"),
+  // a malicious user cannot force demo mode by setting the cookie.
+  if (process.env.DEMO_MODE_DEFAULT !== "1") return false;
   const cookieStore = await cookies();
   return cookieStore.get(COOKIE_NAME)?.value === "1";
 }

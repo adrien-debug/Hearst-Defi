@@ -7,6 +7,11 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { assertRateLimit } from "@/lib/rate-limit";
+
+/** Admin proof actions rate limit: 20 requests / 60s / admin. */
+const PROOF_RATE_MAX = 20;
+const PROOF_RATE_WINDOW_MS = 60_000;
 
 // ----------------------------------------------------------------------------
 // Schema
@@ -81,6 +86,16 @@ export async function ingestProof(
 ): Promise<ProofIngestResult> {
   const admin = await requireAdmin();
 
+  try {
+    await assertRateLimit(
+      `admin:proofs:${admin.userId}`,
+      PROOF_RATE_MAX,
+      PROOF_RATE_WINDOW_MS,
+    );
+  } catch {
+    return { ok: false, issues: [{ code: "custom", path: ["rateLimit"], message: "Too many requests" }] };
+  }
+
   const parsed = ProofIngestSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, issues: parsed.error.issues };
@@ -119,7 +134,17 @@ export async function ingestProof(
  * Admin-gated Server Action: hard-delete a Proof row by id.
  */
 export async function deleteProof(id: string): Promise<{ ok: true }> {
-  await requireAdmin();
+  const admin = await requireAdmin();
+
+  try {
+    await assertRateLimit(
+      `admin:proofs:${admin.userId}`,
+      PROOF_RATE_MAX,
+      PROOF_RATE_WINDOW_MS,
+    );
+  } catch {
+    throw new Error("Too many requests");
+  }
 
   try {
     await prisma.proof.delete({ where: { id } });

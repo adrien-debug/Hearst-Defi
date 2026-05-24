@@ -45,8 +45,17 @@ function truncateWallet(wallet: string | null): string {
   return `${wallet.slice(0, 6)}…${wallet.slice(-4)}`;
 }
 
-export default async function CustomersPage() {
-  const customers = await loadCustomers();
+export default async function CustomersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; pageSize?: string }>;
+}) {
+  const { page: rawPage, pageSize: rawPageSize } = await searchParams;
+  const page = Math.max(1, Number(rawPage ?? 1));
+  const pageSize = Math.min(Math.max(Number(rawPageSize ?? 50), 1), 100);
+
+  const result = await loadCustomers(page, pageSize);
+  const { data: customers, total, hasMore } = result;
 
   return (
     <div className="space-y-8">
@@ -57,7 +66,7 @@ export default async function CustomersPage() {
       </p>
 
       <section className="space-y-3" aria-label="Investors">
-        <h3 className="stat-label">Investors ({customers.length})</h3>
+        <h3 className="stat-label">Investors ({total})</h3>
 
         {customers.length === 0 ? (
           <Card className="p-8">
@@ -115,6 +124,33 @@ export default async function CustomersPage() {
               </tbody>
             </table>
           </Card>
+        )}
+
+        {/* Pagination controls */}
+        {total > 0 && (
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-xs ct-text-muted">
+              Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} of {total}
+            </p>
+            <div className="flex gap-2">
+              {page > 1 && (
+                <a
+                  href={`/admin/customers?page=${page - 1}&pageSize=${pageSize}`}
+                  className="rounded-[var(--ct-radius-md)] border border-[var(--ct-border-soft)] px-3 py-1.5 text-xs ct-text-muted hover:ct-text-strong transition-colors"
+                >
+                  Previous
+                </a>
+              )}
+              {hasMore && (
+                <a
+                  href={`/admin/customers?page=${page + 1}&pageSize=${pageSize}`}
+                  className="rounded-[var(--ct-radius-md)] border border-[var(--ct-border-soft)] px-3 py-1.5 text-xs ct-text-muted hover:ct-text-strong transition-colors"
+                >
+                  Next
+                </a>
+              )}
+            </div>
+          </div>
         )}
       </section>
     </div>

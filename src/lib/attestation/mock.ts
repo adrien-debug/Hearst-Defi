@@ -1,10 +1,11 @@
 import { keccak256, stringToHex } from "viem";
 
 import { attestorAddress, signAttestation } from "./sign";
+import { MOCK_ATTESTOR_PRIVATE_KEY } from "./__mocks__/mock-key";
 import type { MiningAttestationPayload, SignedAttestation } from "./types";
 
 /** Address that signs every mock attestation (derived from the Anvil test key). */
-export const MOCK_ATTESTOR_ADDRESS = attestorAddress();
+export const MOCK_ATTESTOR_ADDRESS = attestorAddress(MOCK_ATTESTOR_PRIVATE_KEY);
 
 const PARTNER = "Cathedra Mining (Texas)";
 const DAYS_PER_PERIOD = 30;
@@ -81,7 +82,7 @@ export function signMockAttestation(
   overrides: Partial<MiningAttestationPayload> = {},
   at?: Date,
 ): Promise<SignedAttestation> {
-  return signAttestation(buildMockAttestation(period, overrides), undefined, {
+  return signAttestation(buildMockAttestation(period, overrides), MOCK_ATTESTOR_PRIVATE_KEY, {
     at: at ?? new Date(`${period}-05T09:00:00Z`),
   });
 }

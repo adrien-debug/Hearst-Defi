@@ -21,6 +21,7 @@ vi.mock("@/lib/db", () => ({
   prisma: {
     session: {
       findUnique: vi.fn(),
+      update: vi.fn().mockResolvedValue({}),
       delete: vi.fn(),
     },
   },

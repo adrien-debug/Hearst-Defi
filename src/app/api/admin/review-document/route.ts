@@ -1,7 +1,9 @@
+import type { NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/db";
 import { kimi, KIMI_MODEL } from "@/lib/llm/kimi";
 import { logger } from "@/lib/logger";
+import { assertRateLimit, assertBodySize } from "@/lib/rate-limit";
 import { getProductRoutes } from "@/lib/product-routes";
 import { getSpecIndex } from "@/lib/spec";
 import { REVIEW_DOCUMENT_INSTRUCTIONS } from "@/lib/agents/system-prompts/review";
@@ -12,6 +14,10 @@ export const dynamic = "force-dynamic";
 // Document review runs on the single Kimi K2.6 model.
 const DOCUMENT_MODEL = KIMI_MODEL;
 const GENERATION_TIMEOUT_MS = 60_000;
+
+/** Admin routes are heavily rate-limited: 5 requests / 60s / admin. */
+const ADMIN_RATE_MAX = 5;
+const ADMIN_RATE_WINDOW_MS = 60_000;
 
 function unauthorized(): Response {
   return new Response(JSON.stringify({ error: "Admin access required" }), {
@@ -29,6 +35,15 @@ export async function GET(): Promise<Response> {
     return unauthorized();
   }
 
+  try {
+    await assertRateLimit(`admin:review-doc:${userId}`, ADMIN_RATE_MAX, ADMIN_RATE_WINDOW_MS);
+  } catch {
+    return new Response(JSON.stringify({ error: "Too many requests" }), {
+      status: 429,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   const doc = await prisma.reviewDocument.findFirst({
     where: { userId },
     orderBy: { createdAt: "desc" },
@@ -42,12 +57,33 @@ export async function GET(): Promise<Response> {
  * Distils the admin's most recent cockpit conversation into a structured
  * "suggested modifications" Markdown document, persists it, and returns it.
  */
-export async function POST(): Promise<Response> {
+export async function POST(req: NextRequest): Promise<Response> {
+  // 0. Body size guard — prevent DoS via oversized payloads.
+  try {
+    await assertBodySize(req);
+  } catch (sizeErr) {
+    return new Response(
+      JSON.stringify({
+        error: sizeErr instanceof Error ? sizeErr.message : "Request too large",
+      }),
+      { status: 413, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
   let userId: string;
   try {
     ({ userId } = await requireAdmin());
   } catch {
     return unauthorized();
+  }
+
+  try {
+    await assertRateLimit(`admin:review-doc:${userId}`, ADMIN_RATE_MAX, ADMIN_RATE_WINDOW_MS);
+  } catch {
+    return new Response(JSON.stringify({ error: "Too many requests" }), {
+      status: 429,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   // Most recent conversation for this admin = the active review session.
@@ -68,6 +104,7 @@ export async function POST(): Promise<Response> {
     where: { chatId: chat.id, role: { in: ["user", "assistant"] } },
     orderBy: { createdAt: "asc" },
     select: { role: true, content: true },
+    take: 200,
   });
 
   if (messages.length === 0) {

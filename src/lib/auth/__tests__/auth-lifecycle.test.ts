@@ -24,10 +24,12 @@ vi.mock("@/lib/db", () => ({
     session: {
       create: vi.fn(),
       findUnique: vi.fn(),
+      update: vi.fn().mockResolvedValue({}),
       delete: vi.fn(),
     },
     investor: {
       findUnique: vi.fn(),
+      update: vi.fn().mockResolvedValue({}),
     },
   },
 }));

@@ -1,9 +1,32 @@
 import "server-only";
 
+import type { NextRequest } from "next/server";
 import { Redis } from "@upstash/redis";
 
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
+
+/** Maximum request body size for API routes (1 MB). */
+export const MAX_BODY_SIZE_BYTES = 1024 * 1024;
+
+/**
+ * Assert that the request body is within the size limit.
+ * Call this BEFORE `req.json()` to prevent memory exhaustion from oversized payloads.
+ * Throws a clear error if the Content-Length header exceeds the limit.
+ */
+export async function assertBodySize(req: NextRequest): Promise<void> {
+  const contentLength = req.headers.get("content-length");
+  if (contentLength) {
+    const size = parseInt(contentLength, 10);
+    if (!Number.isNaN(size) && size > MAX_BODY_SIZE_BYTES) {
+      throw new Error(
+        `Request body too large. Max ${MAX_BODY_SIZE_BYTES} bytes (${MAX_BODY_SIZE_BYTES / 1024 / 1024} MB).`,
+      );
+    }
+  }
+  // If no Content-Length is present, we proceed and let req.json() handle it.
+  // Vercel has its own ~4.5MB limit at the infrastructure level.
+}
 
 /**
  * Sliding-window rate limiter.
@@ -34,7 +57,8 @@ function nowMs(): number {
 
 let redis: Redis | null = null;
 
-function getRedis(): Redis | null {
+/** Exported for health-check usage. Returns null when Redis is not configured. */
+export function getRedis(): Redis | null {
   if (redis) return redis;
   if (env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN) {
     redis = new Redis({

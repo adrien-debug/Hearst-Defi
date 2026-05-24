@@ -140,6 +140,7 @@ export async function loadPortfolio(): Promise<PortfolioData> {
       where: { investorId: investor.id },
       include: { vaultDeployment: true },
       orderBy: { subscribedAt: "desc" },
+      take: 100,
     }),
     prisma.investorTransaction.findMany({
       where: {
@@ -148,6 +149,7 @@ export async function loadPortfolio(): Promise<PortfolioData> {
         occurredAt: { gte: ytdStart },
       },
       select: { amountUsdc: true },
+      take: 100,
     }),
     prisma.investorTransaction.findMany({
       where: { investorId: investor.id },

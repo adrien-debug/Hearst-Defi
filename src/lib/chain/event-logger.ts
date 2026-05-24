@@ -101,7 +101,7 @@ export async function fetchOnChainEvents(
 
     return events.slice(0, limit);
   } catch (err) {
-    console.warn("[chain/event-logger] fetchOnChainEvents failed:", err);
+    console.warn("[chain/event-logger] fetchOnChainEvents failed:", err instanceof Error ? err.message : String(err));
     return [];
   }
 }

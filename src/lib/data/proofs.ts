@@ -3,6 +3,12 @@ import "server-only";
 import { verifyStoredAttestation } from "@/lib/attestation";
 import { prisma } from "@/lib/db";
 import type { ProofItem, ProofType } from "@/lib/mock/proof-center";
+import {
+  clampPageSize,
+  toPrismaSkip,
+  toPaginatedResult,
+  type PaginatedResult,
+} from "@/lib/pagination";
 
 const PROOF_TYPES: ReadonlySet<string> = new Set<ProofType>([
   "mining_attestation",
@@ -39,10 +45,20 @@ function deriveTitle(proofType: ProofType, period: string | null): string {
  * Rows with an unknown `proofType` are skipped rather than rendered with a
  * broken filter taxonomy.
  */
-export async function getProofs(): Promise<ProofItem[]> {
-  const rows = await prisma.proof.findMany({
-    orderBy: { postedAt: "desc" },
-  });
+export async function getProofs(
+  page: number = 1,
+  pageSize: number = 50,
+): Promise<PaginatedResult<ProofItem>> {
+  const ps = clampPageSize(pageSize);
+
+  const [rows, total] = await Promise.all([
+    prisma.proof.findMany({
+      orderBy: { postedAt: "desc" },
+      skip: toPrismaSkip(page, ps),
+      take: ps,
+    }),
+    prisma.proof.count(),
+  ]);
 
   const items = await Promise.all(
     rows.map(async (row): Promise<ProofItem | null> => {
@@ -71,5 +87,6 @@ export async function getProofs(): Promise<ProofItem[]> {
     }),
   );
 
-  return items.filter((item): item is ProofItem => item !== null);
+  const data = items.filter((item): item is ProofItem => item !== null);
+  return toPaginatedResult(data, total, page, ps);
 }

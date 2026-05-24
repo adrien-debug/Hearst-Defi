@@ -6,7 +6,8 @@ import {
   MOCK_ATTESTOR_ADDRESS,
   signMockAttestation,
 } from "../mock";
-import { attestorAddress, signAttestation, MOCK_ATTESTOR_PRIVATE_KEY } from "../sign";
+import { attestorAddress, signAttestation } from "../sign";
+import { MOCK_ATTESTOR_PRIVATE_KEY } from "../__mocks__/mock-key";
 import type { MiningAttestationPayload } from "../types";
 import { verifyAttestation } from "../verify";
 
