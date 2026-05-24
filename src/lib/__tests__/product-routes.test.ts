@@ -35,6 +35,7 @@ const EXPECTED_ROUTES = [
   "/admin/vaults/[id]/edit",
   "/admin/vaults/new",
   "/debug/module-layout",
+  "/debug/portfolio-full",
   "/legal",
   "/legal/disclaimer",
   "/legal/privacy",

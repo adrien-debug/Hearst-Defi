@@ -1,0 +1,38 @@
+import type { PortfolioData } from "@/lib/data/portfolio";
+import { formatUsdCompact } from "@/lib/format/usd-compact";
+
+function relativeTime(date: Date, asOf: Date): string {
+  const days = Math.floor((asOf.getTime() - date.getTime()) / 86_400_000);
+  if (days < 1) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 30) return `${days} days ago`;
+  const months = Math.floor(days / 30);
+  return months === 1 ? "1 month ago" : `${months} months ago`;
+}
+
+interface PortfolioGreetingProps {
+  name: string;
+  data: PortfolioData;
+}
+
+export function PortfolioGreeting({ name, data }: PortfolioGreetingProps) {
+  const count = data.positions.length;
+  const asOf = new Date("2026-05-20T09:00:00Z");
+  const last = data.recentTransactions[0];
+
+  const recap =
+    count === 0
+      ? "No active positions yet — subscribe to a vault to get started."
+      : `${count} active position${count > 1 ? "s" : ""} · ${formatUsdCompact(
+          data.totalValueUsdc,
+        )} deployed${last ? ` · last activity ${relativeTime(last.occurredAt, asOf)}` : ""}`;
+
+  return (
+    <div className="pf-greeting-debug">
+      <h1 className="pf-greeting-title-debug">
+        Welcome back, <span className="pf-greeting-name-debug">{name}</span>
+      </h1>
+      <p className="pf-greeting-recap-debug">{recap}</p>
+    </div>
+  );
+}

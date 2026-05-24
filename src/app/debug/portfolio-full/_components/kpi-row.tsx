@@ -1,0 +1,87 @@
+import type { PortfolioData } from "@/lib/data/portfolio";
+import { cn } from "@/lib/cn";
+import { formatUsdCompact } from "@/lib/format/usd-compact";
+
+import { ProvenanceBadge, type Provenance } from "./provenance-badge";
+
+const monthDayFmt = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
+
+interface KpiRowProps {
+  data: PortfolioData;
+}
+
+export function PortfolioKpiRow({ data }: KpiRowProps) {
+  const valueProvenance: Provenance =
+    data.source === "fallback" ? "stale" : "live";
+  const yieldProvenance: Provenance =
+    data.source === "fallback" ? "stale" : "estimated";
+  const distProvenance: Provenance =
+    data.source === "fallback" ? "stale" : "estimated";
+
+  const hasPositions = data.positions.length > 0;
+
+  return (
+    <div className="pf-kpi-grid-debug">
+      <article className="dash-cell" aria-label="Portfolio value">
+        <div className="dash-label">
+          <span>Portfolio Value</span>
+          <ProvenanceBadge kind={valueProvenance} />
+        </div>
+        <div className="dash-value-group">
+          <span className="dash-value">
+            {hasPositions ? formatUsdCompact(data.totalValueUsdc) : "—"}
+          </span>
+          <span className="dash-unit">USDC</span>
+        </div>
+        {hasPositions && data.pnl ? (
+          <p
+            className={cn(
+              "body-xs mt-2 tabular",
+              data.pnl.netReturnPct >= 0
+                ? "ct-status-success"
+                : "ct-status-danger",
+            )}
+          >
+            {data.pnl.netReturnPct >= 0 ? "+" : ""}
+            {data.pnl.netReturnPct.toFixed(1)}% net return
+          </p>
+        ) : null}
+      </article>
+
+      <article className="dash-cell" aria-label="Yield year to date">
+        <div className="dash-label">
+          <span>Yield YTD</span>
+          <ProvenanceBadge kind={yieldProvenance} />
+        </div>
+        <div className="dash-value-group">
+          <span className="dash-value">
+            {hasPositions ? formatUsdCompact(data.totalYieldYtdUsdc) : "—"}
+          </span>
+          <span className="dash-unit">USDC</span>
+        </div>
+        <p className="body-xs ct-text-muted mt-2 italic">
+          Accrued + distributed. Not projected forward.
+        </p>
+      </article>
+
+      <article className="dash-cell" aria-label="Next distribution date">
+        <div className="dash-label">
+          <span>Next Distribution</span>
+          <ProvenanceBadge kind={distProvenance} />
+        </div>
+        <div className="dash-value-group">
+          <span className="dash-value-range stat-value tabular">
+            {monthDayFmt.format(data.nextDistributionAt)}
+          </span>
+        </div>
+        <p className="body-xs ct-text-muted mt-2">
+          Monthly cadence · Day 1, T+5
+        </p>
+      </article>
+    </div>
+  );
+}
