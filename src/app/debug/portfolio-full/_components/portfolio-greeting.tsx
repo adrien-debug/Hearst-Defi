@@ -22,17 +22,17 @@ export function PortfolioGreeting({ name, data }: PortfolioGreetingProps) {
 
   const recap =
     count === 0
-      ? "No active positions yet — subscribe to a vault to get started."
+      ? "No active positions yet"
       : `${count} active position${count > 1 ? "s" : ""} · ${formatUsdCompact(
           data.totalValueUsdc,
         )} deployed${last ? ` · last activity ${relativeTime(last.occurredAt, asOf)}` : ""}`;
 
   return (
-    <div className="pf-greeting-debug">
-      <h1 className="pf-greeting-title-debug">
-        Welcome back, <span className="pf-greeting-name-debug">{name}</span>
+    <div className="flex flex-col gap-1.5 mb-2 mt-4">
+      <h1 className="text-2xl font-light text-[var(--ct-text-primary)] tracking-tight leading-tight m-0">
+        Welcome back, <span className="font-medium text-[var(--ct-text-strong)]">{name}</span>
       </h1>
-      <p className="pf-greeting-recap-debug">{recap}</p>
+      <p className="text-[11px] text-[var(--ct-text-muted)] font-mono m-0 opacity-80 uppercase tracking-widest">{recap}</p>
     </div>
   );
 }

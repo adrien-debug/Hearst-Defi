@@ -40,25 +40,57 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
   const asOf = new Date();
   const series = buildMonthSeries(positions, totalValueUsdc, asOf);
 
+  // Sparkline coordinates math
+  const minVal = Math.min(...series.map((s) => s.value));
+  const maxVal = Math.max(...series.map((s) => s.value));
+  const range = maxVal - minVal || 1;
+  const points = series.map((s, i) => {
+    const x = (i / (series.length - 1)) * 100;
+    // Laisser un peu de padding en haut (5px)
+    const y = 35 - ((s.value - minVal) / range) * 30;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  const pathD = `M ${points.join(" L ")}`;
+  const areaD = `M 0,40 L ${points.join(" L ")} L 100,40 Z`;
+
   return (
-    <article className="dash-cell" aria-label="Portfolio value — 12-month trend">
-      <div className="dash-label">
+    <article className="bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] rounded-sm p-6 flex flex-col relative flex-1 h-full min-h-[200px]" aria-label="Portfolio value — 12-month trend">
+      <div className="flex justify-between items-center text-[10px] font-medium text-[var(--ct-text-muted)] tracking-widest uppercase mb-6">
         <span>Portfolio value · 12-month trend</span>
-        <span className="dash-label-meta">
+        <div className="flex items-center gap-2">
           <ProvenanceBadge kind={provenance} />
-          <span className="dash-trend flat">
-            {totalValueUsdc > 0 ? formatUsdCompact(totalValueUsdc) : "—"}
+          <span className="font-mono text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded-[0.125rem] bg-[var(--ct-surface-2)] text-[var(--ct-text-primary)]">
+            {totalValueUsdc > 0 ? formatUsdCompact(totalValueUsdc) : <span className="opacity-30">—</span>}
           </span>
-        </span>
+        </div>
       </div>
 
       <div
-        className="mt-3 block w-full rounded-[var(--ct-radius-md)] bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)]"
-        style={{ minHeight: "5rem", maxHeight: "9rem", height: "120px" }}
+        className="mt-3 w-full rounded-md bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] relative overflow-hidden flex items-end"
+        style={{ height: "140px" }}
         aria-hidden="true"
-      />
+      >
+        <svg className="w-full h-[90%] text-[var(--ct-accent)]" viewBox="0 0 100 40" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="spark-gradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="currentColor" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path d={areaD} fill="url(#spark-gradient)" />
+          <path
+            d={pathD}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
+      </div>
 
-      <div className="stat-label ct-text-muted flex justify-between mt-1 mono">
+      <div className="flex justify-between mt-2 text-xs text-[var(--ct-text-muted)] font-mono">
         {series
           .filter((_, i) => i % 3 === 0 || i === series.length - 1)
           .map((s, i) => (
@@ -66,7 +98,7 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
           ))}
       </div>
 
-      <p className="body-xs ct-text-muted mt-2 italic">
+      <p className="text-xs text-[var(--ct-text-muted)] mt-auto pt-4 italic">
         Indicative trend based on position history. Past performance does not predict future results.
       </p>
     </article>

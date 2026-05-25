@@ -30,7 +30,7 @@ function relativeTime(date: Date, asOf: Date): string {
 function TxIcon({ type }: { type: string }) {
   const colorClass =
     type === "deposit"
-      ? "bg-[var(--ct-status-success)]"
+      ? "bg-[var(--ct-accent)]"
       : type === "distribution"
         ? "bg-[var(--ct-accent-strong)]"
         : type === "withdraw"
@@ -40,7 +40,7 @@ function TxIcon({ type }: { type: string }) {
   return (
     <span
       aria-hidden="true"
-      className={`inline-block w-4 h-4 rounded-sm shrink-0 ${colorClass}`}
+      className={`inline-block w-3 h-3 rounded-[0.125rem] shrink-0 ${colorClass}`}
     />
   );
 }
@@ -56,44 +56,46 @@ export function RecentActivity({ transactions, source }: RecentActivityProps) {
   const displayed = transactions.slice(0, 5);
 
   return (
-    <article className="dash-cell" aria-label="Recent account activity">
-      <div className="dash-label">
+    <article className="bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] rounded-sm p-6 flex flex-col relative flex-1 h-full min-h-[200px] overflow-hidden" aria-label="Recent account activity">
+      <div className="flex justify-between items-center text-[10px] font-medium text-[var(--ct-text-muted)] tracking-widest uppercase mb-6 shrink-0">
         <span>Recent Activity</span>
         <ProvenanceBadge kind={provenance} />
       </div>
 
-      {displayed.length === 0 ? (
-        <p className="body-sm ct-text-muted mt-4">No transactions yet.</p>
-      ) : (
-        <div className="flex flex-col gap-1.5 mt-3">
-          {displayed.map((tx) => (
-            <div
-              key={tx.id}
-              className="flex items-center gap-3 py-2 border-b border-[var(--ct-border-soft)]"
-            >
-              <TxIcon type={tx.type} />
+      <div className="overflow-y-auto flex-1 pr-2 -mr-2">
+        {displayed.length === 0 ? (
+          <p className="text-sm text-[var(--ct-text-muted)] mt-2 italic">No transactions yet.</p>
+        ) : (
+          <div className="flex flex-col gap-0.5 mt-1">
+            {displayed.map((tx) => (
+              <div
+                key={tx.id}
+                className="flex items-center gap-3 py-2 border-b border-[var(--ct-border-soft)] last:border-0 hover:bg-[var(--ct-surface-2)] -mx-2 px-2 rounded-sm transition-colors"
+              >
+                <TxIcon type={tx.type} />
 
-              <div className="flex-1 min-w-0 overflow-hidden">
-                <div className="body-xs ct-text-primary font-semibold truncate">
-                  {TYPE_LABELS[tx.type] ?? tx.type}
-                  {tx.positionVaultName && (
-                    <span className="ct-text-muted font-normal">
-                      {" "}· {tx.positionVaultName}
-                    </span>
-                  )}
+                <div className="flex-1 min-w-0 overflow-hidden">
+                  <div className="text-[13px] text-[var(--ct-text-primary)] font-medium truncate">
+                    {TYPE_LABELS[tx.type] ?? tx.type}
+                    {tx.positionVaultName && (
+                      <span className="text-[var(--ct-text-muted)] font-normal">
+                        {" "}· {tx.positionVaultName}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-[var(--ct-text-muted)] mt-0.5 font-mono truncate uppercase tracking-wider">
+                    {relativeTime(tx.occurredAt, asOf)}
+                  </div>
                 </div>
-                <div className="stat-label ct-text-muted mt-0.5 mono truncate">
-                  {relativeTime(tx.occurredAt, asOf)}
-                </div>
+
+                <span className="tabular-nums text-[13px] text-[var(--ct-text-strong)] font-mono font-medium shrink-0">
+                  {usdFmt.format(tx.amountUsdc)}
+                </span>
               </div>
-
-              <span className="tabular body-md ct-text-strong mono font-semibold shrink-0">
-                {usdFmt.format(tx.amountUsdc)}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </article>
   );
 }

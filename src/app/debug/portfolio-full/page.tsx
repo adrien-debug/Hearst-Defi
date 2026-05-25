@@ -1,5 +1,3 @@
-import "./_styles/portfolio.css";
-
 import { AllocationDonut } from "./_components/allocation-donut";
 import { PortfolioCockpitDebug } from "./_components/portfolio-cockpit";
 import { PortfolioGreeting } from "./_components/portfolio-greeting";

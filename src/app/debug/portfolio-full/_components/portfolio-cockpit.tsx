@@ -18,19 +18,19 @@ export function PortfolioCockpitDebug({
   activity,
 }: PortfolioCockpitProps) {
   return (
-    <div className="pf-fixed-debug">
-      <div>{greeting}</div>
-      <div className="pf-fixed-debug-kpis">{kpis}</div>
+    <div className="flex flex-col h-full min-h-[30rem] gap-6">
+      <div className="shrink-0">{greeting}</div>
+      <div className="shrink-0">{kpis}</div>
 
-      <div className="pf-fixed-debug-body">
-        <div className="pf-row-charts-debug">
-          {donut}
-          {chart}
+      <div className="flex flex-col flex-1 min-h-0 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 shrink-0">
+          <div className="lg:col-span-4 flex flex-col min-h-0 h-full">{donut}</div>
+          <div className="lg:col-span-8 flex flex-col min-h-0 h-full">{chart}</div>
         </div>
 
-        <div className="pf-row-lower-debug">
-          <div className="pf-fixed-positions-debug">{positions}</div>
-          {activity}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0">
+          <div className="lg:col-span-8 flex flex-col min-h-0 h-full">{positions}</div>
+          <div className="lg:col-span-4 flex flex-col min-h-0 h-full">{activity}</div>
         </div>
       </div>
     </div>

@@ -14,7 +14,7 @@ const dateFmt = new Intl.DateTimeFormat("en-US", {
 const STATUS_DOT: Record<string, string> = {
   active: "var(--ct-text-strong)",
   matured: "var(--ct-surface-3)",
-  exited: "var(--ct-accent-strong)",
+  exited: "var(--ct-text-muted)",
 };
 
 interface PositionsListProps {
@@ -26,65 +26,69 @@ export function PositionsList({ positions, source }: PositionsListProps) {
   const provenance = source === "fallback" ? "stale" : "live";
 
   return (
-    <article className="dash-cell" aria-label="Open positions">
-      <div className="dash-label">
+    <article className="bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] rounded-sm p-6 flex flex-col relative flex-1 h-full min-h-[200px] overflow-hidden" aria-label="Open positions">
+      <div className="flex justify-between items-center text-[10px] font-medium text-[var(--ct-text-muted)] tracking-widest uppercase mb-6 shrink-0">
         <span>Positions</span>
-        <span className="dash-label-meta">
+        <div className="flex items-center gap-2">
           <ProvenanceBadge kind={provenance} />
-          <span className="dash-trend flat">
+          <span className="font-mono text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded-[0.125rem] bg-[var(--ct-surface-2)] text-[var(--ct-text-primary)]">
             {positions.length} position{positions.length !== 1 ? "s" : ""}
           </span>
-        </span>
+        </div>
       </div>
 
-      {positions.length === 0 ? (
-        <p className="body-sm ct-text-muted mt-4">No open positions.</p>
-      ) : (
-        <div className="flex flex-col gap-2 mt-3 overflow-x-auto min-w-0">
-          <div className="stat-label grid grid-cols-[minmax(0,1fr)_auto_auto_auto_auto] gap-4 pb-2 border-b border-[var(--ct-border-soft)] min-w-0">
-            <span>Vault</span>
-            <span className="text-right">Principal</span>
-            <span className="text-right">Value</span>
-            <span className="text-right">Target APY</span>
-            <span className="text-right">Since</span>
-          </div>
-
-          {positions.map((p) => (
-            <div
-              key={p.id}
-              className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto_auto] gap-4 items-center pb-2 border-b border-[var(--ct-border-soft)] min-w-0"
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <span
-                  className="w-2 h-2 shrink-0 rounded-full"
-                  style={{
-                    background: STATUS_DOT[p.status] ?? "var(--ct-text-muted)",
-                  }}
-                />
-                <span className="body-md ct-text-primary min-w-0 truncate">
-                  {p.vaultName}
-                </span>
-              </div>
-
-              <span className="tabular body-md text-right text-[var(--ct-text-body)]">
-                {formatUsdCompact(p.principalUsdc)}
-              </span>
-
-              <span className="tabular body-md ct-text-strong font-semibold text-right">
-                {formatUsdCompact(p.valueUsdc)}
-              </span>
-
-              <div className="text-right">
-                <ApyRange low={p.apyLow} high={p.apyHigh} precision={1} />
-              </div>
-
-              <span className="body-xs tabular ct-text-muted text-right">
-                {dateFmt.format(p.subscribedAt)}
-              </span>
+      <div className="overflow-x-auto overflow-y-auto flex-1">
+        {positions.length === 0 ? (
+          <p className="text-sm text-[var(--ct-text-muted)] mt-2 italic">No open positions.</p>
+        ) : (
+          <div className="flex flex-col min-w-[600px] gap-2">
+            <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-4 pb-2 border-b border-[var(--ct-border-soft)] text-[10px] text-[var(--ct-text-muted)] uppercase tracking-widest font-medium">
+              <span>Vault</span>
+              <span className="text-right">Principal</span>
+              <span className="text-right">Value</span>
+              <span className="text-right">Target APY</span>
+              <span className="text-right">Since</span>
             </div>
-          ))}
-        </div>
-      )}
+
+            <div className="flex flex-col gap-0.5 mt-1">
+              {positions.map((p) => (
+                <div
+                  key={p.id}
+                  className="grid grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-4 items-center py-2 border-b border-[var(--ct-border-soft)] last:border-0 hover:bg-[var(--ct-surface-2)] -mx-2 px-2 rounded-sm transition-colors"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span
+                      className="w-1.5 h-1.5 shrink-0 rounded-full"
+                      style={{
+                        background: STATUS_DOT[p.status] ?? "var(--ct-text-muted)",
+                      }}
+                    />
+                    <span className="text-[13px] text-[var(--ct-text-primary)] font-medium truncate">
+                      {p.vaultName}
+                    </span>
+                  </div>
+
+                  <span className="tabular-nums text-[13px] text-right text-[var(--ct-text-body)] font-mono">
+                    {formatUsdCompact(p.principalUsdc)}
+                  </span>
+
+                  <span className="tabular-nums text-[13px] text-[var(--ct-text-strong)] font-semibold text-right font-mono">
+                    {formatUsdCompact(p.valueUsdc)}
+                  </span>
+
+                  <div className="text-right text-[13px] font-mono">
+                    <ApyRange low={p.apyLow} high={p.apyHigh} precision={1} />
+                  </div>
+
+                  <span className="text-[12px] tabular-nums text-[var(--ct-text-muted)] text-right font-mono">
+                    {dateFmt.format(p.subscribedAt)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </article>
   );
 }

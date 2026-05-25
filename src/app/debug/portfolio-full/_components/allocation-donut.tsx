@@ -9,10 +9,10 @@ const STATUS_LABELS: Record<string, string> = {
   exited: "Exited",
 };
 
-const STATUS_LEGEND_TONE: Record<string, "primary" | "accent" | "accent-raw"> = {
-  active: "primary",
-  matured: "accent",
-  exited: "accent-raw",
+const STATUS_COLORS: Record<string, string> = {
+  active: "var(--ct-text-primary)",
+  matured: "var(--ct-accent-strong)",
+  exited: "var(--ct-text-muted)",
 };
 
 interface AllocationDonutProps {
@@ -49,64 +49,70 @@ export function AllocationDonut({
   }
 
   return (
-    <article className="dash-cell" aria-label="Portfolio allocation">
-      <div className="dash-label">
+    <article className="bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] rounded-sm p-6 flex flex-col relative flex-1 h-full min-h-[200px]" aria-label="Portfolio allocation">
+      <div className="flex justify-between items-center text-[10px] font-medium text-[var(--ct-text-muted)] tracking-widest uppercase mb-6">
         <span>Allocation by status</span>
         <ProvenanceBadge kind={provenance} />
       </div>
 
       <div className="flex flex-col items-center gap-4 mt-2">
-        <div className="dash-chart-container mt-0 w-[var(--ct-donut-size)] h-[var(--ct-donut-size)]">
+        <div className="relative w-48 h-48 flex items-center justify-center my-2">
           <svg
-            className="dash-chart-svg w-full h-full"
+            className="absolute inset-0 w-full h-full -rotate-90"
             viewBox="0 0 42 42"
             role="img"
             aria-label="Allocation by status"
           >
             <circle
-              className="dash-chart-circle"
               cx="21"
               cy="21"
               r="15.9155"
               stroke="var(--ct-surface-3)"
+              fill="transparent"
+              strokeWidth="3.5"
               strokeDasharray="100 0"
             />
             {segments.map((s) => (
               <circle
                 key={s.status}
-                className={`dash-chart-circle color-${STATUS_LEGEND_TONE[s.status] ?? "muted"}`}
                 cx="21"
                 cy="21"
                 r="15.9155"
+                fill="transparent"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                stroke={STATUS_COLORS[s.status] ?? "var(--ct-text-muted)"}
                 strokeDasharray={`${s.pct.toFixed(2)} ${(100 - s.pct).toFixed(2)}`}
                 strokeDashoffset={s.dashOffset.toFixed(2)}
+                className="transition-all duration-500 ease-in-out"
               />
             ))}
           </svg>
-          <div className="donut-center">
-            <span className="donut-val">
-              {totalValueUsdc > 0 ? formatUsdCompact(totalValueUsdc) : "—"}
+          <div className="flex flex-col items-center justify-center text-center z-10">
+            <span className="text-3xl font-light text-[var(--ct-text-strong)] tabular-nums">
+              {totalValueUsdc > 0 ? formatUsdCompact(totalValueUsdc) : <span className="opacity-30">—</span>}
             </span>
-            <span className="donut-lbl">Portfolio</span>
+            <span className="text-xs text-[var(--ct-text-muted)] uppercase tracking-widest mt-1">Portfolio</span>
           </div>
         </div>
 
-        <div className="dash-legend w-full mt-0">
+        <div className="w-full flex flex-col gap-2 mt-2">
           {segments.map((s) => (
-            <div key={s.status} className="dash-legend-row">
-              <span className="dash-legend-left">
+            <div key={s.status} className="flex justify-between items-center text-sm">
+              <span className="flex items-center gap-2 text-[var(--ct-text-primary)]">
                 <span
-                  className={`dash-legend-dot dot-${STATUS_LEGEND_TONE[s.status] ?? "muted"}`}
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: STATUS_COLORS[s.status] ?? "var(--ct-text-muted)" }}
                 />
                 {STATUS_LABELS[s.status] ?? s.status}
               </span>
-              <span className="dash-legend-val">
-                {s.pct.toFixed(0)}% · {formatUsdCompact(s.valueUsdc)}
+              <span className="text-[var(--ct-text-strong)] tabular-nums font-mono text-xs">
+                {s.pct.toFixed(0)}% <span className="text-[var(--ct-text-muted)] opacity-50">·</span> {formatUsdCompact(s.valueUsdc)}
               </span>
             </div>
           ))}
           {segments.length === 0 && (
-            <span className="dash-legend-left text-[var(--ct-text-muted)]">
+            <span className="text-sm text-[var(--ct-text-muted)] italic">
               No positions
             </span>
           )}

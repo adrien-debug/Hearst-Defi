@@ -25,62 +25,68 @@ export function PortfolioKpiRow({ data }: KpiRowProps) {
   const hasPositions = data.positions.length > 0;
 
   return (
-    <div className="pf-kpi-grid-debug">
-      <article className="dash-cell" aria-label="Portfolio value">
-        <div className="dash-label">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <article className="bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] rounded-sm p-6 flex flex-col relative min-h-[140px]" aria-label="Portfolio value">
+        <div className="flex justify-between items-center text-[10px] font-medium text-[var(--ct-text-muted)] tracking-widest uppercase mb-6">
           <span>Portfolio Value</span>
           <ProvenanceBadge kind={valueProvenance} />
         </div>
-        <div className="dash-value-group">
-          <span className="dash-value">
-            {hasPositions ? formatUsdCompact(data.totalValueUsdc) : "—"}
+        <div className="flex items-baseline mt-auto">
+          <span className="font-mono text-4xl font-light text-[var(--ct-text-strong)] tracking-tighter leading-none tabular-nums truncate">
+            {hasPositions ? formatUsdCompact(data.totalValueUsdc) : <span className="opacity-30">—</span>}
           </span>
-          <span className="dash-unit">USDC</span>
+          <span className="font-sans text-[10px] text-[var(--ct-text-muted)] font-medium uppercase tracking-widest opacity-50 ml-1.5">USDC</span>
         </div>
-        {hasPositions && data.pnl ? (
-          <p
-            className={cn(
-              "body-xs mt-2 tabular",
-              data.pnl.netReturnPct >= 0
-                ? "ct-status-success"
-                : "ct-status-danger",
-            )}
-          >
-            {data.pnl.netReturnPct >= 0 ? "+" : ""}
-            {data.pnl.netReturnPct.toFixed(1)}% net return
-          </p>
-        ) : null}
+        <div className="mt-2 h-4">
+          {hasPositions && data.pnl ? (
+            <p
+              className={cn(
+                "text-[11px] font-mono leading-4 uppercase tracking-wider",
+                data.pnl.netReturnPct >= 0
+                  ? "text-[var(--ct-accent)]"
+                  : "text-[var(--ct-status-danger)]",
+              )}
+            >
+              {data.pnl.netReturnPct >= 0 ? "+" : ""}
+              {data.pnl.netReturnPct.toFixed(1)}% net return
+            </p>
+          ) : null}
+        </div>
       </article>
 
-      <article className="dash-cell" aria-label="Yield year to date">
-        <div className="dash-label">
+      <article className="bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] rounded-sm p-6 flex flex-col relative min-h-[140px]" aria-label="Yield year to date">
+        <div className="flex justify-between items-center text-[10px] font-medium text-[var(--ct-text-muted)] tracking-widest uppercase mb-6">
           <span>Yield YTD</span>
           <ProvenanceBadge kind={yieldProvenance} />
         </div>
-        <div className="dash-value-group">
-          <span className="dash-value">
-            {hasPositions ? formatUsdCompact(data.totalYieldYtdUsdc) : "—"}
+        <div className="flex items-baseline mt-auto">
+          <span className="font-mono text-4xl font-light text-[var(--ct-text-strong)] tracking-tighter leading-none tabular-nums truncate">
+            {hasPositions ? formatUsdCompact(data.totalYieldYtdUsdc) : <span className="opacity-30">—</span>}
           </span>
-          <span className="dash-unit">USDC</span>
+          <span className="font-sans text-[10px] text-[var(--ct-text-muted)] font-medium uppercase tracking-widest opacity-50 ml-1.5">USDC</span>
         </div>
-        <p className="body-xs ct-text-muted mt-2 italic">
-          Accrued + distributed. Not projected forward.
-        </p>
+        <div className="mt-2 h-4">
+          <p className="text-[11px] text-[var(--ct-text-muted)] font-mono uppercase tracking-wider leading-4 truncate opacity-70">
+            Accrued + distributed
+          </p>
+        </div>
       </article>
 
-      <article className="dash-cell" aria-label="Next distribution date">
-        <div className="dash-label">
+      <article className="bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] rounded-sm p-6 flex flex-col relative min-h-[140px]" aria-label="Next distribution date">
+        <div className="flex justify-between items-center text-[10px] font-medium text-[var(--ct-text-muted)] tracking-widest uppercase mb-6">
           <span>Next Distribution</span>
           <ProvenanceBadge kind={distProvenance} />
         </div>
-        <div className="dash-value-group">
-          <span className="dash-value-range stat-value tabular">
+        <div className="flex items-baseline mt-auto">
+          <span className="font-mono text-4xl font-light text-[var(--ct-text-strong)] tracking-tighter leading-none tabular-nums truncate">
             {monthDayFmt.format(data.nextDistributionAt)}
           </span>
         </div>
-        <p className="body-xs ct-text-muted mt-2">
-          Monthly cadence · Day 1, T+5
-        </p>
+        <div className="mt-2 h-4">
+          <p className="text-[11px] text-[var(--ct-text-muted)] font-mono uppercase tracking-wider leading-4 truncate opacity-70">
+            Monthly · Day 1, T+5
+          </p>
+        </div>
       </article>
     </div>
   );
