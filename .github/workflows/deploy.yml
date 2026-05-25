@@ -79,8 +79,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        env:
-          PRISMA_PROVIDER: postgresql
+        # Default sqlite provider — generated types are provider-agnostic.
+        # The deploy step below switches to postgresql for `db push`.
         run: pnpm db:generate
 
       - name: Run Vitest

@@ -80,8 +80,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        env:
-          PRISMA_PROVIDER: postgresql
+        # Use the default sqlite provider — the generated client types are
+        # identical for sqlite/postgres so any provider works for typecheck
+        # + Vitest (which exercises a sqlite local DB).
         run: pnpm db:generate
 
       - name: Run Vitest
