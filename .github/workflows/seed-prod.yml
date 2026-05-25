@@ -1,0 +1,48 @@
+name: Seed Production DB (one-shot)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  seed:
+    name: Seed admin users in prod
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Switch Prisma provider to postgresql
+        env:
+          PRISMA_PROVIDER: postgresql
+        run: node scripts/prisma-provider.mjs
+
+      - name: Generate Prisma client
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PRISMA_PROVIDER: postgresql
+        run: pnpm db:generate
+
+      - name: Run seed (admin users only)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PRISMA_PROVIDER: postgresql
+          ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
+          ADMIN_INITIAL_PASSWORD: ${{ secrets.ADMIN_INITIAL_PASSWORD }}
+          NODE_ENV: production
+        run: pnpm db:seed
