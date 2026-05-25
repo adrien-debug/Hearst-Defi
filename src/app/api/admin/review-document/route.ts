@@ -7,6 +7,9 @@ import { assertRateLimit, assertBodySize } from "@/lib/rate-limit";
 import { getProductRoutes } from "@/lib/product-routes";
 import { getSpecIndex } from "@/lib/spec";
 import { REVIEW_DOCUMENT_INSTRUCTIONS } from "@/lib/agents/system-prompts/review";
+import { estimateKimiCostUsd } from "@/lib/llm/cost";
+import { REVIEW_DOCUMENT_HASH } from "@/lib/llm/prompt-hash";
+import { capTranscriptByTokens, MAX_TRANSCRIPT_TOKENS } from "@/lib/llm/tokens";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,6 +21,14 @@ const GENERATION_TIMEOUT_MS = 60_000;
 /** Admin routes are heavily rate-limited: 5 requests / 60s / admin. */
 const ADMIN_RATE_MAX = 5;
 const ADMIN_RATE_WINDOW_MS = 60_000;
+
+/**
+ * Maximum number of ReviewDocument rows kept per user.
+ * When a new document is created and the total for this user exceeds this
+ * threshold, the oldest rows (beyond the 20 most recent) are purged.
+ * This bounds storage and keeps the GET endpoint fast.
+ */
+const REVIEW_DOC_KEEP_LATEST = 20;
 
 function unauthorized(): Response {
   return new Response(JSON.stringify({ error: "Admin access required" }), {
@@ -141,9 +152,28 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   const messages = recentDesc.slice().reverse();
-  const transcript = messages
+
+  // Cap the transcript to avoid context-window overflow.
+  // The most recent messages are kept; the oldest are dropped when the budget
+  // is exceeded. A note is prepended to the transcript when truncation occurs.
+  const { capped, droppedCount } = capTranscriptByTokens(messages, MAX_TRANSCRIPT_TOKENS);
+  if (droppedCount > 0) {
+    logger.warn("review-document transcript truncated", {
+      userId,
+      chatId: chat.id,
+      droppedCount,
+      keptCount: capped.length,
+    });
+  }
+
+  const transcriptBody = capped
     .map((m) => `${m.role === "user" ? "Head of Product" : "Copilote"} : ${m.content}`)
     .join("\n\n");
+
+  const transcript =
+    droppedCount > 0
+      ? `[NOTE: début de session tronqué pour respecter la limite de contexte — ${droppedCount} message(s) le(s) plus ancien(s) omis.]\n\n${transcriptBody}`
+      : transcriptBody;
 
   // Real route inventory derived from the filesystem — the model must anchor
   // every remark on one of these (never invent a route). Best-effort: a read
@@ -184,6 +214,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   async function traceLlmRun(
     status: "success" | "failed" | "timeout",
     latencyMs: number,
+    usage?: { prompt_tokens: number; completion_tokens: number; total_tokens?: number } | null,
     err?: unknown,
   ): Promise<void> {
     try {
@@ -194,6 +225,17 @@ export async function POST(req: NextRequest): Promise<Response> {
           status,
           latencyMs,
           userId,
+          systemPromptHash: REVIEW_DOCUMENT_HASH,
+          ...(usage != null
+            ? {
+                inputTokens: usage.prompt_tokens,
+                outputTokens: usage.completion_tokens,
+                costUsd: estimateKimiCostUsd({
+                  prompt_tokens: usage.prompt_tokens,
+                  completion_tokens: usage.completion_tokens,
+                }),
+              }
+            : {}),
           ...(err
             ? {
                 errorType: err instanceof Error ? err.name : "UnknownError",
@@ -233,7 +275,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       { timeout: GENERATION_TIMEOUT_MS },
     );
     contentMd = completion.choices[0]?.message?.content?.trim() ?? "";
-    await traceLlmRun("success", Date.now() - startedAt);
+    await traceLlmRun("success", Date.now() - startedAt, completion.usage ?? null);
   } catch (err) {
     const latencyMs = Date.now() - startedAt;
     // Heuristic: surface explicit timeout as a distinct status so it can be
@@ -241,7 +283,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     const isTimeout =
       err instanceof Error &&
       (err.name === "APITimeoutError" || /timeout/i.test(err.message));
-    await traceLlmRun(isTimeout ? "timeout" : "failed", latencyMs, err);
+    await traceLlmRun(isTimeout ? "timeout" : "failed", latencyMs, null, err);
     logger.error(
       "review-document generation failed",
       { userId, chatId: chat.id },
@@ -259,6 +301,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     await traceLlmRun(
       "failed",
       0,
+      null,
       new Error("model returned empty content"),
     );
     return new Response(
@@ -302,6 +345,32 @@ export async function POST(req: NextRequest): Promise<Response> {
     data: { userId, chatId: chat.id, contentMd: dated },
     select: { id: true, contentMd: true, createdAt: true },
   });
+
+  // Retention: keep only the REVIEW_DOC_KEEP_LATEST most recent documents
+  // per user. Purge failures are non-fatal — we always return the saved doc.
+  try {
+    const stale = await prisma.reviewDocument.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      skip: REVIEW_DOC_KEEP_LATEST,
+      select: { id: true },
+    });
+    if (stale.length > 0) {
+      await prisma.reviewDocument.deleteMany({
+        where: { id: { in: stale.map((d) => d.id) } },
+      });
+      logger.info("review-document retention purged", {
+        userId,
+        purgedCount: stale.length,
+      });
+    }
+  } catch (purgeErr) {
+    logger.warn(
+      "review-document retention purge failed",
+      { userId },
+      purgeErr instanceof Error ? purgeErr : undefined,
+    );
+  }
 
   return Response.json({ document: saved });
 }

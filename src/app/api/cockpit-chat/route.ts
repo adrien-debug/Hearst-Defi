@@ -16,12 +16,14 @@ import {
   buildUserContextSystemBlock,
 } from "@/lib/agents/user-context";
 import { REVIEW_FACILITATOR_PROMPT } from "@/lib/agents/system-prompts/review";
+import { COCKPIT_DEFAULT_SYSTEM_PROMPT } from "@/lib/llm/prompts";
+import {
+  REVIEW_FACILITATOR_HASH,
+  COCKPIT_DEFAULT_HASH,
+} from "@/lib/llm/prompt-hash";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const SYSTEM_PROMPT =
-  "Tu es l'assistant Kimi intégré à Hearst Connect — DeFi institutionnel adossé au cashflow du mining BTC (vault de rendement, infra on-chain). Réponds en français.";
 
 // Models the chat may run on. The client (cockpit-shell useChat) sends the
 // value of localStorage["cockpit:chat-model"]; anything outside this allowlist
@@ -322,7 +324,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   //    The resolved mode is ALSO used downstream to stamp persisted messages
   //    with their persona — `chatMode` is the source of truth for both.
   let chatMode: "normal" | "review" = "normal";
-  let basePrompt = SYSTEM_PROMPT;
+  let basePrompt = COCKPIT_DEFAULT_SYSTEM_PROMPT;
   try {
     const modeRow = await prisma.adminChatMode.findUnique({
       where: { userId },
@@ -332,6 +334,11 @@ export async function POST(req: NextRequest): Promise<Response> {
       chatMode = "review";
       basePrompt = REVIEW_FACILITATOR_PROMPT;
     }
+  // NOTE: si le lookup AdminChatMode échoue (DB hiccup, RLS), on dégrade en
+  // mode "normal" + COCKPIT_DEFAULT_HASH. Les observabilité runs review
+  // peuvent donc être sous-comptées en cas d'incidents DB. Acceptable :
+  // (a) la table AdminChatMode est triviale (lecture par PK), échec rarissime,
+  // (b) on préfère préserver l'UX (chat continue) qu'avoir une métrique parfaite.
   } catch (modeErr) {
     logger.warn(
       "cockpit-chat mode lookup failed — using default assistant prompt",
@@ -377,7 +384,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     rateLimitWindowMs: CHAT_RATE_WINDOW_MS,
   });
 
-  // 5. Trace the call as an LlmRun. The handler streams internally and does
+  // 6. Trace the call as an LlmRun. The handler streams internally and does
   //    not surface token usage or a completion hook, so we can only record
   //    wall-clock latency + terminal status here (inputTokens/outputTokens/
   //    costUsd stay null — capturing them would require forking the handler,
@@ -395,6 +402,10 @@ export async function POST(req: NextRequest): Promise<Response> {
           status: ok ? "success" : "failed",
           latencyMs,
           userId,
+          // Hash of the BASE prompt only (not the enriched variant that includes
+          // per-user context, which varies per request).
+          systemPromptHash:
+            chatMode === "review" ? REVIEW_FACILITATOR_HASH : COCKPIT_DEFAULT_HASH,
           ...(ok
             ? {}
             : {
@@ -427,6 +438,9 @@ export async function POST(req: NextRequest): Promise<Response> {
           status: "failed",
           latencyMs,
           userId,
+          // Hash of the BASE prompt only (not the enriched variant).
+          systemPromptHash:
+            chatMode === "review" ? REVIEW_FACILITATOR_HASH : COCKPIT_DEFAULT_HASH,
           errorType: err instanceof Error ? err.name : "UnknownError",
           errorMessage: err instanceof Error ? err.message : "unknown error",
         },
