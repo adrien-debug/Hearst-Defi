@@ -93,6 +93,11 @@ jobs:
         # + Vitest (which exercises a sqlite local DB).
         run: pnpm db:generate
 
+      - name: Push schema to local SQLite (integration tests touch real DB)
+        env:
+          DATABASE_URL: "file:./prisma/dev.db"
+        run: pnpm exec prisma db push
+
       - name: Run Vitest
         run: pnpm test
 
