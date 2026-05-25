@@ -38,10 +38,11 @@ jobs:
           PRISMA_PROVIDER: postgresql
         run: pnpm db:generate
 
-      - name: Run admin-only seed (no resetTables, prod-safe)
+      - name: Run full seed (PROD_BOOTSTRAP=1 skips resetTables)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           PRISMA_PROVIDER: postgresql
           ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
           ADMIN_INITIAL_PASSWORD: ${{ secrets.ADMIN_INITIAL_PASSWORD }}
-        run: pnpm exec tsx prisma/seed-admin-only.ts
+          PROD_BOOTSTRAP: "1"
+        run: pnpm db:seed

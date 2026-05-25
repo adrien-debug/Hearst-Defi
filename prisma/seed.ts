@@ -257,6 +257,14 @@ function ipfsUriFor(hash: string): string {
 }
 
 async function resetTables(): Promise<void> {
+  // Opt-in: PROD_BOOTSTRAP=1 skips the reset entirely (assumes an empty DB on a
+  // fresh prod database). Lets us run seed.ts against prod for first-time
+  // bootstrap without wiping anything.
+  if (process.env.PROD_BOOTSTRAP === "1") {
+    console.log("[seed] PROD_BOOTSTRAP=1 → skipping resetTables (assumes empty DB).");
+    return;
+  }
+
   // Production guard: never wipe a production database from the seed script.
   if (process.env.NODE_ENV === "production") {
     console.error(
