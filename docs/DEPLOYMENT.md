@@ -199,6 +199,20 @@ Sentry capte les exceptions runtime côté client + serveur + edge (`sentry.{cli
 
 4. **Sourcemap upload** : déjà géré au build CI (`SENTRY_AUTH_TOKEN` + `SENTRY_ORG` + `SENTRY_PROJECT` dans `deploy.yml`). Vérifier les uploads dans Sentry → **Settings** → **Source Maps**.
 
+### Provisionnement automatique via API (option)
+
+Le script `scripts/setup-sentry-alerts.sh` POSTe directement les 4 règles ci-dessus via l'API Sentry. Idempotent — re-runs sont des no-ops si la règle de même nom existe déjà.
+
+```bash
+bash scripts/setup-sentry-alerts.sh
+```
+
+**Pré-requis token** : `SENTRY_AUTH_TOKEN` doit inclure le scope `alerts:write` (le token utilisé pour le sourcemap upload n'a que `project:releases` et reçoit `403 You do not have permission`). Générer un token dédié sur **Sentry → Settings → Account → Auth Tokens** avec scope `alerts:write` ; sourcer une fois avant exécution :
+
+```bash
+SENTRY_AUTH_TOKEN="<token-with-alerts-write>" bash scripts/setup-sentry-alerts.sh
+```
+
 ---
 
 ## Manual approval gate (production)
