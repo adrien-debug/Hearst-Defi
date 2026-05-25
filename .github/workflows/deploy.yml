@@ -111,7 +111,23 @@ jobs:
       NEXT_PUBLIC_EVENT_LOGGER_ADDRESS: ${{ secrets.NEXT_PUBLIC_EVENT_LOGGER_ADDRESS }}
       NEXT_PUBLIC_POR_REGISTRY_ADDRESS: ${{ secrets.NEXT_PUBLIC_POR_REGISTRY_ADDRESS }}
       NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+      # Server-side secrets validated by src/lib/env.ts at module load (so they
+      # must be present even during `next build` page-data collection, which
+      # imports the env module). Build does NOT open a DB connection — it just
+      # validates the env shape.
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PRIVY_APP_SECRET: ${{ secrets.PRIVY_APP_SECRET }}
+      INNGEST_SIGNING_KEY: ${{ secrets.INNGEST_SIGNING_KEY }}
+      HYPERCLI_API_KEY: ${{ secrets.HYPERCLI_API_KEY }}
+      HYPERCLI_BASE_URL: ${{ secrets.HYPERCLI_BASE_URL }}
+      HEARST_PUBLISHER: ${{ secrets.HEARST_PUBLISHER }}
+      ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
+      ADMIN_INITIAL_PASSWORD: ${{ secrets.ADMIN_INITIAL_PASSWORD }}
+      FIREBLOCKS_API_KEY: ${{ secrets.FIREBLOCKS_API_KEY }}
+      FIREBLOCKS_BASE_URL: ${{ secrets.FIREBLOCKS_BASE_URL }}
+      FIREBLOCKS_VAULT_ACCOUNT_IDS: ${{ secrets.FIREBLOCKS_VAULT_ACCOUNT_IDS }}
       # Sentry sourcemap upload (optional — skipped if absent)
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
       SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
       SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
