@@ -282,9 +282,16 @@ model CockpitMessage {
   chat      CockpitChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
   role      String      // 'user' | 'assistant' | 'system'
   content   String
+  // Persona under which this message was exchanged: "normal" (default
+  // assistant) or "review" (admin product-review facilitator). Stamped at
+  // write time from AdminChatMode so the review-document generator can
+  // filter on exactly the messages produced in review sessions, avoiding
+  // contamination by normal-mode chatter that happened in the same chat row.
+  mode      String      @default("normal")
   createdAt DateTime    @default(now())
 
   @@index([chatId, createdAt])
+  @@index([chatId, mode])
 }
 
 // =============================================================================

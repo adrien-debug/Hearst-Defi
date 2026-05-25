@@ -86,34 +86,61 @@ export async function POST(req: NextRequest): Promise<Response> {
     });
   }
 
-  // Most recent conversation for this admin = the active review session.
+  // Most recent conversation that actually contains review-mode messages for
+  // this admin. A chat that has only normal-mode chatter is not a review
+  // session and must not be used as a source — picking "the last updated
+  // chat" blindly would pull a random conversation if review was never
+  // toggled in it.
   const chat = await prisma.cockpitChat.findFirst({
-    where: { userId },
+    where: {
+      userId,
+      messages: { some: { mode: "review" } },
+    },
     orderBy: { updatedAt: "desc" },
     select: { id: true },
   });
 
   if (!chat) {
     return new Response(
-      JSON.stringify({ error: "Aucune conversation de revue à analyser." }),
+      JSON.stringify({
+        error:
+          "Aucune conversation de revue à analyser (active le mode Revue et discute avant de générer le document).",
+      }),
       { status: 400, headers: { "Content-Type": "application/json" } },
     );
   }
 
-  const messages = await prisma.cockpitMessage.findMany({
-    where: { chatId: chat.id, role: { in: ["user", "assistant"] } },
-    orderBy: { createdAt: "asc" },
+  // Take the 200 MOST RECENT messages (desc), then reverse to chronological
+  // order for the transcript. A naive `asc + take 200` would silently drop
+  // the latest remarks in a long review session — the opposite of what we want.
+  //
+  // Filter on `mode: "review"` so the generator only sees what was actually
+  // exchanged under the facilitator persona. Without this filter, normal-mode
+  // chatter that happened in the same chat row (admin who toggled in/out of
+  // review during the session) would contaminate the analysis — the LLM would
+  // cite "verbatims" from messages that weren't part of a real review.
+  const recentDesc = await prisma.cockpitMessage.findMany({
+    where: {
+      chatId: chat.id,
+      role: { in: ["user", "assistant"] },
+      mode: "review",
+    },
+    orderBy: { createdAt: "desc" },
     select: { role: true, content: true },
     take: 200,
   });
 
-  if (messages.length === 0) {
+  if (recentDesc.length === 0) {
     return new Response(
-      JSON.stringify({ error: "La conversation est vide." }),
+      JSON.stringify({
+        error:
+          "Aucun message en mode revue à analyser dans la conversation en cours.",
+      }),
       { status: 400, headers: { "Content-Type": "application/json" } },
     );
   }
 
+  const messages = recentDesc.slice().reverse();
   const transcript = messages
     .map((m) => `${m.role === "user" ? "Head of Product" : "Copilote"} : ${m.content}`)
     .join("\n\n");
@@ -150,7 +177,43 @@ export async function POST(req: NextRequest): Promise<Response> {
     // no specs → fall through with empty block
   }
 
+  // Trace the LLM call as an LlmRun row. The generation is the most expensive
+  // operation in the review flow; latency and failure modes must be observable
+  // from the same dashboard as the other agent runs (cockpit-chat, memo, etc.).
+  // Tracing failures must NEVER break the user-facing response.
+  async function traceLlmRun(
+    status: "success" | "failed" | "timeout",
+    latencyMs: number,
+    err?: unknown,
+  ): Promise<void> {
+    try {
+      await prisma.llmRun.create({
+        data: {
+          agentName: "review-document",
+          model: DOCUMENT_MODEL,
+          status,
+          latencyMs,
+          userId,
+          ...(err
+            ? {
+                errorType: err instanceof Error ? err.name : "UnknownError",
+                errorMessage:
+                  err instanceof Error ? err.message : "unknown error",
+              }
+            : {}),
+        },
+      });
+    } catch (traceErr) {
+      logger.warn(
+        "review-document LlmRun trace failed",
+        { userId },
+        traceErr instanceof Error ? traceErr : undefined,
+      );
+    }
+  }
+
   let contentMd: string;
+  const startedAt = Date.now();
   try {
     const completion = await kimi.chat.completions.create(
       {
@@ -170,7 +233,15 @@ export async function POST(req: NextRequest): Promise<Response> {
       { timeout: GENERATION_TIMEOUT_MS },
     );
     contentMd = completion.choices[0]?.message?.content?.trim() ?? "";
+    await traceLlmRun("success", Date.now() - startedAt);
   } catch (err) {
+    const latencyMs = Date.now() - startedAt;
+    // Heuristic: surface explicit timeout as a distinct status so it can be
+    // alerted on separately from generic LLM errors.
+    const isTimeout =
+      err instanceof Error &&
+      (err.name === "APITimeoutError" || /timeout/i.test(err.message));
+    await traceLlmRun(isTimeout ? "timeout" : "failed", latencyMs, err);
     logger.error(
       "review-document generation failed",
       { userId, chatId: chat.id },
@@ -183,17 +254,49 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   if (!contentMd) {
+    // Treated as a failure for observability — the call succeeded HTTP-wise
+    // but the model produced no usable content.
+    await traceLlmRun(
+      "failed",
+      0,
+      new Error("model returned empty content"),
+    );
     return new Response(
       JSON.stringify({ error: "Le modèle a renvoyé un document vide." }),
       { status: 502, headers: { "Content-Type": "application/json" } },
     );
   }
 
-  // Stamp the generation date into the placeholder line the prompt leaves blank.
-  const dated = contentMd.replace(
-    /_Date de génération : .*_/,
-    `_Date de génération : ${new Date().toISOString().slice(0, 10)}_`,
-  );
+  // Stamp the generation date into the placeholder line the prompt leaves
+  // blank. The model is instructed to emit `_Date de génération : _`, but if
+  // it drops the italic markers or rewords the line, the regex won't match.
+  // Fallback: prepend the date line right after the H1 so the document is
+  // always dated, regardless of model formatting drift.
+  const today = new Date().toISOString().slice(0, 10);
+  const stamped = `_Date de génération : ${today}_`;
+  const datePlaceholder = /_Date de génération : .*_/;
+  let dated: string;
+  if (datePlaceholder.test(contentMd)) {
+    dated = contentMd.replace(datePlaceholder, stamped);
+  } else {
+    // Inject right after the first H1 (the prompt's mandated title), or at
+    // the top if no H1 is present.
+    const h1Match = contentMd.match(/^#\s.+$/m);
+    if (h1Match && h1Match.index !== undefined) {
+      const insertAt = h1Match.index + h1Match[0].length;
+      dated =
+        contentMd.slice(0, insertAt) +
+        "\n" +
+        stamped +
+        contentMd.slice(insertAt);
+    } else {
+      dated = stamped + "\n\n" + contentMd;
+    }
+    logger.warn(
+      "review-document date placeholder missing — prepended fallback",
+      { userId, chatId: chat.id },
+    );
+  }
 
   const saved = await prisma.reviewDocument.create({
     data: { userId, chatId: chat.id, contentMd: dated },

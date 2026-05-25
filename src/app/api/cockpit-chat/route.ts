@@ -61,6 +61,25 @@ function sanitizeContent(value: string): string {
 }
 
 /**
+ * Derive a short, human-readable title from a user message's content.
+ * Returns null when the content yields nothing meaningful (empty / whitespace
+ * after the trim/collapse), so the caller can skip the title update entirely.
+ *
+ * Kept inline (~6 lines) rather than abstracted: the only consumer is the
+ * persistence below.
+ */
+const TITLE_MAX_LEN = 80;
+function deriveTitleFromContent(content: string): string | null {
+  const cleaned = content.replace(/\s+/g, " ").trim();
+  if (cleaned.length === 0) return null;
+  if (cleaned.length <= TITLE_MAX_LEN) return cleaned;
+  // Cut at the last word boundary before the cap so we don't slice mid-word.
+  const cut = cleaned.slice(0, TITLE_MAX_LEN);
+  const lastSpace = cut.lastIndexOf(" ");
+  return (lastSpace > 40 ? cut.slice(0, lastSpace) : cut) + "…";
+}
+
+/**
  * Inbound body validation.
  *
  * The cockpit-shell handler's own schema is
@@ -109,6 +128,11 @@ interface PersistedMessage {
  */
 function createUserScopedPersistence(
   userId: string,
+  // Persona under which messages persisted via this instance were produced.
+  // Resolved once per request from AdminChatMode (step 4 below) — this lets
+  // the review-document generator filter on exactly the messages exchanged
+  // in review sessions, instead of mixing them with normal-mode chatter.
+  chatMode: "normal" | "review",
 ): NonNullable<CockpitChatHandlerConfig["persistence"]> {
   async function ownsChat(chatId: string): Promise<boolean> {
     const chat = await prisma.cockpitChat.findUnique({
@@ -158,12 +182,30 @@ function createUserScopedPersistence(
       }
       const role: PersistedRole = msg.role;
       await prisma.cockpitMessage.create({
-        data: { chatId, role, content: msg.content },
+        data: { chatId, role, content: msg.content, mode: chatMode },
       });
-      await prisma.cockpitChat.update({
-        where: { id: chatId },
-        data: { updatedAt: new Date() },
-      });
+      // Always bump updatedAt. If this is the first user message and the chat
+      // has no title yet, derive one from the content so cockpit memory
+      // surfaces meaningful titles instead of "(sans titre)" for every row.
+      // `updateMany` lets us add the `title: null` predicate; if no row
+      // matches (title already set), it's a no-op — we then fall through to
+      // the unconditional updatedAt bump.
+      const derivedTitle =
+        role === "user" ? deriveTitleFromContent(msg.content) : null;
+      let titled = 0;
+      if (derivedTitle) {
+        const result = await prisma.cockpitChat.updateMany({
+          where: { id: chatId, title: null },
+          data: { title: derivedTitle, updatedAt: new Date() },
+        });
+        titled = result.count;
+      }
+      if (titled === 0) {
+        await prisma.cockpitChat.update({
+          where: { id: chatId },
+          data: { updatedAt: new Date() },
+        });
+      }
     },
   };
 }
@@ -277,6 +319,9 @@ export async function POST(req: NextRequest): Promise<Response> {
   //    mode (AdminChatMode row) gets the product-review facilitator prompt
   //    instead of the default assistant. Only admins can ever set this row
   //    (the setter route is requireAdmin-gated), so reading it here is safe.
+  //    The resolved mode is ALSO used downstream to stamp persisted messages
+  //    with their persona — `chatMode` is the source of truth for both.
+  let chatMode: "normal" | "review" = "normal";
   let basePrompt = SYSTEM_PROMPT;
   try {
     const modeRow = await prisma.adminChatMode.findUnique({
@@ -284,6 +329,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       select: { mode: true },
     });
     if (modeRow?.mode === "review") {
+      chatMode = "review";
       basePrompt = REVIEW_FACILITATOR_PROMPT;
     }
   } catch (modeErr) {
@@ -326,7 +372,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     model: resolveModel(requestedModel),
     systemPrompt: enrichedSystemPrompt,
     userId,
-    persistence: createUserScopedPersistence(userId),
+    persistence: createUserScopedPersistence(userId, chatMode),
     rateLimitMax: CHAT_RATE_MAX,
     rateLimitWindowMs: CHAT_RATE_WINDOW_MS,
   });

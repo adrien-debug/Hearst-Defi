@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
@@ -96,32 +102,48 @@ export function AdminChatControls() {
     setTarget(el);
   }, []);
 
-  const switchMode = useCallback(async (next: Mode) => {
-    setError(null);
-    setSavingMode(true);
-    setMode(next); // optimistic
-    try {
-      const res = await fetch("/api/admin/review-mode", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: next }),
-      });
-      if (!res.ok) throw new Error();
-    } catch {
-      setError("Impossible d'enregistrer le mode.");
-      setMode((prev) =>
-        prev === next ? (next === "review" ? "normal" : "review") : prev,
-      );
-    } finally {
-      setSavingMode(false);
-    }
-  }, []);
+  const switchMode = useCallback(
+    async (next: Mode) => {
+      setError(null);
+      setSavingMode(true);
+      // Snapshot the value BEFORE the optimistic update so the rollback
+      // restores it textually on failure. The previous logic inferred the
+      // previous value from `next`, which mis-rolled-back if the user
+      // clicked again during the in-flight request.
+      const previous = mode;
+      setMode(next);
+      try {
+        const res = await fetch("/api/admin/review-mode", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: next }),
+        });
+        if (!res.ok) throw new Error();
+      } catch {
+        setError("Impossible d'enregistrer le mode.");
+        setMode(previous);
+      } finally {
+        setSavingMode(false);
+      }
+    },
+    [mode],
+  );
+
+  // AbortController for the in-flight generation. Lets the admin cancel a
+  // pending 60s call instead of staring at a frozen spinner.
+  const abortRef = useRef<AbortController | null>(null);
 
   const generateDocument = useCallback(async () => {
     setError(null);
     setGenerating(true);
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     try {
-      const res = await fetch("/api/admin/review-document", { method: "POST" });
+      const res = await fetch("/api/admin/review-document", {
+        method: "POST",
+        signal: controller.signal,
+      });
       const data = (await res.json().catch(() => null)) as
         | { document?: { contentMd: string }; error?: string }
         | null;
@@ -130,11 +152,41 @@ export function AdminChatControls() {
       }
       setDoc(data.document.contentMd);
       setPanelOpen(true);
+      // Auto-reset to "normal" after a successful generation: the review is
+      // finished, the doc is captured, leaving the admin in facilitator mode
+      // would turn subsequent chats into a probing interview rather than
+      // assistance. Fire-and-forget — a failure here doesn't break the doc.
+      void fetch("/api/admin/review-mode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "normal" }),
+      }).then((r) => {
+        if (r.ok) setMode("normal");
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Échec de la génération.");
+      // Distinguish user-initiated abort from a real failure.
+      if (err instanceof Error && err.name === "AbortError") {
+        setError("Génération annulée.");
+      } else {
+        setError(
+          err instanceof Error ? err.message : "Échec de la génération.",
+        );
+      }
     } finally {
       setGenerating(false);
+      if (abortRef.current === controller) abortRef.current = null;
     }
+  }, []);
+
+  const cancelGeneration = useCallback(() => {
+    abortRef.current?.abort();
+  }, []);
+
+  // Abort any in-flight generation if the component unmounts.
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
   }, []);
 
   const copyDoc = useCallback(() => {
@@ -204,7 +256,17 @@ export function AdminChatControls() {
               >
                 {generating ? "Génération…" : "Générer le document"}
               </Button>
-              {doc && !panelOpen && (
+              {generating && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={cancelGeneration}
+                  aria-label="Annuler la génération en cours"
+                >
+                  Annuler
+                </Button>
+              )}
+              {doc && !panelOpen && !generating && (
                 <Button
                   variant="ghost"
                   size="sm"
