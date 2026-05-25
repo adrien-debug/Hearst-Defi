@@ -218,11 +218,48 @@ Sans environment `production` créé côté GitHub, le job s'exécute sans gate 
 
 - [ ] Tests locaux verts : `pnpm typecheck && pnpm lint && pnpm test`
 - [ ] Build local OK : `pnpm build`
+- [ ] (Optionnel) E2E réel : `pnpm seed:test && pnpm test:e2e` (voir section E2E ci-dessous).
 - [ ] Migrations Prisma : si schema modifié, snapshot DB prod via `pg_dump` (voir Backups & PITR).
 - [ ] Secrets Railway à jour (Settings → Variables) — checklist au-dessus.
 - [ ] Secret GitHub `DATABASE_URL` provisionné (sinon job `Apply database schema` exit 1).
 - [ ] Sentry alert rules actives (voir Alerting).
 - [ ] Approbateur disponible pour le gate `production` (si configuré).
+
+---
+
+## E2E — user de test seedé
+
+Le spec `e2e/login-flow.spec.ts` exerce le vrai chemin d'authentification
+(login form → `login` server action → `verifyPassword` argon2id → création
+de `Session` DB → cookie `hc_session`). Il a besoin d'un user en base
+avant le run :
+
+```bash
+# 1. Seed idempotent — crée/maj test@hearst.local en DB locale (sqlite par défaut)
+pnpm seed:test
+
+# 2. (optionnel) Nettoyer le cache Turbopack si le webServer plante au boot
+rm -rf .next
+
+# 3. Lancer le spec login-flow uniquement
+pnpm test:e2e login-flow
+
+# ou tous les specs
+pnpm test:e2e
+```
+
+Le seed (`scripts/seed-test-user.ts`) **refuse explicitement de tourner
+en NODE_ENV=production** — l'account `test@hearst.local` ne doit JAMAIS
+exister dans la base de production.
+
+Constantes (en lockstep dans le script et dans le spec) :
+
+| Constante | Valeur |
+|---|---|
+| `TEST_USER_EMAIL` | `test@hearst.local` |
+| `TEST_USER_PASSWORD` | `TestPassword123!` |
+| Rôle | `investor` |
+| KYC | `approved` |
 
 ---
 
