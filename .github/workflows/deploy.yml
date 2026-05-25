@@ -212,11 +212,14 @@ jobs:
         run: npm install -g @railway/cli
 
       - name: Deploy to Railway
+        # RAILWAY_TOKEN is a Project Token scoped to the `production`
+        # environment of this project — it already encodes project + env, so
+        # passing --project / --environment causes "Unauthorized". Only --service
+        # is needed to disambiguate within the environment.
+        # See: https://docs.railway.com/integrations/api#project-tokens
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           railway up \
-            --project "${{ secrets.RAILWAY_PROJECT_ID }}" \
-            --environment production \
             --service "${{ secrets.RAILWAY_SERVICE_NAME }}" \
             --ci

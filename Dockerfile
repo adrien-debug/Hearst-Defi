@@ -6,15 +6,20 @@ FROM node:22-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Local tarball deps (file:./hearst-*.tgz in package.json) must be present
+# during install — copy them alongside the lockfile.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml hearst-cockpit-shell-0.2.0.tgz hearst-hub-sdk-0.2.0.tgz ./
+# Pin pnpm@10 — pnpm@11 ships the minimumReleaseAge supply-chain policy on by
+# default, which rejects file:./*.tgz workspace tarballs (lookup → 404 on
+# npm registry). The lockfile was generated with 10.x anyway.
+RUN corepack enable && corepack prepare pnpm@10 --activate
 RUN pnpm install --frozen-lockfile
 
 # ── Stage 2: Builder ────────────────────────────────────────────────────────
 FROM node:22-alpine AS builder
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10 --activate
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
