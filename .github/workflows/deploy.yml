@@ -85,8 +85,13 @@ jobs:
 
       - name: Generate Prisma client
         # Default sqlite provider — generated types are provider-agnostic.
-        # The deploy step below switches to postgresql for `db push`.
+        # The deploy step below switches to postgresql for `db push` against prod.
         run: pnpm db:generate
+
+      - name: Push schema to local SQLite (integration tests touch real DB)
+        env:
+          DATABASE_URL: "file:./prisma/dev.db"
+        run: pnpm exec prisma db push
 
       - name: Run Vitest
         run: pnpm test
