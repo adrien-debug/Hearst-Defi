@@ -217,5 +217,6 @@ jobs:
         run: |
           railway up \
             --project "${{ secrets.RAILWAY_PROJECT_ID }}" \
+            --environment production \
             --service "${{ secrets.RAILWAY_SERVICE_NAME }}" \
             --ci
