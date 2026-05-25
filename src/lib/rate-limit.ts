@@ -158,6 +158,20 @@ async function checkRateLimit(
   maxRequests: number = DEFAULT_MAX_REQUESTS,
   windowMs: number = DEFAULT_WINDOW_MS,
 ): Promise<RateLimitResult> {
+  // E2E shortcut — hard-gated outside production. Lets Playwright exercise
+  // the real login form repeatedly without saturating the IP/email buckets
+  // (Upstash persists state across spec runs). Refuses in production builds.
+  if (
+    process.env.NODE_ENV !== "production" &&
+    process.env.E2E_DISABLE_RATE_LIMIT === "1"
+  ) {
+    return {
+      success: true,
+      limit: maxRequests,
+      remaining: maxRequests,
+      resetAt: nowMs() + windowMs,
+    };
+  }
   const redisClient = getRedis();
   if (redisClient) {
     return checkRedis(identifier, maxRequests, windowMs);

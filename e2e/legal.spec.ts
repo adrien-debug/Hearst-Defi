@@ -26,7 +26,7 @@ test.describe("Legal pages (public, no auth)", () => {
     await expect(
       page.getByRole("heading", { level: 1, name: /Terms of Service/i }),
     ).toBeVisible();
-    await expect(page.getByText(/60-day soft lock-up/i)).toBeVisible();
+    await expect(page.getByText(/60-day soft lock-up/i).first()).toBeVisible();
     await expect(page.getByText(/Cayman Islands/i).first()).toBeVisible();
   });
 
