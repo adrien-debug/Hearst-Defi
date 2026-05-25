@@ -2,8 +2,6 @@ import "server-only";
 
 import { readFileSync } from "node:fs";
 
-import { Fireblocks } from "@fireblocks/ts-sdk";
-
 import { env } from "@/lib/env";
 import {
   aggregateCustody,
@@ -49,6 +47,11 @@ export async function loadCustody(): Promise<CustodySnapshot> {
   if (!apiKey || !secretPath || !basePath) return manualFallback();
 
   try {
+    // Dynamic import: @fireblocks/ts-sdk@19 has a static `require('uuid')`
+    // that breaks on Vercel because uuid@14 is ESM-only (ERR_REQUIRE_ESM).
+    // Loading lazily inside the try/catch lets the failure degrade to the
+    // manual fallback instead of crashing the route at module-eval time.
+    const { Fireblocks } = await import("@fireblocks/ts-sdk");
     const secretKey = readFileSync(secretPath, "utf8");
     const fb = new Fireblocks({ apiKey, secretKey, basePath });
     const res = await fb.vaults.getPagedVaultAccounts({ limit: 200 });
