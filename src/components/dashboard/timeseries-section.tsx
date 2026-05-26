@@ -2,6 +2,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { ApyRange } from "@/components/ui/apy-range";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { ChartProvenanceCorner } from "@/components/ui/chart-provenance-corner";
+import { computeDrawdownPeriods } from "@/lib/engine/drawdown";
 import type {
   DashboardTimeseries,
 } from "@/lib/data/dashboard";
@@ -96,12 +97,20 @@ function polyline(pts: Array<{ x: number; y: number }>): string {
   return pts.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ");
 }
 
+interface DrawdownRect {
+  /** x position (viewBox units) where this period starts */
+  x: number;
+  /** width (viewBox units) of this period */
+  width: number;
+}
+
 interface LineChartProps {
   values: number[];
   ariaLabel: string;
+  drawdownRects?: DrawdownRect[];
 }
 
-function LineChart({ values, ariaLabel }: LineChartProps) {
+function LineChart({ values, ariaLabel, drawdownRects }: LineChartProps) {
   const pts = toXY(values);
   const line = polyline(pts);
   const area = `${line} ${VB_W},${VB_H} 0,${VB_H}`;
@@ -114,6 +123,19 @@ function LineChart({ values, ariaLabel }: LineChartProps) {
         role="img"
         aria-label={ariaLabel}
       >
+        {/* Drawdown shading — rendered below the area fill */}
+        {drawdownRects?.map((r, idx) => (
+          <rect
+            key={idx}
+            x={r.x.toFixed(2)}
+            y="0"
+            width={r.width.toFixed(2)}
+            height={VB_H}
+            fill="var(--ct-status-danger)"
+            opacity="0.12"
+            aria-hidden="true"
+          />
+        ))}
         <polygon points={area} fill="var(--ct-accent-soft)" opacity="0.25" />
         <polyline
           points={line}
@@ -200,6 +222,17 @@ function NavChart({ points, provenance }: NavChartProps) {
   const trendDir: "up" | "down" | "flat" =
     deltaPct > 0.05 ? "up" : deltaPct < -0.05 ? "down" : "flat";
 
+  // Compute drawdown periods and map to viewBox x-coordinates
+  const n = points.length;
+  const ddPeriods = computeDrawdownPeriods(points);
+  const xAt = (idx: number): number =>
+    n === 1 ? VB_W / 2 : (idx / (n - 1)) * VB_W;
+  const drawdownRects = ddPeriods.map((dd) => {
+    const x = xAt(dd.start);
+    const xEnd = xAt(dd.end);
+    return { x, width: Math.max(xEnd - x, 0.5) };
+  });
+
   return (
     <Card className="relative flex flex-col">
       <ChartProvenanceCorner kind={provenance} />
@@ -235,6 +268,7 @@ function NavChart({ points, provenance }: NavChartProps) {
       <LineChart
         values={values}
         ariaLabel={`Net asset value, ${values.length} points, ${deltaPct >= 0 ? "up" : "down"} ${Math.abs(deltaPct).toFixed(1)} percent over 30 days`}
+        drawdownRects={drawdownRects}
       />
     </Card>
   );
