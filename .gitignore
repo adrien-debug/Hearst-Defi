@@ -48,8 +48,10 @@ coverage/
 playwright-report/
 test-results/
 
-# Generated audit reports
-docs/audit/
+# Generated audit reports (HTML reports + screenshots only — durable .md packs tracked below)
+docs/audit/*.html
+docs/audit/screenshots/
+docs/audit/*.md
 
 # Ephemeral agent worktrees
 .claude/worktrees/

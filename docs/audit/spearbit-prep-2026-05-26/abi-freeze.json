@@ -1,0 +1,41 @@
+{
+  "_meta": {
+    "description": "ABI freeze placeholder for Spearbit audit pack. Compile from the frozen SHA to populate each contract's ABI array.",
+    "freeze_sha": "8ba18c99a5b1ebce225ca3dbce7d4c9372a4be24",
+    "compiled_with": "forge build --root contracts/",
+    "artifact_path": "contracts/out/<ContractName>.sol/<ContractName>.json",
+    "instructions": [
+      "1. Checkout the frozen SHA: git checkout 8ba18c99a5b1ebce225ca3dbce7d4c9372a4be24",
+      "2. Run: cd contracts && forge build",
+      "3. Copy the 'abi' array from each artifact file into the corresponding section below.",
+      "4. Commit the populated abi-freeze.json under docs/audit/spearbit-prep-2026-05-26/ before kick-off call."
+    ],
+    "status": "PLACEHOLDER — not yet populated"
+  },
+  "contracts": {
+    "EventLogger": {
+      "source_path": "contracts/src/EventLogger.sol",
+      "artifact_path": "contracts/out/EventLogger.sol/EventLogger.json",
+      "compiler_version": "see contracts/foundry.toml",
+      "network": "Base Sepolia (chainId 84532)",
+      "deployed_address": "TO_BE_FILLED",
+      "abi": "PLACEHOLDER — run forge build and paste abi array here"
+    },
+    "PoRRegistry": {
+      "source_path": "contracts/src/PoRRegistry.sol",
+      "artifact_path": "contracts/out/PoRRegistry.sol/PoRRegistry.json",
+      "compiler_version": "see contracts/foundry.toml",
+      "network": "Base Sepolia (chainId 84532)",
+      "deployed_address": "TO_BE_FILLED",
+      "abi": "PLACEHOLDER — run forge build and paste abi array here"
+    },
+    "HearstYieldVault": {
+      "source_path": "contracts/src/HearstYieldVault.sol",
+      "artifact_path": "contracts/out/HearstYieldVault.sol/HearstYieldVault.json",
+      "compiler_version": "see contracts/foundry.toml",
+      "network": "Base Sepolia (chainId 84532) — mainnet deploy pending audit sign-off",
+      "deployed_address": "TO_BE_FILLED",
+      "abi": "PLACEHOLDER — run forge build and paste abi array here"
+    }
+  }
+}
