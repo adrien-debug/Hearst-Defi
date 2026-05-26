@@ -429,9 +429,10 @@ model VaultDeployment {
   createdBy              String
   seededFromStudyId      String?
 
-  approvals VaultDeploymentApproval[]
-  positions Position[]
-  proposals GovernanceProposal[]
+  approvals    VaultDeploymentApproval[]
+  positions    Position[]
+  proposals    GovernanceProposal[]
+  shareClasses ShareClass[]
 
   @@index([status])
   @@index([strategy, status])
@@ -679,6 +680,57 @@ model AddressAllowlist {
   active    Boolean  @default(true)
 
   @@index([active, category])
+}
+
+// =============================================================================
+// SHARE CLASSES — per-vault subscription terms (class A / class B / custom)
+// =============================================================================
+//
+// One row per class per vault. Class A is always seeded for every live vault.
+// Terms mirror src/lib/engine/share-class.ts constants (canonical source).
+// Created via seed.ts; mutated only via admin vault-wizard flow.
+
+model ShareClass {
+  id         String          @id @default(cuid())
+  vaultId    String // FK → VaultDeployment.id
+  vault      VaultDeployment @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  code       String // "A" | "B"
+  minTicket  Decimal // USDC, minimum subscription amount
+  lockupDays Int // soft lockup period in days
+  mgmtFeeBps Int // annual management fee in basis points
+  perfFeeBps Int // performance fee (carry) in basis points
+  active     Boolean         @default(true)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  subscriptions Subscription[]
+
+  @@unique([vaultId, code])
+  @@index([vaultId, active])
+}
+
+// =============================================================================
+// SUBSCRIPTIONS — investor subscription intents (pre-position)
+// =============================================================================
+//
+// A Subscription row is created when an investor selects a share class and
+// submits an amount. The lockupUntil is derived from subscribedAt + lockupDays.
+// A Position row is created downstream when the deposit settles on-chain.
+
+model Subscription {
+  id           String     @id @default(cuid())
+  userId       String // FK → User.id (auth identity)
+  vaultId      String // FK → VaultDeployment.id
+  shareClassId String // FK → ShareClass.id
+  shareClass   ShareClass @relation(fields: [shareClassId], references: [id])
+  amount       Decimal // USDC amount, Decimal for precision
+  subscribedAt DateTime   @default(now())
+  lockupUntil  DateTime // computed: subscribedAt + lockupDays
+  status       String     @default("pending") // pending | confirmed | cancelled
+
+  @@index([userId, subscribedAt])
+  @@index([vaultId, status])
+  @@index([shareClassId])
 }
 
 // =============================================================================
