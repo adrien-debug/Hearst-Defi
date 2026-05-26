@@ -1,10 +1,9 @@
 import Link from "next/link";
 
 import { cn } from "@/lib/cn";
-import type { VaultId } from "@/lib/engine/types";
 
-/** Vault catalog rendered by the selector. Order is stable across renders. */
-const VAULT_OPTIONS: ReadonlyArray<{ id: VaultId; label: string }> = [
+/** Default fixtures-only catalog. Used when no `options` prop is provided. */
+const DEFAULT_VAULT_OPTIONS: ReadonlyArray<{ id: string; label: string }> = [
   { id: "yield", label: "Yield" },
   { id: "defensive", label: "Defensive" },
   { id: "btc-plus", label: "BTC Plus" },
@@ -12,7 +11,14 @@ const VAULT_OPTIONS: ReadonlyArray<{ id: VaultId; label: string }> = [
 
 export interface VaultSelectorProps {
   /** Currently active vault id (resolved from `?vault=` on the server). */
-  active: VaultId;
+  active: string;
+  /**
+   * Vault catalog to render. When omitted, falls back to the 3 engine fixtures
+   * (yield / defensive / btc-plus). Pass a list mixing fixtures + live
+   * deployments (built via `listAllVaults()` + `vaultSlug` / `vaultLabel`)
+   * to surface wizard-created vaults in the rail.
+   */
+  options?: ReadonlyArray<{ id: string; label: string }>;
   /** Base path to anchor links against — defaults to `/admin/dashboard`. */
   basePath?: string;
   /**
@@ -36,13 +42,14 @@ export interface VaultSelectorProps {
  */
 export function VaultSelector({
   active,
+  options = DEFAULT_VAULT_OPTIONS,
   basePath = "/admin/dashboard",
   preserveParams,
   ariaLabel = "Vault selector",
 }: VaultSelectorProps) {
   return (
     <nav className="inline-flex gap-1 ct-seg-track" aria-label={ariaLabel}>
-      {VAULT_OPTIONS.map((opt) => {
+      {options.map((opt) => {
         const params = new URLSearchParams();
         if (opt.id !== "yield") params.set("vault", opt.id);
         if (preserveParams) {

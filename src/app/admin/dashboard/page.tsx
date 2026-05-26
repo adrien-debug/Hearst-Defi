@@ -17,7 +17,6 @@ import { Metric } from "@/components/ui/metric";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { requireAdmin } from "@/lib/auth/require-admin";
-import type { VaultId } from "@/lib/engine/types";
 import { allocationLabelFor, allocationStrokeFor } from "@/lib/allocation-colors";
 import { loadCustody } from "@/lib/data/custody";
 import {
@@ -25,6 +24,8 @@ import {
   loadDashboardData,
   loadRiskFramework,
 } from "@/lib/demo/loaders";
+import { listAllVaults } from "@/lib/vaults/resolver";
+import { vaultSlug, vaultLabel } from "@/lib/vaults/slug";
 
 export const dynamic = "force-dynamic";
 
@@ -64,12 +65,21 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     params.mode === "advanced" ? "advanced" : "simple";
   const requestedVault = params.vault;
 
-  const [data, custody, risk] = await Promise.all([
+  const [data, custody, risk, allVaultRefs] = await Promise.all([
     loadDashboardData(requestedVault),
     loadCustody(),
     loadRiskFramework(),
+    listAllVaults({ status: "live-or-paused" }),
   ]);
   const { vault, vaultMeta } = data;
+
+  // Selector catalog = 3 engine fixtures + every live/paused VaultDeployment
+  // wired through the resolver. Surfaces wizard-created vaults in the rail
+  // (resolves the schism between Prisma deployments and engine fixtures).
+  const vaultOptions = allVaultRefs.map((ref) => ({
+    id: vaultSlug(ref),
+    label: vaultLabel(ref),
+  }));
 
   // Donut segments — canonical SVG convention (C=100): dashArray = pct, offset
   // is the running cumulative so each arc starts where the previous ended.
@@ -121,7 +131,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         actions={
           <div className="flex flex-wrap items-center gap-3">
             <VaultSelector
-              active={vaultMeta.id as VaultId}
+              active={vaultMeta.id}
+              options={vaultOptions}
               preserveParams={
                 mode === "advanced" ? { mode: "advanced" } : undefined
               }

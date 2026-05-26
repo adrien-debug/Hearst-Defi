@@ -52,6 +52,7 @@ export const FORM_INITIAL: FormState = {
   targetUsdcBaseBps: 1500,
   targetStableReserveBps: 1000,
   signersWhitelist: ["", ""],
+  requiredSigners: 2,
 };
 
 // ---------------------------------------------------------------------------
@@ -146,6 +147,7 @@ export function VaultForm(props: VaultFormProps) {
       targetUsdcBaseBps: form.targetUsdcBaseBps,
       targetStableReserveBps: form.targetStableReserveBps,
       signersWhitelist: form.signersWhitelist.filter((s) => s.trim().length > 0),
+      requiredSigners: form.requiredSigners,
     };
   }
 
@@ -590,6 +592,41 @@ export function VaultForm(props: VaultFormProps) {
                   + Add signer
                 </Button>
               )}
+
+              {/* Required signers — multisig threshold M-of-N */}
+              <div className="space-y-2 pt-2 border-t border-[var(--ct-border-soft)]">
+                <span className="stat-label block">
+                  Required signers (M-of-N quorum) *
+                </span>
+                <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Required signers">
+                  {[2, 3, 4, 5].map((n) => {
+                    const disabled = n > form.signersWhitelist.length;
+                    const active = form.requiredSigners === n;
+                    return (
+                      <button
+                        key={n}
+                        type="button"
+                        role="radio"
+                        aria-checked={active}
+                        disabled={disabled}
+                        onClick={() => set("requiredSigners", n)}
+                        className={
+                          active
+                            ? "ct-pill accent text-xs font-semibold"
+                            : disabled
+                              ? "ct-pill text-xs font-semibold opacity-40 cursor-not-allowed"
+                              : "ct-pill text-xs font-semibold"
+                        }
+                      >
+                        {n} of {form.signersWhitelist.length}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="body-xs ct-text-faint">
+                  Threshold of distinct signers required to approve deployment. Must be ≤ whitelist size.
+                </p>
+              </div>
             </div>
 
             <p className="body-xs ct-text-faint border-t border-[var(--ct-border-soft)] pt-3">

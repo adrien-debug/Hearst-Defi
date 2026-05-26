@@ -218,6 +218,7 @@ function validDraftInput(): CreateDraftInput {
     targetUsdcBaseBps: 1_000,
     targetStableReserveBps: 500,
     signersWhitelist: ["0xSignerA", "0xSignerB"],
+    requiredSigners: 2,
   };
 }
 
@@ -271,5 +272,40 @@ describe("CreateDraftSchema — Zod refinements (P1)", () => {
       const msgs = result.issues.map((i) => i.message);
       expect(msgs.some((m) => /forbidden word/i.test(m))).toBe(true);
     }
+  });
+
+  it("Required signers — exceeds whitelist size → rejected", async () => {
+    const input = validDraftInput();
+    input.signersWhitelist = ["0xA", "0xB"];
+    input.requiredSigners = 3; // 3 > 2 → must fail
+    const result = await createDraftVault(input);
+    expect(result.ok).toBe(false);
+    if (!result.ok && typeof result.issues !== "string") {
+      const msgs = result.issues.map((i) => i.message);
+      expect(msgs.some((m) => /requiredSigners.*exceed.*signersWhitelist/i.test(m))).toBe(true);
+    }
+  });
+
+  it("Required signers — below 2 → rejected by base bounds", async () => {
+    const input = validDraftInput();
+    input.requiredSigners = 1;
+    const result = await createDraftVault(input);
+    expect(result.ok).toBe(false);
+  });
+
+  it("Required signers — above 5 → rejected by base bounds", async () => {
+    const input = validDraftInput();
+    input.signersWhitelist = ["0xA", "0xB", "0xC", "0xD", "0xE", "0xF"]; // 6 > max 5
+    input.requiredSigners = 6;
+    const result = await createDraftVault(input);
+    expect(result.ok).toBe(false);
+  });
+
+  it("Required signers — quorum 3-of-5 happy path", async () => {
+    const input = validDraftInput();
+    input.signersWhitelist = ["0xA", "0xB", "0xC", "0xD", "0xE"];
+    input.requiredSigners = 3;
+    const result = await createDraftVault(input);
+    expect(result.ok).toBe(true);
   });
 });

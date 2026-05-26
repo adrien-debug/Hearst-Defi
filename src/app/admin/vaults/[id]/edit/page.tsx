@@ -56,6 +56,7 @@ export default async function EditVaultPage({ params }: PageProps) {
     targetUsdcBaseBps: vault.targetUsdcBaseBps,
     targetStableReserveBps: vault.targetStableReserveBps,
     signersWhitelist,
+    requiredSigners: Math.max(2, Math.min(vault.requiredSigners, signersWhitelist.length)),
   };
 
   return (

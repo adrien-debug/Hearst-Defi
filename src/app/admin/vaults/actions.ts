@@ -80,6 +80,11 @@ const CreateDraftSchema = z.object({
     .array(z.string().min(1))
     .min(2, "At least 2 signers required")
     .max(5, "At most 5 signers allowed"),
+  requiredSigners: z
+    .number()
+    .int()
+    .min(2, "Required signers must be at least 2")
+    .max(5, "Required signers must be at most 5"),
 })
   .refine(
     (d) => d.targetApyHighBps > d.targetApyLowBps,
@@ -110,6 +115,14 @@ const CreateDraftSchema = z.object({
       message:
         "Description contains a forbidden word (guarantee / promise / certain / will deliver / risk-free)",
       path: ["description"],
+    },
+  )
+  .refine(
+    (d) => d.requiredSigners <= d.signersWhitelist.length,
+    {
+      message:
+        "requiredSigners cannot exceed the number of signers in signersWhitelist",
+      path: ["requiredSigners"],
     },
   );
 
@@ -194,7 +207,7 @@ export async function createDraftVault(
         targetUsdcBaseBps: d.targetUsdcBaseBps,
         targetStableReserveBps: d.targetStableReserveBps,
         signersWhitelist: JSON.stringify(d.signersWhitelist),
-        requiredSigners: Math.min(d.signersWhitelist.length, 2),
+        requiredSigners: d.requiredSigners,
         createdBy: admin.walletAddress ?? admin.userId,
       },
     });
@@ -275,7 +288,7 @@ export async function updateDraftVault(
         targetUsdcBaseBps: d.targetUsdcBaseBps,
         targetStableReserveBps: d.targetStableReserveBps,
         signersWhitelist: JSON.stringify(d.signersWhitelist),
-        requiredSigners: Math.min(d.signersWhitelist.length, 2),
+        requiredSigners: d.requiredSigners,
       },
     });
 
