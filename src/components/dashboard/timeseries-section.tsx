@@ -1,6 +1,7 @@
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { ApyRange } from "@/components/ui/apy-range";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
+import { ChartProvenanceCorner } from "@/components/ui/chart-provenance-corner";
 import type {
   DashboardTimeseries,
 } from "@/lib/data/dashboard";
@@ -200,7 +201,8 @@ function NavChart({ points, provenance }: NavChartProps) {
     deltaPct > 0.05 ? "up" : deltaPct < -0.05 ? "down" : "flat";
 
   return (
-    <Card className="flex flex-col">
+    <Card className="relative flex flex-col">
+      <ChartProvenanceCorner kind={provenance} />
       <CardHeader>
         <div className="flex flex-col gap-2">
           <CardTitle>Net Asset Value</CardTitle>
@@ -226,7 +228,6 @@ function NavChart({ points, provenance }: NavChartProps) {
               {deltaPct >= 0 ? "+" : ""}
               {deltaPct.toFixed(1)}% (30d)
             </span>
-            <ProvenanceBadge kind={provenance} />
           </div>
         </div>
       </CardHeader>
@@ -266,7 +267,8 @@ function ApyChart({ points, provenance }: ApyChartProps) {
   const highs = points.map((p) => p.apy_high);
 
   return (
-    <Card className="flex flex-col">
+    <Card className="relative flex flex-col">
+      <ChartProvenanceCorner kind={provenance} />
       <CardHeader>
         <div className="flex flex-col gap-2">
           <CardTitle>APY Range</CardTitle>
@@ -282,7 +284,6 @@ function ApyChart({ points, provenance }: ApyChartProps) {
               high={lastPoint.apy_high}
             />
           ) : null}
-          <ProvenanceBadge kind={provenance} />
         </div>
       </CardHeader>
 

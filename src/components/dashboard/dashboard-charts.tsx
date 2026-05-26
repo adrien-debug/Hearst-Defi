@@ -10,6 +10,7 @@
  */
 
 import { allocationStrokeFor } from "@/lib/allocation-colors";
+import { ChartProvenanceCorner } from "@/components/ui/chart-provenance-corner";
 
 // ── AUM sparkline ───────────────────────────────────────────────────────────
 
@@ -265,36 +266,39 @@ export function AllocationDonut({ segments, ariaLabel }: AllocationDonutProps) {
     const legacySegs = segments as DonutSegment[];
     const bucketCount = legacySegs.length;
     return (
-      <svg
-        className="dash-chart-svg"
-        viewBox="0 0 42 42"
-        width="100%"
-        height="100%"
-        role="img"
-        aria-label={ariaLabel}
-      >
-        <title>{`Allocation donut, ${bucketCount} bucket${bucketCount === 1 ? "" : "s"}`}</title>
-        <circle
-          className="dash-chart-circle color-soft"
-          cx={CX}
-          cy={CY}
-          r={INNER_R}
-          strokeDasharray="100 0"
-          opacity="0.35"
-        />
-        {legacySegs.map((s) => (
+      <div className="relative w-full h-full">
+        <ChartProvenanceCorner kind="attested" position="bottom-right" />
+        <svg
+          className="dash-chart-svg"
+          viewBox="0 0 42 42"
+          width="100%"
+          height="100%"
+          role="img"
+          aria-label={ariaLabel}
+        >
+          <title>{`Allocation donut, ${bucketCount} bucket${bucketCount === 1 ? "" : "s"}`}</title>
           <circle
-            key={s.bucket}
-            className="dash-chart-circle"
+            className="dash-chart-circle color-soft"
             cx={CX}
             cy={CY}
             r={INNER_R}
-            stroke={allocationStrokeFor(s.bucket)}
-            strokeDasharray={s.dashArray}
-            strokeDashoffset={s.dashOffset}
+            strokeDasharray="100 0"
+            opacity="0.35"
           />
-        ))}
-      </svg>
+          {legacySegs.map((s) => (
+            <circle
+              key={s.bucket}
+              className="dash-chart-circle"
+              cx={CX}
+              cy={CY}
+              r={INNER_R}
+              stroke={allocationStrokeFor(s.bucket)}
+              strokeDasharray={s.dashArray}
+              strokeDashoffset={s.dashOffset}
+            />
+          ))}
+        </svg>
+      </div>
     );
   }
 
@@ -381,19 +385,21 @@ export function AllocationDonut({ segments, ariaLabel }: AllocationDonutProps) {
     .slices;
 
   return (
-    <svg
-      className="dash-chart-svg alloc-donut"
-      viewBox="0 0 42 42"
-      width="100%"
-      height="100%"
-      role="img"
-      aria-label={ariaLabel}
-    >
-      <title>
-        {twoRings
-          ? `Allocation donut, ${hierSegs.length} bucket${hierSegs.length === 1 ? "" : "s"}, ${positionCount} position${positionCount === 1 ? "" : "s"}`
-          : `Allocation donut, ${hierSegs.length} bucket${hierSegs.length === 1 ? "" : "s"}`}
-      </title>
+    <div className="relative w-full h-full">
+      <ChartProvenanceCorner kind="attested" position="bottom-right" />
+      <svg
+        className="dash-chart-svg alloc-donut"
+        viewBox="0 0 42 42"
+        width="100%"
+        height="100%"
+        role="img"
+        aria-label={ariaLabel}
+      >
+        <title>
+          {twoRings
+            ? `Allocation donut, ${hierSegs.length} bucket${hierSegs.length === 1 ? "" : "s"}, ${positionCount} position${positionCount === 1 ? "" : "s"}`
+            : `Allocation donut, ${hierSegs.length} bucket${hierSegs.length === 1 ? "" : "s"}`}
+        </title>
 
       {/* Rotate entire content -90° so arc starts at 12 o'clock */}
       <g transform={`rotate(-90 ${CX} ${CY})`}>
@@ -463,6 +469,7 @@ export function AllocationDonut({ segments, ariaLabel }: AllocationDonutProps) {
           </g>
         )}
       </g>
-    </svg>
+      </svg>
+    </div>
   );
 }

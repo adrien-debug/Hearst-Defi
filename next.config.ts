@@ -58,6 +58,53 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  // ---------------------------------------------------------------------------
+  // Legacy admin redirects (308 permanent) — vault-centric URL enrichment.
+  //
+  // Phase 1 (MVP): bare admin routes redirect to `?vault=yield` so bookmarks
+  // and internal links always carry an explicit vault context. These routes
+  // resolve correctly today because every page already reads `?vault=` and
+  // falls back to "yield" when absent — the redirect makes the default
+  // explicit rather than silent.
+  //
+  // Phase 2 (Sprint +1): when /admin/vaults/[id]/operations/* scaffolding
+  // lands, these redirects will be updated to point at the vault-scoped paths.
+  // Until then, the `?vault=yield` form is the canonical URL.
+  // ---------------------------------------------------------------------------
+  async redirects() {
+    return [
+      {
+        source: "/admin/signals",
+        destination: "/admin/signals?vault=yield",
+        permanent: true,
+      },
+      {
+        source: "/admin/distributions",
+        destination: "/admin/distributions?vault=yield",
+        permanent: true,
+      },
+      {
+        source: "/admin/proofs",
+        destination: "/admin/proofs?vault=yield",
+        permanent: true,
+      },
+      {
+        source: "/admin/projection",
+        destination: "/admin/projection?vault=yield",
+        permanent: true,
+      },
+      {
+        source: "/admin/scenario-lab",
+        destination: "/admin/scenario-lab?vault=yield",
+        permanent: true,
+      },
+      {
+        source: "/admin/investor-memo",
+        destination: "/admin/investor-memo?vault=yield",
+        permanent: true,
+      },
+    ];
+  },
   // Body size limits are enforced per-route via NextRequest constraints
   // (see individual route.ts files for max body validation)
   async headers() {

@@ -6,6 +6,8 @@
 
 import { monthsToTarget, buildProjectionSeries } from "@/lib/demo/projection";
 import type { VaultProduct } from "@/lib/data/vaults";
+import { ChartProvenanceCorner } from "@/components/ui/chart-provenance-corner";
+import { ChartDisclaimerUnderlay } from "@/components/ui/chart-disclaimer-underlay";
 
 interface TimeToTargetChartProps {
   amount: number; // USDC
@@ -138,9 +140,11 @@ export function TimeToTargetChart({ amount, vault }: TimeToTargetChartProps) {
   return (
     <div className="space-y-2">
       <div
-        className="w-full rounded-[var(--ct-radius-md)] bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] overflow-hidden"
+        className="relative w-full rounded-[var(--ct-radius-md)] bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] overflow-hidden"
         style={{ height: "160px" }}
       >
+        <ChartProvenanceCorner kind="estimated" />
+        <ChartDisclaimerUnderlay />
         <svg
           viewBox={`0 0 ${VB_W} ${VB_H}`}
           preserveAspectRatio="xMidYMid meet"
@@ -157,22 +161,6 @@ export function TimeToTargetChart({ amount, vault }: TimeToTargetChartProps) {
             indicates when the +{TARGET_CUMULATIVE_PCT}% cumulative yield milestone is reached.
             These are conditional projections, not a commitment to future returns.
           </desc>
-
-          {/* Disclaimer watermark */}
-          <text
-            x={VB_W / 2}
-            y={VB_H / 2}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fill="var(--ct-text-faint)"
-            fontSize="9"
-            fontFamily="inherit"
-            opacity="0.08"
-            transform={`rotate(-12, ${VB_W / 2}, ${VB_H / 2})`}
-            aria-hidden="true"
-          >
-            projections · not guaranteed
-          </text>
 
           {/* Horizontal grid lines */}
           {gridYs.map((gy, idx) => (

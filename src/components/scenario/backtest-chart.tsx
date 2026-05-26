@@ -1,5 +1,6 @@
 import type { MonthlyPoint } from "@/lib/engine/types";
-import { ProvenanceBadge } from "@/components/ui/provenance-badge";
+import { ChartProvenanceCorner } from "@/components/ui/chart-provenance-corner";
+import { ChartDisclaimerUnderlay } from "@/components/ui/chart-disclaimer-underlay";
 
 // ── ViewBox constants ──────────────────────────────────────────────────────
 // Fixed 400×160 grid. Padded 16px top/bottom/left/right.
@@ -173,6 +174,7 @@ export function BacktestChart({ series }: BacktestChartProps) {
 
   return (
     <div className="relative flex w-full flex-col gap-2">
+      <ChartProvenanceCorner kind="estimated" />
       {/* Header row */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-0.5">
@@ -189,40 +191,23 @@ export function BacktestChart({ series }: BacktestChartProps) {
             {deltaPct.toFixed(1)}% total · max dd {maxDd.toFixed(1)}%
           </span>
         </div>
-        <div className="mt-0.5">
-          <ProvenanceBadge kind="estimated" />
-        </div>
       </div>
 
       {/* SVG chart */}
-      <svg
-        viewBox={`0 0 ${VB_W} ${VB_H}`}
-        preserveAspectRatio="xMidYMid meet"
-        className="w-full"
-        style={{ aspectRatio: `${VB_W} / ${VB_H}` }}
-        role="img"
-        aria-labelledby="bt-chart-title bt-chart-desc"
-      >
-        <title id="bt-chart-title">Backtest NAV and drawdown chart</title>
-        <desc id="bt-chart-desc">
-          {`Backtest series with ${n} monthly data points. Final NAV ${usdFmt.format(lastNav)}, total return ${deltaPct.toFixed(1)}%, max drawdown ${maxDd.toFixed(1)}%.`}
-        </desc>
-
-        {/* ── Watermark disclaimer ── */}
-        <text
-          x={VB_W / 2}
-          y={VB_H / 2}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontSize="14"
-          fontFamily="inherit"
-          fill="var(--ct-text-faint, var(--ct-text-muted))"
-          opacity="0.08"
-          transform={`rotate(-12, ${VB_W / 2}, ${VB_H / 2})`}
-          aria-hidden="true"
+      <div className="relative w-full">
+        <ChartDisclaimerUnderlay />
+        <svg
+          viewBox={`0 0 ${VB_W} ${VB_H}`}
+          preserveAspectRatio="xMidYMid meet"
+          className="w-full"
+          style={{ aspectRatio: `${VB_W} / ${VB_H}` }}
+          role="img"
+          aria-labelledby="bt-chart-title bt-chart-desc"
         >
-          projections · not guaranteed · methodology v1.0
-        </text>
+          <title id="bt-chart-title">Backtest NAV and drawdown chart</title>
+          <desc id="bt-chart-desc">
+            {`Backtest series with ${n} monthly data points. Final NAV ${usdFmt.format(lastNav)}, total return ${deltaPct.toFixed(1)}%, max drawdown ${maxDd.toFixed(1)}%.`}
+          </desc>
 
         {/* ── Grid lines (NAV panel) ── */}
         {navGridYs.map((gy, idx) => (
@@ -322,6 +307,7 @@ export function BacktestChart({ series }: BacktestChartProps) {
           DD%
         </text>
       </svg>
+      </div>
 
       {/* Footer disclaimer */}
       <p className="text-[10px] leading-tight text-[var(--ct-text-faint,var(--ct-text-muted))]">

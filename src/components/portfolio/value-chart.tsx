@@ -1,4 +1,6 @@
-import { ProvenanceBadge, type Provenance } from "@/components/ui/provenance-badge";
+import { type Provenance } from "@/components/ui/provenance-badge";
+import { ChartProvenanceCorner } from "@/components/ui/chart-provenance-corner";
+import { ChartDisclaimerUnderlay } from "@/components/ui/chart-disclaimer-underlay";
 import type { PortfolioPosition } from "@/lib/data/portfolio";
 import { formatUsdCompact } from "@/lib/format/usd-compact";
 
@@ -120,22 +122,6 @@ function AreaChart({ series, ariaLabel: _ariaLabel }: AreaChartProps) {
         </linearGradient>
       </defs>
 
-      {/* Disclaimer watermark underlay */}
-      <text
-        x="50%"
-        y="50%"
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fontSize="6"
-        fill="var(--ct-text-faint)"
-        opacity="0.08"
-        transform={`rotate(-12, ${VB_W / 2}, ${VB_H / 2})`}
-        style={{ userSelect: "none", pointerEvents: "none" }}
-        aria-hidden="true"
-      >
-        projections · not guaranteed
-      </text>
-
       {/* Area fill */}
       <polygon
         points={areaPts}
@@ -191,11 +177,11 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
   const isEmpty = totalValueUsdc === 0 && positions.length === 0;
 
   return (
-    <article className="dash-cell" aria-label="Portfolio value — 12-month trend">
+    <article className="dash-cell relative" aria-label="Portfolio value — 12-month trend">
+      <ChartProvenanceCorner kind={provenance} />
       <div className="dash-label">
         <span>Portfolio value · 12-month trend</span>
         <span className="dash-label-meta">
-          <ProvenanceBadge kind={provenance} />
           <span className="dash-trend flat">
             {totalValueUsdc > 0 ? formatUsdCompact(totalValueUsdc) : "—"}
           </span>
@@ -216,9 +202,10 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
       ) : (
         /* Real area chart */
         <div
-          className="mt-3 block w-full overflow-hidden rounded-[var(--ct-radius-md)]"
+          className="relative mt-3 block w-full overflow-hidden rounded-[var(--ct-radius-md)]"
           style={{ minHeight: "5rem", maxHeight: "9rem", height: "120px" }}
         >
+          <ChartDisclaimerUnderlay />
           <AreaChart
             series={series}
             ariaLabel={`Portfolio value area chart, 12 months, current value ${totalValueUsdc > 0 ? formatUsdCompact(totalValueUsdc) : "n/a"}`}

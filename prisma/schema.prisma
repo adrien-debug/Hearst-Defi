@@ -426,8 +426,9 @@ model VaultDeployment {
   createdBy              String
   seededFromStudyId      String?
 
-  approvals VaultDeploymentApproval[]
-  positions Position[]
+  approvals   VaultDeploymentApproval[]
+  positions   Position[]
+  proposals   GovernanceProposal[]
 
   @@index([status])
   @@index([strategy, status])
@@ -524,6 +525,64 @@ model ReviewDocument {
   createdAt   DateTime @default(now())
 
   @@index([userId, createdAt])
+}
+
+// =============================================================================
+// VAULT WIZARD — per-admin WIP draft autosave
+// =============================================================================
+
+model VaultDraft {
+  id        String   @id @default(cuid())
+  userId    String
+  formState String   // JSON serialized FormState
+  step      String   // current step key
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@unique([userId])
+  @@index([userId])
+}
+
+// =============================================================================
+// GOVERNANCE — multisig proposal + timelock state machine (UI+DB; no Solidity)
+// =============================================================================
+
+model GovernanceProposal {
+  id                String   @id @default(cuid())
+  vaultDeploymentId String
+  vault             VaultDeployment @relation(fields: [vaultDeploymentId], references: [id], onDelete: Cascade)
+  actionType        String   // "deploy" | "pause" | "unpause" | "updateFees" | "updateCaps" | "rotateSigners" | "sweepFees" | "emergencyShutdown"
+  calldata          String?  // JSON or hex stub
+  justification     String   // min 80 chars
+  state             String   @default("DRAFT")
+  proposedBy        String   // wallet address
+  requiredSigners   Int      // copied from vault at proposal time
+  cancelQuorum      Int      @default(2)
+  timelockHours     Int      @default(48)
+  graceWindowDays   Int      @default(7)
+  createdAt         DateTime @default(now())
+  submittedAt       DateTime?
+  queuedAt          DateTime?
+  etaAt             DateTime?
+  executedAt        DateTime?
+  cancelledAt       DateTime?
+  signatures        ProposalSignature[]
+
+  @@index([vaultDeploymentId, state])
+  @@index([state])
+}
+
+model ProposalSignature {
+  id            String             @id @default(cuid())
+  proposalId    String
+  proposal      GovernanceProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  signerAddress String
+  decision      String             // "approve" | "reject" | "cancel"
+  reason        String?
+  signedAt      DateTime           @default(now())
+
+  @@unique([proposalId, signerAddress, decision])
+  @@index([proposalId])
 }
 
 // =============================================================================

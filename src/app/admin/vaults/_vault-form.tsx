@@ -1,30 +1,45 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 
 import { ApyRange } from "@/components/ui/apy-range";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { createDraftVault, updateDraftVault, type CreateDraftInput, type VaultActionResult } from "./actions";
+import {
+  createDraftVault,
+  updateDraftVault,
+  type CreateDraftInput,
+  type VaultActionResult,
+} from "./actions";
+import { saveWizardStep, discardWizardDraft } from "./draft-actions";
 
 // ---------------------------------------------------------------------------
 // Step types
 // ---------------------------------------------------------------------------
 
-type Step = "identity" | "economics" | "legal" | "allocations" | "review";
+type Step =
+  | "identity"
+  | "economics"
+  | "allocations"
+  | "legal"
+  | "governance"
+  | "review_simulate"
+  | "sign_deploy";
 
 const STEPS: { key: Step; label: string }[] = [
   { key: "identity", label: "Identity" },
   { key: "economics", label: "Economics" },
-  { key: "legal", label: "Legal" },
   { key: "allocations", label: "Allocations" },
-  { key: "review", label: "Review" },
+  { key: "legal", label: "Legal" },
+  { key: "governance", label: "Governance" },
+  { key: "review_simulate", label: "Review" },
+  { key: "sign_deploy", label: "Deploy" },
 ];
 
 // ---------------------------------------------------------------------------
-// Form state type — exported so the edit page can construct `initial`
+// Form state type — exported so the edit page and draft loader can use it
 // ---------------------------------------------------------------------------
 
 export type FormState = CreateDraftInput & { colorTag: string };
@@ -60,7 +75,7 @@ export const FORM_INITIAL: FormState = {
 // ---------------------------------------------------------------------------
 
 export type VaultFormProps =
-  | { mode: "create" }
+  | { mode: "create"; resumeStep?: Step; resumeForm?: Partial<FormState> }
   | { mode: "edit"; vaultId: string; initial: FormState };
 
 // ---------------------------------------------------------------------------
@@ -81,15 +96,57 @@ function inputClass(extra?: string) {
 
 export function VaultForm(props: VaultFormProps) {
   const router = useRouter();
-  const [step, setStep] = useState<Step>("identity");
-  const [form, setForm] = useState<FormState>(
-    props.mode === "edit" ? props.initial : FORM_INITIAL,
-  );
+
+  const initialStep: Step =
+    props.mode === "create" && props.resumeStep ? props.resumeStep : "identity";
+
+  const initialForm: FormState =
+    props.mode === "edit"
+      ? props.initial
+      : props.mode === "create" && props.resumeForm
+        ? { ...FORM_INITIAL, ...props.resumeForm }
+        : FORM_INITIAL;
+
+  const [step, setStep] = useState<Step>(initialStep);
+  const [form, setForm] = useState<FormState>(initialForm);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const stepIndex = STEPS.findIndex((s) => s.key === step);
   const progressPct = ((stepIndex + 1) / STEPS.length) * 100;
+
+  // ---------------------------------------------------------------------------
+  // Autosave — debounced on blur or step change (create mode only)
+  // ---------------------------------------------------------------------------
+
+  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scheduleAutosave = useCallback(
+    (currentStep: Step, currentForm: FormState) => {
+      if (props.mode !== "create") return;
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+      autosaveTimer.current = setTimeout(() => {
+        void saveWizardStep(currentStep, currentForm);
+      }, 800);
+    },
+    [props.mode],
+  );
+
+  // Autosave whenever step changes
+  useEffect(() => {
+    if (props.mode === "create") {
+      scheduleAutosave(step, form);
+    }
+    // Only trigger on step change, not form change (form blur handles that)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    };
+  }, []);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -114,9 +171,17 @@ export function VaultForm(props: VaultFormProps) {
     );
   }
 
+  function handleBlur() {
+    scheduleAutosave(step, form);
+  }
+
   function nextStep() {
     const idx = STEPS.findIndex((s) => s.key === step);
-    if (idx < STEPS.length - 1) setStep(STEPS[idx + 1]!.key);
+    if (idx < STEPS.length - 1) {
+      const nextKey = STEPS[idx + 1]!.key;
+      setStep(nextKey);
+      scheduleAutosave(nextKey, form);
+    }
   }
 
   function prevStep() {
@@ -163,6 +228,8 @@ export function VaultForm(props: VaultFormProps) {
       if (props.mode === "create") {
         const result = await createDraftVault(input);
         if (!result.ok) { setError(formatIssues(result.issues)); return; }
+        // Clean up autosave draft on successful submission
+        await discardWizardDraft();
         router.push(`/admin/vaults/${result.id}`);
       } else {
         const result = await updateDraftVault(props.vaultId, input);
@@ -176,13 +243,13 @@ export function VaultForm(props: VaultFormProps) {
     props.mode === "create"
       ? isPending
         ? "Creating…"
-        : "Create Draft"
+        : "Submit for Review"
       : isPending
         ? "Saving…"
         : "Save Changes";
 
   return (
-    <div className="space-y-8 max-w-2xl mx-auto">
+    <div className="space-y-8 max-w-2xl mx-auto" onBlur={handleBlur}>
       {/* Progress bar */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -205,10 +272,10 @@ export function VaultForm(props: VaultFormProps) {
       </div>
 
       <Card>
-        {/* Step 1 — Identity */}
+        {/* Step 1 — Identity & Strategy */}
         {step === "identity" && (
           <div className="space-y-6">
-            <CardTitle>Identity</CardTitle>
+            <CardTitle>Identity &amp; Strategy</CardTitle>
 
             <label className="block space-y-1.5">
               <span className="stat-label">Ticker *</span>
@@ -259,6 +326,20 @@ export function VaultForm(props: VaultFormProps) {
                 rows={3}
                 placeholder="Optional — brief fund description for admin UI"
               />
+            </label>
+
+            <label className="block space-y-1.5">
+              <span className="stat-label">Color Tag</span>
+              <input
+                className={inputClass()}
+                value={form.colorTag}
+                onChange={(e) => set("colorTag", e.target.value)}
+                placeholder="accent"
+                maxLength={32}
+              />
+              <span className="body-xs ct-text-faint">
+                CSS token or hex color for UI tagging
+              </span>
             </label>
           </div>
         )}
@@ -373,10 +454,58 @@ export function VaultForm(props: VaultFormProps) {
           </div>
         )}
 
-        {/* Step 3 — Legal */}
+        {/* Step 3 — Allocation targets */}
+        {step === "allocations" && (
+          <div className="space-y-6">
+            <CardTitle>Allocation Targets</CardTitle>
+            <p className="body-sm ct-text-muted">
+              Must sum to exactly 10 000 bps (100%). Currently:{" "}
+              <span
+                className={
+                  allocTotal() === 10000
+                    ? "font-semibold ct-status-success"
+                    : "font-semibold ct-status-danger"
+                }
+              >
+                {allocTotal()} / 10 000
+              </span>
+            </p>
+
+            {(
+              [
+                { key: "targetMiningBps", label: "Mining" },
+                { key: "targetBtcTacticalBps", label: "BTC Tactical" },
+                { key: "targetUsdcBaseBps", label: "USDC Base" },
+                { key: "targetStableReserveBps", label: "Stable Reserve" },
+              ] as const
+            ).map(({ key, label }) => (
+              <div key={key} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="stat-label">{label}</span>
+                  <span className="mono tabular text-sm ct-text-primary">
+                    {pct(form[key])}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={10000}
+                  step={50}
+                  value={form[key]}
+                  onChange={(e) => setAllocationBps(key, e.target.value)}
+                  className="w-full accent-accent"
+                  aria-label={`${label} allocation`}
+                />
+                <Progress value={form[key]} max={10000} label={`${label} allocation`} />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Step 4 — Legal & SPV */}
         {step === "legal" && (
           <div className="space-y-6">
-            <CardTitle>Legal</CardTitle>
+            <CardTitle>Legal &amp; SPV</CardTitle>
 
             <div className="grid grid-cols-2 gap-4">
               <label className="block space-y-1.5">
@@ -438,120 +567,11 @@ export function VaultForm(props: VaultFormProps) {
           </div>
         )}
 
-        {/* Step 4 — Allocations */}
-        {step === "allocations" && (
+        {/* Step 5 — Governance */}
+        {step === "governance" && (
           <div className="space-y-6">
-            <CardTitle>Allocations</CardTitle>
-            <p className="body-sm ct-text-muted">
-              Must sum to exactly 10 000 bps (100%). Currently:{" "}
-              <span
-                className={
-                  allocTotal() === 10000
-                    ? "font-semibold ct-status-success"
-                    : "font-semibold ct-status-danger"
-                }
-              >
-                {allocTotal()} / 10 000
-              </span>
-            </p>
+            <CardTitle>Governance</CardTitle>
 
-            {(
-              [
-                { key: "targetMiningBps", label: "Mining" },
-                { key: "targetBtcTacticalBps", label: "BTC Tactical" },
-                { key: "targetUsdcBaseBps", label: "USDC Base" },
-                { key: "targetStableReserveBps", label: "Stable Reserve" },
-              ] as const
-            ).map(({ key, label }) => (
-              <div key={key} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="stat-label">{label}</span>
-                  <span className="mono tabular text-sm ct-text-primary">
-                    {pct(form[key])}%
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={10000}
-                  step={50}
-                  value={form[key]}
-                  onChange={(e) => setAllocationBps(key, e.target.value)}
-                  className="w-full accent-accent"
-                  aria-label={`${label} allocation`}
-                />
-                <Progress value={form[key]} max={10000} label={`${label} allocation`} />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Step 5 — Review */}
-        {step === "review" && (
-          <div className="space-y-6">
-            <CardTitle>Review &amp; Submit</CardTitle>
-
-            <div className="space-y-3 divide-y divide-border-subtle">
-              <div className="grid grid-cols-2 gap-2 pb-3">
-                <span className="stat-label">Ticker</span>
-                <span className="mono tabular text-sm ct-text-strong">{form.ticker}</span>
-                <span className="stat-label">Name</span>
-                <span className="body-sm ct-text-primary">{form.name}</span>
-                <span className="stat-label">Strategy</span>
-                <span className="body-sm ct-text-primary">{form.strategy}</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 py-3">
-                <span className="stat-label">Min Ticket</span>
-                <span className="mono tabular text-sm">${form.minTicketUsdc.toLocaleString()}</span>
-                <span className="stat-label">Capacity</span>
-                <span className="mono tabular text-sm">${form.capacityUsdc.toLocaleString()}</span>
-                <span className="stat-label">Fees</span>
-                <span className="mono tabular text-sm">
-                  {pct(form.mgmtFeeBps)}% mgmt / {pct(form.perfFeeBps)}% perf
-                </span>
-                <span className="stat-label">Lockup</span>
-                <span className="mono tabular text-sm">{form.softLockupDays} days</span>
-                <span className="stat-label">Target APY</span>
-                <ApyRange
-                  low={form.targetApyLowBps / 100}
-                  high={form.targetApyHighBps / 100}
-                  precision={1}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 py-3">
-                <span className="stat-label">SPV</span>
-                <span className="body-sm ct-text-primary">{form.spvJurisdiction}</span>
-                <span className="stat-label">Share Class</span>
-                <span className="body-sm">{form.shareClass}</span>
-                <span className="stat-label">Reg Exemption</span>
-                <span className="body-sm">{form.regExemption}</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 py-3">
-                <span className="stat-label">Mining</span>
-                <span className="mono tabular text-sm">{pct(form.targetMiningBps)}%</span>
-                <span className="stat-label">BTC Tactical</span>
-                <span className="mono tabular text-sm">{pct(form.targetBtcTacticalBps)}%</span>
-                <span className="stat-label">USDC Base</span>
-                <span className="mono tabular text-sm">{pct(form.targetUsdcBaseBps)}%</span>
-                <span className="stat-label">Stable Reserve</span>
-                <span className="mono tabular text-sm">{pct(form.targetStableReserveBps)}%</span>
-                <span className="stat-label">Total</span>
-                <span
-                  className={
-                    allocTotal() === 10000
-                      ? "mono tabular text-sm ct-status-success font-semibold"
-                      : "mono tabular text-sm ct-status-danger font-semibold"
-                  }
-                >
-                  {pct(allocTotal())}%
-                </span>
-              </div>
-            </div>
-
-            {/* Signers whitelist */}
             <div className="space-y-3">
               <span className="stat-label block">Signers Whitelist (2–5 wallet addresses) *</span>
               {form.signersWhitelist.map((s, i) => (
@@ -628,11 +648,121 @@ export function VaultForm(props: VaultFormProps) {
                 </p>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Step 6 — Review & Simulate (read-only recap) */}
+        {step === "review_simulate" && (
+          <div className="space-y-6">
+            <CardTitle>Review &amp; Simulate</CardTitle>
+
+            <div className="space-y-3 divide-y divide-border-subtle">
+              <div className="grid grid-cols-2 gap-2 pb-3">
+                <span className="stat-label">Ticker</span>
+                <span className="mono tabular text-sm ct-text-strong">{form.ticker}</span>
+                <span className="stat-label">Name</span>
+                <span className="body-sm ct-text-primary">{form.name}</span>
+                <span className="stat-label">Strategy</span>
+                <span className="body-sm ct-text-primary">{form.strategy}</span>
+                <span className="stat-label">Color Tag</span>
+                <span className="body-sm ct-text-primary">{form.colorTag}</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 py-3">
+                <span className="stat-label">Min Ticket</span>
+                <span className="mono tabular text-sm">${form.minTicketUsdc.toLocaleString()}</span>
+                <span className="stat-label">Capacity</span>
+                <span className="mono tabular text-sm">${form.capacityUsdc.toLocaleString()}</span>
+                <span className="stat-label">Fees</span>
+                <span className="mono tabular text-sm">
+                  {pct(form.mgmtFeeBps)}% mgmt / {pct(form.perfFeeBps)}% perf
+                </span>
+                <span className="stat-label">Lockup</span>
+                <span className="mono tabular text-sm">{form.softLockupDays} days</span>
+                <span className="stat-label">Target APY</span>
+                <ApyRange
+                  low={form.targetApyLowBps / 100}
+                  high={form.targetApyHighBps / 100}
+                  precision={1}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 py-3">
+                <span className="stat-label">SPV</span>
+                <span className="body-sm ct-text-primary">{form.spvJurisdiction}</span>
+                <span className="stat-label">Share Class</span>
+                <span className="body-sm">{form.shareClass}</span>
+                <span className="stat-label">Reg Exemption</span>
+                <span className="body-sm">{form.regExemption}</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 py-3">
+                <span className="stat-label">Mining</span>
+                <span className="mono tabular text-sm">{pct(form.targetMiningBps)}%</span>
+                <span className="stat-label">BTC Tactical</span>
+                <span className="mono tabular text-sm">{pct(form.targetBtcTacticalBps)}%</span>
+                <span className="stat-label">USDC Base</span>
+                <span className="mono tabular text-sm">{pct(form.targetUsdcBaseBps)}%</span>
+                <span className="stat-label">Stable Reserve</span>
+                <span className="mono tabular text-sm">{pct(form.targetStableReserveBps)}%</span>
+                <span className="stat-label">Total</span>
+                <span
+                  className={
+                    allocTotal() === 10000
+                      ? "mono tabular text-sm ct-status-success font-semibold"
+                      : "mono tabular text-sm ct-status-danger font-semibold"
+                  }
+                >
+                  {pct(allocTotal())}%
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 py-3">
+                <span className="stat-label">Signers</span>
+                <span className="body-sm ct-text-primary">
+                  {form.signersWhitelist.filter((s) => s.trim().length > 0).length} whitelisted
+                </span>
+                <span className="stat-label">Required Quorum</span>
+                <span className="mono tabular text-sm">
+                  {form.requiredSigners} of {form.signersWhitelist.filter((s) => s.trim().length > 0).length}
+                </span>
+              </div>
+            </div>
 
             <p className="body-xs ct-text-faint border-t border-[var(--ct-border-soft)] pt-3">
               Assumptions: mining yields, BTC price, network difficulty, energy costs are
-              projected based on historical ranges. Target APY is not guaranteed and may vary.
+              projected based on historical ranges. Target APY is a range, not guaranteed.
               Past performance is not indicative of future results.
+            </p>
+          </div>
+        )}
+
+        {/* Step 7 — Sign & Deploy */}
+        {step === "sign_deploy" && (
+          <div className="space-y-6">
+            <CardTitle>Sign &amp; Deploy</CardTitle>
+
+            <div className="p-4 rounded-[var(--ct-radius-lg)] ct-surface-2 border border-[var(--ct-border-soft)] space-y-3">
+              <p className="body-sm ct-text-muted">
+                This vault draft will be submitted to the multisig review queue. Once submitted,
+                it requires the configured quorum of signers to approve before deployment.
+              </p>
+              <p className="body-sm ct-text-primary">
+                Click <strong>Submit for Review</strong> below to enter the multisig queue.
+              </p>
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                <span className="stat-label">Vault</span>
+                <span className="mono tabular text-sm ct-text-strong">{form.ticker || "—"}</span>
+                <span className="stat-label">Required signers</span>
+                <span className="mono tabular text-sm">
+                  {form.requiredSigners} of {form.signersWhitelist.filter((s) => s.trim().length > 0).length}
+                </span>
+              </div>
+            </div>
+
+            <p className="body-xs ct-text-faint">
+              Target APY range: {pct(form.targetApyLowBps)}%–{pct(form.targetApyHighBps)}%.
+              Not guaranteed. Subject to market conditions.
             </p>
           </div>
         )}

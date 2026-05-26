@@ -1,5 +1,6 @@
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProvenanceBadge } from "@/components/ui/provenance-badge";
+import { ChartProvenanceCorner } from "@/components/ui/chart-provenance-corner";
+import { ChartDisclaimerUnderlay } from "@/components/ui/chart-disclaimer-underlay";
 import type { ScenarioOutput } from "@/lib/engine/types";
 
 // ── NAV projection series ─────────────────────────────────────────────────────
@@ -210,10 +211,10 @@ export function NavSparkline({ output }: NavSparklineProps) {
   const last = series[series.length - 1];
 
   return (
-    <Card>
+    <Card className="relative">
+      <ChartProvenanceCorner kind="estimated" />
       <CardHeader className="mb-3">
         <CardTitle>12-Month NAV Projection</CardTitle>
-        <ProvenanceBadge kind="estimated" />
       </CardHeader>
 
       <div className="mb-3 flex flex-wrap items-end gap-6 text-sm">
@@ -241,7 +242,8 @@ export function NavSparkline({ output }: NavSparklineProps) {
       </div>
 
       {/* Fan chart — real SVG, preview percentiles (MC v2 pending) */}
-      <div className="h-20 w-full overflow-hidden">
+      <div className="relative h-20 w-full overflow-hidden">
+        <ChartDisclaimerUnderlay />
         {series.length > 0 ? (
           <FanChart
             series={series}

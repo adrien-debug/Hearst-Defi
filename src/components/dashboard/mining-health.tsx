@@ -1,6 +1,7 @@
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
+import { ChartProvenanceCorner } from "@/components/ui/chart-provenance-corner";
 import { cn } from "@/lib/cn";
 import type { MiningHealth } from "@/lib/mock/dashboard";
 
@@ -449,10 +450,10 @@ export function MiningHealthSection({
     50 + Math.max(-50, Math.min(50, miningHealth.hashpriceTrendPct * 5));
 
   return (
-    <Card>
+    <Card className="relative">
+      <ChartProvenanceCorner kind="oracle" />
       <CardHeader>
         <CardTitle>Mining Health</CardTitle>
-        <ProvenanceBadge kind="oracle" />
       </CardHeader>
 
       {view === "heatmap" ? (

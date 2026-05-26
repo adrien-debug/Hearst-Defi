@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ProvenanceBadge } from "@/components/ui/provenance-badge";
+import { ChartProvenanceCorner } from "@/components/ui/chart-provenance-corner";
 import { cn } from "@/lib/cn";
 import type {
   RiskBand,
@@ -89,10 +89,10 @@ export function RiskFrameworkSection({
   view = "waterfall",
 }: RiskFrameworkSectionProps) {
   return (
-    <Card>
+    <Card className="relative">
+      <ChartProvenanceCorner kind={provenanceFromSource(data.source)} />
       <CardHeader>
         <CardTitle>Risk Framework</CardTitle>
-        <ProvenanceBadge kind={provenanceFromSource(data.source)} />
       </CardHeader>
 
       <CompositeHeader
@@ -364,9 +364,7 @@ function WaterfallChart({ data }: WaterfallChartProps) {
                 height={CHART_H}
                 fill="transparent"
               >
-                <title>
-                  {step.label}: {step.score}{step.isFinal ? "" : ` (−${step.score})`} — {step.detail}
-                </title>
+                <title>{`${step.label}: ${step.score}${step.isFinal ? "" : ` (−${step.score})`} — ${step.detail}`}</title>
               </rect>
 
               {/* Score label on top of bar */}

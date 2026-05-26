@@ -1,10 +1,16 @@
 import { notFound, redirect } from "next/navigation";
+import { headers } from "next/headers";
 
 import { AdminRailIntra } from "@/components/nav/product-rail-intra";
 import { AdminSubNav } from "@/components/nav/admin-sub-nav";
 import { DemoModeToggleSlot } from "@/components/demo/demo-mode-toggle-slot";
+import { VaultBreadcrumb } from "@/components/admin/vault-breadcrumb";
 import { getSession } from "@/lib/auth/session";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import {
+  getCurrentVaultContext,
+  buildBreadcrumbSegments,
+} from "@/lib/vaults/context";
 
 export const metadata = {
   title: "Admin — Hearst Connect",
@@ -40,6 +46,41 @@ export default async function AdminLayout({
     notFound();
   }
 
+  // ---------------------------------------------------------------------------
+  // Vault context for the sticky breadcrumb.
+  //
+  // App Router layouts cannot receive `searchParams` directly. We read the
+  // current URL from the `x-invoke-path` header that Next.js injects on every
+  // RSC render. This gives us the raw pathname + search string (e.g.
+  // "/admin/dashboard?vault=hyv-a") which we pass to the context helper.
+  //
+  // Fallback: if the header is absent (e.g. Storybook / unit-test environments),
+  // we default to "/admin" so the breadcrumb degrades gracefully.
+  // ---------------------------------------------------------------------------
+  const h = await headers();
+  const rawUrl = h.get("x-invoke-path") ?? h.get("referer") ?? "/admin";
+  // Strip the origin when referer is a full URL.
+  let invokePath = rawUrl;
+  try {
+    if (rawUrl.startsWith("http")) {
+      const u = new URL(rawUrl);
+      invokePath = `${u.pathname}${u.search}`;
+    }
+  } catch {
+    // rawUrl is already a path — use as-is.
+  }
+
+  const [pathPart, queryPart = ""] = invokePath.split("?");
+  const searchParams: { vault?: string } = {};
+  if (queryPart) {
+    const q = new URLSearchParams(queryPart);
+    const vault = q.get("vault");
+    if (vault) searchParams.vault = vault;
+  }
+
+  const vaultCtx = await getCurrentVaultContext(searchParams, pathPart ?? "/admin");
+  const segments = buildBreadcrumbSegments(pathPart ?? "/admin", vaultCtx.current);
+
   return (
     <>
       <AdminRailIntra />
@@ -48,6 +89,12 @@ export default async function AdminLayout({
       <div className="fixed bottom-4 left-[15rem] z-[var(--ct-z-dropdown)]">
         <DemoModeToggleSlot />
       </div>
+      {/* Sticky breadcrumb — sits between the rail and the sub-nav tabs */}
+      <VaultBreadcrumb
+        segments={segments}
+        currentVault={vaultCtx.current}
+        allVaults={vaultCtx.all}
+      />
       <AdminSubNav />
       {children}
     </>
