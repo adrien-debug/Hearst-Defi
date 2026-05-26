@@ -32,29 +32,29 @@ datasource db {
 // =============================================================================
 
 model VaultSnapshot {
-  id                   String   @id @default(cuid())
-  takenAt              DateTime @default(now())
-  aumUsdc              Decimal
-  currentApyLow        Decimal
-  currentApyHigh       Decimal
-  stressedApy          Decimal
-  riskScore            Int
-  miningMarginScore    Int
-  mode                 String   // defensive | balanced | opportunistic
-  source               String   @default("computed")
+  id                String   @id @default(cuid())
+  takenAt           DateTime @default(now())
+  aumUsdc           Decimal
+  currentApyLow     Decimal
+  currentApyHigh    Decimal
+  stressedApy       Decimal
+  riskScore         Int
+  miningMarginScore Int
+  mode              String // defensive | balanced | opportunistic
+  source            String   @default("computed")
 
-  allocations          Allocation[]
+  allocations Allocation[]
 
   @@index([takenAt])
 }
 
 model Allocation {
-  id                  String        @id @default(cuid())
-  snapshotId          String
-  snapshot            VaultSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
-  bucket              String        // mining | btc_tactical | usdc_base | stable_reserve
-  pct                 Decimal
-  valueUsdc           Decimal
+  id                   String        @id @default(cuid())
+  snapshotId           String
+  snapshot             VaultSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  bucket               String // mining | btc_tactical | usdc_base | stable_reserve
+  pct                  Decimal
+  valueUsdc            Decimal
   yieldContributionBps Decimal
 
   @@index([snapshotId])
@@ -65,20 +65,20 @@ model Allocation {
 // =============================================================================
 
 model MiningMetric {
-  id                      String   @id @default(cuid())
-  takenAt                 DateTime @default(now())
-  hashprice               Decimal  // $/TH/day
-  difficulty              Decimal
-  btcPrice                Decimal
-  energyCost              Decimal  // $/kWh
-  uptimePct               Decimal
-  deployedHashrate        Decimal  // TH/s
-  miningMarginScore       Int
-  hashpriceTrendPct       Decimal
-  operationalConfidence   Int
-  alertLevel              String?  // green | amber | red
-  summary                 String?
-  recommendation          String?
+  id                    String   @id @default(cuid())
+  takenAt               DateTime @default(now())
+  hashprice             Decimal // $/TH/day
+  difficulty            Decimal
+  btcPrice              Decimal
+  energyCost            Decimal // $/kWh
+  uptimePct             Decimal
+  deployedHashrate      Decimal // TH/s
+  miningMarginScore     Int
+  hashpriceTrendPct     Decimal
+  operationalConfidence Int
+  alertLevel            String? // green | amber | red
+  summary               String?
+  recommendation        String?
 
   @@index([takenAt])
 }
@@ -88,19 +88,19 @@ model MiningMetric {
 // =============================================================================
 
 model ScenarioRun {
-  id                  String   @id @default(cuid())
-  ranAt               DateTime @default(now())
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  userId              String
-  preset              String?  // base | btc_bear | btc_bull | mining_compression | extreme_stress
-  inputs              String   // JSON: { btc_price_change, hashprice, energy, stable_apy, vol }
-  outputs             String   // JSON: ScenarioOutput
-  status              String   @default("completed") // completed | failed
-  narrative           String?
-  riskWarning         String?
-  confidence          String   @default("medium") // low | medium | high
-  methodologyVersion  String   @default("v1.0")
+  id                 String   @id @default(cuid())
+  ranAt              DateTime @default(now())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  userId             String
+  preset             String? // base | btc_bear | btc_bull | mining_compression | extreme_stress
+  inputs             String // JSON: { btc_price_change, hashprice, energy, stable_apy, vol }
+  outputs            String // JSON: ScenarioOutput
+  status             String   @default("completed") // completed | failed
+  narrative          String?
+  riskWarning        String?
+  confidence         String   @default("medium") // low | medium | high
+  methodologyVersion String   @default("v1.0")
 
   @@index([ranAt])
   @@index([userId, ranAt])
@@ -108,21 +108,21 @@ model ScenarioRun {
 }
 
 model BacktestRun {
-  id                String   @id @default(cuid())
-  backtestKey       String   // bear_2022 | etf_halving_2024 | mining_crunch_2024
-  ranAt             DateTime @default(now())
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  userId            String
-  initialCapital    Decimal
-  rulesMode         String   // hearst_rules | without_rules
-  endingValue       Decimal
-  totalReturnPct    Decimal
-  maxDrawdownPct    Decimal
-  worstMonthPct     Decimal
-  numRebalances     Int
-  monthlySeries     String   // JSON: [{ month, value, distribution }]
-  narrative         String?
+  id             String   @id @default(cuid())
+  backtestKey    String // bear_2022 | etf_halving_2024 | mining_crunch_2024
+  ranAt          DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  userId         String
+  initialCapital Decimal
+  rulesMode      String // hearst_rules | without_rules
+  endingValue    Decimal
+  totalReturnPct Decimal
+  maxDrawdownPct Decimal
+  worstMonthPct  Decimal
+  numRebalances  Int
+  monthlySeries  String // JSON: [{ month, value, distribution }]
+  narrative      String?
 
   @@index([backtestKey])
   @@index([userId, createdAt])
@@ -133,39 +133,39 @@ model BacktestRun {
 // =============================================================================
 
 model RebalanceEvent {
-  id               String   @id @default(cuid())
-  executedAt       DateTime @default(now())
-  ruleId           String   // e.g. "R2", "R-BTC-3"
-  triggerText      String   // plain English — PTAI Trigger
-  actionText       String   // PTAI Action
-  impactText       String   // PTAI Impact
-  projection       String   @default("")            // PTAI Projection (was previously embedded into triggerText)
-  status           String   @default("pending")     // pending | approved | executed | cancelled
-  triggeredAt      DateTime @default(now())         // when the signal fired (distinct from executedAt)
-  sourceEventName  String?                          // Inngest source event name (e.g. "risk.daily.completed")
-  sourceEventId    String?                          // Inngest event id for traceability
-  fromAllocation   String   // JSON
-  toAllocation     String   // JSON
-  txHash           String?  // Phase 2+
-  approvedBy       String   // JSON array of multisig signers
+  id              String   @id @default(cuid())
+  executedAt      DateTime @default(now())
+  ruleId          String // e.g. "R2", "R-BTC-3"
+  triggerText     String // plain English — PTAI Trigger
+  actionText      String // PTAI Action
+  impactText      String // PTAI Impact
+  projection      String   @default("") // PTAI Projection (was previously embedded into triggerText)
+  status          String   @default("pending") // pending | approved | executed | cancelled
+  triggeredAt     DateTime @default(now()) // when the signal fired (distinct from executedAt)
+  sourceEventName String? // Inngest source event name (e.g. "risk.daily.completed")
+  sourceEventId   String? // Inngest event id for traceability
+  fromAllocation  String // JSON
+  toAllocation    String // JSON
+  txHash          String? // Phase 2+
+  approvedBy      String // JSON array of multisig signers
 
   @@index([executedAt])
   @@index([status, triggeredAt])
 }
 
 model Distribution {
-  id              String    @id @default(cuid())
+  id              String                    @id @default(cuid())
   distributedAt   DateTime
   amountUsdc      Decimal
   txHash          String?
   recipientsCount Int
-  period          String    // "2026-04"
+  period          String // "2026-04"
   // Vault reference — slug or ticker (vaultSlug(ref)) identifying which vault
   // this distribution belongs to. Optional for backward compatibility with
   // historical rows created before multi-vault support (mvp-plus, 2026-05-26).
   vaultRef        String?
   // Atomic exec status + back-relations (Carta pattern, EE).
-  status          String    @default("pending")
+  status          String                    @default("pending")
   executedAt      DateTime?
   ledgerEntries   DistributionLedgerEntry[]
 
@@ -178,7 +178,6 @@ model Distribution {
  * Each row represents one signer's confirmation for a given period.
  * The first signer locks in the reference `totalUsdc` amount;
  * subsequent signers must match the same amount.
- *
  * @@unique([period, signerWallet]) enforces idempotence:
  * a signer can only approve once per period.
  */
@@ -194,23 +193,23 @@ model DistributionApproval {
 }
 
 model Proof {
-  id          String   @id @default(cuid())
-  proofType   String   // mining_attestation | custody | audit | methodology
-  period      String?
-  hash        String   // bytes32 hex
-  uri         String   // IPFS or HTTPS
-  postedAt    DateTime @default(now())
-  postedBy    String
-  txHash      String?
-  notes       String?  // free-form admin annotation (Zod-validated ≤ 500 chars at ingest)
+  id        String   @id @default(cuid())
+  proofType String // mining_attestation | custody | audit | methodology
+  period    String?
+  hash      String // bytes32 hex
+  uri       String // IPFS or HTTPS
+  postedAt  DateTime @default(now())
+  postedBy  String
+  txHash    String?
+  notes     String? // free-form admin annotation (Zod-validated ≤ 500 chars at ingest)
 
   // Off-chain attestation signature (mining_attestation only; null otherwise).
   // `hash` doubles as the keccak256 digest; `signer` must recover from `signature`
   // over that digest. `payloadJson` is the canonical payload, enabling end-to-end
   // re-verification at read time. See src/lib/attestation.
-  signer      String?  // attestor address (0x…)
-  signature   String?  // EIP-191 signature over `hash`
-  payloadJson String?  // canonical MiningAttestationPayload as JSON
+  signer      String? // attestor address (0x…)
+  signature   String? // EIP-191 signature over `hash`
+  payloadJson String? // canonical MiningAttestationPayload as JSON
 
   @@index([proofType, period])
 }
@@ -220,17 +219,17 @@ model Proof {
 // =============================================================================
 
 model ReportExport {
-  id                  String   @id @default(cuid())
-  generatedAt         DateTime @default(now())
-  generatedBy         String
-  clientName          String
-  scenariosIncluded   String   // JSON array
-  backtestsIncluded   String   // JSON array
-  methodologyVersion  String
-  pdfUrl              String?
-  content             String?  // JSON: full InvestorMemoOutput
-  userId              String?  // RLS owner — nullable for legacy rows / background jobs
-  updatedAt           DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  generatedAt        DateTime @default(now())
+  generatedBy        String
+  clientName         String
+  scenariosIncluded  String // JSON array
+  backtestsIncluded  String // JSON array
+  methodologyVersion String
+  pdfUrl             String?
+  content            String? // JSON: full InvestorMemoOutput
+  userId             String? // RLS owner — nullable for legacy rows / background jobs
+  updatedAt          DateTime @updatedAt
 
   @@index([generatedAt])
   @@index([userId, generatedAt])
@@ -241,29 +240,29 @@ model ReportExport {
 // =============================================================================
 
 model RoadmapValidation {
-  id            String    @id @default(cuid())
-  itemId        String    @unique  // FK virtual to docs/roadmap.json items
-  status        String    @default("todo")  // todo | in_progress | done | blocked | validated
-  validatedBy   String?
-  validatedAt   DateTime?
-  notes         String?
-  blockers      String?
-  evidenceUrl   String?
-  updatedAt     DateTime  @updatedAt
+  id          String    @id @default(cuid())
+  itemId      String    @unique // FK virtual to docs/roadmap.json items
+  status      String    @default("todo") // todo | in_progress | done | blocked | validated
+  validatedBy String?
+  validatedAt DateTime?
+  notes       String?
+  blockers    String?
+  evidenceUrl String?
+  updatedAt   DateTime  @updatedAt
 
   @@index([status])
 }
 
 model Feedback {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  itemId      String?  // optional link to a roadmap item
-  pathname    String?  // page where feedback was submitted
-  message     String
-  author      String?  // optional name
-  resolved    Boolean  @default(false)
-  userId      String?  // RLS owner — nullable for legacy rows / anon feedback
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  itemId    String? // optional link to a roadmap item
+  pathname  String? // page where feedback was submitted
+  message   String
+  author    String? // optional name
+  resolved  Boolean  @default(false)
+  userId    String? // RLS owner — nullable for legacy rows / anon feedback
+  updatedAt DateTime @updatedAt
 
   @@index([createdAt])
   @@index([itemId])
@@ -276,7 +275,7 @@ model Feedback {
 
 model CockpitChat {
   id        String           @id @default(cuid())
-  userId    String           // Privy DID
+  userId    String // Privy DID
   title     String?
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
@@ -289,7 +288,7 @@ model CockpitMessage {
   id        String      @id @default(cuid())
   chatId    String
   chat      CockpitChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  role      String      // 'user' | 'assistant' | 'system'
+  role      String // 'user' | 'assistant' | 'system'
   content   String
   // Persona under which this message was exchanged: "normal" (default
   // assistant) or "review" (admin product-review facilitator). Stamped at
@@ -354,37 +353,37 @@ model Investor {
 }
 
 model Position {
-  id                String   @id @default(cuid())
+  id                String           @id @default(cuid())
   investorId        String
-  investor          Investor @relation(fields: [investorId], references: [id])
+  investor          Investor         @relation(fields: [investorId], references: [id])
   vaultDeploymentId String?
   vaultDeployment   VaultDeployment? @relation(fields: [vaultDeploymentId], references: [id])
-  vaultKey          String   @default("hearst_yield_vault") // single vault MVP fallback
+  vaultKey          String           @default("hearst_yield_vault") // single vault MVP fallback
   principalUsdc     Decimal
-  accruedYieldUsdc  Decimal  @default(0)
-  distributedUsdc   Decimal  @default(0)
-  status            String   @default("active") // active|matured|exited
-  subscribedAt      DateTime @default(now())
+  accruedYieldUsdc  Decimal          @default(0)
+  distributedUsdc   Decimal          @default(0)
+  status            String           @default("active") // active|matured|exited
+  subscribedAt      DateTime         @default(now())
   maturedAt         DateTime?
   exitedAt          DateTime?
   txHashOpen        String?
 
-  transactions      InvestorTransaction[]
+  transactions InvestorTransaction[]
 
   @@index([investorId, status])
   @@index([vaultDeploymentId])
 }
 
 model InvestorTransaction {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   investorId String
-  investor   Investor @relation(fields: [investorId], references: [id])
+  investor   Investor  @relation(fields: [investorId], references: [id])
   positionId String?
   position   Position? @relation(fields: [positionId], references: [id])
   type       String // deposit|claim|withdraw|distribution
   amountUsdc Decimal
   txHash     String?
-  occurredAt DateTime @default(now())
+  occurredAt DateTime  @default(now())
 
   @@index([investorId, occurredAt])
 }
@@ -394,23 +393,23 @@ model InvestorTransaction {
 // =============================================================================
 
 model VaultDeployment {
-  id                     String   @id @default(cuid())
-  ticker                 String   @unique // e.g. "HYV-A"
+  id                     String    @id @default(cuid())
+  ticker                 String    @unique // e.g. "HYV-A"
   name                   String
   description            String?
   strategy               String // mining_yield | btc_tactical | stable_reserve
-  colorTag               String   @default("accent")
-  status                 String   @default("draft") // draft|review|deployed|live|paused|closed
+  colorTag               String    @default("accent")
+  status                 String    @default("draft") // draft|review|deployed|live|paused|closed
   minTicketUsdc          Decimal
   capacityUsdc           Decimal
-  mgmtFeeBps             Int      @default(200)
-  perfFeeBps             Int      @default(1000)
-  hurdleBps              Int      @default(0)
-  softLockupDays         Int      @default(60)
+  mgmtFeeBps             Int       @default(200)
+  perfFeeBps             Int       @default(1000)
+  hurdleBps              Int       @default(0)
+  softLockupDays         Int       @default(60)
   targetApyLowBps        Int
   targetApyHighBps       Int
   spvJurisdiction        String // cayman|bvi|delaware|lux
-  shareClass             String   @default("A")
+  shareClass             String    @default("A")
   regExemption           String // regD_506c|regS|art2_lux
   disclaimers            String
   targetMiningBps        Int
@@ -419,10 +418,10 @@ model VaultDeployment {
   targetStableReserveBps Int
   network                String?
   contractAddress        String?
-  requiredSigners        Int      @default(2)
+  requiredSigners        Int       @default(2)
   signersWhitelist       String // JSON array
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
   submittedAt            DateTime?
   deployedAt             DateTime?
   pausedAt               DateTime?
@@ -430,9 +429,9 @@ model VaultDeployment {
   createdBy              String
   seededFromStudyId      String?
 
-  approvals   VaultDeploymentApproval[]
-  positions   Position[]
-  proposals   GovernanceProposal[]
+  approvals VaultDeploymentApproval[]
+  positions Position[]
+  proposals GovernanceProposal[]
 
   @@index([status])
   @@index([strategy, status])
@@ -490,11 +489,11 @@ model AdminAudit {
 model UserAgentProfile {
   id                 String   @id @default(cuid())
   userId             String
-  agentName          String   // "scenario-narrative" | "investor-memo" | "mining-health" | "risk-explanation" | "cockpit-chat"
-  tone               String?  // ex: "concise" | "detailed" | "technical"
-  language           String?  // ex: "fr" | "en"
-  verbosity          String?  // ex: "low" | "medium" | "high"
-  customInstructions String?  // texte libre, validé forbidden-words avant injection
+  agentName          String // "scenario-narrative" | "investor-memo" | "mining-health" | "risk-explanation" | "cockpit-chat"
+  tone               String? // ex: "concise" | "detailed" | "technical"
+  language           String? // ex: "fr" | "en"
+  verbosity          String? // ex: "low" | "medium" | "high"
+  customInstructions String? // texte libre, validé forbidden-words avant injection
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
@@ -525,7 +524,7 @@ model ReviewDocument {
   userId      String
   chatId      String?
   contentMd   String
-  contentJson String?  // JSON sérialisé (cf. ReviewDocumentJsonSchema), null si parsing failed
+  contentJson String? // JSON sérialisé (cf. ReviewDocumentJsonSchema), null si parsing failed
   createdAt   DateTime @default(now())
 
   @@index([userId, createdAt])
@@ -538,8 +537,8 @@ model ReviewDocument {
 model VaultDraft {
   id        String   @id @default(cuid())
   userId    String
-  formState String   // JSON serialized FormState
-  step      String   // current step key
+  formState String // JSON serialized FormState
+  step      String // current step key
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 
@@ -552,19 +551,19 @@ model VaultDraft {
 // =============================================================================
 
 model GovernanceProposal {
-  id                String   @id @default(cuid())
+  id                String              @id @default(cuid())
   vaultDeploymentId String
-  vault             VaultDeployment @relation(fields: [vaultDeploymentId], references: [id], onDelete: Cascade)
-  actionType        String   // "deploy" | "pause" | "unpause" | "updateFees" | "updateCaps" | "rotateSigners" | "sweepFees" | "emergencyShutdown"
-  calldata          String?  // JSON or hex stub
-  justification     String   // min 80 chars
-  state             String   @default("DRAFT")
-  proposedBy        String   // wallet address
-  requiredSigners   Int      // copied from vault at proposal time
-  cancelQuorum      Int      @default(2)
-  timelockHours     Int      @default(48)
-  graceWindowDays   Int      @default(7)
-  createdAt         DateTime @default(now())
+  vault             VaultDeployment     @relation(fields: [vaultDeploymentId], references: [id], onDelete: Cascade)
+  actionType        String // "deploy" | "pause" | "unpause" | "updateFees" | "updateCaps" | "rotateSigners" | "sweepFees" | "emergencyShutdown"
+  calldata          String? // JSON or hex stub
+  justification     String // min 80 chars
+  state             String              @default("DRAFT")
+  proposedBy        String // wallet address
+  requiredSigners   Int // copied from vault at proposal time
+  cancelQuorum      Int                 @default(2)
+  timelockHours     Int                 @default(48)
+  graceWindowDays   Int                 @default(7)
+  createdAt         DateTime            @default(now())
   submittedAt       DateTime?
   queuedAt          DateTime?
   etaAt             DateTime?
@@ -581,7 +580,7 @@ model ProposalSignature {
   proposalId    String
   proposal      GovernanceProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
   signerAddress String
-  decision      String             // "approve" | "reject" | "cancel"
+  decision      String // "approve" | "reject" | "cancel"
   reason        String?
   signedAt      DateTime           @default(now())
 
@@ -595,8 +594,8 @@ model ProposalSignature {
 
 model Notification {
   id           String    @id @default(cuid())
-  userId       String    // recipient admin
-  category     String    // "action" | "fyi" | "system"
+  userId       String // recipient admin
+  category     String // "action" | "fyi" | "system"
   severity     String    @default("info") // "urgent" | "info" | "low"
   title        String
   body         String
@@ -628,15 +627,15 @@ model LlmRun {
   // Prompt caching observability (Anthropic ephemeral cache).
   // Both nullable — legacy rows stay NULL, and providers without caching
   // (e.g. Kimi fallback) also persist NULL here.
-  cacheCreationInputTokens Int?     // tokens written to cache (first occurrence)
-  cacheReadInputTokens     Int?     // tokens read from cache on subsequent hits
-  systemPromptHash         String?  // sha256(system blocks) — groups runs by prompt version
+  cacheCreationInputTokens Int? // tokens written to cache (first occurrence)
+  cacheReadInputTokens     Int? // tokens read from cache on subsequent hits
+  systemPromptHash         String? // sha256(system blocks) — groups runs by prompt version
   latencyMs                Int?
-  status                   String   // queued | success | failed | timeout | fallback
+  status                   String // queued | success | failed | timeout | fallback
   errorType                String?
   errorMessage             String?
   costUsd                  Float?
-  userId                   String?  // RLS owner — nullable for system / background agent runs
+  userId                   String? // RLS owner — nullable for system / background agent runs
 
   @@index([createdAt])
   @@index([agentName])
@@ -660,6 +659,7 @@ model SavedView {
   visibility String   @default("private")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
   @@index([userId, scope])
 }
 
@@ -677,6 +677,7 @@ model AddressAllowlist {
   notes     String?
   riskScore Int      @default(0)
   active    Boolean  @default(true)
+
   @@index([active, category])
 }
 
@@ -691,6 +692,7 @@ model DistributionLedgerEntry {
   positionId     String
   amountUsdc     Decimal
   createdAt      DateTime     @default(now())
+
   @@index([distributionId])
   @@index([positionId])
 }
