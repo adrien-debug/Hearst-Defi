@@ -1,4 +1,6 @@
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { resolveVault } from "@/lib/vaults/resolver";
+import { cloneFormValues } from "@/lib/vaults/clone";
 import { loadWizardDraft } from "../draft-actions";
 import { VaultWizard } from "./wizard";
 import { ResumeDraftBanner } from "./resume-banner";
@@ -35,10 +37,17 @@ const STEP_NUMBERS: Record<Step, number> = {
   sign_deploy: 7,
 };
 
-export default async function NewVaultPage() {
+interface NewVaultPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function NewVaultPage({ searchParams }: NewVaultPageProps) {
   await requireAdmin();
 
-  const draft = await loadWizardDraft();
+  const [draft, params] = await Promise.all([
+    loadWizardDraft(),
+    searchParams,
+  ]);
 
   let resumeStep: Step | undefined;
   let resumeForm: Partial<FormState> | undefined;
@@ -55,6 +64,17 @@ export default async function NewVaultPage() {
       resumeForm = undefined;
     }
     draftUpdatedAt = draft.updatedAt;
+  }
+
+  // Resolve ?cloneFrom=<vaultIdOrSlug> — silently ignored if invalid
+  let cloneValues: Partial<FormState> | undefined;
+  const rawCloneFrom = params["cloneFrom"];
+  const cloneFrom = typeof rawCloneFrom === "string" ? rawCloneFrom.trim() : "";
+  if (cloneFrom.length > 0) {
+    const sourceRef = await resolveVault(cloneFrom);
+    if (sourceRef) {
+      cloneValues = cloneFormValues(sourceRef);
+    }
   }
 
   const stepLabel = resumeStep ? STEP_LABELS[resumeStep] : undefined;
@@ -82,7 +102,7 @@ export default async function NewVaultPage() {
         />
       )}
 
-      <VaultWizard resumeStep={resumeStep} resumeForm={resumeForm} />
+      <VaultWizard resumeStep={resumeStep} resumeForm={resumeForm} cloneValues={cloneValues} />
     </div>
   );
 }
