@@ -177,10 +177,11 @@ export async function getVault(
   idOrTicker: string,
 ): Promise<VaultProduct | null> {
   try {
+    const upper = idOrTicker.toUpperCase();
     const [row, snapshot] = await Promise.all([
       prisma.vaultDeployment.findFirst({
         where: {
-          OR: [{ id: idOrTicker }, { ticker: idOrTicker }],
+          OR: [{ id: idOrTicker }, { ticker: upper }],
         },
       }),
       prisma.vaultSnapshot.findFirst({
