@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-26-catchup",
+  "version": "2026-05-26-mvp-validated",
   "lastUpdated": "2026-05-26",
   "snapshot_doc": "/docs/roadmap-status-2026-05-26.md",
   "flow_redesign_ref": "/docs/audit/flow-redesign-2026-05-26.html",
@@ -12,90 +12,378 @@
           "id": "w1-2",
           "label": "Semaine 1-2 — Foundations",
           "items": [
-            { "id": "repo-init", "label": "Repo Next.js + TS strict + Tailwind v4", "owner": "eng", "spec_ref": "/docs/spec/00-vision.mdx" },
-            { "id": "ui-atoms", "label": "6 UI atomic components (Card, Metric, Badge, ProvenanceBadge, Button, Progress)", "owner": "design+eng", "spec_ref": "/docs/spec/01-dashboard.mdx" },
-            { "id": "claude-config", "label": "CLAUDE.md + .claude/agents/ (4 sub-agents)", "owner": "eng", "spec_ref": "/docs/spec/00-vision.mdx" },
-            { "id": "docs-spec", "label": "10 spec MDX files in /docs/spec/", "owner": "product", "spec_ref": "/docs/spec/" },
-            { "id": "prisma-schema", "label": "Prisma schema (9 MVP tables)", "owner": "eng", "spec_ref": "/docs/spec/00-vision.mdx" },
-            { "id": "admin-roadmap", "label": "/admin/roadmap UI + validation flow", "owner": "eng", "spec_ref": "/docs/spec/00-vision.mdx" },
-            { "id": "admin-spec", "label": "/admin/spec MDX renderer", "owner": "eng", "spec_ref": "/docs/spec/00-vision.mdx" },
-            { "id": "admin-feedback", "label": "/admin/feedback form + persistence", "owner": "eng", "spec_ref": "/docs/spec/00-vision.mdx" },
-            { "id": "auth-privy", "label": "Auth Privy (magic link + wallet)", "owner": "eng", "spec_ref": "/docs/spec/00-vision.mdx" },
-            { "id": "ingest-btc-price", "label": "Ingestion BTC price (Chainlink + Coingecko fallback)", "owner": "eng", "spec_ref": "/docs/spec/05-mining-model.mdx" },
-            { "id": "ingest-hashprice", "label": "Ingestion hashprice (Luxor API)", "owner": "eng", "spec_ref": "/docs/spec/05-mining-model.mdx" },
-            { "id": "sentry-setup", "label": "Sentry error tracking", "owner": "eng", "spec_ref": null }
+            {
+              "id": "repo-init",
+              "label": "Repo Next.js + TS strict + Tailwind v4",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/00-vision.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "ui-atoms",
+              "label": "6 UI atomic components (Card, Metric, Badge, ProvenanceBadge, Button, Progress)",
+              "owner": "design+eng",
+              "spec_ref": "/docs/spec/01-dashboard.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "claude-config",
+              "label": "CLAUDE.md + .claude/agents/ (4 sub-agents)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/00-vision.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "docs-spec",
+              "label": "10 spec MDX files in /docs/spec/",
+              "owner": "product",
+              "spec_ref": "/docs/spec/",
+              "status": "validated"
+            },
+            {
+              "id": "prisma-schema",
+              "label": "Prisma schema (9 MVP tables)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/00-vision.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "admin-roadmap",
+              "label": "/admin/roadmap UI + validation flow",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/00-vision.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "admin-spec",
+              "label": "/admin/spec MDX renderer",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/00-vision.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "admin-feedback",
+              "label": "/admin/feedback form + persistence",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/00-vision.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "auth-privy",
+              "label": "Auth Privy (magic link + wallet)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/00-vision.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "ingest-btc-price",
+              "label": "Ingestion BTC price (Chainlink + Coingecko fallback)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/05-mining-model.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "ingest-hashprice",
+              "label": "Ingestion hashprice (Luxor API)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/05-mining-model.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "sentry-setup",
+              "label": "Sentry error tracking",
+              "owner": "eng",
+              "spec_ref": null,
+              "status": "validated"
+            }
           ]
         },
         {
           "id": "w3-4",
           "label": "Semaine 3-4 — Dashboard v0",
           "items": [
-            { "id": "dash-layout", "label": "Dashboard layout (header, sections, navigation)", "owner": "eng+design", "spec_ref": "/docs/spec/01-dashboard.mdx" },
-            { "id": "dash-hero", "label": "5 hero metrics cards with tooltips + provenance badges", "owner": "eng", "spec_ref": "/docs/spec/01-dashboard.mdx" },
-            { "id": "dash-allocation", "label": "Allocation donut + yield source breakdown", "owner": "eng", "spec_ref": "/docs/spec/01-dashboard.mdx" },
-            { "id": "dash-mining-health", "label": "Mining Health section (3 scores + clear data)", "owner": "eng", "spec_ref": "/docs/spec/05-mining-model.mdx" },
-            { "id": "dash-btc-tactical", "label": "BTC Tactical card (avg entry, P&L, next triggers, guardrails)", "owner": "eng", "spec_ref": "/docs/spec/06-btc-tactical.mdx" },
-            { "id": "dash-activity", "label": "Activity feed (last 5 events, PTAI modal)", "owner": "eng", "spec_ref": "/docs/spec/07-rebalancing-rules.mdx" },
-            { "id": "dash-advanced-toggle", "label": "Advanced mode toggle (Sharpe, top positions)", "owner": "eng", "spec_ref": "/docs/spec/01-dashboard.mdx" }
+            {
+              "id": "dash-layout",
+              "label": "Dashboard layout (header, sections, navigation)",
+              "owner": "eng+design",
+              "spec_ref": "/docs/spec/01-dashboard.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "dash-hero",
+              "label": "5 hero metrics cards with tooltips + provenance badges",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/01-dashboard.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "dash-allocation",
+              "label": "Allocation donut + yield source breakdown",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/01-dashboard.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "dash-mining-health",
+              "label": "Mining Health section (3 scores + clear data)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/05-mining-model.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "dash-btc-tactical",
+              "label": "BTC Tactical card (avg entry, P&L, next triggers, guardrails)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/06-btc-tactical.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "dash-activity",
+              "label": "Activity feed (last 5 events, PTAI modal)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/07-rebalancing-rules.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "dash-advanced-toggle",
+              "label": "Advanced mode toggle (Sharpe, top positions)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/01-dashboard.mdx",
+              "status": "validated"
+            }
           ]
         },
         {
           "id": "w5-6",
           "label": "Semaine 5-6 — Scenario Engine",
           "items": [
-            { "id": "engine-types", "label": "Engine types.ts (ScenarioInputs, ScenarioOutput, etc.)", "owner": "eng", "spec_ref": "/docs/spec/02-scenario-lab.mdx" },
-            { "id": "engine-mining", "label": "Mining model (mining.ts) pure functions", "owner": "eng", "spec_ref": "/docs/spec/05-mining-model.mdx" },
-            { "id": "engine-btc-tactical", "label": "BTC tactical rules (btc-tactical.ts)", "owner": "eng", "spec_ref": "/docs/spec/06-btc-tactical.mdx" },
-            { "id": "engine-rebalancing", "label": "Rebalancing rules + regime transitions", "owner": "eng", "spec_ref": "/docs/spec/07-rebalancing-rules.mdx" },
-            { "id": "engine-scenario", "label": "Scenario orchestrator (scenario.ts runScenario)", "owner": "eng", "spec_ref": "/docs/spec/02-scenario-lab.mdx" },
-            { "id": "engine-tests", "label": "Vitest snapshot tests (5 presets)", "owner": "eng", "spec_ref": "/docs/spec/02-scenario-lab.mdx" }
+            {
+              "id": "engine-types",
+              "label": "Engine types.ts (ScenarioInputs, ScenarioOutput, etc.)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/02-scenario-lab.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "engine-mining",
+              "label": "Mining model (mining.ts) pure functions",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/05-mining-model.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "engine-btc-tactical",
+              "label": "BTC tactical rules (btc-tactical.ts)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/06-btc-tactical.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "engine-rebalancing",
+              "label": "Rebalancing rules + regime transitions",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/07-rebalancing-rules.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "engine-scenario",
+              "label": "Scenario orchestrator (scenario.ts runScenario)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/02-scenario-lab.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "engine-tests",
+              "label": "Vitest snapshot tests (5 presets)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/02-scenario-lab.mdx",
+              "status": "validated"
+            }
           ]
         },
         {
           "id": "w7-8",
           "label": "Semaine 7-8 — Scenario Lab UI + Scenario Narrative Agent",
           "items": [
-            { "id": "lab-layout", "label": "Scenario Lab split layout (sliders left, projection right)", "owner": "eng+design", "spec_ref": "/docs/spec/02-scenario-lab.mdx" },
-            { "id": "lab-presets", "label": "5 scenario preset buttons", "owner": "eng", "spec_ref": "/docs/spec/02-scenario-lab.mdx" },
-            { "id": "lab-sliders", "label": "5 custom sliders with bounds + live projection", "owner": "eng", "spec_ref": "/docs/spec/02-scenario-lab.mdx" },
-            { "id": "ptai-component", "label": "<Ptai> component (mandatory format)", "owner": "eng", "spec_ref": "/docs/spec/07-rebalancing-rules.mdx" },
-            { "id": "agent-scenario-narrative", "label": "Scenario Narrative Agent (Kimi K2.6 via Hypercli)", "owner": "eng", "spec_ref": "/docs/spec/09-agents.mdx" },
-            { "id": "agent-schemas", "label": "Zod schemas + forbidden words validator", "owner": "eng", "spec_ref": "/docs/spec/09-agents.mdx" },
-            { "id": "lab-comparator", "label": "Side-by-side scenario comparator (2 max)", "owner": "eng", "spec_ref": "/docs/spec/02-scenario-lab.mdx" }
+            {
+              "id": "lab-layout",
+              "label": "Scenario Lab split layout (sliders left, projection right)",
+              "owner": "eng+design",
+              "spec_ref": "/docs/spec/02-scenario-lab.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "lab-presets",
+              "label": "5 scenario preset buttons",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/02-scenario-lab.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "lab-sliders",
+              "label": "5 custom sliders with bounds + live projection",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/02-scenario-lab.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "ptai-component",
+              "label": "<Ptai> component (mandatory format)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/07-rebalancing-rules.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "agent-scenario-narrative",
+              "label": "Scenario Narrative Agent (Kimi K2.6 via Hypercli)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/09-agents.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "agent-schemas",
+              "label": "Zod schemas + forbidden words validator",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/09-agents.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "lab-comparator",
+              "label": "Side-by-side scenario comparator (2 max)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/02-scenario-lab.mdx",
+              "status": "validated"
+            }
           ]
         },
         {
           "id": "w9-10",
           "label": "Semaine 9-10 — Proof Center + Backtest Engine",
           "items": [
-            { "id": "proof-center-layout", "label": "Proof Center screen (PoR, attestations, addresses, audit)", "owner": "eng+design", "spec_ref": "/docs/spec/03-proof-center.mdx" },
-            { "id": "data-backfill", "label": "Historical backfill 36m (Luxor, mempool.space, BTC price)", "owner": "eng", "spec_ref": "/docs/spec/05-mining-model.mdx" },
-            { "id": "engine-backtest", "label": "Backtest engine (3 periods) with rules/no-rules comparison", "owner": "eng", "spec_ref": "/docs/spec/02-scenario-lab.mdx" },
-            { "id": "mock-attestation", "label": "Mock mining attestation system (signed, verifiable)", "owner": "eng", "spec_ref": "/docs/spec/05-mining-model.mdx" }
+            {
+              "id": "proof-center-layout",
+              "label": "Proof Center screen (PoR, attestations, addresses, audit)",
+              "owner": "eng+design",
+              "spec_ref": "/docs/spec/03-proof-center.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "data-backfill",
+              "label": "Historical backfill 36m (Luxor, mempool.space, BTC price)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/05-mining-model.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "engine-backtest",
+              "label": "Backtest engine (3 periods) with rules/no-rules comparison",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/02-scenario-lab.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "mock-attestation",
+              "label": "Mock mining attestation system (signed, verifiable)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/05-mining-model.mdx",
+              "status": "validated"
+            }
           ]
         },
         {
           "id": "w11-12",
           "label": "Semaine 11-12 — Investor Memo + Mining/Risk Agents",
           "items": [
-            { "id": "agent-mining-health", "label": "Mining Health Agent (daily cron)", "owner": "eng", "spec_ref": "/docs/spec/09-agents.mdx" },
-            { "id": "agent-risk-explanation", "label": "Risk Explanation Agent (daily)", "owner": "eng", "spec_ref": "/docs/spec/09-agents.mdx" },
-            { "id": "agent-investor-memo", "label": "Investor Memo Agent (Kimi K2.6, structured Markdown)", "owner": "eng", "spec_ref": "/docs/spec/09-agents.mdx" },
-            { "id": "memo-pdf-template", "label": "react-pdf 8-page template", "owner": "eng+design", "spec_ref": "/docs/spec/04-investor-memo.mdx" },
-            { "id": "memo-screen", "label": "Investor Memo screen (preview + branding + export)", "owner": "eng", "spec_ref": "/docs/spec/04-investor-memo.mdx" },
-            { "id": "methodology-v10", "label": "Methodology v1.0 PDF (source of truth)", "owner": "product+legal", "spec_ref": "/docs/methodology/v1.0.md" }
+            {
+              "id": "agent-mining-health",
+              "label": "Mining Health Agent (daily cron)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/09-agents.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "agent-risk-explanation",
+              "label": "Risk Explanation Agent (daily)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/09-agents.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "agent-investor-memo",
+              "label": "Investor Memo Agent (Kimi K2.6, structured Markdown)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/09-agents.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "memo-pdf-template",
+              "label": "react-pdf 8-page template",
+              "owner": "eng+design",
+              "spec_ref": "/docs/spec/04-investor-memo.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "memo-screen",
+              "label": "Investor Memo screen (preview + branding + export)",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/04-investor-memo.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "methodology-v10",
+              "label": "Methodology v1.0 PDF (source of truth)",
+              "owner": "product+legal",
+              "spec_ref": "/docs/methodology/v1.0.md",
+              "status": "validated"
+            }
           ]
         },
         {
           "id": "w13",
           "label": "Semaine 13 — Polish + SC Phase 2 + Pre-launch",
           "items": [
-            { "id": "sc-event-logger", "label": "EventLogger.sol deployed Base Sepolia", "owner": "eng", "spec_ref": "/docs/spec/03-proof-center.mdx" },
-            { "id": "sc-por-registry", "label": "PoRRegistry.sol deployed Base Sepolia", "owner": "eng", "spec_ref": "/docs/spec/03-proof-center.mdx" },
-            { "id": "proof-center-wire", "label": "Proof Center wired to real testnet events", "owner": "eng", "spec_ref": "/docs/spec/03-proof-center.mdx" },
-            { "id": "polish-ux", "label": "Empty/error/loading states + mobile fallback", "owner": "eng+design", "spec_ref": null },
-            { "id": "sales-playbook", "label": "Sales playbook (1-pager + video demo + 8-question FAQ)", "owner": "product+sales", "spec_ref": null },
-            { "id": "audit-kickoff", "label": "Spearbit audit kickoff (kicked off S11 ideally)", "owner": "eng+product", "spec_ref": null }
+            {
+              "id": "sc-event-logger",
+              "label": "EventLogger.sol deployed Base Sepolia",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/03-proof-center.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "sc-por-registry",
+              "label": "PoRRegistry.sol deployed Base Sepolia",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/03-proof-center.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "proof-center-wire",
+              "label": "Proof Center wired to real testnet events",
+              "owner": "eng",
+              "spec_ref": "/docs/spec/03-proof-center.mdx",
+              "status": "validated"
+            },
+            {
+              "id": "polish-ux",
+              "label": "Empty/error/loading states + mobile fallback",
+              "owner": "eng+design",
+              "spec_ref": null,
+              "status": "validated"
+            },
+            {
+              "id": "sales-playbook",
+              "label": "Sales playbook (1-pager + video demo + 8-question FAQ)",
+              "owner": "product+sales",
+              "spec_ref": null,
+              "status": "validated"
+            },
+            {
+              "id": "audit-kickoff",
+              "label": "Spearbit audit kickoff (kicked off S11 ideally)",
+              "owner": "eng+product",
+              "spec_ref": null,
+              "status": "validated"
+            }
           ]
         }
       ]
@@ -108,78 +396,374 @@
           "id": "mp-w1-foundation",
           "label": "Semaine 1 — Foundation : régler le schism et le wayfinding",
           "items": [
-            { "id": "vault-schema-reconciliation", "label": "Réconcilier VaultDeployment Prisma ↔ VaultId enum (schism bloquant)", "owner": "eng", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "vault-context-provider", "label": "VaultContextProvider + breadcrumb sticky + vault switcher", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "admin-route-redirects", "label": "308 redirects routes plates → /admin/vaults/[id]/* (vault-centric IA)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "required-signers-picker", "label": "Kill hardcode requiredSigners=2 → picker explicite 2-5", "owner": "eng", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "distributions-vault-fk", "label": "Distributions UI : afficher vaultId + lien retour vers vault parent", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "proof-center-dedup", "label": "Dédupliquer /admin/proof-center vs /(product)/proof-center (scope par vault)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "promote-to-draft-fix", "label": "Promote-to-draft de Projection : porter signers + fees (kill cul-de-sac 40%)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" }
+            {
+              "id": "vault-schema-reconciliation",
+              "label": "Réconcilier VaultDeployment Prisma ↔ VaultId enum (schism bloquant)",
+              "owner": "eng",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "vault-context-provider",
+              "label": "VaultContextProvider + breadcrumb sticky + vault switcher",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "admin-route-redirects",
+              "label": "308 redirects routes plates → /admin/vaults/[id]/* (vault-centric IA)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "required-signers-picker",
+              "label": "Kill hardcode requiredSigners=2 → picker explicite 2-5",
+              "owner": "eng",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "distributions-vault-fk",
+              "label": "Distributions UI : afficher vaultId + lien retour vers vault parent",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "proof-center-dedup",
+              "label": "Dédupliquer /admin/proof-center vs /(product)/proof-center (scope par vault)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "promote-to-draft-fix",
+              "label": "Promote-to-draft de Projection : porter signers + fees (kill cul-de-sac 40%)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            }
           ]
         },
         {
           "id": "mp-w2-3-cockpit-lp",
           "label": "Semaine 2-3 — Cockpit admin unifié + Dashboard LP institutional",
           "items": [
-            { "id": "admin-cockpit-unified", "label": "Cockpit admin 3-colonnes en /admin (action queue / live metrics / live ops)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "action-queue-10-types", "label": "Action queue centralisée (10 types : multisig.sign, oracle.stale, kyc.review, …)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "pending-approvals-inbox", "label": "Inbox signers cross-vaults « pending your signature »", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "lp-dashboard-3-sections", "label": "Dashboard LP 3 sections (hero pulse / yield posture / activity & proofs)", "owner": "ui-dev", "spec_ref": "/docs/spec/01-dashboard.mdx" },
-            { "id": "lp-widget-lock-meter", "label": "Widget Lock/Liquidity meter avec countdown unlock", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "lp-widget-risk-pulse", "label": "Widget Risk Pulse (5 scores canoniques + trend 30j)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "lp-widget-distrib-calendar", "label": "Widget Distributions Calendar (12m paid + ETA next)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "lp-widget-proof-pulse", "label": "Widget Proof & Methodology Pulse", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "lp-widget-yield-stack", "label": "Widget Yield source stack 12m fwd (Hypothesis)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "kill-chart-placeholder-backtest", "label": "Kill placeholder BacktestChart → stacked area NAV+drawdown", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "kill-chart-placeholder-nav-sparkline", "label": "Kill placeholder NavSparkline → fan chart p5/p50/p95", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "kill-chart-placeholder-value", "label": "Kill placeholder ValueChart → area + distribution dots", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "kill-chart-placeholder-time-to-target", "label": "Kill placeholder TimeToTargetChart → cumulative yield curve", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "chart-nav-drawdown", "label": "NAV 30d : ajouter drawdown shading + distribution markers", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html", "status": "done", "evidence": "PR #<placeholder>" },
-            { "id": "chart-risk-waterfall", "label": "Risk Framework : passer progress bars → waterfall contribution", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "chart-mining-heatmap", "label": "Mining Health : passer 3 bars → heatmap 90d (hashprice × difficulty × margin)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "chart-allocation-hierarchical", "label": "Allocation donut hierarchical 2-ring (bucket → position)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "chart-provenance-corner", "label": "Pattern ChartProvenanceCorner + ChartTimeSelector + disclaimer underlay", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" }
+            {
+              "id": "admin-cockpit-unified",
+              "label": "Cockpit admin 3-colonnes en /admin (action queue / live metrics / live ops)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "action-queue-10-types",
+              "label": "Action queue centralisée (10 types : multisig.sign, oracle.stale, kyc.review, …)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "pending-approvals-inbox",
+              "label": "Inbox signers cross-vaults « pending your signature »",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "lp-dashboard-3-sections",
+              "label": "Dashboard LP 3 sections (hero pulse / yield posture / activity & proofs)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/spec/01-dashboard.mdx"
+            },
+            {
+              "id": "lp-widget-lock-meter",
+              "label": "Widget Lock/Liquidity meter avec countdown unlock",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "lp-widget-risk-pulse",
+              "label": "Widget Risk Pulse (5 scores canoniques + trend 30j)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "lp-widget-distrib-calendar",
+              "label": "Widget Distributions Calendar (12m paid + ETA next)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "lp-widget-proof-pulse",
+              "label": "Widget Proof & Methodology Pulse",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "lp-widget-yield-stack",
+              "label": "Widget Yield source stack 12m fwd (Hypothesis)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "kill-chart-placeholder-backtest",
+              "label": "Kill placeholder BacktestChart → stacked area NAV+drawdown",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "kill-chart-placeholder-nav-sparkline",
+              "label": "Kill placeholder NavSparkline → fan chart p5/p50/p95",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "kill-chart-placeholder-value",
+              "label": "Kill placeholder ValueChart → area + distribution dots",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "kill-chart-placeholder-time-to-target",
+              "label": "Kill placeholder TimeToTargetChart → cumulative yield curve",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "chart-nav-drawdown",
+              "label": "NAV 30d : ajouter drawdown shading + distribution markers",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
+              "status": "done",
+              "evidence": "PR #<placeholder>"
+            },
+            {
+              "id": "chart-risk-waterfall",
+              "label": "Risk Framework : passer progress bars → waterfall contribution",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "chart-mining-heatmap",
+              "label": "Mining Health : passer 3 bars → heatmap 90d (hashprice × difficulty × margin)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "chart-allocation-hierarchical",
+              "label": "Allocation donut hierarchical 2-ring (bucket → position)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "chart-provenance-corner",
+              "label": "Pattern ChartProvenanceCorner + ChartTimeSelector + disclaimer underlay",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            }
           ]
         },
         {
           "id": "mp-w4-6-governance-onboarding",
           "label": "Semaine 4-6 — Wizard 7-step · Multisig Timelock UX · LP onboarding 9-stage",
           "items": [
-            { "id": "wizard-7-steps", "label": "Refactor wizard 5 → 7 steps (autosave VaultDraft + Resume in progress)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "wizard-clone-from-existing", "label": "Wizard : mode « Clone from existing vault » (?cloneFrom=&lt;id&gt;)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html", "status": "done", "evidence": "PR #<placeholder>" },
-            { "id": "wizard-monte-carlo-review", "label": "Step 6 Review & Simulate (Monte Carlo 1k paths inline)", "owner": "engine-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html", "status": "done", "evidence": "PR #<placeholder>" },
-            { "id": "wizard-live-projection-footer", "label": "Sticky footer projection live (APY range + risk + NAV@12m) sur tous steps", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html", "status": "done", "evidence": "PR #<placeholder>" },
-            { "id": "wizard-step7-sign-deploy", "label": "Step 7 Sign & Deploy séparé (multisig queue polling, markAsLive auto)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "wizard-forbidden-words-inline", "label": "Forbidden words linter inline (red underline pendant la frappe)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html", "status": "done", "evidence": "PR #<placeholder>" },
-            { "id": "multisig-proposal-state-machine", "label": "Proposal state machine 6 états (DRAFT→SIGNING→QUEUED→TIMELOCK→EXECUTABLE→EXECUTED)", "owner": "sc-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "multisig-safe-eip712", "label": "Off-chain Safe EIP-712 signature collection + TimelockController schedule()", "owner": "sc-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html", "status": "done", "evidence": "PR #<placeholder>" },
-            { "id": "multisig-cancel-quorum", "label": "Cancel-quorum 2/5 distinct du approve 3/5 (defense favors halting)", "owner": "sc-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "multisig-tenderly-sim", "label": "Pre-execution Tenderly fork simulation panel (diff state + gas + reverts)", "owner": "eng", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "multisig-timelock-countdown-public", "label": "Public Proof Center : timelock countdown 48h + verify on-chain link", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html", "status": "done", "evidence": "PR #<placeholder>" },
-            { "id": "notification-matrix-governance", "label": "Notification matrix (signers Telegram, LPs email « executable in 24h »)", "owner": "eng", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html", "status": "done", "evidence": "PR #<placeholder>" },
-            { "id": "lp-landing-s0", "label": "S0 Landing page marketing (track-record + CTA Request access) — actuellement redirect blind", "owner": "ui-dev+design", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "lp-onboarding-9-stages", "label": "LP onboarding 4 → 9 stages (capability-driven funnel Stripe Connect-style)", "owner": "ui-dev+product", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "lp-onboarding-3-paths", "label": "3 paths divergents (Individual Privy / Corporate Fireblocks / Fund-of-funds white-glove)", "owner": "ui-dev+product", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html", "status": "done", "evidence": "PR #<placeholder>" },
-            { "id": "lp-s9-institutional-confirmation", "label": "S9 Confirmation : NAV0 + lockup countdown + next distrib + PDF receipt + .ics + ops contact", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "lp-kyc-persona-inline", "label": "S3 KYC Persona embedded inline (Light 10min / Deep 48h SoF / KYB 3-5d)", "owner": "eng", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html", "status": "done", "evidence": "PR #<placeholder>" },
-            { "id": "lp-docusign-embedded", "label": "S7 Docs Sign DocuSign embedded (Subscription Agt + optional Side Letter)", "owner": "eng+legal", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html", "status": "done", "evidence": "PR #<placeholder>" }
+            {
+              "id": "wizard-7-steps",
+              "label": "Refactor wizard 5 → 7 steps (autosave VaultDraft + Resume in progress)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "wizard-clone-from-existing",
+              "label": "Wizard : mode « Clone from existing vault » (?cloneFrom=&lt;id&gt;)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
+              "status": "done",
+              "evidence": "PR #<placeholder>"
+            },
+            {
+              "id": "wizard-monte-carlo-review",
+              "label": "Step 6 Review & Simulate (Monte Carlo 1k paths inline)",
+              "owner": "engine-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
+              "status": "done",
+              "evidence": "PR #<placeholder>"
+            },
+            {
+              "id": "wizard-live-projection-footer",
+              "label": "Sticky footer projection live (APY range + risk + NAV@12m) sur tous steps",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
+              "status": "done",
+              "evidence": "PR #<placeholder>"
+            },
+            {
+              "id": "wizard-step7-sign-deploy",
+              "label": "Step 7 Sign & Deploy séparé (multisig queue polling, markAsLive auto)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "wizard-forbidden-words-inline",
+              "label": "Forbidden words linter inline (red underline pendant la frappe)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
+              "status": "done",
+              "evidence": "PR #<placeholder>"
+            },
+            {
+              "id": "multisig-proposal-state-machine",
+              "label": "Proposal state machine 6 états (DRAFT→SIGNING→QUEUED→TIMELOCK→EXECUTABLE→EXECUTED)",
+              "owner": "sc-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "multisig-safe-eip712",
+              "label": "Off-chain Safe EIP-712 signature collection + TimelockController schedule()",
+              "owner": "sc-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
+              "status": "done",
+              "evidence": "PR #<placeholder>"
+            },
+            {
+              "id": "multisig-cancel-quorum",
+              "label": "Cancel-quorum 2/5 distinct du approve 3/5 (defense favors halting)",
+              "owner": "sc-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "multisig-tenderly-sim",
+              "label": "Pre-execution Tenderly fork simulation panel (diff state + gas + reverts)",
+              "owner": "eng",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "multisig-timelock-countdown-public",
+              "label": "Public Proof Center : timelock countdown 48h + verify on-chain link",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
+              "status": "done",
+              "evidence": "PR #<placeholder>"
+            },
+            {
+              "id": "notification-matrix-governance",
+              "label": "Notification matrix (signers Telegram, LPs email « executable in 24h »)",
+              "owner": "eng",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
+              "status": "done",
+              "evidence": "PR #<placeholder>"
+            },
+            {
+              "id": "lp-landing-s0",
+              "label": "S0 Landing page marketing (track-record + CTA Request access) — actuellement redirect blind",
+              "owner": "ui-dev+design",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "lp-onboarding-9-stages",
+              "label": "LP onboarding 4 → 9 stages (capability-driven funnel Stripe Connect-style)",
+              "owner": "ui-dev+product",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "lp-onboarding-3-paths",
+              "label": "3 paths divergents (Individual Privy / Corporate Fireblocks / Fund-of-funds white-glove)",
+              "owner": "ui-dev+product",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
+              "status": "done",
+              "evidence": "PR #<placeholder>"
+            },
+            {
+              "id": "lp-s9-institutional-confirmation",
+              "label": "S9 Confirmation : NAV0 + lockup countdown + next distrib + PDF receipt + .ics + ops contact",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "lp-kyc-persona-inline",
+              "label": "S3 KYC Persona embedded inline (Light 10min / Deep 48h SoF / KYB 3-5d)",
+              "owner": "eng",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
+              "status": "done",
+              "evidence": "PR #<placeholder>"
+            },
+            {
+              "id": "lp-docusign-embedded",
+              "label": "S7 Docs Sign DocuSign embedded (Subscription Agt + optional Side Letter)",
+              "owner": "eng+legal",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
+              "status": "done",
+              "evidence": "PR #<placeholder>"
+            }
           ]
         },
         {
           "id": "mp-trim-power-sota",
           "label": "Trim (parallèle) — Power-user tools + 3 big ideas SOTA",
           "items": [
-            { "id": "command-palette-cmdk", "label": "Command palette ⌘K (30 commandes : Navigate / Action / Search / View)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "global-search-cmd-slash", "label": "Global search ⌘/ (10 entities indexées : Vault/Investor/Position/...)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "notifications-bell-feed", "label": "Notifications feed (bell top-right) : Action required / FYI / System", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "batch-actions-multi-select", "label": "Batch actions multi-select tables (x select, undo toast 10s)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "saved-views-8-templates", "label": "8 saved views Linear-style (My signatures / Stuck KYC / Anomalies 24h / …)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "keyboard-shortcuts-cheatsheet", "label": "Keyboard shortcuts (g+key navigate, j/k, x select) + shift+? overlay", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "sota-carta-event-atomic", "label": "Big idea Carta : event-based atomic exec (1 click = tx + ledger + PCAP + emails)", "owner": "eng", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "sota-maple-time-to-cash", "label": "Big idea Maple : « Time-to-cash » widget LP (next distrib countdown + projected USDC)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "sota-anchorage-allowlist-routing", "label": "Big idea Anchorage : allowlist quorum routing (routine = 2/3 ; hors-liste = 4/5 + timelock)", "owner": "sc-dev+eng", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html" },
-            { "id": "lp-export-pdf-statement", "label": "Surprise & delight : Export PDF statement on-demand (1 click, server-rendered)", "owner": "ui-dev", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html", "status": "done", "evidence": "PR #<placeholder>" },
-            { "id": "lp-tax-docs-preview", "label": "Surprise & delight : Tax docs preview (1099/CRS-friendly YTD distributions)", "owner": "eng+legal", "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html", "status": "done", "evidence": "PR #<placeholder>" }
+            {
+              "id": "command-palette-cmdk",
+              "label": "Command palette ⌘K (30 commandes : Navigate / Action / Search / View)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "global-search-cmd-slash",
+              "label": "Global search ⌘/ (10 entities indexées : Vault/Investor/Position/...)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "notifications-bell-feed",
+              "label": "Notifications feed (bell top-right) : Action required / FYI / System",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "batch-actions-multi-select",
+              "label": "Batch actions multi-select tables (x select, undo toast 10s)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "saved-views-8-templates",
+              "label": "8 saved views Linear-style (My signatures / Stuck KYC / Anomalies 24h / …)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "keyboard-shortcuts-cheatsheet",
+              "label": "Keyboard shortcuts (g+key navigate, j/k, x select) + shift+? overlay",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "sota-carta-event-atomic",
+              "label": "Big idea Carta : event-based atomic exec (1 click = tx + ledger + PCAP + emails)",
+              "owner": "eng",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "sota-maple-time-to-cash",
+              "label": "Big idea Maple : « Time-to-cash » widget LP (next distrib countdown + projected USDC)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "sota-anchorage-allowlist-routing",
+              "label": "Big idea Anchorage : allowlist quorum routing (routine = 2/3 ; hors-liste = 4/5 + timelock)",
+              "owner": "sc-dev+eng",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html"
+            },
+            {
+              "id": "lp-export-pdf-statement",
+              "label": "Surprise & delight : Export PDF statement on-demand (1 click, server-rendered)",
+              "owner": "ui-dev",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
+              "status": "done",
+              "evidence": "PR #<placeholder>"
+            },
+            {
+              "id": "lp-tax-docs-preview",
+              "label": "Surprise & delight : Tax docs preview (1099/CRS-friendly YTD distributions)",
+              "owner": "eng+legal",
+              "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
+              "status": "done",
+              "evidence": "PR #<placeholder>"
+            }
           ]
         }
       ]
@@ -192,14 +776,60 @@
           "id": "v1-launch",
           "label": "V1 — Audit done, mainnet, share classes",
           "items": [
-            { "id": "audit-final", "label": "Spearbit audit report + remediation", "owner": "eng", "spec_ref": null },
-            { "id": "vault-mainnet", "label": "ERC-4626 vault deployed Base mainnet", "owner": "eng", "spec_ref": null },
-            { "id": "share-class-a", "label": "Share class A ($250k/60d/1+10)", "owner": "eng+legal", "spec_ref": null, "status": "done", "evidence": "PR #<placeholder>" },
-            { "id": "share-class-b", "label": "Share class B ($1M/90d/0.75+8)", "owner": "eng+legal", "spec_ref": null, "status": "done", "evidence": "PR #<placeholder>" },
-            { "id": "custody-fireblocks", "label": "Fireblocks custody integration", "owner": "eng", "spec_ref": null },
-            { "id": "kyc-persona", "label": "Persona KYC/KYB workflow", "owner": "eng+product", "spec_ref": null },
-            { "id": "lp-portal", "label": "Read-only LP portal (per-LP P&L)", "owner": "eng", "spec_ref": null },
-            { "id": "advanced-metrics", "label": "Sharpe / Sortino / VaR in Advanced mode", "owner": "eng", "spec_ref": null, "status": "done", "evidence": "PR #<placeholder>" }
+            {
+              "id": "audit-final",
+              "label": "Spearbit audit report + remediation",
+              "owner": "eng",
+              "spec_ref": null
+            },
+            {
+              "id": "vault-mainnet",
+              "label": "ERC-4626 vault deployed Base mainnet",
+              "owner": "eng",
+              "spec_ref": null
+            },
+            {
+              "id": "share-class-a",
+              "label": "Share class A ($250k/60d/1+10)",
+              "owner": "eng+legal",
+              "spec_ref": null,
+              "status": "done",
+              "evidence": "PR #<placeholder>"
+            },
+            {
+              "id": "share-class-b",
+              "label": "Share class B ($1M/90d/0.75+8)",
+              "owner": "eng+legal",
+              "spec_ref": null,
+              "status": "done",
+              "evidence": "PR #<placeholder>"
+            },
+            {
+              "id": "custody-fireblocks",
+              "label": "Fireblocks custody integration",
+              "owner": "eng",
+              "spec_ref": null
+            },
+            {
+              "id": "kyc-persona",
+              "label": "Persona KYC/KYB workflow",
+              "owner": "eng+product",
+              "spec_ref": null
+            },
+            {
+              "id": "lp-portal",
+              "label": "Read-only LP portal (per-LP P&L)",
+              "owner": "eng",
+              "spec_ref": null
+            },
+            {
+              "id": "advanced-metrics",
+              "label": "Sharpe / Sortino / VaR in Advanced mode",
+              "owner": "eng",
+              "spec_ref": null,
+              "status": "done",
+              "evidence": "PR #<placeholder>"
+            }
           ]
         }
       ]
@@ -212,12 +842,46 @@
           "id": "v2-variants",
           "label": "V2 — Variants & advanced features",
           "items": [
-            { "id": "vault-defensive", "label": "Hearst Defensive Vault (5-8% APY, mining 15-25%)", "owner": "eng+product", "spec_ref": null, "status": "done", "evidence": "PR #<placeholder>" },
-            { "id": "vault-btc-plus", "label": "Hearst BTC Plus Vault (10-20% APY, more BTC tactical)", "owner": "eng+product", "spec_ref": null, "status": "done", "evidence": "PR #<placeholder>" },
-            { "id": "monte-carlo", "label": "Monte Carlo simulation (V2 only)", "owner": "eng", "spec_ref": null },
-            { "id": "auto-execution", "label": "Auto-execution under strict guardrails", "owner": "eng", "spec_ref": null },
-            { "id": "white-label", "label": "White-label memos for partners", "owner": "product", "spec_ref": null },
-            { "id": "share-token", "label": "Tokenised share class (ERC-20 wrapper)", "owner": "eng+legal", "spec_ref": null }
+            {
+              "id": "vault-defensive",
+              "label": "Hearst Defensive Vault (5-8% APY, mining 15-25%)",
+              "owner": "eng+product",
+              "spec_ref": null,
+              "status": "done",
+              "evidence": "PR #<placeholder>"
+            },
+            {
+              "id": "vault-btc-plus",
+              "label": "Hearst BTC Plus Vault (10-20% APY, more BTC tactical)",
+              "owner": "eng+product",
+              "spec_ref": null,
+              "status": "done",
+              "evidence": "PR #<placeholder>"
+            },
+            {
+              "id": "monte-carlo",
+              "label": "Monte Carlo simulation (V2 only)",
+              "owner": "eng",
+              "spec_ref": null
+            },
+            {
+              "id": "auto-execution",
+              "label": "Auto-execution under strict guardrails",
+              "owner": "eng",
+              "spec_ref": null
+            },
+            {
+              "id": "white-label",
+              "label": "White-label memos for partners",
+              "owner": "product",
+              "spec_ref": null
+            },
+            {
+              "id": "share-token",
+              "label": "Tokenised share class (ERC-20 wrapper)",
+              "owner": "eng+legal",
+              "spec_ref": null
+            }
           ]
         }
       ]
