@@ -169,3 +169,52 @@ describe("runMonteCarlo GBM sanity", () => {
     expect(highDrift.percentiles.p50).toBeGreaterThan(lowDrift.percentiles.p50);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Snapshot tests — task A2 acceptance criteria
+// ---------------------------------------------------------------------------
+// These two tests fulfil the explicit A2 requirement:
+//   1. seed=42 with 1 000 runs → stable byte-identical snapshots across runs
+//   2. different seed → different percentile results (no accidental collision)
+// ---------------------------------------------------------------------------
+
+describe("runMonteCarlo snapshot — seed=42, runs=1000", () => {
+  const SNAPSHOT_INPUT = {
+    ...BASE_INPUT,
+    seed: 42,
+    paths: 1_000,
+    horizonMonths: 12,
+  } as const;
+
+  it("seed=42 produces stable percentile snapshot", () => {
+    const out = runMonteCarlo(SNAPSHOT_INPUT);
+    // Snapshot captures the full percentile object.  Running the suite a
+    // second time must produce the exact same numbers — byte-identical.
+    expect({
+      seed: out.seed,
+      paths: out.paths,
+      p5: out.percentiles.p5,
+      p25: out.percentiles.p25,
+      p50: out.percentiles.p50,
+      p75: out.percentiles.p75,
+      p95: out.percentiles.p95,
+    }).toMatchSnapshot();
+  });
+
+  it("seed=99 produces a different snapshot from seed=42", () => {
+    const seed42 = runMonteCarlo(SNAPSHOT_INPUT);
+    const seed99 = runMonteCarlo({ ...SNAPSHOT_INPUT, seed: 99 });
+    // Values must differ — different seeds must not accidentally collide.
+    expect(seed99.percentiles.p50).not.toBe(seed42.percentiles.p50);
+    expect(seed99.percentiles.p5).not.toBe(seed42.percentiles.p5);
+    expect(seed99.percentiles.p95).not.toBe(seed42.percentiles.p95);
+    // Snapshot of the seed=99 run is also stable.
+    expect({
+      seed: seed99.seed,
+      paths: seed99.paths,
+      p5: seed99.percentiles.p5,
+      p50: seed99.percentiles.p50,
+      p95: seed99.percentiles.p95,
+    }).toMatchSnapshot();
+  });
+});

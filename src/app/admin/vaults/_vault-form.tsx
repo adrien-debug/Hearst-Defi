@@ -7,6 +7,7 @@ import { ApyRange } from "@/components/ui/apy-range";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { MonteCarloReview } from "@/components/admin/monte-carlo-review";
 import {
   createDraftVault,
   updateDraftVault,
@@ -728,6 +729,19 @@ export function VaultForm(props: VaultFormProps) {
                 </span>
               </div>
             </div>
+
+            {/* Monte Carlo inline projection (ADR-006, methodology v2.0-draft) */}
+            <MonteCarloReview
+              vaultDraft={{
+                targetApyLowBps: form.targetApyLowBps,
+                targetApyHighBps: form.targetApyHighBps,
+                targetMiningBps: form.targetMiningBps,
+                targetUsdcBaseBps: form.targetUsdcBaseBps,
+                targetStableReserveBps: form.targetStableReserveBps,
+              }}
+              seed={42}
+              runs={1000}
+            />
 
             <p className="body-xs ct-text-faint border-t border-[var(--ct-border-soft)] pt-3">
               Assumptions: mining yields, BTC price, network difficulty, energy costs are
