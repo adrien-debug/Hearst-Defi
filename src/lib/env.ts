@@ -60,6 +60,9 @@ const serverEnvSchema = z.object({
   // Demo mode — when "1", every demo-aware loader returns deterministic
   // fixtures regardless of the per-browser cookie. Keep "0" in production.
   DEMO_MODE_DEFAULT: z.enum(["0", "1"]).optional().default("0"),
+  // Persona KYC — HMAC secret for webhook signature verification.
+  // Required at runtime when the persona webhook endpoint is active.
+  PERSONA_WEBHOOK_SECRET: z.string().optional(),
 });
 
 type ServerEnv = z.infer<typeof serverEnvSchema>;
