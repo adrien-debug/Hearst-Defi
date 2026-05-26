@@ -89,35 +89,37 @@ export function RiskFrameworkSection({
   view = "waterfall",
 }: RiskFrameworkSectionProps) {
   return (
-    <Card className="relative">
+    <article className="dash-cell dash-cell-premium h-full flex flex-col relative">
       <ChartProvenanceCorner kind={provenanceFromSource(data.source)} />
-      <CardHeader>
-        <CardTitle>Risk Framework</CardTitle>
-      </CardHeader>
+      <div className="dash-label relative z-10">
+        <span className="text-micro font-bold uppercase tracking-widest text-[var(--ct-text-muted)]">Risk Framework</span>
+      </div>
 
-      <CompositeHeader
-        composite={data.composite}
-        band={data.band}
-        bandLabel={data.bandLabel}
-      />
+      <div className="flex-1 flex flex-col mt-6 relative z-10">
+        <CompositeHeader
+          composite={data.composite}
+          band={data.band}
+          bandLabel={data.bandLabel}
+        />
 
-      {view === "waterfall" ? (
-        <WaterfallChart data={data} />
-      ) : (
-        <ul className="mt-6 ct-divide-soft">
-          {data.dimensions.map((d) => (
-            <li key={d.id}>
-              <RiskRow dimension={d} />
-            </li>
-          ))}
-        </ul>
-      )}
+        {view === "waterfall" ? (
+          <WaterfallChart data={data} />
+        ) : (
+          <ul className="mt-6 ct-divide-soft">
+            {data.dimensions.map((d) => (
+              <li key={d.id}>
+                <RiskRow dimension={d} />
+              </li>
+            ))}
+          </ul>
+        )}
 
-      <p className="mt-6 body-xs ct-text-faint italic leading-[var(--ct-leading-relaxed)]">
-        Composite score is the weighted sum of the five dimensions defined in
-        Methodology v1.0. Conditional projection — not guaranteed.
-      </p>
-    </Card>
+        <p className="mt-auto pt-6 body-xs text-[var(--ct-text-faint)] italic leading-[var(--ct-leading-relaxed)] opacity-70">
+          Composite score is the weighted sum of the five dimensions defined in
+          Methodology v1.0. Conditional projection — not guaranteed.
+        </p>
+      </div>
+    </article>
   );
 }
 
@@ -131,22 +133,23 @@ interface CompositeHeaderProps {
 
 function CompositeHeader({ composite, band, bandLabel }: CompositeHeaderProps) {
   return (
-    <div className="flex flex-col gap-4 rounded-[var(--ct-radius-xl)] glass-panel-subtle px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-baseline gap-3">
-        <span className="stat-label">Composite</span>
-        <span className={cn("stat-value tabular-nums", BAND_TEXT[band])}>
+    <div className="flex flex-col gap-4 rounded-(--ct-radius-xl) bg-black/20 border border-[var(--ct-border-soft)]/50 px-5 py-5 sm:flex-row sm:items-center sm:justify-between relative overflow-hidden group">
+      <div className="absolute inset-0 bg-gradient-to-r from-[var(--ct-accent)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="flex items-baseline gap-3 relative z-10">
+        <span className="text-micro font-bold uppercase tracking-widest text-[var(--ct-text-muted)]">Composite</span>
+        <span className={cn("text-3xl font-light tracking-tighter tabular-nums", BAND_TEXT[band])}>
           {composite}
-          <span className="dash-unit ct-text-faint">/ 100</span>
+          <span className="text-sm font-medium opacity-50 ml-1 text-[var(--ct-text-faint)]">/ 100</span>
         </span>
       </div>
-      <div className="flex items-center gap-4 sm:min-w-60">
-        <Progress
-          value={composite}
-          fillClassName={BAND_BAR[band]}
-          className="h-2 flex-1"
-          label={`Composite risk score ${composite} of 100, ${bandLabel}`}
-        />
-        <Badge variant={BAND_VARIANT[band]}>{bandLabel}</Badge>
+      <div className="flex items-center gap-4 sm:min-w-60 relative z-10">
+        <div className="flex-1 h-1.5 bg-black/40 rounded-full overflow-hidden border border-white/5">
+          <div 
+            className={cn("h-full transition-all duration-1000 ease-out", BAND_BAR[band])}
+            style={{ width: `${composite}%`, boxShadow: "0 0 12px var(--ct-accent-glow)" }}
+          />
+        </div>
+        <Badge variant={BAND_VARIANT[band]} className="font-bold tracking-wider">{bandLabel}</Badge>
       </div>
     </div>
   );

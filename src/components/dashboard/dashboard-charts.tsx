@@ -266,7 +266,7 @@ export function AllocationDonut({ segments, ariaLabel }: AllocationDonutProps) {
     const legacySegs = segments as DonutSegment[];
     const bucketCount = legacySegs.length;
     return (
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-full group">
         <ChartProvenanceCorner kind="attested" position="bottom-right" />
         <svg
           className="dash-chart-svg"
@@ -282,22 +282,32 @@ export function AllocationDonut({ segments, ariaLabel }: AllocationDonutProps) {
             cx={CX}
             cy={CY}
             r={INNER_R}
-            strokeDasharray="100 0"
-            opacity="0.35"
+            strokeWidth="3"
+            fill="none"
+            stroke="var(--ct-surface-3)"
+            opacity="0.15"
           />
           {legacySegs.map((s) => (
             <circle
               key={s.bucket}
-              className="dash-chart-circle"
+              className="dash-chart-circle transition-all duration-500"
               cx={CX}
               cy={CY}
               r={INNER_R}
               stroke={allocationStrokeFor(s.bucket)}
               strokeDasharray={s.dashArray}
               strokeDashoffset={s.dashOffset}
+              strokeWidth="3"
+              fill="none"
+              style={{ filter: "drop-shadow(0 0 2px rgba(0,0,0,0.5))" }}
             />
           ))}
         </svg>
+        {/* Center label */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--ct-text-faint)]">Total</span>
+          <span className="text-lg font-bold text-[var(--ct-text-strong)]">100%</span>
+        </div>
       </div>
     );
   }
@@ -385,7 +395,7 @@ export function AllocationDonut({ segments, ariaLabel }: AllocationDonutProps) {
     .slices;
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full group">
       <ChartProvenanceCorner kind="attested" position="bottom-right" />
       <svg
         className="dash-chart-svg alloc-donut"
@@ -401,6 +411,12 @@ export function AllocationDonut({ segments, ariaLabel }: AllocationDonutProps) {
             : `Allocation donut, ${hierSegs.length} bucket${hierSegs.length === 1 ? "" : "s"}`}
         </title>
 
+      {/* Center label */}
+      <g className="pointer-events-none">
+        <text x={CX} y={CY - 2} textAnchor="middle" fontSize="3" fontWeight="bold" fill="var(--ct-text-faint)" letterSpacing="0.1em">TOTAL</text>
+        <text x={CX} y={CY + 3} textAnchor="middle" fontSize="6" fontWeight="bold" fill="var(--ct-text-strong)">100%</text>
+      </g>
+
       {/* Rotate entire content -90° so arc starts at 12 o'clock */}
       <g transform={`rotate(-90 ${CX} ${CY})`}>
         {/* ── Background track(s) ─────────────────────────────────────── */}
@@ -412,7 +428,7 @@ export function AllocationDonut({ segments, ariaLabel }: AllocationDonutProps) {
           strokeWidth="3"
           fill="none"
           stroke="var(--ct-surface-3)"
-          opacity="0.35"
+          opacity="0.1"
         />
         {twoRings && (
           <circle
@@ -423,7 +439,7 @@ export function AllocationDonut({ segments, ariaLabel }: AllocationDonutProps) {
             strokeWidth="2.5"
             fill="none"
             stroke="var(--ct-surface-3)"
-            opacity="0.2"
+            opacity="0.05"
           />
         )}
 
@@ -432,7 +448,7 @@ export function AllocationDonut({ segments, ariaLabel }: AllocationDonutProps) {
           {innerSlices.map((s) => (
             <circle
               key={s.bucket}
-              className="dash-chart-circle alloc-inner-slice"
+              className="dash-chart-circle alloc-inner-slice transition-all duration-500"
               data-bucket={s.bucket}
               cx={CX}
               cy={CY}
@@ -442,6 +458,7 @@ export function AllocationDonut({ segments, ariaLabel }: AllocationDonutProps) {
               stroke={allocationStrokeFor(s.bucket)}
               strokeDasharray={s.dashArray}
               strokeDashoffset={s.dashOffset}
+              style={{ filter: "drop-shadow(0 0 1px rgba(0,0,0,0.3))" }}
             />
           ))}
         </g>
@@ -452,7 +469,7 @@ export function AllocationDonut({ segments, ariaLabel }: AllocationDonutProps) {
             {outerSlices.map((slice, i) => (
               <circle
                 key={`${slice.bucket}-${slice.label}-${i}`}
-                className="dash-chart-circle alloc-outer-slice"
+                className="dash-chart-circle alloc-outer-slice transition-all duration-500"
                 data-bucket={slice.bucket}
                 data-label={slice.label}
                 cx={CX}
@@ -461,7 +478,7 @@ export function AllocationDonut({ segments, ariaLabel }: AllocationDonutProps) {
                 strokeWidth="2.5"
                 fill="none"
                 stroke={allocationStrokeFor(slice.bucket)}
-                strokeOpacity="0.6"
+                strokeOpacity="0.4"
                 strokeDasharray={slice.dashArray}
                 strokeDashoffset={slice.dashOffset}
               />

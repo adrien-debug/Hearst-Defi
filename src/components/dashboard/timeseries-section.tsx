@@ -240,43 +240,41 @@ function NavChart({ points, provenance }: NavChartProps) {
   });
 
   return (
-    <Card className="relative flex flex-col">
+    <article className="dash-cell dash-cell-premium relative flex flex-col h-full">
       <ChartProvenanceCorner kind={provenance} />
-      <CardHeader>
-        <div className="flex flex-col gap-2">
-          <CardTitle>Net Asset Value</CardTitle>
-          <p className="text-xs font-medium uppercase tracking-wide text-[var(--ct-text-muted)]">
+      <div className="dash-label relative z-10">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-micro font-bold uppercase tracking-widest text-[var(--ct-text-muted)]">Net Asset Value</span>
+          <p className="text-[10px] font-medium uppercase tracking-wide text-[var(--ct-text-faint)] mono">
             Trailing 30 days · USDC
           </p>
         </div>
-        <div className="flex flex-col items-end gap-2">
-          <span className="text-3xl font-semibold tabular-nums leading-tight text-[var(--ct-text-primary)] drop-shadow-[var(--ct-glow-subtle)]">
+        <div className="flex flex-col items-end gap-1">
+          <span className="text-2xl font-semibold tabular-nums leading-tight text-[var(--ct-text-strong)] drop-shadow-[var(--ct-glow-subtle)]">
             {usdCompact.format(last)}
           </span>
-          <div className="flex items-center gap-3">
-            <span
-              className={
-                "mono tabular-nums text-sm font-medium px-2 py-0.5 rounded-[var(--ct-radius-md)] backdrop-blur-md " +
-                (trendDir === "up"
-                  ? "ct-status-success-bg"
-                  : trendDir === "down"
-                    ? "ct-status-danger-bg"
-                    : "ct-surface-1 ct-text-body ct-border-base")
-              }
-            >
-              {deltaPct >= 0 ? "+" : ""}
-              {deltaPct.toFixed(1)}% (30d)
-            </span>
-          </div>
+          <span
+            className={cn(
+              "mono tabular-nums text-[10px] font-bold px-1.5 py-0.5 rounded-full backdrop-blur-md border",
+              trendDir === "up" && "bg-[var(--ct-status-success-soft)] text-[var(--ct-status-success)] border-[var(--ct-status-success-border)]",
+              trendDir === "down" && "bg-[var(--ct-status-danger-soft)] text-[var(--ct-status-danger)] border-[var(--ct-status-danger-border)]",
+              trendDir === "flat" && "bg-[var(--ct-surface-1)] text-[var(--ct-text-muted)] border-[var(--ct-border)]"
+            )}
+          >
+            {deltaPct >= 0 ? "+" : ""}
+            {deltaPct.toFixed(1)}% (30d)
+          </span>
         </div>
-      </CardHeader>
+      </div>
 
-      <LineChart
-        values={values}
-        ariaLabel={`Net asset value, ${values.length} points, ${deltaPct >= 0 ? "up" : "down"} ${Math.abs(deltaPct).toFixed(1)} percent over 30 days`}
-        drawdownRects={drawdownRects}
-      />
-    </Card>
+      <div className="flex-1 mt-4 relative z-10">
+        <LineChart
+          values={values}
+          ariaLabel={`Net asset value, ${values.length} points, ${deltaPct >= 0 ? "up" : "down"} ${Math.abs(deltaPct).toFixed(1)} percent over 30 days`}
+          drawdownRects={drawdownRects}
+        />
+      </div>
+    </article>
   );
 }
 
@@ -307,32 +305,34 @@ function ApyChart({ points, provenance }: ApyChartProps) {
   const highs = points.map((p) => p.apy_high);
 
   return (
-    <Card className="relative flex flex-col">
+    <article className="dash-cell dash-cell-premium relative flex flex-col h-full">
       <ChartProvenanceCorner kind={provenance} />
-      <CardHeader>
-        <div className="flex flex-col gap-2">
-          <CardTitle>APY Range</CardTitle>
-          <p className="text-xs font-medium uppercase tracking-wide text-[var(--ct-text-muted)]">
+      <div className="dash-label relative z-10">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-micro font-bold uppercase tracking-widest text-[var(--ct-text-muted)]">APY Range</span>
+          <p className="text-[10px] font-medium uppercase tracking-wide text-[var(--ct-text-faint)] mono">
             Trailing 30d · Target {METHODOLOGY_TARGET_APY.toFixed(0)}%
           </p>
         </div>
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex flex-col items-end">
           {lastPoint ? (
             <ApyRange
-              className="text-3xl leading-tight"
+              className="text-2xl font-semibold leading-tight text-[var(--ct-text-strong)]"
               low={lastPoint.apy_low}
               high={lastPoint.apy_high}
             />
           ) : null}
         </div>
-      </CardHeader>
+      </div>
 
-      <BandChart
-        low={lows}
-        high={highs}
-        ariaLabel={`APY range band over 30 days, latest ${lastPoint ? `${lastPoint.apy_low.toFixed(1)} to ${lastPoint.apy_high.toFixed(1)} percent` : "n/a"}`}
-      />
-    </Card>
+      <div className="flex-1 mt-4 relative z-10">
+        <BandChart
+          low={lows}
+          high={highs}
+          ariaLabel={`APY range band over 30 days, latest ${lastPoint ? `${lastPoint.apy_low.toFixed(1)} to ${lastPoint.apy_high.toFixed(1)} percent` : "n/a"}`}
+        />
+      </div>
+    </article>
   );
 }
 

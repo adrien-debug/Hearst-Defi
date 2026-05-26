@@ -272,165 +272,156 @@ function HeatmapSVG({ marginScore, currentPair }: HeatmapSVGProps) {
       : null;
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-[var(--ct-text-muted)] uppercase tracking-wider">
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-[10px] font-bold text-[var(--ct-text-faint)] uppercase tracking-widest">
           Mining Margin Heatmap · 90d
         </span>
-        <span
-          className={cn(
-            "text-sm font-semibold tabular-nums",
-            scoreTone(marginScore) === "good"
-              ? "text-[var(--ct-accent)]"
-              : scoreTone(marginScore) === "warn"
-                ? "text-[var(--ct-warning)]"
-                : "text-[var(--ct-status-danger)]",
-          )}
-        >
-          Margin Score: {marginScore}/100
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold text-[var(--ct-text-faint)] uppercase tracking-widest">Score:</span>
+          <span
+            className={cn(
+              "text-sm font-bold tabular-nums",
+              scoreTone(marginScore) === "good"
+                ? "text-[var(--ct-accent)]"
+                : scoreTone(marginScore) === "warn"
+                  ? "text-[var(--ct-warning)]"
+                  : "text-[var(--ct-status-danger)]",
+            )}
+          >
+            {marginScore}/100
+          </span>
+        </div>
       </div>
 
       {/* SVG grid */}
-      <svg
-        viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-        width="100%"
-        role="img"
-        aria-label={`Mining margin heatmap. Current margin score: ${marginScore}/100.`}
-      >
-        {/* BTC price Y-axis labels */}
-        {BTC_LABELS.map((label, r) => (
-          <text
-            key={label}
-            x={PAD_LEFT - 4}
-            y={PAD_TOP + (r + 0.5) * CELL_H + 3}
-            textAnchor="end"
-            fontSize={7}
-            fill="var(--ct-text-muted)"
-          >
-            {label}
-          </text>
-        ))}
-
-        {/* Cells */}
-        {grid.map((row, r) =>
-          row.map((cell, c) => {
-            const { fill, opacity } = cellFill(cell.score);
-            const x = PAD_LEFT + c * CELL_W;
-            const y = PAD_TOP + r * CELL_H;
-            return (
-              <rect
-                key={`${r}-${c}`}
-                x={x + 1}
-                y={y + 1}
-                width={CELL_W - 2}
-                height={CELL_H - 2}
-                fill={fill}
-                opacity={opacity}
-                rx={2}
-              >
-                <title>
-                  {`Hashprice $${cell.hashprice.toFixed(3)}/TH/d · BTC $${Math.round(cell.btcPrice).toLocaleString()} · Margin ${cell.score}/100`}
-                </title>
-              </rect>
-            );
-          }),
-        )}
-
-        {/* Hashprice X-axis labels */}
-        {HP_LABELS.map((label, i) => {
-          const colIdx = Math.round((i / (HP_LABELS.length - 1)) * (HP_COUNT - 1));
-          return (
+      <div className="flex-1 min-h-0">
+        <svg
+          viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+          className="w-full h-full"
+          preserveAspectRatio="xMidYMid meet"
+          role="img"
+          aria-label={`Mining margin heatmap. Current margin score: ${marginScore}/100.`}
+        >
+          {/* BTC price Y-axis labels */}
+          {BTC_LABELS.map((label, r) => (
             <text
               key={label}
-              x={PAD_LEFT + (colIdx + 0.5) * CELL_W}
-              y={SVG_H - PAD_BOTTOM + 10}
-              textAnchor="middle"
-              fontSize={7}
-              fill="var(--ct-text-muted)"
+              x={PAD_LEFT - 6}
+              y={PAD_TOP + (r + 0.5) * CELL_H + 2}
+              textAnchor="end"
+              fontSize={6}
+              fontWeight="500"
+              fill="var(--ct-text-faint)"
+              fontFamily="var(--font-mono)"
             >
               {label}
             </text>
-          );
-        })}
+          ))}
 
-        {/* X-axis unit label */}
-        <text
-          x={PAD_LEFT + GRID_W / 2}
-          y={SVG_H - 2}
-          textAnchor="middle"
-          fontSize={6}
-          fill="var(--ct-text-faint)"
-        >
-          $/TH/day
-        </text>
+          {/* Cells */}
+          {grid.map((row, r) =>
+            row.map((cell, c) => {
+              const { fill, opacity } = cellFill(cell.score);
+              const x = PAD_LEFT + c * CELL_W;
+              const y = PAD_TOP + r * CELL_H;
+              return (
+                <rect
+                  key={`${r}-${c}`}
+                  x={x + 0.5}
+                  y={y + 0.5}
+                  width={CELL_W - 1}
+                  height={CELL_H - 1}
+                  fill={fill}
+                  opacity={opacity}
+                  rx={1}
+                  className="transition-opacity duration-300 hover:opacity-100"
+                >
+                  <title>
+                    {`Hashprice $${cell.hashprice.toFixed(3)}/TH/d · BTC $${Math.round(cell.btcPrice).toLocaleString()} · Margin ${cell.score}/100`}
+                  </title>
+                </rect>
+              );
+            }),
+          )}
 
-        {/* Current position marker */}
-        {marker !== null ? (
-          <g>
-            {/* Halo */}
-            <circle
-              cx={marker.cx}
-              cy={marker.cy}
-              r={7}
-              fill="var(--ct-glow-accent)"
-              opacity={0.25}
-            />
-            {/* Outer ring */}
-            <circle
-              cx={marker.cx}
-              cy={marker.cy}
-              r={4.5}
-              fill="none"
-              stroke="var(--ct-text-primary)"
-              strokeWidth={1.5}
-            />
-            {/* Inner dot */}
-            <circle
-              cx={marker.cx}
-              cy={marker.cy}
-              r={2}
-              fill="var(--ct-text-primary)"
-            />
-            <title>
-              {`Current position — hashprice $${currentPair!.hashprice.toFixed(3)}/TH/d, BTC $${Math.round(currentPair!.btcPrice).toLocaleString()}`}
-            </title>
-          </g>
-        ) : null}
-      </svg>
+          {/* Hashprice X-axis labels */}
+          {HP_LABELS.map((label, i) => {
+            const colIdx = Math.round((i / (HP_LABELS.length - 1)) * (HP_COUNT - 1));
+            return (
+              <text
+                key={label}
+                x={PAD_LEFT + (colIdx + 0.5) * CELL_W}
+                y={SVG_H - PAD_BOTTOM + 12}
+                textAnchor="middle"
+                fontSize={6}
+                fontWeight="500"
+                fill="var(--ct-text-faint)"
+                fontFamily="var(--font-mono)"
+              >
+                {label}
+              </text>
+            );
+          })}
+
+          {/* X-axis unit label */}
+          <text
+            x={PAD_LEFT + GRID_W / 2}
+            y={SVG_H - 4}
+            textAnchor="middle"
+            fontSize={5}
+            fontWeight="bold"
+            fill="var(--ct-text-faint)"
+            letterSpacing="0.1em"
+            className="uppercase"
+          >
+            $/TH/day
+          </text>
+
+          {/* Current position marker */}
+          {marker !== null ? (
+            <g>
+              <circle
+                cx={marker.cx}
+                cy={marker.cy}
+                r={6}
+                fill="var(--ct-accent)"
+                opacity={0.2}
+                className="animate-pulse"
+              />
+              <circle
+                cx={marker.cx}
+                cy={marker.cy}
+                r={3}
+                fill="var(--ct-text-strong)"
+                stroke="var(--ct-bg-deep)"
+                strokeWidth={1}
+              />
+            </g>
+          ) : null}
+        </svg>
+      </div>
 
       {/* Legend */}
       <div
-        className="flex flex-wrap items-center gap-x-3 gap-y-1"
+        className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 pt-4 border-t border-[var(--ct-border-soft)]/50"
         aria-label="Margin score legend"
-        data-testid="heatmap-legend"
       >
         {LEGEND_SWATCHES.map((s) => (
-          <div key={s.label} className="flex items-center gap-1">
+          <div key={s.label} className="flex items-center gap-1.5">
             <span
               aria-hidden
+              className="w-2 h-2 rounded-sm shrink-0"
               style={{
-                display: "inline-block",
-                width: 10,
-                height: 10,
-                borderRadius: 2,
                 background: s.fill,
                 opacity: s.opacity,
               }}
             />
-            <span className="text-micro text-[var(--ct-text-muted)]">{s.label}</span>
+            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--ct-text-faint)]">{s.label}</span>
           </div>
         ))}
       </div>
-
-      {/* Current position caption */}
-      {currentPair !== undefined ? (
-        <p className="text-micro text-[var(--ct-text-faint)]">
-          ◐ current position — hashprice ${currentPair.hashprice.toFixed(3)}, BTC $
-          {Math.round(currentPair.btcPrice).toLocaleString()}
-        </p>
-      ) : null}
     </div>
   );
 }
@@ -450,47 +441,49 @@ export function MiningHealthSection({
     50 + Math.max(-50, Math.min(50, miningHealth.hashpriceTrendPct * 5));
 
   return (
-    <Card className="relative">
+    <article className="dash-cell dash-cell-premium h-full flex flex-col relative">
       <ChartProvenanceCorner kind="oracle" />
-      <CardHeader>
-        <CardTitle>Mining Health</CardTitle>
-      </CardHeader>
+      <div className="dash-label relative z-10">
+        <span className="text-micro font-bold uppercase tracking-widest text-[var(--ct-text-muted)]">Mining Health</span>
+      </div>
 
-      {view === "heatmap" ? (
-        <div className="px-4 pb-4">
-          <HeatmapSVG
-            marginScore={miningHealth.marginScore}
-            currentPair={currentPair}
-          />
-        </div>
-      ) : (
-        <div className="divide-y divide-[var(--ct-border-soft)]">
-          <ScoreRow
-            label="Mining Margin Score"
-            hint="current margin / target margin"
-            value={`${miningHealth.marginScore}/100`}
-            tone={marginTone}
-            bar={miningHealth.marginScore}
-          />
-          <ScoreRow
-            label="Hashprice Trend"
-            hint="30d avg vs 60d avg"
-            value={`${miningHealth.hashpriceTrendPct >= 0 ? "+" : ""}${miningHealth.hashpriceTrendPct.toFixed(1)}%`}
-            tone={trendT}
-            bar={trendPctClamped}
-          />
-          <ScoreRow
-            label="Operational Confidence"
-            hint="uptime + attestation freshness + energy stability"
-            value={`${miningHealth.opConfidence}/100`}
-            tone={opTone}
-            bar={miningHealth.opConfidence}
-          />
-          {hashprice && hashprice.usd_per_th_day > 0 ? (
-            <HashpriceRow hashprice={hashprice} />
-          ) : null}
-        </div>
-      )}
-    </Card>
+      <div className="flex-1 flex flex-col mt-6 relative z-10">
+        {view === "heatmap" ? (
+          <div className="pb-4 h-full flex flex-col">
+            <HeatmapSVG
+              marginScore={miningHealth.marginScore}
+              currentPair={currentPair}
+            />
+          </div>
+        ) : (
+          <div className="divide-y divide-[var(--ct-border-soft)]/50">
+            <ScoreRow
+              label="Mining Margin Score"
+              hint="current margin / target margin"
+              value={`${miningHealth.marginScore}/100`}
+              tone={marginTone}
+              bar={miningHealth.marginScore}
+            />
+            <ScoreRow
+              label="Hashprice Trend"
+              hint="30d avg vs 60d avg"
+              value={`${miningHealth.hashpriceTrendPct >= 0 ? "+" : ""}${miningHealth.hashpriceTrendPct.toFixed(1)}%`}
+              tone={trendT}
+              bar={trendPctClamped}
+            />
+            <ScoreRow
+              label="Operational Confidence"
+              hint="uptime + attestation freshness + energy stability"
+              value={`${miningHealth.opConfidence}/100`}
+              tone={opTone}
+              bar={miningHealth.opConfidence}
+            />
+            {hashprice && hashprice.usd_per_th_day > 0 ? (
+              <HashpriceRow hashprice={hashprice} />
+            ) : null}
+          </div>
+        )}
+      </div>
+    </article>
   );
 }

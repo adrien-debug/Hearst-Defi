@@ -32,25 +32,32 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
 
   if (events.length === 0) {
     return (
-      <Card>
-        <p className="eyebrow mb-4">Activity feed</p>
-        <p className="body-sm ct-text-muted">No recent events yet.</p>
-      </Card>
+      <article className="dash-cell dash-cell-premium h-full flex flex-col">
+        <div className="dash-label relative z-10">
+          <span className="text-micro font-bold uppercase tracking-widest text-[var(--ct-text-muted)]">Activity feed</span>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="body-sm text-[var(--ct-text-muted)] italic">No recent events yet.</p>
+        </div>
+      </article>
     );
   }
 
   const open = events.find((e) => e.id === openId) ?? null;
 
   return (
-    <Card>
-      <p className="eyebrow mb-4">Activity feed</p>
-      <ul className="flex flex-col">
+    <article className="dash-cell dash-cell-premium h-full flex flex-col">
+      <div className="dash-label relative z-10">
+        <span className="text-micro font-bold uppercase tracking-widest text-[var(--ct-text-muted)]">Activity feed</span>
+      </div>
+      
+      <ul className="flex flex-col mt-6 relative z-10">
         {events.map((e, i) => (
           <li
             key={e.id}
             className={cn(
               "py-3",
-              i !== 0 && "border-t border-[var(--ct-border-soft)]",
+              i !== 0 && "border-t border-[var(--ct-border-soft)]/50",
             )}
           >
             <button
@@ -65,14 +72,14 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
               aria-label={`Open details for ${e.ruleId}`}
             >
               <span className="flex flex-wrap items-baseline justify-between gap-2 w-full">
-                <span className="mono text-[length:var(--ct-text-micro)] uppercase tracking-[var(--ct-tracking-wide)] ct-text-strong">
+                <span className="mono text-[length:var(--ct-text-micro)] uppercase tracking-[var(--ct-tracking-wide)] text-[var(--ct-text-strong)]">
                   {e.ruleId}
                 </span>
-                <span className="mono text-[length:var(--ct-text-micro)] ct-text-faint tabular">
+                <span className="mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-faint)] tabular">
                   {dateFmt.format(e.takenAt)}
                 </span>
               </span>
-              <span className="body-sm ct-text-body">{e.triggerText}</span>
+              <span className="body-sm text-[var(--ct-text-body)]">{e.triggerText}</span>
             </button>
           </li>
         ))}
@@ -85,7 +92,7 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
       >
         {open ? (
           <div className="flex flex-col gap-4">
-            <p className="body-xs ct-text-faint tabular">
+            <p className="body-xs text-[var(--ct-text-faint)] tabular">
               {dateFmt.format(open.takenAt)}
             </p>
             <Ptai
@@ -94,12 +101,12 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
               action={open.actionText}
               impact={open.impactText}
             />
-            <p className="body-xs ct-text-faint italic leading-[var(--ct-leading-relaxed)]">
+            <p className="body-xs text-[var(--ct-text-faint)] italic leading-[var(--ct-leading-relaxed)]">
               Conditional projection — not guaranteed. Methodology v1.0.
             </p>
           </div>
         ) : null}
       </Modal>
-    </Card>
+    </article>
   );
 }

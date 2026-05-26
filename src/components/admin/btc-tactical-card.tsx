@@ -91,78 +91,82 @@ export function BtcTacticalCard({ data }: BtcTacticalCardProps) {
   const priceProvenance = data.btcPrice.stale ? "stale" : "live";
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>BTC Tactical</CardTitle>
+    <article className="dash-cell dash-cell-premium h-full flex flex-col relative">
+      <div className="dash-label relative z-10">
+        <span className="text-micro font-bold uppercase tracking-widest text-[var(--ct-text-muted)]">BTC Tactical</span>
         <ProvenanceBadge kind="estimated" />
-      </CardHeader>
+      </div>
 
-      {noPosition ? (
-        <p className="body-sm ct-text-muted">No BTC position yet.</p>
-      ) : (
-        <div className="flex flex-col">
-          <Row label="Position size">
-            <span>
-              {positionPct.toFixed(0)}%
-              <span className="ct-text-faint"> · </span>
-              {usd.format(positionUsdc)}
-            </span>
-          </Row>
-          <Row label="BTC held">
-            {priceUnavailable ? (
-              <span className="ct-text-muted">—</span>
-            ) : (
-              <>
-                {btcHeld.toFixed(2)}
-                <span className="ct-text-faint"> BTC</span>
-              </>
-            )}
-          </Row>
-          <Row label="Current price">
-            {priceUnavailable ? (
-              <span className="inline-flex items-baseline gap-2">
-                <span className="ct-text-muted">BTC price feed unavailable.</span>
-                <ProvenanceBadge kind="stale" />
+      <div className="flex-1 flex flex-col mt-6 relative z-10">
+        {noPosition ? (
+          <div className="flex-1 flex items-center justify-center">
+            <p className="body-sm text-[var(--ct-text-muted)] italic">No BTC position yet.</p>
+          </div>
+        ) : (
+          <div className="flex flex-col divide-y divide-[var(--ct-border-soft)]/50">
+            <Row label="Position size">
+              <span>
+                {positionPct.toFixed(0)}%
+                <span className="text-[var(--ct-text-faint)]"> · </span>
+                {usd.format(positionUsdc)}
               </span>
-            ) : (
-              <span className="inline-flex items-baseline gap-2">
-                {usdPrice.format(currentPrice)}
-                <ProvenanceBadge kind={priceProvenance} />
-              </span>
-            )}
-          </Row>
-          <Row label="Next accumulate">
-            {priceUnavailable ? (
-              <span className="ct-text-muted">—</span>
-            ) : (
-              <span className="inline-flex items-baseline gap-2">
-                <span className="ct-text-body">
-                  if BTC &lt; {usdPrice.format(accumulateAt)}
+            </Row>
+            <Row label="BTC held">
+              {priceUnavailable ? (
+                <span className="text-[var(--ct-text-muted)]">—</span>
+              ) : (
+                <>
+                  {btcHeld.toFixed(2)}
+                  <span className="text-[var(--ct-text-faint)]"> BTC</span>
+                </>
+              )}
+            </Row>
+            <Row label="Current price">
+              {priceUnavailable ? (
+                <span className="inline-flex items-baseline gap-2">
+                  <span className="text-[var(--ct-text-muted)]">BTC price feed unavailable.</span>
+                  <ProvenanceBadge kind="stale" />
                 </span>
-                <ProvenanceBadge kind="estimated" />
-              </span>
-            )}
-          </Row>
-          <Row label="Volatility guardrail">
-            {priceUnavailable ? (
-              <span className="ct-text-muted">—</span>
-            ) : (
-              severityBadge(volGuardrail.label, volGuardrail.variant)
-            )}
-          </Row>
-          <Row label="Mining margin guardrail">
-            {priceUnavailable ? (
-              <span className="ct-text-muted">—</span>
-            ) : (
-              severityBadge(marginGuardrail.label, marginGuardrail.variant)
-            )}
-          </Row>
-        </div>
-      )}
+              ) : (
+                <span className="inline-flex items-baseline gap-2">
+                  {usdPrice.format(currentPrice)}
+                  <ProvenanceBadge kind={priceProvenance} />
+                </span>
+              )}
+            </Row>
+            <Row label="Next accumulate">
+              {priceUnavailable ? (
+                <span className="text-[var(--ct-text-muted)]">—</span>
+              ) : (
+                <span className="inline-flex items-baseline gap-2">
+                  <span className="text-[var(--ct-text-body)]">
+                    if BTC &lt; {usdPrice.format(accumulateAt)}
+                  </span>
+                  <ProvenanceBadge kind="estimated" />
+                </span>
+              )}
+            </Row>
+            <Row label="Volatility guardrail">
+              {priceUnavailable ? (
+                <span className="text-[var(--ct-text-muted)]">—</span>
+              ) : (
+                severityBadge(volGuardrail.label, volGuardrail.variant)
+              )}
+            </Row>
+            <Row label="Mining margin guardrail">
+              {priceUnavailable ? (
+                <span className="text-[var(--ct-text-muted)]">—</span>
+              ) : (
+                severityBadge(marginGuardrail.label, marginGuardrail.variant)
+              )}
+            </Row>
+          </div>
+        )}
 
-      <p className="mt-6 body-xs ct-text-faint italic leading-[var(--ct-leading-relaxed)]">
-        Triggers are estimated from methodology v1.0 anchors. Avg entry, unrealized P&amp;L and profit-take pending Phase 3 vault deployment (cost basis stored on-chain). Conditional projection — not guaranteed.
-      </p>
-    </Card>
+        <p className="mt-auto pt-6 body-xs text-[var(--ct-text-faint)] italic leading-[var(--ct-leading-relaxed)] opacity-70">
+          Triggers are estimated from methodology v1.0 anchors. Avg entry, unrealized P&amp;L and profit-take pending Phase 3 vault deployment (cost basis stored on-chain). Conditional projection — not guaranteed.
+        </p>
+      </div>
+    </article>
   );
 }

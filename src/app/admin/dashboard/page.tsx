@@ -123,11 +123,17 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     : vault.apyRange;
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12 relative">
+      {/* Ambient glow for the dashboard */}
+      <div aria-hidden="true" className="absolute -inset-20 z-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 w-1/2 h-1/2 bg-(--ct-accent)/5 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-1/3 h-1/3 bg-(--ct-accent)/3 blur-[100px] rounded-full" />
+      </div>
+
       <AdminPageHeader
         title="Dashboard"
         actions={
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 relative z-10">
             <VaultSelector
               active={vaultMeta.id}
               options={vaultOptions}
@@ -140,33 +146,31 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         }
       />
 
-      <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <h2 className="h3">{vaultMeta.name}</h2>
+      <div className="flex flex-wrap items-baseline justify-between gap-3 relative z-10">
+        <h2 className="text-xl font-light tracking-tight text-[var(--ct-text-primary)]">
+          <span className="font-semibold text-[var(--ct-text-strong)]">{vaultMeta.name}</span>
+          <span className="ml-2 text-micro font-bold uppercase tracking-widest text-[var(--ct-text-muted)] opacity-50">Vault Overview</span>
+        </h2>
       </div>
 
       {/* Hero — live KPI grid for Yield, methodology-only fallback for the
-          other vaults. ADR-006 #9: when no per-vault snapshot exists yet, the
-          Yield AUM/Risk/Mining/Stressed numbers must NOT be reused under the
-          other vaults' names — we surface the engine preset (APY range, next
-          distribution) and a Card explaining the gap, rather than masking the
-          mismatch behind discreet copy. */}
-      <section aria-label="Vault overview">
+          other vaults. */}
+      <section aria-label="Vault overview" className="relative z-10">
         {vaultMeta.livePreview ? (
-          <Card
-            className="border-[var(--ct-status-warning-border)] bg-[var(--ct-status-warning-soft)]"
-            aria-label={`${vaultMeta.name} live snapshot pending`}
-          >
-            <p className="eyebrow">Per-vault live snapshot pending</p>
-            <p className="mt-2 body-sm ct-text-muted">
+          <div className="dash-cell dash-cell-premium border-[var(--ct-status-warning-border)] bg-[var(--ct-status-warning-soft)]/20 p-8">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-micro font-bold uppercase tracking-widest text-[var(--ct-status-warning)]">
+                Per-vault live snapshot pending
+              </span>
+              <ProvenanceBadge kind="estimated" />
+            </div>
+            <p className="body-sm text-[var(--ct-text-muted)] max-w-3xl">
               {vaultMeta.name} live KPIs (AUM, risk score, mining margin,
               stressed APY) land with Phase 3 multi-vault DB schema. The numbers
               below are the {vaultMeta.name} methodology preset only — not the
-              Hearst Yield Vault timeline relabelled. Allocation, Mining Health,
-              BTC Tactical, Activity, Risk, and Time-series sections that
-              follow still reflect Yield Vault live data and are shown as
-              preview context only.
+              Hearst Yield Vault timeline relabelled.
             </p>
-            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <Metric
                 label="APY range"
                 provenance="estimated"
@@ -178,17 +182,15 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                   />
                 }
                 sublabel={`${vaultMeta.name} · methodology preset`}
-                tooltip={`Forward 12m projected APY range for ${vaultMeta.name}, sourced from its methodology preset (allocation targets × asset-class yield assumptions). Not guaranteed. Methodology v1.0.`}
               />
               <Metric
                 label="Next distribution"
                 provenance="estimated"
-                value={<span className="tabular">{nextDistLabel}</span>}
+                value={nextDistLabel}
                 sublabel={nextDistAmount}
-                tooltip="Next monthly USDC distribution. Estimate from current mining margin + base yield accrual. Cadence shared across vaults; per-vault amounts arrive with Phase 3."
               />
             </div>
-          </Card>
+          </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <Metric
@@ -234,7 +236,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               value={
                 <span className="tabular">
                   {vault.riskScore}
-                  <span className="text-[0.6em] font-medium opacity-80 ml-1 ct-text-faint">
+                  <span className="text-[0.6em] font-medium opacity-80 ml-1 text-[var(--ct-text-faint)]">
                     /100
                   </span>
                 </span>
@@ -245,7 +247,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             <Metric
               label="Next distribution"
               provenance="estimated"
-              value={<span className="tabular">{nextDistLabel}</span>}
+              value={nextDistLabel}
               sublabel={nextDistAmount}
               tooltip="Next monthly USDC distribution. Estimate from current mining margin + base yield accrual."
             />
@@ -253,110 +255,88 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         )}
       </section>
 
-      {/* Allocation */}
-      <section aria-label="Allocation breakdown">
-        <Card>
-          <p className="eyebrow mb-4">Allocation breakdown</p>
-          {allocSegments.length === 0 ? (
-            <p className="body-sm ct-text-muted">No allocation data yet.</p>
-          ) : (
-            <div className="grid gap-8 lg:grid-cols-[auto_1fr_1fr]">
-              <div className="h-40 w-40 shrink-0">
-                <AllocationDonut
-                  segments={allocSegments}
-                  ariaLabel="Allocation breakdown by bucket"
-                />
-              </div>
-              <ul className="flex min-w-56 flex-col gap-2">
-                {allocSegments.map((s) => (
-                  <li
-                    key={s.bucket}
-                    className="flex items-center justify-between gap-3 body-sm"
-                  >
-                    <span className="flex items-center gap-2">
-                      <span
-                        aria-hidden
-                        className="inline-block h-2 w-2 shrink-0 rounded-full"
-                        style={{ background: allocationStrokeFor(s.bucket) }}
-                      />
-                      {allocationLabelFor(s.bucket)}
-                    </span>
-                    <span className="tabular ct-text-muted">
-                      {s.pct.toFixed(0)}% · {usdCompact.format(s.valueUsdc)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <div className="flex min-w-56 flex-col gap-2">
-                <p className="mono text-[length:var(--ct-text-micro)] uppercase tracking-[var(--ct-tracking-wide)] ct-text-faint">
-                  Yield sources
-                </p>
-                {YIELD_SOURCE_TARGETS.map((src) => {
-                  const a = data.allocations.find((x) => x.bucket === src.bucket);
-                  const contribPct =
-                    a && a.yieldContributionBps > 0
-                      ? `${(a.yieldContributionBps / 100).toFixed(2)}%`
-                      : src.target;
-                  return (
-                    <div
-                      key={src.bucket}
-                      className="flex items-baseline justify-between gap-3 body-sm"
-                    >
-                      <span className="ct-text-body">{src.label}</span>
-                      <span className="tabular ct-text-muted">
-                        {contribPct}
-                        <span className="ct-text-faint">
-                          {" "}
-                          · estimated contribution
-                        </span>
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+      {/* Section 1 — Core Analytics (Allocation & Mining) */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10 border-t border-[var(--ct-border-soft)] pt-12">
+        <div className="lg:col-span-4 flex flex-col h-full">
+          <article className="dash-cell dash-cell-premium h-full flex flex-col" aria-label="Allocation breakdown">
+            <div className="dash-label relative z-10">
+              <span className="text-micro font-bold uppercase tracking-widest text-[var(--ct-text-muted)]">Allocation breakdown</span>
+              <ProvenanceBadge kind="live" />
             </div>
-          )}
-        </Card>
+            
+            {allocSegments.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center">
+                <p className="body-sm text-[var(--ct-text-muted)] italic">No allocation data yet.</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-8 mt-6 flex-1 relative z-10">
+                <div className="h-48 w-48 mx-auto shrink-0">
+                  <AllocationDonut
+                    segments={allocSegments}
+                    ariaLabel="Allocation breakdown by bucket"
+                  />
+                </div>
+                <ul className="flex flex-col gap-3">
+                  {allocSegments.map((s) => (
+                    <li
+                      key={s.bucket}
+                      className="flex items-center justify-between gap-3 body-sm"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span
+                          aria-hidden
+                          className="inline-block h-2 w-2 shrink-0 rounded-full"
+                          style={{ background: allocationStrokeFor(s.bucket) }}
+                        />
+                        <span className="text-[var(--ct-text-body)]">{allocationLabelFor(s.bucket)}</span>
+                      </span>
+                      <span className="tabular text-[var(--ct-text-muted)] font-medium">
+                        {s.pct.toFixed(0)}% · {usdCompact.format(s.valueUsdc)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </article>
+        </div>
+
+        <div className="lg:col-span-8 flex flex-col h-full">
+          <Suspense fallback={<SkeletonCard />}>
+            <MiningHealthSection
+              miningHealth={{
+                marginScore: vault.miningMarginScore,
+                hashpriceTrendPct: data.hashpriceTrendPct,
+                opConfidence: data.operationalConfidence,
+                provenance: data.source === "db" ? "live" : "estimated",
+              }}
+              hashprice={
+                data.miningOps.hashprice
+                  ? {
+                      usd_per_th_day: data.miningOps.hashprice.usd_per_th_day,
+                      stale: data.miningOps.hashprice.stale,
+                    }
+                  : null
+              }
+            />
+          </Suspense>
+        </div>
       </section>
 
-      {/* Mining health */}
-      <section aria-label="Mining health">
-        <Suspense fallback={<SkeletonCard />}>
-          <MiningHealthSection
-            miningHealth={{
-              marginScore: vault.miningMarginScore,
-              hashpriceTrendPct: data.hashpriceTrendPct,
-              opConfidence: data.operationalConfidence,
-              provenance: data.source === "db" ? "live" : "estimated",
-            }}
-            hashprice={
-              data.miningOps.hashprice
-                ? {
-                    usd_per_th_day: data.miningOps.hashprice.usd_per_th_day,
-                    stale: data.miningOps.hashprice.stale,
-                  }
-                : null
-            }
-          />
-        </Suspense>
+      {/* Section 2 — Tactical & Activity */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10 border-t border-[var(--ct-border-soft)] pt-12">
+        <div className="lg:col-span-8 flex flex-col h-full">
+          <BtcTacticalCard data={data} />
+        </div>
+        <div className="lg:col-span-4 flex flex-col h-full">
+          <ActivityFeed events={data.recentEvents} />
+        </div>
       </section>
 
-      {/* BTC tactical + Activity (side-by-side on lg) */}
-      <section
-        aria-label="BTC tactical and activity"
-        className="grid gap-8 lg:grid-cols-2"
-      >
-        <BtcTacticalCard data={data} />
-        <ActivityFeed events={data.recentEvents} />
-      </section>
-
-      {/* Risk framework */}
-      <section aria-label="Risk framework">
+      {/* Section 3 — Risk & History */}
+      <section className="flex flex-col gap-8 relative z-10 border-t border-[var(--ct-border-soft)] pt-12">
         <RiskFrameworkSection data={risk} />
-      </section>
-
-      {/* Timeseries */}
-      <section aria-label="Trailing time-series">
+        
         <Suspense
           fallback={
             <div className="grid gap-8 lg:grid-cols-2">
@@ -399,58 +379,48 @@ async function AdvancedMetricsSection() {
   });
 
   return (
-    <section aria-label="Advanced metrics" className="space-y-4">
-      <p className="eyebrow">Advanced metrics</p>
+    <section aria-label="Advanced metrics" className="space-y-6 relative z-10">
+      <div className="flex items-center gap-3">
+        <span className="text-micro font-bold uppercase tracking-widest text-[var(--ct-text-muted)]">Advanced metrics</span>
+        <div className="h-px flex-1 bg-[var(--ct-border-soft)]/50" />
+      </div>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Metric
           label="Sharpe"
           provenance={provenance}
-          value={
-            <span className="tabular">
-              {m.available ? m.sharpe.toFixed(2) : "—"}
-            </span>
-          }
+          value={m.available ? m.sharpe.toFixed(2) : "—"}
           sublabel={m.available ? `${m.monthsUsed} months` : "Insufficient history"}
           tooltip="Sharpe ratio: excess return per unit of total volatility. Methodology v1.0."
         />
         <Metric
           label="Sortino"
           provenance={provenance}
-          value={
-            <span className="tabular">
-              {m.available ? m.sortino.toFixed(2) : "—"}
-            </span>
-          }
+          value={m.available ? m.sortino.toFixed(2) : "—"}
           sublabel={m.available ? `${m.monthsUsed} months` : "Insufficient history"}
           tooltip="Sortino ratio: excess return per unit of downside volatility."
         />
         <Metric
           label="VaR 95%"
           provenance={provenance}
-          value={
-            <span className="tabular">
-              {m.available ? pct1.format(m.varDecimal) : "—"}
-            </span>
-          }
+          value={m.available ? pct1.format(m.varDecimal) : "—"}
           sublabel="Monthly, 95% confidence"
           tooltip="Value-at-Risk at 95% confidence over a one-month horizon."
         />
         <Metric
           label="Max drawdown"
           provenance={provenance}
-          value={
-            <span className="tabular">
-              {m.available ? pct1.format(m.maxDrawdownDecimal) : "—"}
-            </span>
-          }
+          value={m.available ? pct1.format(m.maxDrawdownDecimal) : "—"}
           sublabel="Peak-to-trough"
           tooltip="Largest peak-to-trough decline in the available NAV series."
         />
       </div>
 
-      <Card>
-        <p className="eyebrow mb-4">DeFi positions &amp; fee accrual</p>
-        <ul className="flex flex-col">
+      <article className="dash-cell dash-cell-premium">
+        <div className="dash-label relative z-10">
+          <span className="text-micro font-bold uppercase tracking-widest text-[var(--ct-text-muted)]">DeFi positions &amp; fee accrual</span>
+        </div>
+        <ul className="flex flex-col mt-6 relative z-10 divide-y divide-[var(--ct-border-soft)]/50">
           <DefiRow
             label="Top DeFi positions"
             tooltip="On-chain DeFi position discovery pending; live feed lands with Phase 3 vault."
@@ -470,10 +440,10 @@ async function AdvancedMetricsSection() {
             <PendingValue />
           </DefiRow>
         </ul>
-        <p className="mt-6 body-xs ct-text-faint italic leading-[var(--ct-leading-relaxed)]">
+        <p className="mt-auto pt-6 body-xs text-[var(--ct-text-faint)] italic leading-[var(--ct-leading-relaxed)] opacity-70 relative z-10">
           Estimated from methodology v1.0 anchors. Conditional projection — not guaranteed.
         </p>
-      </Card>
+      </article>
     </section>
   );
 }

@@ -26,25 +26,28 @@ export function Metric({
   return (
     <div
       className={cn(
-        "ct-kpi-card glass-panel flex flex-col gap-3 relative overflow-hidden group",
+        "dash-cell dash-cell-premium flex flex-col gap-3 relative overflow-hidden group",
         className,
       )}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-[var(--ct-surface-0)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-[var(--ct-dur-slow)] pointer-events-none" />
+      {/* Ambient subtle glow on hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[var(--ct-accent)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-[var(--ct-dur-slow)] pointer-events-none" />
 
-      <div className="flex items-center justify-between gap-2 relative z-[var(--ct-z-raised)]">
-        <span className="stat-label text-[var(--ct-text-muted)] group-hover:text-[var(--ct-text-body)] transition-colors" title={tooltip}>
+      <div className="flex items-center justify-between gap-2 relative z-10">
+        <span className="text-micro font-bold uppercase tracking-widest text-[var(--ct-text-muted)] group-hover:text-[var(--ct-text-body)] transition-colors" title={tooltip}>
           {label}
         </span>
         {provenance ? <ProvenanceBadge kind={provenance} /> : null}
       </div>
 
-      <span className="stat-value relative z-[var(--ct-z-raised)] text-[var(--ct-text-strong)] drop-shadow-[var(--ct-glow-subtle)]">
-        {value}
-      </span>
+      <div className="flex items-baseline gap-1 mt-auto relative z-10">
+        <span className="text-3xl font-light tracking-tighter text-[var(--ct-text-strong)] drop-shadow-[var(--ct-glow-subtle)] tabular-nums">
+          {value}
+        </span>
+      </div>
 
       {(sublabel || trend) && (
-        <div className="flex min-w-0 items-center gap-2 text-xs text-[var(--ct-text-muted)] relative z-[var(--ct-z-raised)] mt-auto pt-1">
+        <div className="flex min-w-0 items-center gap-2 text-xs text-[var(--ct-text-muted)] relative z-10 mt-1 pt-1 border-t border-[var(--ct-border-soft)]/50">
           {trend ? (
             <span
               className={cn(
@@ -62,7 +65,7 @@ export function Metric({
               {trend.text}
             </span>
           ) : null}
-          {sublabel ? <span className="truncate">{sublabel}</span> : null}
+          {sublabel ? <span className="truncate opacity-70 mono uppercase tracking-wider text-[10px]">{sublabel}</span> : null}
         </div>
       )}
     </div>
