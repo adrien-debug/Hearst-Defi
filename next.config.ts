@@ -72,34 +72,46 @@ const nextConfig: NextConfig = {
   // Until then, the `?vault=yield` form is the canonical URL.
   // ---------------------------------------------------------------------------
   async redirects() {
+    // Each redirect only fires when ?vault=... is ABSENT, otherwise Next
+    // matches the same source even with the query already present and
+    // 308-loops back to itself (browser shows ERR_TOO_MANY_REDIRECTS).
+    const missingVaultQuery = [
+      { type: "query" as const, key: "vault" },
+    ];
     return [
       {
         source: "/admin/signals",
+        missing: missingVaultQuery,
         destination: "/admin/signals?vault=yield",
         permanent: true,
       },
       {
         source: "/admin/distributions",
+        missing: missingVaultQuery,
         destination: "/admin/distributions?vault=yield",
         permanent: true,
       },
       {
         source: "/admin/proofs",
+        missing: missingVaultQuery,
         destination: "/admin/proofs?vault=yield",
         permanent: true,
       },
       {
         source: "/admin/projection",
+        missing: missingVaultQuery,
         destination: "/admin/projection?vault=yield",
         permanent: true,
       },
       {
         source: "/admin/scenario-lab",
+        missing: missingVaultQuery,
         destination: "/admin/scenario-lab?vault=yield",
         permanent: true,
       },
       {
         source: "/admin/investor-memo",
+        missing: missingVaultQuery,
         destination: "/admin/investor-memo?vault=yield",
         permanent: true,
       },

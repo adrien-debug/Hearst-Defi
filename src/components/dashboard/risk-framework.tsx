@@ -88,6 +88,32 @@ export function RiskFrameworkSection({
   data,
   view = "waterfall",
 }: RiskFrameworkSectionProps) {
+  // Honesty rule: when zero real inputs reached the loader (no VaultSnapshot,
+  // no MiningMetric), the engine still produces a number from baked fallback
+  // constants — but those numbers do not describe anything real and would
+  // mislead the operator. Render an empty state instead.
+  if (data.source === "fallback") {
+    return (
+      <article className="dash-cell dash-cell-premium h-full flex flex-col relative">
+        <ChartProvenanceCorner kind={provenanceFromSource(data.source)} />
+        <div className="dash-label relative z-10">
+          <span className="text-micro font-bold uppercase tracking-widest text-[var(--ct-text-muted)]">
+            Risk Framework
+          </span>
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center py-12 relative z-10">
+          <p className="body-sm text-[var(--ct-text-muted)]">
+            No risk inputs yet
+          </p>
+          <p className="body-xs text-[var(--ct-text-faint)] max-w-xs">
+            The framework will populate after the first vault snapshot and
+            mining metric are recorded.
+          </p>
+        </div>
+      </article>
+    );
+  }
+
   return (
     <article className="dash-cell dash-cell-premium h-full flex flex-col relative">
       <ChartProvenanceCorner kind={provenanceFromSource(data.source)} />

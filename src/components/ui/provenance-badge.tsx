@@ -26,8 +26,8 @@ const variants: Record<
   live: "success",
   oracle: "brand",
   attested: "brand",
-  estimated: "warning",
-  partial: "warning",
+  estimated: "default",
+  partial: "default",
   manual: "default",
   stale: "default",
 };
