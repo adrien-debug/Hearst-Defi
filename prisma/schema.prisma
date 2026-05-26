@@ -511,11 +511,12 @@ model AdminChatMode {
 // A generated "suggested modifications" document, distilled from a review-mode
 // conversation. Kept append-only (history of generations) and scoped per user.
 model ReviewDocument {
-  id        String   @id @default(cuid())
-  userId    String
-  chatId    String?
-  contentMd String
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  userId      String
+  chatId      String?
+  contentMd   String
+  contentJson String?  // JSON sérialisé (cf. ReviewDocumentJsonSchema), null si parsing failed
+  createdAt   DateTime @default(now())
 
   @@index([userId, createdAt])
 }

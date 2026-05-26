@@ -1,10 +1,3 @@
-// NOTE: REVIEW_FACILITATOR_PROMPT et REVIEW_DOCUMENT_INSTRUCTIONS sont des
-// template strings qui interpolent HEARST_PRODUCT_CONTEXT au moment de
-// l'évaluation du module review.ts. Les hashes ci-dessous CAPTURENT donc
-// aussi HEARST_PRODUCT_CONTEXT — toute modification de la carte produit
-// invalidera automatiquement le hash. Si un futur dev convertit ces prompts
-// en lazy-getters, ce commentaire doit être mis à jour ET le hash recalculé
-// au runtime (pas au module level) sinon il sera stale.
 import { createHash } from "node:crypto";
 import {
   REVIEW_FACILITATOR_PROMPT,
@@ -24,6 +17,10 @@ export function sha256Hex(input: string): string {
  * Stable hash for the review facilitator system prompt.
  * Computed once at module load — use this to stamp LlmRun rows from cockpit-chat
  * when running in review mode.
+ *
+ * Invariant: this hash captures HEARST_PRODUCT_CONTEXT (interpolated into the
+ * prompt at module load). Converting the prompt to a lazy getter would make
+ * this hash stale — update the doc and move computation to runtime if you do.
  */
 export const REVIEW_FACILITATOR_HASH: string = sha256Hex(REVIEW_FACILITATOR_PROMPT);
 
@@ -31,6 +28,10 @@ export const REVIEW_FACILITATOR_HASH: string = sha256Hex(REVIEW_FACILITATOR_PROM
  * Stable hash for the review document generation system prompt.
  * Computed once at module load — use this to stamp LlmRun rows from the
  * review-document route.
+ *
+ * Invariant: this hash captures HEARST_PRODUCT_CONTEXT (interpolated into the
+ * prompt at module load). Converting the prompt to a lazy getter would make
+ * this hash stale — update the doc and move computation to runtime if you do.
  */
 export const REVIEW_DOCUMENT_HASH: string = sha256Hex(REVIEW_DOCUMENT_INSTRUCTIONS);
 
@@ -38,5 +39,8 @@ export const REVIEW_DOCUMENT_HASH: string = sha256Hex(REVIEW_DOCUMENT_INSTRUCTIO
  * Stable hash for the default cockpit assistant system prompt (normal mode).
  * Computed once at module load — use this to stamp LlmRun rows from cockpit-chat
  * when running in normal mode.
+ *
+ * Unlike the review hashes, this hash does NOT capture HEARST_PRODUCT_CONTEXT
+ * (the default cockpit prompt is independent of the product map).
  */
 export const COCKPIT_DEFAULT_HASH: string = sha256Hex(COCKPIT_DEFAULT_SYSTEM_PROMPT);

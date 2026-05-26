@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { CircuitBreaker } from "@/lib/circuit-breaker";
 import { prisma } from "@/lib/db";
 import { kimi, KIMI_MODEL } from "@/lib/llm/kimi";
+import { estimateKimiCostUsd } from "@/lib/llm/cost";
 import { getRequestContext } from "@/lib/request-context";
 
 /**
@@ -157,7 +158,10 @@ export async function callLlm(
 
           const inputTokens = response.usage?.input_tokens ?? 0;
           const outputTokens = response.usage?.output_tokens ?? 0;
-          const costUsd = estimateCost({ inputTokens, outputTokens });
+          const costUsd = estimateKimiCostUsd({
+            prompt_tokens: inputTokens,
+            completion_tokens: outputTokens,
+          });
 
           await prisma.llmRun.update({
             where: { id: run.id },
@@ -322,32 +326,6 @@ async function callKimi(
       output_tokens: completion.usage?.completion_tokens ?? 0,
     },
   };
-}
-
-/* --------------------------------------------------------------------------
- * Cost estimation. Kimi K2.6 per-million-token USD pricing (Hypercli).
- * ------------------------------------------------------------------------ */
-
-interface ModelPricing {
-  /** USD per 1M input tokens. */
-  input: number;
-  /** USD per 1M output tokens. */
-  output: number;
-}
-
-/** Kimi K2.6 list price via Hypercli. */
-const KIMI_PRICING: ModelPricing = { input: 0.6, output: 2.5 };
-
-interface TokenBreakdown {
-  inputTokens: number;
-  outputTokens: number;
-}
-
-/** Approximate cost in USD for a Kimi call. */
-function estimateCost(tokens: TokenBreakdown): number {
-  const input = tokens.inputTokens * KIMI_PRICING.input;
-  const output = tokens.outputTokens * KIMI_PRICING.output;
-  return (input + output) / 1_000_000;
 }
 
 /**

@@ -65,6 +65,7 @@ export function AdminChatControls() {
   const [mode, setMode] = useState<Mode | null>(null);
   const [savingMode, setSavingMode] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [streamingCharCount, setStreamingCharCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [doc, setDoc] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -136,22 +137,74 @@ export function AdminChatControls() {
   const generateDocument = useCallback(async () => {
     setError(null);
     setGenerating(true);
+    setStreamingCharCount(0);
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
     try {
-      const res = await fetch("/api/admin/review-document", {
+      const res = await fetch("/api/admin/review-document?stream=1", {
         method: "POST",
         signal: controller.signal,
+        headers: { Accept: "text/event-stream" },
       });
-      const data = (await res.json().catch(() => null)) as
-        | { document?: { contentMd: string }; error?: string }
-        | null;
-      if (!res.ok || !data?.document) {
-        throw new Error(data?.error ?? "Échec de la génération.");
+
+      if (res.headers.get("content-type")?.includes("text/event-stream")) {
+        if (!res.body) throw new Error("Réponse de stream vide");
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let finalMd: string | null = null;
+        let accumulated = "";
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const events = buffer.split("\n\n");
+          buffer = events.pop() ?? "";
+          for (const evt of events) {
+            const line = evt.trim();
+            if (!line.startsWith("data: ")) continue;
+            try {
+              const payload = JSON.parse(line.slice(6)) as {
+                type: string;
+                text?: string;
+                documentId?: string;
+                contentMd?: string;
+                message?: string;
+              };
+              if (payload.type === "delta" && payload.text) {
+                accumulated += payload.text;
+                setStreamingCharCount(accumulated.length);
+              } else if (payload.type === "done") {
+                finalMd = payload.contentMd ?? null;
+              } else if (payload.type === "error") {
+                throw new Error(payload.message ?? "Erreur de génération");
+              }
+            } catch (parseErr) {
+              if (parseErr instanceof Error && parseErr.name !== "SyntaxError") {
+                throw parseErr;
+              }
+              // ignore malformed SSE events
+            }
+          }
+        }
+
+        if (!finalMd) throw new Error("Stream terminé sans document final");
+        setDoc(finalMd);
+        setPanelOpen(true);
+      } else {
+        // JSON fallback branch (backward-compatible)
+        const data = (await res.json().catch(() => null)) as
+          | { document?: { contentMd: string }; error?: string }
+          | null;
+        if (!res.ok || !data?.document) {
+          throw new Error(data?.error ?? "Échec de la génération.");
+        }
+        setDoc(data.document.contentMd);
+        setPanelOpen(true);
       }
-      setDoc(data.document.contentMd);
-      setPanelOpen(true);
+
       // Auto-reset to "normal" after a successful generation: the review is
       // finished, the doc is captured, leaving the admin in facilitator mode
       // would turn subsequent chats into a probing interview rather than
@@ -174,6 +227,7 @@ export function AdminChatControls() {
       }
     } finally {
       setGenerating(false);
+      setStreamingCharCount(0);
       if (abortRef.current === controller) abortRef.current = null;
     }
   }, []);
@@ -254,7 +308,11 @@ export function AdminChatControls() {
                 onClick={generateDocument}
                 disabled={generating}
               >
-                {generating ? "Génération…" : "Générer le document"}
+                {generating
+                  ? streamingCharCount > 0
+                    ? `Génération… (${streamingCharCount} chars)`
+                    : "Génération…"
+                  : "Générer le document"}
               </Button>
               {generating && (
                 <Button

@@ -104,4 +104,43 @@ Exemple de bullet idéal (imite le FORMAT, pas le contenu) :
   - *Verbatim* — « On voit un chiffre de yield mais on sait pas si c'est sur l'année, le mois, depuis le début. »
   - *Proposition* — Ajouter un sous-label explicite ("depuis le 1er janvier") et un tooltip rappelant la méthode de calcul. Conserver l'unité USDC.
   - *Confiance d'ancrage* — Haute (une seule KPI de yield correspond).
-  - *Fait quand* — La carte "Yield YTD" affiche sa période sans interaction, tooltip détaillant le calcul.`;
+  - *Fait quand* — La carte "Yield YTD" affiche sa période sans interaction, tooltip détaillant le calcul.
+
+---
+
+Format JSON parallèle (OBLIGATOIRE — en plus du Markdown ci-dessus, à la FIN de la réponse) :
+
+À la fin du document Markdown, ajoute UN bloc de code délimité \`\`\`json ... \`\`\` qui contient une représentation structurée du même contenu, avec ce schéma EXACT :
+
+\`\`\`json
+{
+  "synthesis": "<texte de la section Synthèse, en une seule chaîne>",
+  "items": [
+    {
+      "page": "/route/exacte",
+      "severity": "P0",
+      "current": "ce que ça fait aujourd'hui",
+      "expected": "ce qui est attendu",
+      "verbatim": "citation littérale de Pierre",
+      "confidence": "haute",
+      "doneWhen": "critère observable de résolution"
+    }
+  ],
+  "clarifications": [
+    {
+      "remark": "remarque vague",
+      "question": "question précise à poser"
+    }
+  ]
+}
+\`\`\`
+
+Règles strictes pour le JSON :
+- "severity" ∈ {"P0", "P1", "P2"} (jamais autre chose, jamais en minuscules)
+- "confidence" ∈ {"haute", "moyenne", "basse"} (jamais en majuscules ni en anglais)
+- "items" et "clarifications" sont OBLIGATOIRES, mais peuvent être des tableaux vides
+- Si une revue ne contient AUCUN item exploitable, "items": []
+- Aucun champ supplémentaire au-delà du schéma ci-dessus
+- Le bloc JSON doit être PARSABLE (pas de virgule finale, pas de commentaires)
+- Le JSON doit refléter EXACTEMENT les bullets du Markdown — pas d'ajout, pas d'omission
+- Le \`\`\`json doit toujours être en début de ligne, et le bloc se termine par \`\`\` en début de ligne aussi`;

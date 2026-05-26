@@ -10,11 +10,46 @@ import { REVIEW_DOCUMENT_INSTRUCTIONS } from "@/lib/agents/system-prompts/review
 import { estimateKimiCostUsd } from "@/lib/llm/cost";
 import { REVIEW_DOCUMENT_HASH } from "@/lib/llm/prompt-hash";
 import { capTranscriptByTokens, MAX_TRANSCRIPT_TOKENS } from "@/lib/llm/tokens";
+import { ReviewDocumentJsonSchema } from "@/lib/agents/schemas/review-document-json";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Document review runs on the single Kimi K2.6 model.
+// ---------------------------------------------------------------------------
+// JSON parallel extraction
+// ---------------------------------------------------------------------------
+
+const JSON_BLOCK_RE = /```json\n([\s\S]*?)\n```/;
+
+/**
+ * Extracts and validates the structured JSON block embedded at the end of the
+ * LLM-generated Markdown document. Returns a serialised string on success,
+ * null on any parse / schema failure (the MD is always persisted regardless).
+ */
+function extractReviewJson(
+  md: string,
+  userId: string,
+  chatId: string,
+): string | null {
+  const match = JSON_BLOCK_RE.exec(md);
+  if (!match || !match[1]) {
+    logger.warn("review-document JSON block missing", { userId, chatId });
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(match[1]) as unknown;
+    const validated = ReviewDocumentJsonSchema.parse(parsed);
+    return JSON.stringify(validated);
+  } catch (err) {
+    logger.warn(
+      "review-document JSON block invalid or schema mismatch",
+      { userId, chatId },
+      err instanceof Error ? err : undefined,
+    );
+    return null;
+  }
+}
+
 const DOCUMENT_MODEL = KIMI_MODEL;
 const GENERATION_TIMEOUT_MS = 60_000;
 
@@ -58,7 +93,7 @@ export async function GET(): Promise<Response> {
   const doc = await prisma.reviewDocument.findFirst({
     where: { userId },
     orderBy: { createdAt: "desc" },
-    select: { id: true, contentMd: true, createdAt: true },
+    select: { id: true, contentMd: true, contentJson: true, createdAt: true },
   });
 
   return Response.json({ document: doc ?? null });
@@ -254,23 +289,262 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Shared helpers — stamping, persist, retention (used by both branches)
+  // ---------------------------------------------------------------------------
+
+  // Capture chatId as a const so inner functions can reference it without
+  // TypeScript complaining about a possibly-null `chat` (the null guard is
+  // already above, but TS doesn't track it across nested function declarations).
+  const chatId = chat.id;
+
+  /**
+   * Stamps the generation date and injects it into the placeholder the prompt
+   * leaves blank. Shared between the sync and streaming branches.
+   */
+  function stampDate(raw: string): string {
+    const today = new Date().toISOString().slice(0, 10);
+    const stamped = `_Date de génération : ${today}_`;
+    const datePlaceholder = /_Date de génération : .*_/;
+    if (datePlaceholder.test(raw)) {
+      return raw.replace(datePlaceholder, stamped);
+    }
+    const h1Match = raw.match(/^#\s.+$/m);
+    if (h1Match && h1Match.index !== undefined) {
+      const insertAt = h1Match.index + h1Match[0].length;
+      logger.warn(
+        "review-document date placeholder missing — prepended fallback",
+        { userId, chatId },
+      );
+      return raw.slice(0, insertAt) + "\n" + stamped + raw.slice(insertAt);
+    }
+    logger.warn(
+      "review-document date placeholder missing — prepended fallback",
+      { userId, chatId },
+    );
+    return stamped + "\n\n" + raw;
+  }
+
+  /**
+   * Persists the generated document and runs the retention purge.
+   * Returns the saved row. Shared between the sync and streaming branches.
+   */
+  async function persistDocument(dated: string): Promise<{
+    id: string;
+    contentMd: string;
+    contentJson: string | null;
+    createdAt: Date;
+  }> {
+    const contentJson = extractReviewJson(dated, userId, chatId);
+
+    const saved = await prisma.reviewDocument.create({
+      data: { userId, chatId, contentMd: dated, contentJson },
+      select: { id: true, contentMd: true, contentJson: true, createdAt: true },
+    });
+
+    // Retention: keep only the REVIEW_DOC_KEEP_LATEST most recent documents.
+    try {
+      const stale = await prisma.reviewDocument.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        skip: REVIEW_DOC_KEEP_LATEST,
+        select: { id: true },
+      });
+      if (stale.length > 0) {
+        await prisma.reviewDocument.deleteMany({
+          where: { id: { in: stale.map((d) => d.id) } },
+        });
+        logger.info("review-document retention purged", {
+          userId,
+          purgedCount: stale.length,
+        });
+      }
+    } catch (purgeErr) {
+      logger.warn(
+        "review-document retention purge failed",
+        { userId },
+        purgeErr instanceof Error ? purgeErr : undefined,
+      );
+    }
+
+    return saved;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Streaming detection — OPT-IN via ?stream=1 or Accept: text/event-stream
+  // ---------------------------------------------------------------------------
+
+  const url = new URL(req.url);
+  const wantsStream =
+    url.searchParams.get("stream") === "1" ||
+    req.headers.get("accept")?.includes("text/event-stream") === true;
+
+  const llmMessages: Array<{ role: "system" | "user"; content: string }> = [
+    { role: "system", content: REVIEW_DOCUMENT_INSTRUCTIONS },
+    {
+      role: "user",
+      content:
+        routesBlock +
+        specsBlock +
+        "Transcription de la session de revue :\n\n" +
+        transcript,
+    },
+  ];
+
+  // ---------------------------------------------------------------------------
+  // STREAMING branch
+  // ---------------------------------------------------------------------------
+
+  if (wantsStream) {
+    const encoder = new TextEncoder();
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        const startedAt = Date.now();
+        let accumulated = "";
+        // Flag set to true once traceLlmRun has been called (success, failed, or
+        // timeout). Prevents the ReadableStream catch from firing a second trace
+        // when controller.enqueue/close throws because the consumer has already
+        // cancelled the stream (race condition on client abort).
+        let traced = false;
+
+        function sendEvent(payload: Record<string, unknown>): void {
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify(payload)}\n\n`),
+          );
+        }
+
+        /**
+         * Attempts to send a final SSE event and then close the controller.
+         * Both operations are swallowed silently if the consumer has already
+         * cancelled the stream, so they cannot trigger a spurious second trace.
+         */
+        function safeEnqueueAndClose(evt: Record<string, unknown>): void {
+          try {
+            sendEvent(evt);
+          } catch {
+            // consumer cancelled — nothing to send
+          }
+          try {
+            controller.close();
+          } catch {
+            // controller already closed/errored
+          }
+        }
+
+        try {
+          const completionStream = await kimi.chat.completions.create(
+            {
+              model: DOCUMENT_MODEL,
+              messages: llmMessages,
+              stream: true,
+            },
+            { timeout: GENERATION_TIMEOUT_MS, signal: req.signal },
+          );
+
+          for await (const chunk of completionStream as AsyncIterable<{
+            choices: Array<{ delta?: { content?: string } }>;
+          }>) {
+            if (req.signal.aborted) {
+              await traceLlmRun(
+                "failed",
+                Date.now() - startedAt,
+                null,
+                new Error("client aborted"),
+              );
+              traced = true;
+              try { controller.close(); } catch { /* swallow */ }
+              return;
+            }
+            const text = chunk.choices[0]?.delta?.content ?? "";
+            if (text) {
+              accumulated += text;
+              sendEvent({ type: "delta", text });
+            }
+          }
+
+          if (!accumulated) {
+            await traceLlmRun(
+              "failed",
+              Date.now() - startedAt,
+              null,
+              new Error("model returned empty content"),
+            );
+            traced = true;
+            safeEnqueueAndClose({ type: "error", message: "Le modèle a renvoyé un document vide." });
+            return;
+          }
+
+          const dated = stampDate(accumulated.trim());
+          const saved = await persistDocument(dated);
+          await traceLlmRun("success", Date.now() - startedAt, null);
+          traced = true;
+
+          safeEnqueueAndClose({
+            type: "done",
+            documentId: saved.id,
+            contentMd: saved.contentMd,
+            contentJson: saved.contentJson,
+          });
+        } catch (err) {
+          // If trace was already recorded (success or abort path) before
+          // controller.enqueue/close threw, this is just stream-cancel noise —
+          // do not record a second LlmRun row.
+          if (traced) {
+            try { controller.close(); } catch { /* swallow */ }
+            return;
+          }
+          const latencyMs = Date.now() - startedAt;
+          const isTimeout =
+            err instanceof Error &&
+            (err.name === "APITimeoutError" || /timeout/i.test(err.message));
+          await traceLlmRun(
+            isTimeout ? "timeout" : "failed",
+            latencyMs,
+            null,
+            err,
+          );
+          traced = true;
+          logger.error(
+            "review-document streaming generation failed",
+            { userId, chatId },
+            err instanceof Error ? err : undefined,
+          );
+          safeEnqueueAndClose({
+            type: "error",
+            message:
+              err instanceof Error
+                ? err.message
+                : "Échec de la génération du document.",
+          });
+        }
+      },
+    });
+
+    // NOTE: en mode streaming SSE, on retourne toujours HTTP 200, même en cas
+    // d'erreur LLM — l'erreur est signalée via un event SSE `{"type":"error"}`
+    // dans le stream. Les alertes infra basées sur les 5xx ne capturent donc pas
+    // ces échecs ; l'observabilité passe par LlmRun.status="failed" (déjà tracé).
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-store, no-transform",
+        Connection: "keep-alive",
+      },
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // NON-STREAMING branch (original, backward-compatible)
+  // ---------------------------------------------------------------------------
+
   let contentMd: string;
   const startedAt = Date.now();
   try {
     const completion = await kimi.chat.completions.create(
       {
         model: DOCUMENT_MODEL,
-        messages: [
-          { role: "system", content: REVIEW_DOCUMENT_INSTRUCTIONS },
-          {
-            role: "user",
-            content:
-              routesBlock +
-              specsBlock +
-              "Transcription de la session de revue :\n\n" +
-              transcript,
-          },
-        ],
+        messages: llmMessages,
       },
       { timeout: GENERATION_TIMEOUT_MS },
     );
@@ -286,7 +560,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     await traceLlmRun(isTimeout ? "timeout" : "failed", latencyMs, null, err);
     logger.error(
       "review-document generation failed",
-      { userId, chatId: chat.id },
+      { userId, chatId },
       err instanceof Error ? err : undefined,
     );
     return new Response(
@@ -310,67 +584,9 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
 
-  // Stamp the generation date into the placeholder line the prompt leaves
-  // blank. The model is instructed to emit `_Date de génération : _`, but if
-  // it drops the italic markers or rewords the line, the regex won't match.
-  // Fallback: prepend the date line right after the H1 so the document is
-  // always dated, regardless of model formatting drift.
-  const today = new Date().toISOString().slice(0, 10);
-  const stamped = `_Date de génération : ${today}_`;
-  const datePlaceholder = /_Date de génération : .*_/;
-  let dated: string;
-  if (datePlaceholder.test(contentMd)) {
-    dated = contentMd.replace(datePlaceholder, stamped);
-  } else {
-    // Inject right after the first H1 (the prompt's mandated title), or at
-    // the top if no H1 is present.
-    const h1Match = contentMd.match(/^#\s.+$/m);
-    if (h1Match && h1Match.index !== undefined) {
-      const insertAt = h1Match.index + h1Match[0].length;
-      dated =
-        contentMd.slice(0, insertAt) +
-        "\n" +
-        stamped +
-        contentMd.slice(insertAt);
-    } else {
-      dated = stamped + "\n\n" + contentMd;
-    }
-    logger.warn(
-      "review-document date placeholder missing — prepended fallback",
-      { userId, chatId: chat.id },
-    );
-  }
+  const dated = stampDate(contentMd);
 
-  const saved = await prisma.reviewDocument.create({
-    data: { userId, chatId: chat.id, contentMd: dated },
-    select: { id: true, contentMd: true, createdAt: true },
-  });
-
-  // Retention: keep only the REVIEW_DOC_KEEP_LATEST most recent documents
-  // per user. Purge failures are non-fatal — we always return the saved doc.
-  try {
-    const stale = await prisma.reviewDocument.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-      skip: REVIEW_DOC_KEEP_LATEST,
-      select: { id: true },
-    });
-    if (stale.length > 0) {
-      await prisma.reviewDocument.deleteMany({
-        where: { id: { in: stale.map((d) => d.id) } },
-      });
-      logger.info("review-document retention purged", {
-        userId,
-        purgedCount: stale.length,
-      });
-    }
-  } catch (purgeErr) {
-    logger.warn(
-      "review-document retention purge failed",
-      { userId },
-      purgeErr instanceof Error ? purgeErr : undefined,
-    );
-  }
+  const saved = await persistDocument(dated);
 
   return Response.json({ document: saved });
 }

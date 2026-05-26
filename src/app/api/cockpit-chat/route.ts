@@ -334,12 +334,12 @@ export async function POST(req: NextRequest): Promise<Response> {
       chatMode = "review";
       basePrompt = REVIEW_FACILITATOR_PROMPT;
     }
-  // NOTE: si le lookup AdminChatMode échoue (DB hiccup, RLS), on dégrade en
-  // mode "normal" + COCKPIT_DEFAULT_HASH. Les observabilité runs review
-  // peuvent donc être sous-comptées en cas d'incidents DB. Acceptable :
-  // (a) la table AdminChatMode est triviale (lecture par PK), échec rarissime,
-  // (b) on préfère préserver l'UX (chat continue) qu'avoir une métrique parfaite.
   } catch (modeErr) {
+    // NOTE: si le lookup AdminChatMode échoue (DB hiccup, RLS), on dégrade en
+    // mode "normal" + COCKPIT_DEFAULT_HASH. Les observabilité runs review
+    // peuvent donc être sous-comptées en cas d'incidents DB. Acceptable :
+    // (a) la table AdminChatMode est triviale (lecture par PK), échec rarissime,
+    // (b) on préfère préserver l'UX (chat continue) qu'avoir une métrique parfaite.
     logger.warn(
       "cockpit-chat mode lookup failed — using default assistant prompt",
       { userId },
