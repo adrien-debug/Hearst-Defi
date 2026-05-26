@@ -14,12 +14,21 @@ type Step =
 interface VaultWizardProps {
   resumeStep?: Step;
   resumeForm?: Partial<FormState>;
+  /** Pre-fill values derived from a ?cloneFrom= query param. Applied after
+   *  resumeForm so a persisted draft (explicit resume) takes precedence. */
+  cloneValues?: Partial<FormState>;
 }
 
 /**
  * VaultWizard — thin wrapper kept for backward-compat with new/page.tsx.
  * All form logic lives in `../_vault-form.tsx`.
  */
-export function VaultWizard({ resumeStep, resumeForm }: VaultWizardProps) {
-  return <VaultForm mode="create" resumeStep={resumeStep} resumeForm={resumeForm} />;
+export function VaultWizard({ resumeStep, resumeForm, cloneValues }: VaultWizardProps) {
+  // Merge order: FORM_INITIAL < cloneValues < resumeForm (explicit draft wins)
+  const mergedResume: Partial<FormState> | undefined =
+    cloneValues ?? resumeForm
+      ? { ...cloneValues, ...resumeForm }
+      : undefined;
+
+  return <VaultForm mode="create" resumeStep={resumeStep} resumeForm={mergedResume} />;
 }

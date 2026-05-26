@@ -148,6 +148,12 @@ export default async function VaultsPage({ searchParams }: PageProps) {
                       <Link href={`/admin/vaults/${vault.id}`}>View</Link>
                     </Button>
 
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`/admin/vaults/new?cloneFrom=${encodeURIComponent(vault.ticker)}`}>
+                        Clone
+                      </Link>
+                    </Button>
+
                     {vault.status === "live" && (
                       <form
                         action={async () => {
