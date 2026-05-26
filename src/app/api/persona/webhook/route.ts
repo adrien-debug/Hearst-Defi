@@ -36,6 +36,9 @@ type PersonaWebhookPayload = z.infer<typeof PersonaWebhookSchema>;
 // Header: `Persona-Signature: t=<ts>,v1=<hex>`
 // ---------------------------------------------------------------------------
 
+/** Maximum age (in seconds) accepted for a Persona webhook signature. */
+const TIMESTAMP_TOLERANCE_SECONDS = 300; // 5 minutes
+
 function verifySignature(
   rawBody: string,
   signatureHeader: string | null,
@@ -57,17 +60,23 @@ function verifySignature(
   const v1 = parts["v1"];
   if (!timestamp || !v1) return false;
 
+  // P0₁ — Freshness check: reject replayed signatures older/newer than tolerance
+  const tsNum = Number(timestamp);
+  if (!Number.isFinite(tsNum)) return false;
+  const ageSeconds = Math.abs(Math.floor(Date.now() / 1000) - tsNum);
+  if (ageSeconds > TIMESTAMP_TOLERANCE_SECONDS) return false;
+
   // Persona signs: "<timestamp>.<rawBody>"
   const signedPayload = `${timestamp}.${rawBody}`;
   const expected = createHmac("sha256", secret)
     .update(signedPayload)
     .digest("hex");
 
-  try {
-    return timingSafeEqual(Buffer.from(expected, "utf8"), Buffer.from(v1, "utf8"));
-  } catch {
-    return false;
-  }
+  // P1₁ — Explicit length-check before timingSafeEqual (avoids throw → catch path)
+  const expectedBuf = Buffer.from(expected, "utf8");
+  const receivedBuf = Buffer.from(v1, "utf8");
+  if (expectedBuf.length !== receivedBuf.length) return false;
+  return timingSafeEqual(expectedBuf, receivedBuf);
 }
 
 // ---------------------------------------------------------------------------
@@ -120,6 +129,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       },
     });
   } catch (err) {
+    // P2002 = unique constraint violation → duplicate delivery, already processed.
+    // Return 200 immediately so Persona stops retrying; do NOT re-run business logic.
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "code" in err &&
+      (err as { code: string }).code === "P2002"
+    ) {
+      console.info(
+        `[persona/webhook] Duplicate event ignored (inquiryId=${inquiryId})`,
+      );
+      return NextResponse.json(
+        { status: "duplicate", inquiryId },
+        { status: 200 },
+      );
+    }
     console.error("[persona/webhook] Failed to persist KycEvent:", err);
     // Do not return 500 to Persona — they retry on non-2xx,
     // which would create duplicates. Log and proceed.

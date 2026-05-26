@@ -188,7 +188,7 @@ describe("renderTemplate — proposal.created", () => {
     expect(body).toContain("updateFees");
   });
 
-  it("injects proposalId into telegram template", () => {
+  it("injects proposalId into telegram template (MarkdownV2-escaped)", () => {
     const { subject, body } = renderTemplate("proposal.created", "telegram", {
       proposalId: "PROP-002",
       actionType: "deploy",
@@ -196,7 +196,8 @@ describe("renderTemplate — proposal.created", () => {
       createdAt: "2026-05-26T11:00:00Z",
     });
     expect(subject).toBeDefined();
-    expect(body).toContain("PROP-002");
+    // Hyphens are MarkdownV2 reserved chars → escaped as \-
+    expect(body).toContain("PROP\\-002");
   });
 });
 
@@ -217,7 +218,7 @@ describe("renderTemplate — proposal.signed", () => {
 });
 
 describe("renderTemplate — proposal.queued", () => {
-  it("injects timelockHours and executableAfter into telegram template", () => {
+  it("injects timelockHours and executableAfter into telegram template (MarkdownV2-escaped)", () => {
     const { body } = renderTemplate("proposal.queued", "telegram", {
       proposalId: "PROP-004",
       actionType: "rotateSigners",
@@ -225,7 +226,8 @@ describe("renderTemplate — proposal.queued", () => {
       executableAfter: "2026-05-27T12:00:00Z",
     });
     expect(body).toContain("24");
-    expect(body).toContain("PROP-004");
+    // Hyphens are MarkdownV2 reserved chars → escaped as \-
+    expect(body).toContain("PROP\\-004");
   });
 });
 
@@ -277,6 +279,50 @@ describe("renderTemplate — proposal.cancelled", () => {
     });
     expect(body).toContain("0xCANC");
     expect(body).toContain("Stale proposal");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Sanitization / injection prevention — escapeForChannel
+// ---------------------------------------------------------------------------
+
+describe("renderTemplate — channel sanitization", () => {
+  it("email channel: HTML-escapes <script> injection in interpolated value", () => {
+    // Inject via a known placeholder — use proposer which maps {{proposer}} in proposal.created
+    const { body } = renderTemplate("proposal.created", "email", {
+      proposalId: "PROP-SEC-1",
+      actionType: "updateFees",
+      proposer: "<script>alert(1)</script>",
+      createdAt: "2026-05-26T10:00:00Z",
+    });
+    expect(body).toContain("&lt;script&gt;");
+    expect(body).not.toContain("<script>");
+  });
+
+  it("telegram channel: MarkdownV2-escapes *bold* injection in interpolated value", () => {
+    const { body } = renderTemplate("proposal.created", "telegram", {
+      proposalId: "PROP-SEC-2",
+      actionType: "*bold*",
+      proposer: "0xSEC",
+      createdAt: "2026-05-26T10:00:00Z",
+    });
+    // The asterisks must be escaped with backslash
+    expect(body).toContain("\\*bold\\*");
+    expect(body).not.toMatch(/(?<!\\)\*bold\*(?!\\)/);
+  });
+
+  it("in_app channel: strips control chars and HTML-escapes injected value", () => {
+    const { body } = renderTemplate("proposal.created", "in_app", {
+      proposalId: "PROP-SEC-3",
+      actionType: "updateFees",
+      proposer: "\x00\x01<b>injected</b>",
+      createdAt: "2026-05-26T10:00:00Z",
+    });
+    // Control chars stripped
+    expect(body).not.toMatch(/[\x00-\x1F]/);
+    // HTML-escaped
+    expect(body).toContain("&lt;b&gt;");
+    expect(body).not.toContain("<b>");
   });
 });
 

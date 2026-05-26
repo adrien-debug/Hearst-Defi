@@ -183,11 +183,60 @@ export function resolveChannels(
   return NOTIFICATION_MATRIX[event][role];
 }
 
+// ---------------------------------------------------------------------------
+// Channel-aware value sanitization
+// ---------------------------------------------------------------------------
+
+/**
+ * Escapes an interpolation value for the target channel to prevent
+ * HTML / Markdown injection.
+ *
+ * - `email`    — HTML-escapes the five critical characters (`&<>"'`).
+ * - `telegram` — MarkdownV2-escapes all reserved characters per the
+ *                Telegram Bot API spec.
+ * - `in_app`   — strips C0/DEL control characters then HTML-escapes.
+ *
+ * Pure function — no I/O, no side-effects.
+ */
+function escapeForChannel(value: unknown, channel: NotifChannel): string {
+  const str = String(value ?? "");
+  switch (channel) {
+    case "email":
+      // HTML escape (email templates rendered as HTML downstream)
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    case "telegram":
+      // MarkdownV2 escape — https://core.telegram.org/bots/api#markdownv2-style
+      return str.replace(/([_*[\]()~`>#+\-=|{}.!\\])/g, "\\$1");
+    case "in_app":
+      // Strip C0/DEL control chars, then HTML-escape for safety
+      return str
+        .replace(/[\x00-\x1F\x7F]/g, "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    default: {
+      // Exhaustiveness check — TypeScript will error if NotifChannel grows.
+      const _exhaust: never = channel;
+      return String(_exhaust);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
 /**
  * Renders the subject and body for a notification by interpolating `data`
  * into the pre-loaded markdown template for the given event × channel.
  *
- * Interpolation syntax: `{{key}}` is replaced by `data[key]`.
+ * Interpolation syntax: `{{key}}` is replaced by `data[key]`, sanitized
+ * per-channel via `escapeForChannel` to prevent HTML/Markdown injection.
  * Unknown keys are left as-is (no runtime error).
  *
  * @throws If no template is registered for the event × channel combination.
@@ -206,7 +255,13 @@ export function renderTemplate(
   }
 
   function interpolate(str: string): string {
-    return str.replace(/\{\{(\w+)\}\}/g, (_, k: string) => data[k] ?? `{{${k}}}`);
+    return str.replace(
+      /\{\{(\w+)\}\}/g,
+      (_, k: string) =>
+        k in data
+          ? escapeForChannel(data[k], channel)
+          : `{{${k}}}`,
+    );
   }
 
   return {

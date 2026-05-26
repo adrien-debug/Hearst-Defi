@@ -783,12 +783,11 @@ model OnboardingProgress {
 model KycEvent {
   id         String   @id @default(cuid())
   userId     String // Persona referenceId → User.id (may be "unknown" if absent)
-  inquiryId  String // Persona inquiry ID, e.g. "inq_XXXX"
+  inquiryId  String   @unique // Persona inquiry ID, e.g. "inq_XXXX" — unique to prevent duplicate inserts
   status     String // Persona inquiry status, e.g. "completed", "failed", "expired"
   payload    Json // raw Persona webhook envelope (full)
   receivedAt DateTime @default(now())
 
-  @@index([inquiryId])
   @@index([userId, receivedAt])
 }
 
