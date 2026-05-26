@@ -13,11 +13,14 @@ import type { UnifiedProof } from "@/components/proof/proof-types";
 import { ContractsAuditTrail } from "@/components/proof-center/contracts-audit-trail";
 import { EventTimeline } from "@/components/proof-center/event-timeline";
 import { PorSummary } from "@/components/proof-center/por-summary";
+import { TimelockCountdown } from "@/components/governance/timelock-countdown";
 import { isChainConfigured } from "@/lib/chain/client";
 import { fetchOnChainEvents } from "@/lib/chain/event-logger";
 import { fetchOnChainAttestations } from "@/lib/chain/por-registry";
 import { loadCustody } from "@/lib/data/custody";
 import { getProofs } from "@/lib/demo/loaders";
+import { prisma } from "@/lib/db";
+import { TIMELOCK_DELAY_HOURS } from "@/lib/governance/state-machine";
 
 interface ProofCenterPageProps {
   searchParams: Promise<{ type?: string | string[] }>;
@@ -31,12 +34,16 @@ export default async function ProductProofCenterPage({
   const filter = parseFilter(raw);
 
   const chainConfigured = isChainConfigured();
-  const [onChainEvents, onChainAttestations, paper, custody] =
+  const [onChainEvents, onChainAttestations, paper, custody, timelockProposals] =
     await Promise.all([
       fetchOnChainEvents({ limit: 20 }),
       fetchOnChainAttestations({ limit: 12 }),
       getProofs(),
       loadCustody(),
+      prisma.governanceProposal.findMany({
+        where: { state: "TIMELOCK" },
+        orderBy: { queuedAt: "asc" },
+      }),
     ]);
 
   const latestAttestation = onChainAttestations[0] ?? null;
@@ -129,6 +136,25 @@ export default async function ProductProofCenterPage({
         </h2>
         <ContractsAuditTrail />
       </section>
+
+      {/* ── Governance timelocks ───────────────────────────── */}
+      {timelockProposals.length > 0 && (
+        <section aria-labelledby="timelock-heading">
+          <h2 id="timelock-heading" className="h2 mb-6">
+            Pending governance timelocks
+          </h2>
+          <div className="space-y-4">
+            {timelockProposals.map((proposal) => (
+              <TimelockCountdown
+                key={proposal.id}
+                proposalId={proposal.id}
+                queueTime={(proposal.queuedAt ?? proposal.createdAt).toISOString()}
+                delayHours={proposal.timelockHours ?? TIMELOCK_DELAY_HOURS}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── Footer ─────────────────────────────────────────── */}
       <footer className="border-t border-[var(--ct-border-soft)] pt-6">

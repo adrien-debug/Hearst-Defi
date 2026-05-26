@@ -8,6 +8,14 @@
  *                                                       ↘ EXPIRED
  */
 
+/**
+ * Default timelock delay in hours applied when a proposal enters TIMELOCK state
+ * and the per-proposal `timelockHours` field is not available.
+ *
+ * Used by TimelockCountdown and any consumer that needs a fallback constant.
+ */
+export const TIMELOCK_DELAY_HOURS = 48;
+
 export type ProposalState =
   | "DRAFT"
   | "SIGNING"
