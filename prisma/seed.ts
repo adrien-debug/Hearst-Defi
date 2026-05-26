@@ -773,6 +773,57 @@ async function seedDefensiveTestnetDeployment(): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
+// BTC-Plus Vault — testnet-only deployment row (Base Sepolia, chain 84532).
+// F3 stream: port into VaultDeployment (same pattern as F2 Defensive).
+// VaultOnchainDeployment model was dropped per Phase-6 merge strategy.
+// ---------------------------------------------------------------------------
+
+const BTC_PLUS_TESTNET_SIGNERS = JSON.stringify([
+  "0x0000000000000000000000000000000000000021",
+  "0x0000000000000000000000000000000000000022",
+  "0x0000000000000000000000000000000000000023",
+  "0x0000000000000000000000000000000000000024",
+  "0x0000000000000000000000000000000000000025",
+]);
+
+async function seedBtcPlusTestnetDeployment(): Promise<void> {
+  const data = {
+    ticker: "HBV-T",
+    name: "Hearst BTC Plus Vault",
+    description: VAULT_BTC_PLUS.description,
+    strategy: "btc_tactical" as const,
+    colorTag: "accent",
+    status: "testnet",
+    network: "84532",
+    contractAddress: "0x0000000000000000000000000000000000000003",
+    minTicketUsdc: 500_000,
+    capacityUsdc: 100_000_000,
+    mgmtFeeBps: 150,
+    perfFeeBps: 1_500,
+    hurdleBps: 600, // 6% hurdle
+    softLockupDays: 90,
+    targetApyLowBps: 1_200,
+    targetApyHighBps: 1_800,
+    spvJurisdiction: "cayman",
+    shareClass: "A",
+    regExemption: "regS",
+    disclaimers: VAULT_BTC_PLUS.assumptions.join(" "),
+    targetMiningBps: 3_000,
+    targetBtcTacticalBps: 4_500,
+    targetUsdcBaseBps: 1_500,
+    targetStableReserveBps: 1_000,
+    requiredSigners: 3,
+    signersWhitelist: BTC_PLUS_TESTNET_SIGNERS,
+    createdBy: "seed-user",
+  };
+  await prisma.vaultDeployment.upsert({
+    where: { id: "btc-plus" },
+    update: data,
+    create: { id: "btc-plus", ...data },
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Share classes — idempotent upsert of class A + B for every VaultDeployment.
 // E1: class A (minTicket=250k, 60d, mgmt=100bps, perf=1000bps)
 // E2: class B (minTicket=1M, 90d, mgmt=75bps, perf=800bps)
@@ -866,6 +917,8 @@ async function main(): Promise<void> {
   const vaultDeployments = await seedVaultDeployments();
   // Testnet-only Defensive Vault stub (Base Sepolia, chain 84532).
   await seedDefensiveTestnetDeployment();
+  // Testnet-only BTC-Plus Vault stub (Base Sepolia, chain 84532) — F3 stream.
+  await seedBtcPlusTestnetDeployment();
   // ShareClasses (A + B) depend on VaultDeployment rows existing first.
   const shareClasses = await seedShareClasses();
   const admins = await seedAdminUsers();
@@ -879,7 +932,7 @@ async function main(): Promise<void> {
   const proofs = await seedProofs();
 
   console.log("Hearst Connect seed complete:");
-  console.log(`  VaultDeployment: ${vaultDeployments + 1} (3 first-class vaults + 1 testnet defensive — ADR-006)`);
+  console.log(`  VaultDeployment: ${vaultDeployments + 2} (3 first-class vaults + defensive + btc-plus testnet — ADR-006)`);
   console.log(`  ShareClass:      ${shareClasses} (A + B per vault)`);
   console.log(`  AdminUser:       ${admins}`);
   console.log(`  VaultSnapshot:   ${presetVault.snapshots + dailyVault.snapshots} (${presetVault.snapshots} preset + ${dailyVault.snapshots} daily)`);
