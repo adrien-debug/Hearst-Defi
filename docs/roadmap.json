@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-26-mvp-plus-validated",
+  "version": "2026-05-26-all-validated",
   "lastUpdated": "2026-05-26",
   "snapshot_doc": "/docs/roadmap-status-2026-05-26.md",
   "flow_redesign_ref": "/docs/audit/flow-redesign-2026-05-26.html",
@@ -415,7 +415,7 @@
               "label": "308 redirects routes plates → /admin/vaults/[id]/* (vault-centric IA)",
               "owner": "ui-dev",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done"
+              "status": "validated"
             },
             {
               "id": "required-signers-picker",
@@ -470,14 +470,14 @@
               "label": "Inbox signers cross-vaults « pending your signature »",
               "owner": "ui-dev",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done"
+              "status": "validated"
             },
             {
               "id": "lp-dashboard-3-sections",
               "label": "Dashboard LP 3 sections (hero pulse / yield posture / activity & proofs)",
               "owner": "ui-dev",
               "spec_ref": "/docs/spec/01-dashboard.mdx",
-              "status": "done"
+              "status": "validated"
             },
             {
               "id": "lp-widget-lock-meter",
@@ -526,28 +526,28 @@
               "label": "Kill placeholder NavSparkline → fan chart p5/p50/p95",
               "owner": "ui-dev",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done"
+              "status": "validated"
             },
             {
               "id": "kill-chart-placeholder-value",
               "label": "Kill placeholder ValueChart → area + distribution dots",
               "owner": "ui-dev",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done"
+              "status": "validated"
             },
             {
               "id": "kill-chart-placeholder-time-to-target",
               "label": "Kill placeholder TimeToTargetChart → cumulative yield curve",
               "owner": "ui-dev",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done"
+              "status": "validated"
             },
             {
               "id": "chart-nav-drawdown",
               "label": "NAV 30d : ajouter drawdown shading + distribution markers",
               "owner": "ui-dev",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done",
+              "status": "validated",
               "evidence": "PR #<placeholder>"
             },
             {
@@ -576,7 +576,7 @@
               "label": "Pattern ChartProvenanceCorner + ChartTimeSelector + disclaimer underlay",
               "owner": "ui-dev",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done"
+              "status": "validated"
             }
           ]
         },
@@ -589,14 +589,14 @@
               "label": "Refactor wizard 5 → 7 steps (autosave VaultDraft + Resume in progress)",
               "owner": "ui-dev",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done"
+              "status": "validated"
             },
             {
               "id": "wizard-clone-from-existing",
               "label": "Wizard : mode « Clone from existing vault » (?cloneFrom=&lt;id&gt;)",
               "owner": "ui-dev",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done",
+              "status": "validated",
               "evidence": "PR #<placeholder>"
             },
             {
@@ -604,7 +604,7 @@
               "label": "Step 6 Review & Simulate (Monte Carlo 1k paths inline)",
               "owner": "engine-dev",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done",
+              "status": "validated",
               "evidence": "PR #<placeholder>"
             },
             {
@@ -612,7 +612,7 @@
               "label": "Sticky footer projection live (APY range + risk + NAV@12m) sur tous steps",
               "owner": "ui-dev",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done",
+              "status": "validated",
               "evidence": "PR #<placeholder>"
             },
             {
@@ -620,14 +620,14 @@
               "label": "Step 7 Sign & Deploy séparé (multisig queue polling, markAsLive auto)",
               "owner": "ui-dev",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done"
+              "status": "validated"
             },
             {
               "id": "wizard-forbidden-words-inline",
               "label": "Forbidden words linter inline (red underline pendant la frappe)",
               "owner": "ui-dev",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done",
+              "status": "validated",
               "evidence": "PR #<placeholder>"
             },
             {
@@ -642,7 +642,7 @@
               "label": "Off-chain Safe EIP-712 signature collection + TimelockController schedule()",
               "owner": "sc-dev",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done",
+              "status": "validated",
               "evidence": "PR #<placeholder>"
             },
             {
@@ -657,14 +657,14 @@
               "label": "Pre-execution Tenderly fork simulation panel (diff state + gas + reverts)",
               "owner": "eng",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done"
+              "status": "validated"
             },
             {
               "id": "multisig-timelock-countdown-public",
               "label": "Public Proof Center : timelock countdown 48h + verify on-chain link",
               "owner": "ui-dev",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done",
+              "status": "validated",
               "evidence": "PR #<placeholder>"
             },
             {
@@ -672,7 +672,7 @@
               "label": "Notification matrix (signers Telegram, LPs email « executable in 24h »)",
               "owner": "eng",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done",
+              "status": "validated",
               "evidence": "PR #<placeholder>"
             },
             {
@@ -687,14 +687,14 @@
               "label": "LP onboarding 4 → 9 stages (capability-driven funnel Stripe Connect-style)",
               "owner": "ui-dev+product",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done"
+              "status": "validated"
             },
             {
               "id": "lp-onboarding-3-paths",
               "label": "3 paths divergents (Individual Privy / Corporate Fireblocks / Fund-of-funds white-glove)",
               "owner": "ui-dev+product",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done",
+              "status": "validated",
               "evidence": "PR #<placeholder>"
             },
             {
@@ -702,14 +702,14 @@
               "label": "S9 Confirmation : NAV0 + lockup countdown + next distrib + PDF receipt + .ics + ops contact",
               "owner": "ui-dev",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done"
+              "status": "validated"
             },
             {
               "id": "lp-kyc-persona-inline",
               "label": "S3 KYC Persona embedded inline (Light 10min / Deep 48h SoF / KYB 3-5d)",
               "owner": "eng",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done",
+              "status": "validated",
               "evidence": "PR #<placeholder>"
             },
             {
@@ -717,7 +717,7 @@
               "label": "S7 Docs Sign DocuSign embedded (Subscription Agt + optional Side Letter)",
               "owner": "eng+legal",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done",
+              "status": "validated",
               "evidence": "PR #<placeholder>"
             }
           ]
@@ -773,7 +773,7 @@
               "label": "Big idea Carta : event-based atomic exec (1 click = tx + ledger + PCAP + emails)",
               "owner": "eng",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done"
+              "status": "validated"
             },
             {
               "id": "sota-maple-time-to-cash",
@@ -794,7 +794,7 @@
               "label": "Surprise & delight : Export PDF statement on-demand (1 click, server-rendered)",
               "owner": "ui-dev",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done",
+              "status": "validated",
               "evidence": "PR #<placeholder>"
             },
             {
@@ -802,7 +802,7 @@
               "label": "Surprise & delight : Tax docs preview (1099/CRS-friendly YTD distributions)",
               "owner": "eng+legal",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "done",
+              "status": "validated",
               "evidence": "PR #<placeholder>"
             }
           ]
@@ -836,7 +836,7 @@
               "label": "Share class A ($250k/60d/1+10)",
               "owner": "eng+legal",
               "spec_ref": null,
-              "status": "done",
+              "status": "validated",
               "evidence": "PR #<placeholder>"
             },
             {
@@ -844,7 +844,7 @@
               "label": "Share class B ($1M/90d/0.75+8)",
               "owner": "eng+legal",
               "spec_ref": null,
-              "status": "done",
+              "status": "validated",
               "evidence": "PR #<placeholder>"
             },
             {
@@ -852,7 +852,7 @@
               "label": "Fireblocks custody integration",
               "owner": "eng",
               "spec_ref": null,
-              "status": "done"
+              "status": "validated"
             },
             {
               "id": "kyc-persona",
@@ -866,14 +866,14 @@
               "label": "Read-only LP portal (per-LP P&L)",
               "owner": "eng",
               "spec_ref": null,
-              "status": "done"
+              "status": "validated"
             },
             {
               "id": "advanced-metrics",
               "label": "Sharpe / Sortino / VaR in Advanced mode",
               "owner": "eng",
               "spec_ref": null,
-              "status": "done",
+              "status": "validated",
               "evidence": "PR #<placeholder>"
             }
           ]
@@ -893,7 +893,7 @@
               "label": "Hearst Defensive Vault (5-8% APY, mining 15-25%)",
               "owner": "eng+product",
               "spec_ref": null,
-              "status": "done",
+              "status": "validated",
               "evidence": "PR #<placeholder>"
             },
             {
@@ -901,7 +901,7 @@
               "label": "Hearst BTC Plus Vault (10-20% APY, more BTC tactical)",
               "owner": "eng+product",
               "spec_ref": null,
-              "status": "done",
+              "status": "validated",
               "evidence": "PR #<placeholder>"
             },
             {
@@ -909,7 +909,7 @@
               "label": "Monte Carlo simulation (V2 only)",
               "owner": "eng",
               "spec_ref": null,
-              "status": "done"
+              "status": "validated"
             },
             {
               "id": "auto-execution",
