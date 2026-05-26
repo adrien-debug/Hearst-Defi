@@ -15,12 +15,13 @@ import {
   loadUserMemory,
   buildUserContextSystemBlock,
 } from "@/lib/agents/user-context";
-import { REVIEW_FACILITATOR_PROMPT } from "@/lib/agents/system-prompts/review";
+import { sha256Hex, buildFacilitatorPrompt } from "@hearst/review-mode";
 import { COCKPIT_DEFAULT_SYSTEM_PROMPT } from "@/lib/llm/prompts";
-import {
-  REVIEW_FACILITATOR_HASH,
-  COCKPIT_DEFAULT_HASH,
-} from "@/lib/llm/prompt-hash";
+import { PRODUCT_CONTEXT } from "@/lib/product-context";
+
+const REVIEW_FACILITATOR_PROMPT = buildFacilitatorPrompt({ productContext: PRODUCT_CONTEXT });
+const REVIEW_FACILITATOR_HASH = sha256Hex(REVIEW_FACILITATOR_PROMPT);
+const COCKPIT_DEFAULT_HASH = sha256Hex(COCKPIT_DEFAULT_SYSTEM_PROMPT);
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -71,6 +72,8 @@ function sanitizeContent(value: string): string {
  * persistence below.
  */
 const TITLE_MAX_LEN = 80;
+// Minimum useful prefix before we bother cutting at a word boundary.
+const TITLE_MIN_PREFIX = 40;
 function deriveTitleFromContent(content: string): string | null {
   const cleaned = content.replace(/\s+/g, " ").trim();
   if (cleaned.length === 0) return null;
@@ -78,7 +81,7 @@ function deriveTitleFromContent(content: string): string | null {
   // Cut at the last word boundary before the cap so we don't slice mid-word.
   const cut = cleaned.slice(0, TITLE_MAX_LEN);
   const lastSpace = cut.lastIndexOf(" ");
-  return (lastSpace > 40 ? cut.slice(0, lastSpace) : cut) + "…";
+  return (lastSpace > TITLE_MIN_PREFIX ? cut.slice(0, lastSpace) : cut) + "…";
 }
 
 /**
@@ -87,8 +90,8 @@ function deriveTitleFromContent(content: string): string | null {
  * The cockpit-shell handler's own schema is
  * `{ chatId?, message, messages?, productId?, system? }`. We validate the
  * security-relevant fields here (BEFORE the handler re-parses the body) and
- * keep the shape rétro-compatible: `message` stays required, `messages` is
- * the optional history array the task asked us to constrain.
+ * keep the shape backwards-compatible: `message` stays required, `messages` is
+ * the optional history array we constrain here for security.
  */
 const ChatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),

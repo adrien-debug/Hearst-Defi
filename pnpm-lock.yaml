@@ -24,6 +24,9 @@ importers:
       '@hearst/hub-sdk':
         specifier: file:./hearst-hub-sdk-0.2.0.tgz
         version: file:hearst-hub-sdk-0.2.0.tgz(react@19.2.6)
+      '@hearst/review-mode':
+        specifier: file:./hearst-review-mode-0.1.0.tgz
+        version: file:hearst-review-mode-0.1.0.tgz(next@16.2.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(zod@4.4.3)
       '@mdx-js/loader':
         specifier: ^3.1.1
         version: 3.1.1(webpack@5.106.2(esbuild@0.27.7)(postcss@8.5.14))
@@ -692,6 +695,14 @@ packages:
     version: 0.2.0
     peerDependencies:
       react: '>=18'
+
+  '@hearst/review-mode@file:hearst-review-mode-0.1.0.tgz':
+    resolution: {integrity: sha512-/orEy/vvsOnC8n0sGc0lJCnJTwdsRqfS3Ox5uQjbQH9W6/z9VWdm739E423QmBawGodaQ8kXtZ8/3sWC2pldCw==, tarball: file:hearst-review-mode-0.1.0.tgz}
+    version: 0.1.0
+    engines: {node: '>=20'}
+    peerDependencies:
+      next: ^15 || ^16
+      zod: ^3 || ^4
 
   '@heroicons/react@2.2.0':
     resolution: {integrity: sha512-LMcepvRaS9LYHJGsF0zzmgKCUim/X3N/DQKc4jepAXJ7l8QxJ1PmxJzqplF2Z3FE4PqBAIGyJAQ/w4B5dsqbtQ==}
@@ -9404,6 +9415,11 @@ snapshots:
   '@hearst/hub-sdk@file:hearst-hub-sdk-0.2.0.tgz(react@19.2.6)':
     dependencies:
       react: 19.2.6
+
+  '@hearst/review-mode@file:hearst-review-mode-0.1.0.tgz(next@16.2.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(zod@4.4.3)':
+    dependencies:
+      next: 16.2.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      zod: 4.4.3
 
   '@heroicons/react@2.2.0(react@19.2.6)':
     dependencies:

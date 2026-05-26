@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { CircuitBreaker } from "@/lib/circuit-breaker";
 import { prisma } from "@/lib/db";
 import { kimi, KIMI_MODEL } from "@/lib/llm/kimi";
-import { estimateKimiCostUsd } from "@/lib/llm/cost";
+import { estimateKimiCostUsd } from "@hearst/review-mode";
 import { getRequestContext } from "@/lib/request-context";
 
 /**

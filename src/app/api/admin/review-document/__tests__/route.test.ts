@@ -70,8 +70,7 @@ vi.mock("@/lib/spec", () => ({
 }));
 
 vi.mock("@/lib/agents/system-prompts/review", () => ({
-  REVIEW_DOCUMENT_INSTRUCTIONS: "You are a review assistant.",
-  REVIEW_FACILITATOR_PROMPT: "You are a review facilitator.",
+  HEARST_PRODUCT_CONTEXT: "Mocked product context.",
 }));
 
 // ── Import modules AFTER mocks ─────────────────────────────────────────────
@@ -384,6 +383,38 @@ describe("POST /api/admin/review-document", () => {
         }),
       }),
     );
+  });
+
+  it("strips <think> reasoning tags before persisting the document", async () => {
+    const fakeWithThink = {
+      choices: [
+        {
+          message: {
+            content:
+              "<think>Let me think about this transcription first...\nThe user said X.</think>\n\n" +
+              "# Review Document\n\n_Date de génération : _\n\nSome content.\n\n```json\n" +
+              fakeJsonBlock +
+              "\n```",
+          },
+        },
+      ],
+    };
+
+    mockRequireAdmin.mockResolvedValue({ userId: "admin_123" });
+    mockChatFindFirst.mockResolvedValue(fakeChatRow as never);
+    mockMessageFindMany.mockResolvedValue(fakeMessages as never);
+    mockKimiCreate.mockResolvedValue(fakeWithThink as never);
+    mockDocCreate.mockResolvedValue(fakeSavedDoc as never);
+
+    await POST(makePostRequest());
+
+    expect(mockDocCreate).toHaveBeenCalledTimes(1);
+    const persistedCall = mockDocCreate.mock.calls[0]?.[0] as {
+      data: { contentMd: string };
+    };
+    expect(persistedCall.data.contentMd).not.toContain("<think>");
+    expect(persistedCall.data.contentMd).not.toContain("</think>");
+    expect(persistedCall.data.contentMd.startsWith("# Review Document")).toBe(true);
   });
 
   it("non-streaming: POST without ?stream=1 → returns JSON (backward-compat)", async () => {

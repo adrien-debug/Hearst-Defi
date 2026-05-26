@@ -113,6 +113,7 @@
     "@fireblocks/ts-sdk": "^19.0.0",
     "@hearst/cockpit-shell": "file:./hearst-cockpit-shell-0.2.0.tgz",
     "@hearst/hub-sdk": "file:./hearst-hub-sdk-0.2.0.tgz",
+    "@hearst/review-mode": "file:./hearst-review-mode-0.1.0.tgz",
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
     "@next/mdx": "^16.2.6",
