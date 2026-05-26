@@ -10,7 +10,6 @@ import { VaultSelector } from "@/components/admin/vault-selector";
 import { AllocationDonut } from "@/components/dashboard/dashboard-charts";
 import { MiningHealthSection } from "@/components/dashboard/mining-health";
 import { RiskFrameworkSection } from "@/components/dashboard/risk-framework";
-import { TimeseriesSection } from "@/components/dashboard/timeseries-section";
 import { ApyRange } from "@/components/ui/apy-range";
 import { Metric } from "@/components/ui/metric";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
@@ -258,19 +257,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           )}
         </div>
 
-        {/* Timeseries Charts belong in the Hero section to show historical trends of the KPIs */}
-        <div className="shrink-0 min-h-[400px]">
-          <Suspense
-            fallback={
-              <div className="grid gap-6 lg:grid-cols-2">
-                <SkeletonCard />
-                <SkeletonCard />
-              </div>
-            }
-          >
-            <TimeseriesSection data={data.timeseries} />
-          </Suspense>
-        </div>
       </section>
 
       {/* Section 2 — Engine & Allocation */}
