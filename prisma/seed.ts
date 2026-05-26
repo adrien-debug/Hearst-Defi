@@ -704,6 +704,42 @@ async function seedVaultDeployments(): Promise<number> {
 }
 
 // ---------------------------------------------------------------------------
+// Share classes — idempotent upsert of class A for every VaultDeployment.
+// Canonical terms from engine/share-class.ts (SHARE_CLASS_A):
+//   minTicket=250k, lockup=60d, mgmt=100bps, perf=1000bps.
+// ---------------------------------------------------------------------------
+
+async function seedShareClasses(): Promise<number> {
+  const vaults = await prisma.vaultDeployment.findMany({
+    select: { id: true },
+  });
+  let count = 0;
+  for (const vault of vaults) {
+    await prisma.shareClass.upsert({
+      where: { vaultId_code: { vaultId: vault.id, code: "A" } },
+      update: {
+        minTicket: 250_000,
+        lockupDays: 60,
+        mgmtFeeBps: 100,
+        perfFeeBps: 1000,
+        active: true,
+      },
+      create: {
+        vaultId: vault.id,
+        code: "A",
+        minTicket: 250_000,
+        lockupDays: 60,
+        mgmtFeeBps: 100,
+        perfFeeBps: 1000,
+        active: true,
+      },
+    });
+    count++;
+  }
+  return count;
+}
+
+// ---------------------------------------------------------------------------
 // Admin users — idempotent. Reads ADMIN_EMAILS (CSV) + ADMIN_INITIAL_PASSWORD.
 // Upserts a role="admin" User per email. Does NOT create an Investor for the
 // admin. No-op when either env var is unset. Intentionally OUTSIDE resetTables()
@@ -752,6 +788,8 @@ async function main(): Promise<void> {
   // referencing it — but the row is not part of resetTables (deployments live
   // in admin scope). Idempotent upsert keeps it safe to re-run N times.
   const vaultDeployments = await seedVaultDeployments();
+  // ShareClasses depend on VaultDeployment rows existing first.
+  const shareClasses = await seedShareClasses();
   const admins = await seedAdminUsers();
   const presetVault = await seedPresetVaultSnapshots();
   const dailyVault = await seedDailyVaultTimeline();
@@ -764,6 +802,7 @@ async function main(): Promise<void> {
 
   console.log("Hearst Connect seed complete:");
   console.log(`  VaultDeployment: ${vaultDeployments} (3 first-class vaults — ADR-006)`);
+  console.log(`  ShareClass:      ${shareClasses} (class A per vault)`);
   console.log(`  AdminUser:       ${admins}`);
   console.log(`  VaultSnapshot:   ${presetVault.snapshots + dailyVault.snapshots} (${presetVault.snapshots} preset + ${dailyVault.snapshots} daily)`);
   console.log(`  Allocation:      ${presetVault.allocations + dailyVault.allocations}`);
