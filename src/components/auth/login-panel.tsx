@@ -9,8 +9,13 @@ import { LoginForm } from "@/components/auth/login-form";
 export function LoginPanel() {
   return (
     <div className="w-full max-w-sm">
-      <header className="mb-6 text-center">
-        <h2 className="ct-section-title tracking-wider">Sign in</h2>
+      <header className="mb-8 text-center">
+        <div className="eyebrow mb-3" style={{ color: "var(--ct-accent)", opacity: 0.7, letterSpacing: "0.12em" }}>
+          Investor Access
+        </div>
+        <h2 className="h2" style={{ fontSize: "1.5rem", fontWeight: 600, letterSpacing: "-0.02em" }}>
+          Sign in
+        </h2>
         <p className="body-sm ct-text-muted mt-2">
           Access your vaults and portfolio
         </p>

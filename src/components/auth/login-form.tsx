@@ -85,7 +85,7 @@ export function LoginForm() {
       <Button
         type="submit"
         variant="primary"
-        size="lg"
+        size="md"
         className="w-full shadow-none hover:shadow-none"
         disabled={isPending}
         aria-busy={isPending}
