@@ -1,9 +1,12 @@
 import "./profile.css";
 
+import Link from "next/link";
+
 import { requireInvestor } from "@/lib/auth/require-investor";
 import { getInvestor } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 
@@ -100,7 +103,7 @@ export default async function ProfilePage() {
 
           <div className="prof-dl-row">
             <dt>Wallet</dt>
-            <dd className="font-mono">
+            <dd className="mono">
               {session.walletAddress
                 ? shortAddress(session.walletAddress)
                 : <span className="prof-empty">Not connected</span>}
@@ -185,13 +188,17 @@ export default async function ProfilePage() {
               <span className="prof-security-name">Wallet connection</span>
               <span className="prof-security-desc">
                 {session.walletAddress
-                  ? `Connected · ${shortAddress(session.walletAddress)}`
+                  ? shortAddress(session.walletAddress)
                   : "Required for deposits — connect at subscription time"}
               </span>
             </div>
-            <Badge variant={session.walletAddress ? "success" : "warning"}>
-              {session.walletAddress ? "Connected" : "Not connected"}
-            </Badge>
+            {session.walletAddress ? (
+              <Badge variant="success">Connected</Badge>
+            ) : (
+              <Button variant="primary" size="md" asChild>
+                <Link href="/onboarding/wallet?step=wallet">Connect</Link>
+              </Button>
+            )}
           </li>
 
           <li className="prof-security-row">
@@ -207,10 +214,12 @@ export default async function ProfilePage() {
                   : "Under review — contact support if delayed"}
               </span>
             </div>
-            {investor && (
-              <Badge variant={kycBadgeVariant(investor.kycStatus)}>
-                {kycLabel(investor.kycStatus)}
-              </Badge>
+            {investor?.kycStatus === "approved" ? (
+              <Badge variant="success">Approved</Badge>
+            ) : (
+              <Button variant="primary" size="md" asChild>
+                <Link href="/onboarding/identity?step=identity">Continue</Link>
+              </Button>
             )}
           </li>
         </ul>

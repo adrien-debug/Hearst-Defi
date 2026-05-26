@@ -5,7 +5,11 @@ import {
   type MiningHealthOutput,
 } from "@/lib/agents/schemas";
 import { callLlm, type LlmClientLike } from "@/lib/llm/client";
-import { METHODOLOGY_MD, METHODOLOGY_VERSION } from "@/lib/agents/system-prompts/methodology";
+import {
+  METHODOLOGY_VERSION,
+  getMethodologyMd,
+  type MethodologyVersion,
+} from "@/lib/agents/system-prompts/methodology";
 import {
   DISCLAIMER_NOT_GUARANTEED,
   DISCLAIMER_PROJECTION,
@@ -43,9 +47,16 @@ export interface MiningHealthInput {
 export interface RunMiningHealthOptions {
   client?: LlmClientLike;
   model?: string;
+  /**
+   * Methodology version cited by the agent. Defaults to `v1.0` (rule-based
+   * mining metrics, unchanged in v2.0). Pass `"v2.0"` when narrating mining
+   * health alongside a Monte Carlo run so the cited source stays consistent.
+   */
+  methodologyVersion?: MethodologyVersion;
 }
 
-const SYSTEM_INSTRUCTIONS = `You are the Mining Health Agent for Hearst Connect.
+function buildSystemInstructions(version: MethodologyVersion): string {
+  return `You are the Mining Health Agent for Hearst Connect.
 
 You receive a snapshot of mining operations metrics (hashprice, difficulty change, margin, uptime, period) and return a short health assessment for the operations team.
 
@@ -59,14 +70,15 @@ Rules:
   - amber: margin_pct < 15 OR uptime_pct < 97 OR difficulty_change_pct > 5
   - green: otherwise
 - Tone: operational, factual, concise. No marketing. No emojis.
-- Methodology version: ${METHODOLOGY_VERSION}.
+- Methodology version: ${version}.
 
 Disclaimers (templated; never rewrite, never paraphrase):
 ${DISCLAIMER_NOT_GUARANTEED}
 ${DISCLAIMER_PROJECTION}
 
 Methodology (immutable, do not contradict):
-${METHODOLOGY_MD}`;
+${getMethodologyMd(version)}`;
+}
 
 function buildUserPrompt(input: MiningHealthInput): string {
   return [
@@ -104,6 +116,7 @@ export async function runMiningHealth(
   opts: RunMiningHealthOptions = {},
 ): Promise<MiningHealthOutput> {
   const model = opts.model ?? MINING_HEALTH_MODEL;
+  const methodologyVersion: MethodologyVersion = opts.methodologyVersion ?? METHODOLOGY_VERSION;
 
   const { response } = await callLlm(
     "mining-health",
@@ -113,7 +126,7 @@ export async function runMiningHealth(
       system: [
         {
           type: "text",
-          text: SYSTEM_INSTRUCTIONS,
+          text: buildSystemInstructions(methodologyVersion),
           cache_control: { type: "ephemeral" },
         },
       ],

@@ -27,18 +27,23 @@ export interface YieldStackProps {
   sources: YieldSource[];
   blendedLow: number;   // e.g. 9.4
   blendedHigh: number;  // e.g. 12.8
-  stressedBear: number; // e.g. 5.2
+  /** Stressed (bear) APY as a range — CLAUDE.md #1, never single point. */
+  stressedBearRange: { low: number; high: number };
   methodologyVersion?: string;
+  /** Provenance for the badge — defaults to "estimated" when omitted. */
+  source?: "live" | "estimated" | "stale";
 }
 
 // ── Pure helpers (also exported for unit tests) ───────────────────────────────
 
-/** CSS custom property for each bucket's bar colour (token-only, no hex). */
+/** CSS custom property for each bucket's bar colour (token-only, no hex).
+ *  Vert canonique = accent uniquement. Tout autre bucket utilise un token
+ *  non-vert pour rester distinct visuellement (cohérence allocation-colors.ts). */
 export const BUCKET_COLOR: Record<YieldSource["bucket"], string> = {
-  mining:          "var(--ct-accent)",        // vert
-  usdc_base:       "var(--ct-accent-soft)",   // vert pâle
-  btc_tactical:    "var(--ct-status-warning)",// orange — volatile
-  stable_reserve:  "var(--ct-text-faint)",    // gris
+  mining:          "var(--ct-accent)",         // vert canonique #A7FB90
+  usdc_base:       "var(--ct-status-info)",    // bleu — base stable
+  btc_tactical:    "var(--ct-status-warning)", // orange — volatile
+  stable_reserve:  "var(--ct-text-faint)",     // gris
 };
 
 /**
@@ -73,9 +78,15 @@ export function YieldStack({
   sources,
   blendedLow,
   blendedHigh,
-  stressedBear,
+  stressedBearRange,
   methodologyVersion = "1.0",
+  source = "estimated",
 }: YieldStackProps) {
+  // Normalise stressed bear range so low ≤ high.
+  const [stressedLow, stressedHigh] =
+    stressedBearRange.low <= stressedBearRange.high
+      ? [stressedBearRange.low, stressedBearRange.high]
+      : [stressedBearRange.high, stressedBearRange.low];
   const maxAbsPct = sources.reduce(
     (acc, s) => Math.max(acc, Math.abs(s.contributionPct)),
     0,
@@ -87,6 +98,8 @@ export function YieldStack({
       ? [blendedLow, blendedHigh]
       : [blendedHigh, blendedLow];
 
+  const hasData = sources.length > 0;
+
   return (
     <article
       className="dash-cell"
@@ -97,7 +110,7 @@ export function YieldStack({
         <span className="body-xs uppercase tracking-[var(--ct-tracking-wide)] text-[var(--ct-text-muted)]">
           Yield Source Stack (12m fwd)
         </span>
-        <ProvenanceBadge kind="estimated" />
+        <ProvenanceBadge kind={source} />
       </div>
 
       {/* Bar rows — accessible table fallback for screen readers */}
@@ -182,40 +195,51 @@ export function YieldStack({
         })}
       </div>
 
+      {/* Empty state — no allocation snapshot in DB yet. */}
+      {!hasData && (
+        <p className="body-sm ct-text-muted mt-3" role="note">
+          No yield source data yet — awaiting first vault snapshot.
+        </p>
+      )}
+
       {/* Divider */}
-      <hr
-        className="my-4 border-0 border-t border-[var(--ct-border)]"
-        aria-hidden="true"
-      />
+      {hasData && (
+        <hr
+          className="my-4 border-0 border-t border-[var(--ct-border)]"
+          aria-hidden="true"
+        />
+      )}
 
-      {/* Summary metrics */}
-      <dl className="flex flex-col gap-2">
-        {/* Blended forward range */}
-        <div className="flex items-baseline justify-between">
-          <dt className="body-xs text-[var(--ct-text-muted)]">
-            Blended fwd range
-          </dt>
-          <dd
-            className="tabular font-semibold text-[var(--ct-text-primary)]"
-            aria-label={`Blended forward range ${rangeLow.toFixed(1)} to ${rangeHigh.toFixed(1)} percent`}
-          >
-            {rangeLow.toFixed(1)}–{rangeHigh.toFixed(1)}%
-          </dd>
-        </div>
+      {/* Summary metrics — only when we have a snapshot. */}
+      {hasData && (
+        <dl className="flex flex-col gap-2">
+          {/* Blended forward range */}
+          <div className="flex items-baseline justify-between">
+            <dt className="body-xs text-[var(--ct-text-muted)]">
+              Blended fwd range
+            </dt>
+            <dd
+              className="tabular font-semibold text-[var(--ct-text-primary)]"
+              aria-label={`Blended forward range ${rangeLow.toFixed(1)} to ${rangeHigh.toFixed(1)} percent`}
+            >
+              {rangeLow.toFixed(1)}–{rangeHigh.toFixed(1)}%
+            </dd>
+          </div>
 
-        {/* Stressed bear scenario */}
-        <div className="flex items-baseline justify-between">
-          <dt className="body-xs text-[var(--ct-text-muted)]">
-            Stressed (bear)
-          </dt>
-          <dd
-            className="tabular font-medium text-[var(--ct-status-warning)]"
-            aria-label={`Stressed bear scenario ${stressedBear.toFixed(1)} percent`}
-          >
-            {stressedBear.toFixed(1)}%
-          </dd>
-        </div>
-      </dl>
+          {/* Stressed bear scenario — range per CLAUDE.md #1, never single point. */}
+          <div className="flex items-baseline justify-between">
+            <dt className="body-xs text-[var(--ct-text-muted)]">
+              Stressed (bear)
+            </dt>
+            <dd
+              className="tabular font-medium text-[var(--ct-status-warning)]"
+              aria-label={`Stressed bear scenario ${stressedLow.toFixed(1)} to ${stressedHigh.toFixed(1)} percent`}
+            >
+              {stressedLow.toFixed(1)}–{stressedHigh.toFixed(1)}%
+            </dd>
+          </div>
+        </dl>
+      )}
 
       {/* Disclaimer — visible, not tooltip-only (CLAUDE.md non-negotiable #10) */}
       <p

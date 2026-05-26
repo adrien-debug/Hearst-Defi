@@ -57,16 +57,22 @@ export function MiningHealthPage({
           label="Hashrate deployed"
           value={hashrateDeployed}
           hint="JV operator fleet, paper-attested"
+          // Operator attestation snapshot — attested (paper today, on-chain Phase 2).
+          provenance="attested"
         />
         <KpiCell
           label="Margin score"
           value={`${marginScore} / 100`}
           hint="Engine-derived; lower triggers R2"
+          // Engine composite — estimated.
+          provenance="estimated"
         />
         <KpiCell
           label="Uptime"
           value={uptime}
           hint="Trailing 30d, paper attestation"
+          // Operator attestation.
+          provenance="attested"
         />
       </View>
 

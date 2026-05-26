@@ -396,7 +396,7 @@ function runScenarioV2(params: ScenarioParams): ScenarioResult {
     monthly,
     apyLow: round(low, 6),
     apyHigh: round(high, 6),
-    apyMedian: round(median, 6),
+    apyMedianInternal: round(median, 6),
     sharpe: round(sharpe, 6),
     sortino: round(sortino, 6),
     maxDrawdown: round(maxDrawdown, 6),
@@ -412,7 +412,7 @@ export function compareScenarios(
   b: ScenarioResult,
 ): ScenarioDelta {
   return {
-    apyMedian: round(b.apyMedian - a.apyMedian, 6),
+    apyMedianInternal: round(b.apyMedianInternal - a.apyMedianInternal, 6),
     maxDrawdown: round(b.maxDrawdown - a.maxDrawdown, 6),
     sharpe: round(b.sharpe - a.sharpe, 6),
     var95: round(b.var95 - a.var95, 6),

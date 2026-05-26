@@ -387,7 +387,7 @@ export function MonteCarloPanel() {
       {/* Disclaimer */}
       <p className="mt-6 border-t border-[var(--ct-border-soft)] pt-4 text-xs italic text-[var(--ct-text-muted)]">
         <span className="font-semibold not-italic text-[var(--ct-text-body)]">
-          Monte Carlo — methodology v2.0 draft. Not guaranteed.
+          Monte Carlo — methodology v2.0. Not guaranteed.
         </span>{" "}
         Simulation assumes GBM for BTC price and bounded mean-reverting
         difficulty. Outputs are statistical estimates, not forward commitments.

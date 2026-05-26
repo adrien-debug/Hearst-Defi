@@ -24,6 +24,16 @@ const serverEnvSchema = z.object({
   NEXT_PUBLIC_CHAIN_RPC_URL: z.string().url().optional(),
   NEXT_PUBLIC_EVENT_LOGGER_ADDRESS: z.string().optional(),
   NEXT_PUBLIC_POR_REGISTRY_ADDRESS: z.string().optional(),
+  // Chainlink BTC/USD aggregator override. When unset, the BTC price loader
+  // falls back to the canonical Ethereum mainnet address
+  // (0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c). Override only if the RPC
+  // points at a chain that hosts a different aggregator address.
+  NEXT_PUBLIC_CHAINLINK_BTC_USD_ADDRESS: z.string().optional(),
+  // Mining energy cost override (USD per kWh). When unset, the loader falls
+  // back to the industry default 0.05 USD/kWh and surfaces a `Manual`
+  // provenance badge. Methodology v1.0 promises a partner-attested feed
+  // (out-of-scope for the current cluster); this env var is the bridge.
+  MINING_ENERGY_COST_USD_PER_KWH: z.coerce.number().positive().optional(),
   // Fireblocks custody (Proof-of-Reserves). Optional — when absent, custody data
   // falls back to mock with a `Manual` provenance badge instead of `Live`.
   FIREBLOCKS_API_KEY: z.string().optional(),
@@ -57,15 +67,31 @@ const serverEnvSchema = z.object({
   SENTRY_AUTH_TOKEN: z.string().optional(),
   SENTRY_ORG: z.string().optional(),
   SENTRY_PROJECT: z.string().optional(),
-  // Demo mode — when "1", every demo-aware loader returns deterministic
-  // fixtures regardless of the per-browser cookie. Keep "0" in production.
-  DEMO_MODE_DEFAULT: z.enum(["0", "1"]).optional().default("0"),
   // Persona KYC — HMAC secret for webhook signature verification.
   // Required at runtime when the persona webhook endpoint is active.
   PERSONA_WEBHOOK_SECRET: z.string().optional(),
   // Persona KYC — server-side API key (optional, only needed if we call
   // Persona's REST API to pre-create inquiries; the embed flow doesn't need it).
   PERSONA_API_KEY: z.string().optional(),
+  // Risk-free rate (annual, as a decimal — e.g. "0.045" for 4.5%). Optional:
+  // when unset, `src/lib/data/risk-free-rate.ts` falls back to the
+  // Methodology v1.0 default (0.045) with `provenance: "manual"`. When set,
+  // the loader tags provenance as `live`. Future ingestion (Ondo + FRED, see
+  // audit P0-03) will replace this manual override with an oracle/live feed.
+  RISK_FREE_RATE_ANNUAL_DECIMAL: z.string().optional(),
+  // Attestation signer allowlist — comma-separated 0x addresses of attestors
+  // authorised to sign Proofs. `verifyStoredAttestation` rejects any signed
+  // proof whose recovered signer is not in this list. In production, when
+  // this is unset, verification is FAIL-CLOSED (returns
+  // `no_allowlist_configured`) — never fail-open. In dev/test, the
+  // `ATTESTATION_DEV_ACCEPT_ANY=1` escape hatch bypasses the allowlist so
+  // local seeds with the Anvil mock key still verify.
+  ATTESTATION_ALLOWED_SIGNERS: z.string().optional(),
+  // Dev-only bypass of the attestation signer allowlist. Honored ONLY when
+  // `NODE_ENV !== "production"`. Set to `"1"` to accept any valid signature
+  // regardless of allowlist membership (used by the seed + integration tests
+  // that sign with the mock Anvil key).
+  ATTESTATION_DEV_ACCEPT_ANY: z.string().optional(),
 });
 
 type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -159,7 +185,6 @@ function resolveEnv(): ServerEnv {
         ...lenient.data,
         DATABASE_URL: lenient.data.DATABASE_URL ?? "",
         HYPERCLI_DEFAULT_MODEL: lenient.data.HYPERCLI_DEFAULT_MODEL ?? "kimi-k2.6",
-        DEMO_MODE_DEFAULT: lenient.data.DEMO_MODE_DEFAULT ?? "0",
       };
       return data;
     }

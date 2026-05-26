@@ -2,11 +2,11 @@
 
 exports[`runMonteCarlo snapshot — seed=42, runs=1000 > seed=42 produces stable percentile snapshot 1`] = `
 {
-  "p25": -0.027037730467851188,
-  "p5": -0.10768005128728186,
-  "p50": 0.05910158695702694,
-  "p75": 0.16889353631732484,
-  "p95": 0.44781880576651717,
+  "p25": -0.01929846075367509,
+  "p5": -0.09578785472279193,
+  "p50": 0.058689363327779034,
+  "p75": 0.15292087554733594,
+  "p95": 0.3893023293704615,
   "paths": 1000,
   "seed": 42,
 }
@@ -14,9 +14,9 @@ exports[`runMonteCarlo snapshot — seed=42, runs=1000 > seed=42 produces stable
 
 exports[`runMonteCarlo snapshot — seed=42, runs=1000 > seed=99 produces a different snapshot from seed=42 1`] = `
 {
-  "p5": -0.1185535553823545,
-  "p50": 0.054461790842185276,
-  "p95": 0.4054886624155774,
+  "p5": -0.10462818836667603,
+  "p50": 0.05454670779478635,
+  "p95": 0.35224086577013114,
   "paths": 1000,
   "seed": 99,
 }

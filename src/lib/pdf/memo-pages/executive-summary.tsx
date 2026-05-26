@@ -62,11 +62,15 @@ export function ExecutiveSummaryPage({
           label="APY range — period"
           value={formatApyRange(input.vault.apyRange)}
           hint="Reported as low-high band only"
+          // Engine-published projection for the period (range only).
+          provenance="estimated"
         />
         <KpiCell
           label="Target APY range"
           value="8.0-15.0%"
           hint="Vault mandate, methodology v1.0"
+          // Mandate band fixed in methodology v1.0 — human-curated boundary.
+          provenance="manual"
         />
         <KpiCell
           label={
@@ -76,6 +80,9 @@ export function ExecutiveSummaryPage({
           }
           value={formatUsd(distributionUsdc)}
           hint="USDC, monthly, all LPs"
+          // Once paid the ledger entry is attested; while scheduled it's an
+          // engine-produced projection.
+          provenance={distributionStatus === "paid" ? "attested" : "estimated"}
         />
       </View>
 
@@ -84,16 +91,22 @@ export function ExecutiveSummaryPage({
           label="AUM"
           value={formatUsd(input.vault.aumUsdc)}
           hint="End of period snapshot"
+          // Custody snapshot at end of period — live.
+          provenance="live"
         />
         <KpiCell
           label="Vault mode"
           value={input.vault.mode}
           hint="Engine-derived posture"
+          // Mode is engine output (rule-based classifier).
+          provenance="estimated"
         />
         <KpiCell
           label="Risk score"
           value={`${input.vault.riskScore} / 100`}
           hint="Composite, lower is safer"
+          // Composite produced by the engine — estimated.
+          provenance="estimated"
         />
       </View>
 

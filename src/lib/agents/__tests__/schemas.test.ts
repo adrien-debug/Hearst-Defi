@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   InvestorMemoOutputSchema,
   MiningHealthOutputSchema,
+  PtaiSchema,
   RiskExplanationOutputSchema,
   ScenarioNarrativeOutputSchema,
 } from "@/lib/agents/schemas";
@@ -12,6 +13,13 @@ import {
   FORBIDDEN_WORDS,
 } from "@/lib/agents/validators";
 
+const VALID_PTAI = {
+  projection: "APY 9.4-12.8% in Balanced mode under stable hashprice.",
+  trigger: "R-BTC-1: BTC drawdown threshold not breached.",
+  action: "Hold current allocation: mining 45%, btc_tactical 25%.",
+  impact: "Stressed APY 6.8%; risk score 42/100 (moderate).",
+} as const;
+
 describe("ScenarioNarrativeOutputSchema", () => {
   it("parses a well-formed payload", () => {
     const valid = {
@@ -20,11 +28,13 @@ describe("ScenarioNarrativeOutputSchema", () => {
       risk_warning: "Hashprice volatility could compress mining margin.",
       confidence: "medium" as const,
       key_drivers: ["hashprice stability", "uptime above 98%", "USDC base yield"],
+      ptai: VALID_PTAI,
     };
 
     const parsed = ScenarioNarrativeOutputSchema.parse(valid);
     expect(parsed.confidence).toBe("medium");
     expect(parsed.key_drivers).toHaveLength(3);
+    expect(parsed.ptai.projection).toBe(VALID_PTAI.projection);
   });
 
   it("rejects an invalid confidence value", () => {
@@ -33,6 +43,7 @@ describe("ScenarioNarrativeOutputSchema", () => {
       risk_warning: "Standard risks apply.",
       confidence: "uncertain",
       key_drivers: ["driver-a"],
+      ptai: VALID_PTAI,
     };
 
     expect(() => ScenarioNarrativeOutputSchema.parse(invalid)).toThrow();
@@ -44,6 +55,7 @@ describe("ScenarioNarrativeOutputSchema", () => {
       risk_warning: "Risk noted.",
       confidence: "high" as const,
       key_drivers: ["a"],
+      ptai: VALID_PTAI,
       surprise_field: "not allowed",
     };
 
@@ -56,9 +68,59 @@ describe("ScenarioNarrativeOutputSchema", () => {
       risk_warning: "Risk noted.",
       confidence: "high" as const,
       key_drivers: [],
+      ptai: VALID_PTAI,
     };
 
     expect(() => ScenarioNarrativeOutputSchema.parse(invalid)).toThrow();
+  });
+
+  // P1.4 — PTAI subfield is mandatory and strictly typed.
+  it("rejects a payload missing the ptai object", () => {
+    const withoutPtai = {
+      narrative_md: "Assumption noted.",
+      risk_warning: "Risk noted.",
+      confidence: "high" as const,
+      key_drivers: ["a"],
+    };
+    expect(() => ScenarioNarrativeOutputSchema.parse(withoutPtai)).toThrow();
+  });
+
+  it("rejects a payload where any ptai field is empty", () => {
+    for (const key of ["projection", "trigger", "action", "impact"] as const) {
+      const ptai = { ...VALID_PTAI, [key]: "" };
+      const payload = {
+        narrative_md: "Assumption noted.",
+        risk_warning: "Risk noted.",
+        confidence: "high" as const,
+        key_drivers: ["a"],
+        ptai,
+      };
+      expect(() => ScenarioNarrativeOutputSchema.parse(payload)).toThrow();
+    }
+  });
+});
+
+describe("PtaiSchema", () => {
+  it("parses a well-formed PTAI object", () => {
+    const parsed = PtaiSchema.parse(VALID_PTAI);
+    expect(Object.keys(parsed)).toEqual([
+      "projection",
+      "trigger",
+      "action",
+      "impact",
+    ]);
+  });
+
+  it("rejects unknown extra keys (strict)", () => {
+    expect(() =>
+      PtaiSchema.parse({ ...VALID_PTAI, extra: "nope" }),
+    ).toThrow();
+  });
+
+  it("rejects strings over 500 chars", () => {
+    expect(() =>
+      PtaiSchema.parse({ ...VALID_PTAI, projection: "x".repeat(501) }),
+    ).toThrow();
   });
 });
 

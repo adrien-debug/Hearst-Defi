@@ -7,6 +7,17 @@
 //   unrealized   = yield accrued but not yet distributed
 //   currentValue = contributed + unrealized
 //   totalReturn  = realized + unrealized   (yield earned, paid or not)
+//
+// The period-return component (`netReturnPct`) is computed through the
+// canonical helper `monthlyReturn(navStart, navEnd, distribution)` defined in
+// `src/lib/portfolio/monthly-return.ts` — that helper is the single source of
+// truth for the "NAV + distribution add-back" formula (cf.
+// `docs/audit/coherence-2026-05-26/10-portfolio-lp-metrics.md` § P0-2).
+// Mapping here: navStart = contributed, navEnd = currentValue, distribution =
+// realized → identical to `totalReturn / contributed`. The annualisation step
+// remains a simple linear rescale and is documented as such.
+
+import { monthlyReturn } from "@/lib/portfolio/monthly-return";
 
 export interface LpPnlInputs {
   /** Principal contributed (sum of deposits), USDC. */
@@ -49,8 +60,13 @@ export function computeLpPnl(inputs: LpPnlInputs): LpPnl {
   const totalReturnUsdc = realizedUsdc + unrealizedUsdc;
   const currentValueUsdc = contributedUsdc + unrealizedUsdc;
 
+  // netReturnPct via canonical `monthlyReturn` helper (single source of truth).
+  // navStart = contributed, navEnd = currentValue, distribution = realized.
+  // Algebraically equals `totalReturnUsdc / contributedUsdc * 100`.
   const netReturnPct =
-    contributedUsdc > 0 ? (totalReturnUsdc / contributedUsdc) * 100 : 0;
+    contributedUsdc > 0
+      ? monthlyReturn(contributedUsdc, currentValueUsdc, realizedUsdc) * 100
+      : 0;
 
   const daysHeld = inputs.daysHeld ?? 0;
   const annualizedReturnPct =

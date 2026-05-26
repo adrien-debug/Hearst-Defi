@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { listAllVaults, vaultSlug, vaultLabel } from "@/lib/vaults/resolver";
 import { DistributionForm } from "./distribution-form";
 
@@ -93,6 +94,9 @@ export default async function DistributionsPage() {
                   <th className="text-right ct-table-header body-xs ct-text-muted font-medium">
                     Tx hash
                   </th>
+                  <th className="text-right ct-table-header body-xs ct-text-muted font-medium">
+                    Source
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -151,6 +155,17 @@ export default async function DistributionsPage() {
                         ) : (
                           <span className="ct-text-faint">—</span>
                         )}
+                      </td>
+                      <td className="ct-table-cell text-right">
+                        {/* Distribution with a `txHash` recorded → attested
+                            (on-chain settlement); otherwise → manual (ops
+                            confirmed via 2-of-N approvals but not yet broadcast,
+                            or a legacy pre-multisig entry). */}
+                        <span className="inline-flex justify-end">
+                          <ProvenanceBadge
+                            kind={d.txHash ? "attested" : "manual"}
+                          />
+                        </span>
                       </td>
                     </tr>
                   );

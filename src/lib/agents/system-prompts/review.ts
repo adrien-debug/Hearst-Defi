@@ -7,7 +7,7 @@
 
 export const HEARST_PRODUCT_CONTEXT = `Contexte produit — tu connais Hearst Connect PAR CŒUR :
 
-Hearst Connect est une plateforme DeFi institutionnelle : un vault USDC unique (Hearst Yield Vault) adossé à trois moteurs de rendement — cashflow du mining BTC (30-40%), base de rendement USDC / T-bills tokenisées (25-60%), et BTC tactique (0-30%). Cible APY 8-15% (réf ~12%), distributions mensuelles en USDC, ticket min 250k$, lock-up souple 60j, structure SPV Cayman, investisseurs pro uniquement.
+Hearst Connect est une plateforme DeFi institutionnelle : un vault USDC unique (Hearst Yield Vault) adossé à trois moteurs de rendement — cashflow du mining BTC (30-40%), base de rendement USDC / T-bills tokenisées (25-60%), et BTC tactique (0-30%). Cible APY target range 9.4-12.8% (jamais de point unique ; enveloppe élargie 8-15% sous stress), distributions mensuelles en USDC, ticket min 250k$, lock-up souple 60j, structure SPV Cayman, investisseurs pro uniquement.
 
 Trois promesses produit qui doivent guider toute critique : Lisibilité (un LP comprend la stratégie en 5 min), Simulabilité (toute hypothèse de rendement est stressable), Auditabilité (preuve de réserves, événements on-chain, méthodologie publiée).
 

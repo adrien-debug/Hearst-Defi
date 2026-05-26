@@ -1,12 +1,12 @@
 // /vaults/[id]/invest — Step 3 of 4: Deposit
-// Server Component. Reads vault from demo loader. Guards non-live vaults.
+// Server Component. Reads vault from Prisma. Guards non-live vaults.
 // Non-negotiable #1: APY range displayed via <ApyRange> inside InvestForm.
 // Non-negotiable #3: PTAI projection mandatory — delegated to InvestForm.
 // Non-negotiable #5: no forbidden words in any copy.
 // Non-negotiable #10: disclaimer present in InvestForm and DepositSummary.
 
 import { notFound } from "next/navigation";
-import { getVault } from "@/lib/demo/loaders";
+import { getVault } from "@/lib/data/vaults";
 import { StepProgress } from "@/components/vaults/step-progress";
 import { InvestForm } from "@/components/vaults/invest-form";
 

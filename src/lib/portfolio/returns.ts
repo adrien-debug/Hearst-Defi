@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/db";
+import { monthlyReturn } from "./monthly-return";
 
 /**
  * A single monthly return data point derived from VaultSnapshot records.
@@ -79,7 +80,14 @@ export async function getVaultReturns(
   // Sort month keys ascending.
   const monthKeys = [...monthMap.keys()].sort();
 
-  // ── Compute simple returns between consecutive months ───────────────────────
+  // ── Compute period returns between consecutive months ──────────────────────
+  // Uses the canonical `monthlyReturn(navStart, navEnd, distribution)` formula
+  // from `./monthly-return` — see that file for the single source of truth.
+  //
+  // `VaultSnapshot` rows do not carry a monthly distribution total today, so we
+  // pass distribution = 0 (the canonical formula degrades to a pure NAV ratio
+  // in that case). When `VaultSnapshot` gains a `distributionUsdc` column, plumb
+  // it through here — the formula does not need to change.
   const allReturns: MonthlyReturn[] = [];
   for (let i = 1; i < monthKeys.length; i++) {
     const prevKey = monthKeys[i - 1]!;
@@ -88,7 +96,7 @@ export async function getVaultReturns(
     const navCur = monthMap.get(curKey)!;
     allReturns.push({
       period: curKey,
-      returnDecimal: navCur / navPrev - 1,
+      returnDecimal: monthlyReturn(navPrev, navCur, 0),
       navUsdc: navCur,
     });
   }

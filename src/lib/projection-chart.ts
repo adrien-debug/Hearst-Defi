@@ -1,10 +1,8 @@
-// projection.ts — pure function helpers for deposit wizard projection chart.
-// Must NOT import src/lib/engine/* directly (CLAUDE.md #6: engine is pure, no
-// I/O; but the concern here is that engine functions call Date, etc., which is
-// fine inside the engine itself — however the TimeToTargetChart is a Client
-// Component and cannot call "server-only" modules). These helpers replicate
-// only the arithmetic needed for the time-to-target area chart, keeping the
-// engine itself as the single source of truth for full scenarios.
+// Pure arithmetic helpers for the deposit wizard's TimeToTarget chart.
+// Used by Client Components, so this module must NOT import "server-only"
+// modules (incl. src/lib/engine/*). Replicates only the arithmetic needed
+// for the area chart; the engine remains the single source of truth for
+// full scenarios.
 //
 // Rule: no I/O, no env reads, no Date.now() here. Inputs are all numeric.
 

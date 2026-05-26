@@ -39,6 +39,26 @@ export const CT_CHROME = {
   textPrimary: "#ededed", // approx mirror of --ct-text-primary (light on dark)
 } as const;
 
+// ── Dark PDF palette — flattened mirror of the web dark Cockpit tokens
+//    for surfaces rendered by @react-pdf/renderer that cannot use rgba()
+//    over a deep background. Values are pre-composited onto bgDeep so that
+//    the printable result matches the Cockpit dark UI. Distinct from
+//    CT_PDF (light printable palette) and CT_CHROME (pure-black mirror).
+//
+//    bgDeep = #0A0A0A (slightly lifted from #000000 for PDF readability)
+//    surface = #141414 (flattened --ct-surface-1 rgba(255,255,255,0.04))
+//    border  = #222222 (flattened --ct-border    rgba(255,255,255,0.10))
+//    text*   = flattened --ct-text-primary/muted/faint rgba(245,…) ──────────
+export const CT_PDF_DARK = {
+  accent: CT_ACCENT_HEX,
+  bgDeep: "#0A0A0A",
+  surface: "#141414",
+  textPrimary: "#F5F5F5",
+  textMuted: "#8A8A8A",
+  textFaint: "#4A4A4A",
+  border: "#222222",
+} as const;
+
 // ── Base surfaces / text (light theme PDF + dark theme web overlap) ────────
 // Web tokens (dark) are CSS-only because they use rgba() over the bg.
 // PDF uses the printable light palette below.
@@ -64,10 +84,11 @@ export const CT_PDF = {
 
   // Status — INTENTIONALLY DRIFTED from the web --ct-status-* tokens.
   //
-  //  web (dark UI, glow over dark surface)   PDF (light print on white)
-  //  --ct-status-success: #4ade80    ←→     statusSuccess: #16a34a
-  //  --ct-status-warning: #fbbf24    ←→     statusWarning: #d97706
-  //  --ct-status-danger:  #f87171    ←→     statusDanger:  #dc2626
+  //  web (dark UI, glow over dark surface)        PDF (light print on white)
+  //  --ct-status-success: var(--ct-accent)  ←→   statusSuccess: #16a34a
+  //                       (resolves #A7FB90)
+  //  --ct-status-warning: #fbbf24           ←→   statusWarning: #d97706
+  //  --ct-status-danger:  #f87171           ←→   statusDanger:  #dc2626
   //
   // The web values are Tailwind ~400 (light, glowing) for AA contrast on the
   // dark Cockpit surface; the PDF values are Tailwind ~600/700 (saturated,

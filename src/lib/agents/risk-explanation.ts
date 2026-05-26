@@ -5,7 +5,11 @@ import {
   type RiskExplanationOutput,
 } from "@/lib/agents/schemas";
 import { callLlm, type LlmClientLike } from "@/lib/llm/client";
-import { METHODOLOGY_MD, METHODOLOGY_VERSION } from "@/lib/agents/system-prompts/methodology";
+import {
+  METHODOLOGY_VERSION,
+  getMethodologyMd,
+  type MethodologyVersion,
+} from "@/lib/agents/system-prompts/methodology";
 import {
   DISCLAIMER_NOT_GUARANTEED,
   DISCLAIMER_PROJECTION,
@@ -53,9 +57,16 @@ export interface RunRiskExplanationOptions {
   client?: LlmClientLike;
   /** Override the default model. Default: kimi-k2.6. */
   model?: string;
+  /**
+   * Methodology version cited by the agent. Defaults to `v1.0` (rule-based
+   * risk scores). Pass `"v2.0"` when the risk snapshot comes from a Monte
+   * Carlo run so the cited source matches the upstream computation.
+   */
+  methodologyVersion?: MethodologyVersion;
 }
 
-const SYSTEM_INSTRUCTIONS = `You are the Risk Explanation Agent for Hearst Connect.
+function buildSystemInstructions(version: MethodologyVersion): string {
+  return `You are the Risk Explanation Agent for Hearst Connect.
 
 You receive a snapshot of vault risk scores (one global score + per-dimension component scores) and the current vault mode. You identify the 1 or 2 most salient risk dimensions (the ones with the highest component scores) and return a structured explanation for the operations and risk team.
 
@@ -75,14 +86,15 @@ Rules:
 - Each \`suggested_guardrail\` proposes a mitigation (e.g. "Consider reducing mining allocation per Rule RISK-02"). It must cite a rationale or rule reference; it must NOT claim the vault will execute automatically.
 - The \`overall_summary\` must reference at least one assumption and provide an aggregate view of vault risk posture.
 - Tone: institutional, factual, concise. No marketing. No emojis.
-- Methodology version: ${METHODOLOGY_VERSION}.
+- Methodology version: ${version}.
 
 Disclaimers (templated; never rewrite, never paraphrase):
 ${DISCLAIMER_NOT_GUARANTEED}
 ${DISCLAIMER_PROJECTION}
 
 Methodology (immutable, do not contradict):
-${METHODOLOGY_MD}`;
+${getMethodologyMd(version)}`;
+}
 
 function buildUserPrompt(input: RiskExplanationInput): string {
   return [
@@ -139,6 +151,7 @@ export async function runRiskExplanation(
   opts: RunRiskExplanationOptions = {},
 ): Promise<RiskExplanationOutput> {
   const model = opts.model ?? RISK_EXPLANATION_MODEL;
+  const methodologyVersion: MethodologyVersion = opts.methodologyVersion ?? METHODOLOGY_VERSION;
 
   const { response } = await callLlm(
     "risk-explanation",
@@ -148,7 +161,7 @@ export async function runRiskExplanation(
       system: [
         {
           type: "text",
-          text: SYSTEM_INSTRUCTIONS,
+          text: buildSystemInstructions(methodologyVersion),
           cache_control: { type: "ephemeral" },
         },
       ],

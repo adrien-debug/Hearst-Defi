@@ -15,12 +15,37 @@ import { z } from "zod";
 /* Scenario Narrative Agent (Kimi K2.6)                                       */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * PTAI sub-schema — enforces the Projection / Trigger / Action / Impact
+ * format mandated by CLAUDE.md non-negotiable #3. Every rebalancing /
+ * projection narrative MUST surface the 4 strings explicitly so the UI
+ * `<Ptai>` component can render them without parsing the free-form
+ * `narrative_md` blob. Strings are bounded to keep PDF layouts predictable.
+ */
+export const PtaiSchema = z
+  .object({
+    projection: z.string().min(1).max(500),
+    trigger: z.string().min(1).max(500),
+    action: z.string().min(1).max(500),
+    impact: z.string().min(1).max(500),
+  })
+  .strict();
+
+export type Ptai = z.infer<typeof PtaiSchema>;
+
 export const ScenarioNarrativeOutputSchema = z
   .object({
     narrative_md: z.string().min(1).max(2000),
     risk_warning: z.string().min(1).max(500),
     confidence: z.enum(["low", "medium", "high"]),
     key_drivers: z.array(z.string().min(1).max(200)).min(1).max(5),
+    /**
+     * Structured PTAI tuple — single source of truth for any UI surface
+     * that needs to render the 4-line format (Scenario Lab, Investor Memo
+     * PDF, Governance proposal detail). Required as of audit
+     * coherence-2026-05-26 / 08-ptai-format (P1.4).
+     */
+    ptai: PtaiSchema,
   })
   .strict();
 

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { CircuitBreaker } from "@/lib/circuit-breaker";
+import { STALE_THRESHOLDS } from "@/lib/data/freshness";
 import { logger } from "@/lib/logger";
 
 /**
@@ -62,7 +63,10 @@ function resolveBaseUrl(): string {
   return DEFAULT_BASE_URL;
 }
 
-const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+// Cache TTL aligned with the freshness SLO published in
+// `lib/data/freshness` (`STALE_THRESHOLDS.fear_greed`). The index recomputes
+// roughly daily upstream — caching for one hour is the right balance.
+const CACHE_TTL_MS = STALE_THRESHOLDS.fear_greed;
 const FETCH_TIMEOUT_MS = 8_000;
 
 const breaker = new CircuitBreaker({

@@ -16,7 +16,7 @@ import { isChainConfigured } from "@/lib/chain/client";
 import { fetchOnChainEvents } from "@/lib/chain/event-logger";
 import { fetchOnChainAttestations } from "@/lib/chain/por-registry";
 import { loadCustody } from "@/lib/data/custody";
-import { getProofs } from "@/lib/demo/loaders";
+import { getProofs } from "@/lib/data/proofs";
 import { listAllVaults, resolveVault } from "@/lib/vaults/resolver";
 import { vaultSlug, vaultLabel } from "@/lib/vaults/slug";
 
@@ -58,7 +58,7 @@ export default async function AdminProofCenterPage({
     await Promise.all([
       fetchOnChainEvents({ limit: 20 }),
       fetchOnChainAttestations({ limit: 12 }),
-      getProofs(),
+      getProofs().then((r) => r.data),
       loadCustody(),
     ]);
 

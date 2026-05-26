@@ -5,9 +5,11 @@ import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
+import { Ptai } from "@/components/ui/ptai";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { loadProposalDetail } from "@/lib/governance/actions";
 import { executeProposal, signProposal } from "@/lib/governance/actions";
+import { PtaiSchema, type Ptai as PtaiPayload } from "@/lib/agents/schemas";
 import type { ProposalState } from "@/lib/governance/state-machine";
 
 export const dynamic = "force-dynamic";
@@ -48,6 +50,30 @@ function stateLabel(state: ProposalState): string {
 function formatDate(d: Date | null): string {
   if (!d) return "—";
   return d.toISOString().replace("T", " ").slice(0, 19) + " UTC";
+}
+
+/**
+ * Extract a PTAI payload from a proposal's calldata JSON, when present.
+ *
+ * Rebalance-style proposals (audit coherence-2026-05-26 / 08-ptai-format
+ * P1.3) embed `{ projection, trigger, action, impact }` inside the calldata
+ * object so multisig signers see the canonical 4-line PTAI rendering before
+ * approving. We use the shared `PtaiSchema` (single source of truth) and
+ * return `null` for any non-conforming payload — the page falls back to the
+ * plain calldata pre block in that case.
+ */
+function extractPtaiFromCalldata(calldata: string | null): PtaiPayload | null {
+  if (calldata === null || calldata.trim() === "") return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(calldata);
+  } catch {
+    return null;
+  }
+  if (parsed === null || typeof parsed !== "object") return null;
+  const candidate = (parsed as { ptai?: unknown }).ptai ?? parsed;
+  const result = PtaiSchema.safeParse(candidate);
+  return result.success ? result.data : null;
 }
 
 function timelockCountdown(etaAt: Date): string {
@@ -102,6 +128,12 @@ export default async function ProposalDetailPage({ params }: PageProps) {
   const cancelAction = handleSign.bind(null, proposal.id, "cancel");
   const executeAction = handleExecute.bind(null, proposal.id);
 
+  // Audit coherence-2026-05-26 / 08-ptai-format (P1.3): surface the canonical
+  // PTAI block to multisig signers whenever the proposal calldata embeds it.
+  // Future `rebalanceVault` proposals will populate this without any code
+  // change here — the contract is "if calldata.ptai parses, render".
+  const ptai = extractPtaiFromCalldata(proposal.calldata);
+
   return (
     <div className="space-y-8">
       <AdminPageHeader
@@ -117,7 +149,7 @@ export default async function ProposalDetailPage({ params }: PageProps) {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <span className="ct-pill text-xs font-mono">{proposal.vaultTicker}</span>
+            <span className="ct-pill text-xs mono">{proposal.vaultTicker}</span>
             <span className="body-md ct-text-strong font-semibold">{proposal.actionType}</span>
           </div>
           <Badge variant={stateVariant(proposal.state)}>{stateLabel(proposal.state)}</Badge>
@@ -126,7 +158,7 @@ export default async function ProposalDetailPage({ params }: PageProps) {
         <dl className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
           <div>
             <dt className="ct-text-muted text-xs uppercase tracking-[var(--ct-tracking-wide)]">Proposed by</dt>
-            <dd className="font-mono ct-text-primary mt-0.5">{proposal.proposedBy}</dd>
+            <dd className="mono ct-text-primary mt-0.5">{proposal.proposedBy}</dd>
           </div>
           <div>
             <dt className="ct-text-muted text-xs uppercase tracking-[var(--ct-tracking-wide)]">Required signers</dt>
@@ -160,12 +192,32 @@ export default async function ProposalDetailPage({ params }: PageProps) {
             <p className="text-xs ct-text-muted mb-1 uppercase tracking-[var(--ct-tracking-wide)]">
               Timelock countdown
             </p>
-            <p className="ct-text-strong font-mono text-sm">
+            <p className="ct-text-strong mono text-sm">
               {timelockCountdown(proposal.etaAt)}
             </p>
           </div>
         )}
       </Card>
+
+      {/* PTAI block — rendered when the proposal calldata embeds a structured
+          Projection / Trigger / Action / Impact tuple (rebalance proposals). */}
+      {ptai && (
+        <Card>
+          <CardHeader>
+            <h2 className="h2">Projection · Trigger · Action · Impact</h2>
+            <span className="eyebrow">Rebalance proposal · canonical PTAI</span>
+          </CardHeader>
+          <Ptai
+            projection={ptai.projection}
+            trigger={ptai.trigger}
+            action={ptai.action}
+            impact={ptai.impact}
+          />
+          <p className="mt-3 text-xs italic ct-text-faint leading-[var(--ct-leading-relaxed)]">
+            Conditional projection — not guaranteed. Methodology v1.0.
+          </p>
+        </Card>
+      )}
 
       {/* Justification */}
       <Card>
@@ -177,7 +229,7 @@ export default async function ProposalDetailPage({ params }: PageProps) {
       {proposal.calldata && (
         <Card>
           <h2 className="h2 mb-3">Calldata</h2>
-          <pre className="ct-text-muted text-xs font-mono bg-[var(--ct-surface-1)] p-4 rounded-[var(--ct-radius-md)] overflow-x-auto whitespace-pre-wrap">
+          <pre className="ct-text-muted text-xs mono bg-[var(--ct-surface-1)] p-4 rounded-[var(--ct-radius-md)] overflow-x-auto whitespace-pre-wrap">
             {(() => {
               try {
                 return JSON.stringify(JSON.parse(proposal.calldata), null, 2);
@@ -226,7 +278,7 @@ export default async function ProposalDetailPage({ params }: PageProps) {
                   {sig.decision === "approve" ? "✓" : sig.decision === "reject" ? "✗" : "⊘"}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <span className="font-mono text-xs ct-text-primary">{sig.signerAddress}</span>
+                  <span className="mono text-xs ct-text-primary">{sig.signerAddress}</span>
                   {sig.reason && (
                     <p className="text-xs ct-text-muted mt-0.5 truncate">{sig.reason}</p>
                   )}

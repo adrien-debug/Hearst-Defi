@@ -29,7 +29,7 @@ export function ProjectionFooter({ vaultDraft }: ProjectionFooterProps) {
         width: "100%",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
-        background: "rgba(0,0,0,0.55)",
+        background: "color-mix(in srgb, var(--ct-bg-deep) 55%, transparent)",
         borderTop: "1px solid var(--ct-border-soft)",
         padding: "16px 24px",
       }}

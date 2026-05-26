@@ -115,11 +115,14 @@ function LineChart({ values, ariaLabel, drawdownRects }: LineChartProps) {
   const line = polyline(pts);
   const area = `${line} ${VB_W},${VB_H} 0,${VB_H}`;
   return (
-    <div className="flex-1 min-h-[var(--ct-chart-empty-h)] -mx-4 -mb-4 mt-4">
+    <div
+      className="-mx-4 -mb-4 mt-4 w-auto"
+      style={{ aspectRatio: `${VB_W} / ${VB_H}` }}
+    >
       <svg
         viewBox={`0 0 ${VB_W} ${VB_H}`}
-        preserveAspectRatio="none"
-        className="w-full h-full"
+        preserveAspectRatio="xMidYMid meet"
+        className="w-full h-full block"
         role="img"
         aria-label={ariaLabel}
       >
@@ -173,11 +176,14 @@ function BandChart({ low, high, ariaLabel }: BandChartProps) {
   const band = `${polyline(highPts)} ${polyline([...lowPts].reverse())}`;
 
   return (
-    <div className="flex-1 min-h-[var(--ct-chart-empty-h)] -mx-4 -mb-4 mt-4">
+    <div
+      className="-mx-4 -mb-4 mt-4 w-auto"
+      style={{ aspectRatio: `${VB_W} / ${VB_H}` }}
+    >
       <svg
         viewBox={`0 0 ${VB_W} ${VB_H}`}
-        preserveAspectRatio="none"
-        className="w-full h-full"
+        preserveAspectRatio="xMidYMid meet"
+        className="w-full h-full block"
         role="img"
         aria-label={ariaLabel}
       >

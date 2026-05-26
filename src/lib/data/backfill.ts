@@ -12,7 +12,10 @@ import { startOfUtcDay, type DailyMarketPoint } from "./history";
 
 // Operating assumptions — kept in lock-step with the hourly cron
 // (market-data-hourly.ts) so backfilled history joins the live feed seamlessly.
-const ENERGY_COST_KWH = 0.05;
+// Energy cost is injected by the caller (script reads it from env via
+// `getEnergyCostUsdPerKwh`); we keep a constant fallback so legacy callers and
+// vitest snapshots still work without re-wiring the env.
+const DEFAULT_ENERGY_COST_KWH = 0.05;
 const UPTIME_PCT = 98.5;
 const DEPLOYED_HASHRATE_THS = 182_000;
 const STABLE_APY_PCT = 3.8;
@@ -32,6 +35,17 @@ export interface MiningMetricRow {
   operationalConfidence: number;
 }
 
+export interface BuildMiningMetricRowsOptions {
+  /**
+   * Energy cost in USD per kWh. Optional — defaults to the industry average
+   * (0.05) so existing callers and unit tests keep their deterministic
+   * snapshots. Production callers (`prisma/backfill.ts`) inject the value
+   * resolved by `getEnergyCostUsdPerKwh()` so the backfill stays consistent
+   * with the live cron.
+   */
+  energyCostUsdPerKwh?: number;
+}
+
 /**
  * Derives one MiningMetric per day from the market history. Hashprice comes from
  * the shared formula; margin/confidence scores from the engine; the hashprice
@@ -39,7 +53,15 @@ export interface MiningMetricRow {
  */
 export function buildMiningMetricRows(
   points: DailyMarketPoint[],
+  options: BuildMiningMetricRowsOptions = {},
 ): MiningMetricRow[] {
+  const energyCost =
+    options.energyCostUsdPerKwh !== undefined &&
+    Number.isFinite(options.energyCostUsdPerKwh) &&
+    options.energyCostUsdPerKwh > 0
+      ? options.energyCostUsdPerKwh
+      : DEFAULT_ENERGY_COST_KWH;
+
   const rows: MiningMetricRow[] = [];
   let prevHashprice: number | null = null;
   let prevBtc: number | null = null;
@@ -54,7 +76,7 @@ export function buildMiningMetricRows(
     const { margin_score } = computeMiningRevenue({
       btc_price_change_pct: btcChangePct,
       hashprice_usd_th_day: hashprice,
-      energy_cost_kwh: ENERGY_COST_KWH,
+      energy_cost_kwh: energyCost,
       stable_apy_pct: STABLE_APY_PCT,
       vol_index: VOL_INDEX,
     });
@@ -69,7 +91,7 @@ export function buildMiningMetricRows(
       hashprice,
       difficulty: p.difficulty,
       btcPrice: p.btcUsd,
-      energyCost: ENERGY_COST_KWH,
+      energyCost,
       uptimePct: UPTIME_PCT,
       deployedHashrate: DEPLOYED_HASHRATE_THS,
       miningMarginScore: Math.round(margin_score),

@@ -9,7 +9,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
-import { getVault } from "@/lib/demo/loaders";
+import { getVault } from "@/lib/data/vaults";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ApyRange } from "@/components/ui/apy-range";

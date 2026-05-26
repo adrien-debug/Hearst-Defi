@@ -18,7 +18,7 @@ import { isChainConfigured } from "@/lib/chain/client";
 import { fetchOnChainEvents } from "@/lib/chain/event-logger";
 import { fetchOnChainAttestations } from "@/lib/chain/por-registry";
 import { loadCustody } from "@/lib/data/custody";
-import { getProofs } from "@/lib/demo/loaders";
+import { getProofs } from "@/lib/data/proofs";
 import { prisma } from "@/lib/db";
 import { TIMELOCK_DELAY_HOURS } from "@/lib/governance/state-machine";
 
@@ -38,7 +38,7 @@ export default async function ProductProofCenterPage({
     await Promise.all([
       fetchOnChainEvents({ limit: 20 }),
       fetchOnChainAttestations({ limit: 12 }),
-      getProofs(),
+      getProofs().then((r) => r.data),
       loadCustody(),
       prisma.governanceProposal.findMany({
         where: { state: "TIMELOCK" },

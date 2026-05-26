@@ -45,37 +45,52 @@ export default function LandingPage() {
       </div>
 
       <div
-        className="grid grid-cols-1 lg:grid-cols-2 relative"
-        style={{ minHeight: "100dvh", zIndex: 1 }}
+        className="flex flex-col items-center justify-center min-h-screen relative px-6 py-20"
+        style={{ zIndex: 1 }}
       >
-        {/* ── Left: marketing teaser ── */}
-        <section
-          className="relative flex items-start justify-center px-12 lg:px-20"
-          style={{
-            paddingTop: "calc(50dvh - 300px)",
-            backgroundImage: "radial-gradient(circle, color-mix(in srgb, var(--ct-accent) 18%, transparent) 1px, transparent 1px)",
-            backgroundSize: "24px 24px",
-          }}
-          aria-label="Hearst Yield Vault — product overview"
+        <div
+          className="w-full max-w-5xl flex flex-col items-center"
         >
-          <MarketingPanel />
-        </section>
+          <div
+            className="grid grid-cols-1 lg:grid-cols-2 w-full relative"
+            style={{ 
+              background: "color-mix(in srgb, var(--ct-surface-1) 20%, transparent)",
+              backdropFilter: "blur(24px)",
+              borderRadius: "var(--ct-radius-2xl)",
+              border: "1px solid color-mix(in srgb, var(--ct-border-soft) 50%, transparent)",
+              boxShadow: "0 20px 50px color-mix(in srgb, var(--ct-bg-deep) 80%, black)",
+              overflow: "hidden",
+              backgroundImage: "radial-gradient(circle, color-mix(in srgb, var(--ct-accent) 8%, transparent) 1px, transparent 1px)",
+              backgroundSize: "32px 32px",
+            }}
+          >
+            {/* ── Left: marketing teaser ── */}
+            <section
+              className="relative flex flex-col items-center justify-center p-12 lg:p-16"
+              aria-label="Hearst Yield Vault — product overview"
+            >
+              <MarketingPanel />
+            </section>
 
-        {/* ── Right: sign-in panel ── */}
-        <section
-          className="flex items-start justify-center px-8 sm:px-12"
-          style={{
-            borderLeft: "1px solid var(--ct-border-soft)",
-            paddingTop: "calc(50dvh - 240px)",
-          }}
-          aria-label="Investor sign-in"
-        >
-          <div className="flex w-full justify-center">
-            <Suspense fallback={null}>
-              <LoginPanel />
-            </Suspense>
+            {/* ── Right: sign-in panel ── */}
+            <section
+              className="flex flex-col items-center justify-center p-12 lg:p-16 relative"
+              aria-label="Investor sign-in"
+            >
+              {/* Vertical Divider Gradient */}
+              <div 
+                className="absolute left-0 top-1/2 -translate-y-1/2 w-px h-3/4 hidden lg:block"
+                style={{
+                  background: "linear-gradient(to bottom, transparent, var(--ct-border-soft), transparent)"
+                }}
+              />
+              
+              <Suspense fallback={null}>
+                <LoginPanel />
+              </Suspense>
+            </section>
           </div>
-        </section>
+        </div>
       </div>
     </div>
   );

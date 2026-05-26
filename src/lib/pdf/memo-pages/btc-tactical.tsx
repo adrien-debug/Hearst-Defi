@@ -59,62 +59,139 @@ export function BtcTacticalPage({
           label="Target exposure"
           value={`${targetPct}%`}
           hint="of AUM, rule-bound"
+          // Engine-derived target tied to active scenario.
+          provenance="estimated"
         />
         <KpiCell
           label="Triggers armed"
           value={`${triggers.filter((t) => t.armed).length} / ${triggers.length}`}
           hint="PTAI framework only"
+          // Live count of PTAI triggers currently armed by the engine.
+          provenance="live"
         />
         <KpiCell
           label="Guardrails"
           value={`${guardrails.length} active`}
           hint="Volatility, margin, concentration"
+          // Active guardrails from current vault state.
+          provenance="live"
         />
       </View>
 
+      {/*
+        Active PTAI triggers — full 4-column layout (Projection / Trigger /
+        Action / Impact) per CLAUDE.md non-negotiable #3. Kind + armed status
+        sit in a header row above the 4 PTAI cells so the table reads as one
+        compact block per trigger without losing the metadata.
+        Fix: audit coherence-2026-05-26 / 08-ptai-format (P1.2).
+      */}
       <Text style={styles.h2}>Active PTAI triggers</Text>
-      <View style={styles.table}>
-        <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderCell, { flex: 1.1 }]}>Kind</Text>
-          <Text style={[styles.tableHeaderCell, { flex: 2.4 }]}>Condition</Text>
-          <Text style={[styles.tableHeaderCell, { flex: 2.4 }]}>Action</Text>
-          <Text
-            style={[styles.tableHeaderCell, { flex: 0.9, textAlign: "right" }]}
-          >
-            Status
-          </Text>
-        </View>
+      <View style={{ gap: 6 }}>
         {triggers.length === 0 ? (
-          <View style={[styles.tableRow, styles.tableRowLast]}>
-            <Text style={[styles.tableCellMuted, { flex: 1 }]}>
+          <View
+            style={{
+              borderWidth: 1,
+              borderColor: COLORS.border,
+              borderRadius: 4,
+              paddingVertical: 8,
+              paddingHorizontal: 10,
+            }}
+          >
+            <Text style={styles.tableCellMuted}>
               No active triggers in the current vault state.
             </Text>
           </View>
         ) : (
-          triggers.map((t, idx) => (
-            <View
-              key={t.id}
-              style={[
-                styles.tableRow,
-                idx % 2 === 1 ? styles.tableRowAlt : {},
-                idx === triggers.length - 1 ? styles.tableRowLast : {},
-              ]}
-            >
-              <Text style={[styles.tableCell, { flex: 1.1 }]}>
-                {t.kind.replace(/_/g, " ")}
-              </Text>
-              <Text style={[styles.tableCell, { flex: 2.4 }]}>
-                {t.condition}
-              </Text>
-              <Text style={[styles.tableCell, { flex: 2.4 }]}>{t.action}</Text>
-              <View style={{ flex: 0.9, alignItems: "flex-end" }}>
-                <StatusPill
-                  label={t.armed ? "armed" : "idle"}
-                  tone={triggerTone(t.kind, t.armed)}
-                />
+          triggers.map((t) => {
+            const projection = `APY ${targetPct}% BTC tactical target maintained while the trigger is ${t.armed ? "armed" : "idle"}.`;
+            const impact = t.armed
+              ? `Engine will execute "${t.action}" on the BTC tactical sleeve to stay within target bands.`
+              : "No allocation change while idle — guardrails remain the only active safeguard.";
+            return (
+              <View
+                key={t.id}
+                style={{
+                  borderWidth: 1,
+                  borderColor: COLORS.border,
+                  borderRadius: 4,
+                  paddingVertical: 8,
+                  paddingHorizontal: 10,
+                  gap: 4,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 2,
+                  }}
+                >
+                  <Text
+                    style={[styles.tableCell, { fontFamily: "Helvetica-Bold" }]}
+                  >
+                    {t.kind.replace(/_/g, " ")}
+                  </Text>
+                  <View style={{ marginLeft: "auto" }}>
+                    <StatusPill
+                      label={t.armed ? "armed" : "idle"}
+                      tone={triggerTone(t.kind, t.armed)}
+                    />
+                  </View>
+                </View>
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  <Text
+                    style={[
+                      styles.tableHeaderCell,
+                      { flex: 0.8, paddingHorizontal: 0 },
+                    ]}
+                  >
+                    Projection
+                  </Text>
+                  <Text style={[styles.tableCell, { flex: 3 }]}>
+                    {projection}
+                  </Text>
+                </View>
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  <Text
+                    style={[
+                      styles.tableHeaderCell,
+                      { flex: 0.8, paddingHorizontal: 0 },
+                    ]}
+                  >
+                    Trigger
+                  </Text>
+                  <Text style={[styles.tableCell, { flex: 3 }]}>
+                    {t.condition}
+                  </Text>
+                </View>
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  <Text
+                    style={[
+                      styles.tableHeaderCell,
+                      { flex: 0.8, paddingHorizontal: 0 },
+                    ]}
+                  >
+                    Action
+                  </Text>
+                  <Text style={[styles.tableCell, { flex: 3 }]}>
+                    {t.action}
+                  </Text>
+                </View>
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  <Text
+                    style={[
+                      styles.tableHeaderCell,
+                      { flex: 0.8, paddingHorizontal: 0 },
+                    ]}
+                  >
+                    Impact
+                  </Text>
+                  <Text style={[styles.tableCell, { flex: 3 }]}>{impact}</Text>
+                </View>
               </View>
-            </View>
-          ))
+            );
+          })
         )}
       </View>
 

@@ -44,15 +44,15 @@ describe("runScenario (v2 contract)", () => {
     });
   });
 
-  it("apyMedian is between apyLow and apyHigh", () => {
+  it("apyMedianInternal is between apyLow and apyHigh", () => {
     const result = runScenario(BASE_PARAMS);
-    expect(result.apyMedian).toBeGreaterThanOrEqual(result.apyLow);
-    expect(result.apyMedian).toBeLessThanOrEqual(result.apyHigh);
+    expect(result.apyMedianInternal).toBeGreaterThanOrEqual(result.apyLow);
+    expect(result.apyMedianInternal).toBeLessThanOrEqual(result.apyHigh);
   });
 
-  it("stressedApy is strictly less than apyMedian", () => {
+  it("stressedApy is strictly less than apyMedianInternal", () => {
     const result = runScenario(BASE_PARAMS);
-    expect(result.stressedApy).toBeLessThan(result.apyMedian);
+    expect(result.stressedApy).toBeLessThan(result.apyMedianInternal);
   });
 
   it("result contains required fields with correct types", () => {
@@ -108,10 +108,10 @@ describe("runScenario edge cases", () => {
     expect(result.monthly[0]?.month).toBe(1);
   });
 
-  it("durationMonths=1 apyMedian is between apyLow and apyHigh", () => {
+  it("durationMonths=1 apyMedianInternal is between apyLow and apyHigh", () => {
     const result = runScenario({ ...BASE_PARAMS, durationMonths: 1 });
-    expect(result.apyMedian).toBeGreaterThanOrEqual(result.apyLow);
-    expect(result.apyMedian).toBeLessThanOrEqual(result.apyHigh);
+    expect(result.apyMedianInternal).toBeGreaterThanOrEqual(result.apyLow);
+    expect(result.apyMedianInternal).toBeLessThanOrEqual(result.apyHigh);
   });
 
   it("throws when allocationWeights do not sum to 1.0", () => {
@@ -164,7 +164,7 @@ describe("runScenario edge cases", () => {
     };
     const bearResult = runScenario(bearParams);
     const baseResult = runScenario(BASE_PARAMS);
-    expect(bearResult.apyMedian).toBeLessThan(baseResult.apyMedian);
+    expect(bearResult.apyMedianInternal).toBeLessThan(baseResult.apyMedianInternal);
   });
 });
 
@@ -186,30 +186,30 @@ describe("compareScenarios", () => {
   let bullResult: ScenarioResult;
   let bearResult: ScenarioResult;
 
-  it("setup: bull apyMedian > bear apyMedian", () => {
+  it("setup: bull apyMedianInternal > bear apyMedianInternal", () => {
     bullResult = runScenario(bullParams);
     bearResult = runScenario(bearParams);
-    expect(bullResult.apyMedian).toBeGreaterThan(bearResult.apyMedian);
+    expect(bullResult.apyMedianInternal).toBeGreaterThan(bearResult.apyMedianInternal);
   });
 
-  it("delta apyMedian is positive when b is better than a", () => {
+  it("delta apyMedianInternal is positive when b is better than a", () => {
     bullResult = runScenario(bullParams);
     bearResult = runScenario(bearParams);
     const delta = compareScenarios(bearResult, bullResult);
-    expect(delta.apyMedian).toBeGreaterThan(0);
+    expect(delta.apyMedianInternal).toBeGreaterThan(0);
   });
 
-  it("delta apyMedian is negative when b is worse than a", () => {
+  it("delta apyMedianInternal is negative when b is worse than a", () => {
     bullResult = runScenario(bullParams);
     bearResult = runScenario(bearParams);
     const delta = compareScenarios(bullResult, bearResult);
-    expect(delta.apyMedian).toBeLessThan(0);
+    expect(delta.apyMedianInternal).toBeLessThan(0);
   });
 
   it("delta is zero when comparing a scenario with itself", () => {
     const result = runScenario(BASE_PARAMS);
     const delta = compareScenarios(result, result);
-    expect(delta.apyMedian).toBe(0);
+    expect(delta.apyMedianInternal).toBe(0);
     expect(delta.maxDrawdown).toBe(0);
     expect(delta.sharpe).toBe(0);
     expect(delta.var95).toBe(0);
@@ -219,7 +219,7 @@ describe("compareScenarios", () => {
     bullResult = runScenario(bullParams);
     bearResult = runScenario(bearParams);
     const delta = compareScenarios(bearResult, bullResult);
-    expect(typeof delta.apyMedian).toBe("number");
+    expect(typeof delta.apyMedianInternal).toBe("number");
     expect(typeof delta.maxDrawdown).toBe("number");
     expect(typeof delta.sharpe).toBe("number");
     expect(typeof delta.var95).toBe("number");

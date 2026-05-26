@@ -1,6 +1,7 @@
 import "server-only";
 
 import { fetchBtcPrice } from "@/lib/data/btc-price";
+import { evaluateFreshness, STALE_THRESHOLDS } from "@/lib/data/freshness";
 import {
   BLOCK_REWARD_BTC,
   deriveHashpriceUsdPerThDay,
@@ -52,7 +53,9 @@ export interface HashpriceData {
 const MEMPOOL_DIFFICULTY_URL =
   "https://mempool.space/api/v1/mining/difficulty-adjustments/1m";
 
-const STALE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
+// Freshness SLO comes from the central registry (`lib/data/freshness`).
+// Local alias kept for clarity at call sites.
+const STALE_THRESHOLD_MS = STALE_THRESHOLDS.hashprice;
 
 /**
  * Conservative fallback when mempool.space is down. Tracks the typical
@@ -141,8 +144,8 @@ export async function fetchHashprice(): Promise<HashpriceData> {
       return fallback(fetched_at);
     }
 
-    const ageMs = Date.now() - fetched_at.getTime();
-    const stale = ageMs > STALE_THRESHOLD_MS || btc.stale;
+    const stale =
+      evaluateFreshness(fetched_at, STALE_THRESHOLD_MS) === "stale" || btc.stale;
 
     return {
       usd_per_th_day: round6(usd_per_th_day),

@@ -1,32 +1,38 @@
 import { LoginForm } from "@/components/auth/login-form";
 
 /**
- * Right-hand sign-in panel: email + password (database auth).
+ * LoginPanel — right column of the S0 landing / login split-screen.
  *
- * Privy is intentionally absent here — authentication is email/password. Wallet
- * connect (Privy) happens later, in the USDC subscription/payment flow.
+ * Pendant symétrique du MarketingPanel (à gauche) :
+ *   - même eyebrow (.eyebrow accent)
+ *   - même H1 (.h1 cockpit)
+ *   - même sous-titre body-sm
+ *   - même disclaimer body-xs
+ *   - même rythme vertical (gap entre blocs)
+ *
+ * Privy est volontairement absent — auth = email/password DB. Wallet connect
+ * (Privy) arrive plus tard dans le flow d'abonnement USDC.
  */
 export function LoginPanel() {
   return (
-    <div className="w-full max-w-sm">
-      <header className="mb-8 text-center">
-        <div className="eyebrow mb-3" style={{ color: "var(--ct-accent)", opacity: 0.7, letterSpacing: "0.12em" }}>
-          Investor Access
-        </div>
-        <h2 className="h2" style={{ fontSize: "1.5rem", fontWeight: 600, letterSpacing: "-0.02em" }}>
-          Sign in
-        </h2>
-        <p className="body-sm ct-text-muted mt-2">
+    <div
+      className="flex flex-col items-center text-center w-full"
+      style={{ gap: "var(--ct-space-8)", maxWidth: "24rem" }}
+    >
+      {/* Header block — simplified */}
+      <header
+        className="flex flex-col items-center"
+        style={{ gap: "var(--ct-space-3)" }}
+      >
+        <p className="body-sm" style={{ color: "var(--ct-accent)", fontWeight: 500 }}>
           Access your vaults and portfolio
         </p>
       </header>
 
-      <LoginForm />
-
-      <p className="body-xs ct-text-faint mt-8 text-center text-pretty">
-        Cayman SPV — accredited investors only. Projection is conditional on
-        stated assumptions. Not guaranteed.
-      </p>
+      {/* Form */}
+      <div className="w-full" style={{ maxWidth: "24rem" }}>
+        <LoginForm />
+      </div>
     </div>
   );
 }

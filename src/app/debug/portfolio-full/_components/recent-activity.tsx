@@ -57,7 +57,7 @@ export function RecentActivity({ transactions, source }: RecentActivityProps) {
 
   return (
     <article className="bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] rounded-sm p-6 flex flex-col relative flex-1 h-full min-h-[200px] overflow-hidden" aria-label="Recent account activity">
-      <div className="flex justify-between items-center text-[10px] font-medium text-[var(--ct-text-muted)] tracking-widest uppercase mb-6 shrink-0">
+      <div className="flex justify-between items-center text-micro font-medium text-[var(--ct-text-muted)] tracking-widest uppercase mb-6 shrink-0">
         <span>Recent Activity</span>
         <ProvenanceBadge kind={provenance} />
       </div>
@@ -75,7 +75,7 @@ export function RecentActivity({ transactions, source }: RecentActivityProps) {
                 <TxIcon type={tx.type} />
 
                 <div className="flex-1 min-w-0 overflow-hidden">
-                  <div className="text-[13px] text-[var(--ct-text-primary)] font-medium truncate">
+                  <div className="text-sm text-[var(--ct-text-primary)] font-medium truncate">
                     {TYPE_LABELS[tx.type] ?? tx.type}
                     {tx.positionVaultName && (
                       <span className="text-[var(--ct-text-muted)] font-normal">
@@ -83,12 +83,12 @@ export function RecentActivity({ transactions, source }: RecentActivityProps) {
                       </span>
                     )}
                   </div>
-                  <div className="text-[11px] text-[var(--ct-text-muted)] mt-0.5 font-mono truncate uppercase tracking-wider">
+                  <div className="text-xs text-[var(--ct-text-muted)] mt-0.5 mono truncate uppercase tracking-wider">
                     {relativeTime(tx.occurredAt, asOf)}
                   </div>
                 </div>
 
-                <span className="tabular-nums text-[13px] text-[var(--ct-text-strong)] font-mono font-medium shrink-0">
+                <span className="tabular-nums text-sm text-[var(--ct-text-strong)] mono font-medium shrink-0">
                   {usdFmt.format(tx.amountUsdc)}
                 </span>
               </div>

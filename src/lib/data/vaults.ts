@@ -2,11 +2,6 @@ import "server-only";
 
 import { type VaultDeployment } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import {
-  VAULT_DEFENSIVE,
-  VAULT_BTC_PLUS,
-  type VaultDefinition,
-} from "@/lib/engine/vaults";
 
 // ---------------------------------------------------------------------------
 // VaultProduct — the canonical shape consumed by /vaults and /vaults/[id].
@@ -40,91 +35,6 @@ export interface VaultProduct {
   targetUsdcBaseBps: number;
   targetStableReserveBps: number;
 }
-
-// ---------------------------------------------------------------------------
-// Inline MVP fixture — returned when DB has no VaultDeployment rows.
-// Non-negotiable #10: disclaimers verbatim from methodology v1.0.
-// Non-negotiable #1: APY always as a range, never a single point.
-// ---------------------------------------------------------------------------
-
-const HEARST_YIELD_VAULT_FIXTURE: VaultProduct = {
-  id: "hearst-yield-vault",
-  ticker: "HYV-A",
-  name: "Hearst Yield Vault",
-  description:
-    "Mining-backed structured yield with monthly USDC distributions. The vault allocates across four sleeves: Bitcoin mining operations, BTC tactical delta, USDC base lending, and stable reserve — dynamically rebalanced by rule-based triggers.",
-  strategy: "mining_yield",
-  status: "live",
-  apyLow: 9.4,
-  apyHigh: 12.8,
-  minTicketUsdc: 250_000,
-  softLockupDays: 60,
-  capacityUsdc: 100_000_000,
-  currentAumUsdc: 42_500_000,
-  fees: { mgmtBps: 200, perfBps: 1000, hurdleBps: 0 },
-  riskLevel: "low-moderate",
-  spvJurisdiction: "cayman",
-  shareClass: "A",
-  regExemption: "regS",
-  disclaimers:
-    "Projections are conditional on stated assumptions. Past performance does not indicate future results. Hearst Yield Vault is offered exclusively to professional / qualified investors via a Cayman Exempted Limited Partnership. Subject to minimum subscription, soft lock-up, and jurisdictional restrictions. Not an offer or solicitation where prohibited.",
-  targetMiningBps: 6000,
-  targetBtcTacticalBps: 2500,
-  targetUsdcBaseBps: 1000,
-  targetStableReserveBps: 500,
-};
-
-// Derive a VaultProduct fixture from an engine VaultDefinition (Defensive /
-// BTC Plus). Strategy + risk follow the dominant sleeve; share-class A terms
-// drive ticket/lock-up/fees. AUM defaults to 0 (no live snapshot for these yet).
-function fixtureFromDefinition(def: VaultDefinition): VaultProduct {
-  const a = def.allocationTargets;
-  const classA = def.shareClasses[0];
-  const strategy: VaultProduct["strategy"] =
-    a.btc_tactical >= a.mining
-      ? "btc_tactical"
-      : a.mining >= 40
-        ? "mining_yield"
-        : "stable_reserve";
-  return {
-    id: `hearst-${def.id}-vault`,
-    ticker: `${def.ticker}-A`,
-    name: def.label,
-    description: def.description,
-    strategy,
-    status: "review",
-    apyLow: def.apyTarget.low,
-    apyHigh: def.apyTarget.high,
-    minTicketUsdc: classA?.minTicketUsdc ?? 250_000,
-    softLockupDays: classA?.softLockupDays ?? 60,
-    capacityUsdc: 100_000_000,
-    currentAumUsdc: 0,
-    fees: {
-      mgmtBps: classA?.mgmtFeeBps ?? 200,
-      perfBps: classA?.perfFeeBps ?? 1000,
-      hurdleBps: classA?.hurdleBps ?? 0,
-    },
-    riskLevel: a.mining >= 7500 ? "moderate" : a.mining >= 40 ? "low-moderate" : "low",
-    spvJurisdiction: "cayman",
-    shareClass: "A",
-    regExemption: "regS",
-    disclaimers: def.assumptions.join(" "),
-    targetMiningBps: a.mining * 100,
-    targetBtcTacticalBps: a.btc_tactical * 100,
-    targetUsdcBaseBps: a.usdc_base * 100,
-    targetStableReserveBps: a.stable_reserve * 100,
-  };
-}
-
-const DEFENSIVE_VAULT_FIXTURE = fixtureFromDefinition(VAULT_DEFENSIVE);
-const BTC_PLUS_VAULT_FIXTURE = fixtureFromDefinition(VAULT_BTC_PLUS);
-
-/** All fixture vaults returned when the DB has no VaultDeployment rows. */
-const FIXTURE_VAULTS: VaultProduct[] = [
-  HEARST_YIELD_VAULT_FIXTURE,
-  DEFENSIVE_VAULT_FIXTURE,
-  BTC_PLUS_VAULT_FIXTURE,
-];
 
 // ---------------------------------------------------------------------------
 // Map Prisma VaultDeployment row → VaultProduct.
@@ -215,6 +125,25 @@ function isYieldVaultRow(row: VaultDeployment): boolean {
   );
 }
 
+/**
+ * A vault row is a placeholder (not a real on-chain deployment) when its
+ * `contractAddress` is missing, the zero address, or follows the
+ * `0x00…00N` pattern used by seed scripts (F2/F3 testnet fixtures, etc.).
+ *
+ * Honesty rule: nothing the user sees on `/vaults` or `/vaults/[id]` may
+ * reference a contract that does not actually exist on-chain. Placeholders
+ * stay in the DB for schema consistency but are filtered out at the read
+ * boundary.
+ */
+function isPlaceholderVault(row: VaultDeployment): boolean {
+  const addr = row.contractAddress?.toLowerCase().trim() ?? "";
+  if (!addr) return true;
+  // Strip "0x" then check that everything but the last char is "0".
+  const hex = addr.startsWith("0x") ? addr.slice(2) : addr;
+  if (hex.length !== 40) return false; // not an EVM address — leave it alone
+  return /^0{39}[0-9a-f]$/.test(hex);
+}
+
 export async function listVaults(): Promise<VaultProduct[]> {
   try {
     const rows = await prisma.vaultDeployment.findMany({
@@ -222,7 +151,10 @@ export async function listVaults(): Promise<VaultProduct[]> {
       take: 100,
     });
 
-    if (rows.length === 0) return FIXTURE_VAULTS;
+    // Drop placeholder rows — we never advertise vaults that don't have a
+    // real on-chain contract behind them (see isPlaceholderVault).
+    const realRows = rows.filter((row) => !isPlaceholderVault(row));
+    if (realRows.length === 0) return [];
 
     // Fetch the latest AUM snapshot — only applied to the Yield Vault row.
     // Non-Yield vaults stay at 0 until per-vault snapshots land (Phase 3).
@@ -232,54 +164,18 @@ export async function listVaults(): Promise<VaultProduct[]> {
     });
     const latestAum = latestSnapshots[0]?.aumUsdc?.toNumber() ?? 0;
 
-    return rows.map((row) =>
+    return realRows.map((row) =>
       toVaultProduct(row, isYieldVaultRow(row) ? latestAum : 0),
     );
   } catch {
-    // DB unavailable (e.g. fresh dev box) — return fixtures
-    return FIXTURE_VAULTS;
+    // DB unavailable — never invent vault data; surface an empty state instead.
+    return [];
   }
-}
-
-/** Resolve a fixture vault by id or ticker (case-insensitive). */
-function fixtureByIdOrTicker(idOrTicker: string): VaultProduct | null {
-  const key = idOrTicker.toLowerCase();
-  return (
-    FIXTURE_VAULTS.find(
-      (v) => v.id.toLowerCase() === key || v.ticker.toLowerCase() === key,
-    ) ?? null
-  );
 }
 
 export async function getVault(
   idOrTicker: string,
 ): Promise<VaultProduct | null> {
-  // Fixture short-circuit for the single MVP vault
-  if (
-    idOrTicker === "hearst-yield-vault" ||
-    idOrTicker === "HYV-A" ||
-    idOrTicker === "hyv-a"
-  ) {
-    try {
-      const [row, snapshot] = await Promise.all([
-        prisma.vaultDeployment.findFirst({
-          where: { ticker: "HYV-A" },
-        }),
-        prisma.vaultSnapshot.findFirst({
-          orderBy: { takenAt: "desc" },
-        }),
-      ]);
-      if (!row) return HEARST_YIELD_VAULT_FIXTURE;
-
-      return toVaultProduct(
-        row,
-        snapshot?.aumUsdc?.toNumber() ?? 0,
-      );
-    } catch {
-      return HEARST_YIELD_VAULT_FIXTURE;
-    }
-  }
-
   try {
     const [row, snapshot] = await Promise.all([
       prisma.vaultDeployment.findFirst({
@@ -291,13 +187,16 @@ export async function getVault(
         orderBy: { takenAt: "desc" },
       }),
     ]);
-    if (!row) return fixtureByIdOrTicker(idOrTicker);
+    if (!row) return null;
+    // Treat placeholders as non-existent for the consumer surface — the row
+    // stays in the DB for schema continuity, but `/vaults/[id]` 404s on it.
+    if (isPlaceholderVault(row)) return null;
 
     return toVaultProduct(
       row,
       snapshot?.aumUsdc?.toNumber() ?? 0,
     );
   } catch {
-    return fixtureByIdOrTicker(idOrTicker);
+    return null;
   }
 }

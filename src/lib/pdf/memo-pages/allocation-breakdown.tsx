@@ -1,5 +1,6 @@
 import { Page, Rect, Svg, Text, View } from "@react-pdf/renderer";
 
+import { PdfProvenance } from "../components/pdf-provenance";
 import {
   EyebrowTitle,
   PageFooter,
@@ -128,6 +129,9 @@ export function AllocationBreakdownPage({
           <Text style={[styles.tableHeaderCell, { flex: 1.6, textAlign: "right" }]}>
             % of yield
           </Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1, textAlign: "right" }]}>
+            Source
+          </Text>
         </View>
         {(() => {
           const totalBps =
@@ -157,6 +161,17 @@ export function AllocationBreakdownPage({
               >
                 {((s.yieldBps / totalBps) * 100).toFixed(0)}%
               </Text>
+              {/* Weights & yield contribution are engine-derived under the
+                  current vault mode. */}
+              <View
+                style={{
+                  flex: 1,
+                  flexDirection: "row",
+                  justifyContent: "flex-end",
+                }}
+              >
+                <PdfProvenance kind="estimated" />
+              </View>
             </View>
           ));
         })()}

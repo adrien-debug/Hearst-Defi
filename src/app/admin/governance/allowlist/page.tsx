@@ -164,7 +164,7 @@ export default async function AllowlistPage() {
                   required
                   pattern="0x[0-9a-fA-F]{40}"
                   placeholder="0xABCDEF…"
-                  className="w-full rounded-[var(--ct-radius-md)] border border-[var(--ct-border)] bg-[var(--ct-surface-1)] px-3 py-2 text-sm ct-text-strong font-mono placeholder:ct-text-muted focus:outline-none focus:border-[var(--ct-border-strong)] focus:ring-1 focus:ring-[var(--ct-accent)]"
+                  className="w-full rounded-[var(--ct-radius-md)] border border-[var(--ct-border)] bg-[var(--ct-surface-1)] px-3 py-2 text-sm ct-text-strong mono placeholder:ct-text-muted focus:outline-none focus:border-[var(--ct-border-strong)] focus:ring-1 focus:ring-[var(--ct-accent)]"
                 />
               </div>
 
@@ -321,7 +321,7 @@ export default async function AllowlistPage() {
                     {/* Label + address */}
                     <td className="px-4 py-3">
                       <p className="ct-text-strong font-semibold text-sm">{entry.label}</p>
-                      <p className="font-mono text-xs ct-text-muted mt-0.5 break-all">
+                      <p className="mono text-xs ct-text-muted mt-0.5 break-all">
                         {entry.address}
                       </p>
                       {entry.notes && (

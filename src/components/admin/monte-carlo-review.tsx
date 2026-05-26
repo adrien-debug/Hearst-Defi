@@ -46,7 +46,7 @@ export interface MonteCarloRunOptions {
 
 // Canonical calibration constants for the 1y review panel.
 // These are the *default* GBM/OU parameters used when no live oracle data is
-// available (methodology v2.0-draft §Calibration).
+// available (methodology v2.0 §Calibration — ADR-006, ratified 2026-05-22).
 const MC_CALIBRATION = {
   btcStartPriceUsd: 60_000,
   btcAnnualDrift: 0.1,
@@ -129,7 +129,7 @@ interface MonteCarloReviewProps {
  * client (the engine is a pure function, no I/O). Displays p5/p50/p95 APY
  * over a 1y horizon as a range line, never as a single point.
  *
- * Mandatory disclaimer per CLAUDE.md #10 + methodology v2.0-draft.
+ * Mandatory disclaimer per CLAUDE.md #10 + methodology v2.0 (ADR-006).
  */
 export function MonteCarloReview({
   vaultDraft,
@@ -162,7 +162,7 @@ export function MonteCarloReview({
         </p>
         <span
           className="body-xs ct-pill"
-          title="Methodology v2.0-draft — optional companion to the rule-based engine"
+          title="Methodology v2.0 — optional companion to the rule-based engine"
         >
           Estimated
         </span>
@@ -207,7 +207,7 @@ export function MonteCarloReview({
 
       {/* Mandatory disclaimer — CLAUDE.md #10 */}
       <p className="body-xs ct-text-faint border-t border-[var(--ct-border-soft)] pt-3">
-        Projections — not guaranteed. Methodology v2.0-draft. Simulated paths
+        Projections — not guaranteed. Methodology v2.0. Simulated paths
         assume BTC GBM (μ&nbsp;=&nbsp;10%/yr, σ&nbsp;=&nbsp;60%/yr) and a
         mean-reverting network difficulty model. Assumptions and results are
         indicative only; past performance is not a reliable indicator of future

@@ -5,6 +5,7 @@ import { fetchBtcPrice } from "@/lib/data/btc-price";
 import { fetchDefiLlama } from "@/lib/data/defillama";
 import { fetchFearGreed } from "@/lib/data/fear-greed";
 import { fetchHashprice } from "@/lib/data/hashprice";
+import { getEnergyCostUsdPerKwh } from "@/lib/data/energy-cost";
 import {
   computeMiningRevenue,
   computeOperationalConfidence,
@@ -76,11 +77,13 @@ async function marketDataHourlyHandler({
     return { skipped: true, reason: "upstream_unavailable" };
   }
 
+  const energyCost = getEnergyCostUsdPerKwh();
+
   const marginScore = await step.run("compute-margin-score", () => {
     const result = computeMiningRevenue({
       btc_price_change_pct: btc.usd_24h_change,
       hashprice_usd_th_day: hp.usd_per_th_day,
-      energy_cost_kwh: 0.05, // industry average, no public real-time feed
+      energy_cost_kwh: energyCost.usdPerKwh,
       stable_apy_pct: 3.8,
       vol_index: 50,
     });
@@ -107,7 +110,9 @@ async function marketDataHourlyHandler({
           hashprice: hp.usd_per_th_day,
           difficulty: hp.difficulty,
           btcPrice: btc.usd,
-          energyCost: 0.05, // industry average, no public real-time feed
+          // Source: `getEnergyCostUsdPerKwh()` — env override or industry default.
+          // Provenance is `Manual` (or `Attested` once the partner pipeline lands).
+          energyCost: energyCost.usdPerKwh,
           uptimePct: 98.5, // placeholder until real uptime feed
           deployedHashrate: 182_000, // TH/s placeholder
           miningMarginScore: marginScore,

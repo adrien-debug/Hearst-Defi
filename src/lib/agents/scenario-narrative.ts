@@ -5,7 +5,11 @@ import {
   type ScenarioNarrativeOutput,
 } from "@/lib/agents/schemas";
 import { callLlm, type LlmClientLike } from "@/lib/llm/client";
-import { METHODOLOGY_MD, METHODOLOGY_VERSION } from "@/lib/agents/system-prompts/methodology";
+import {
+  METHODOLOGY_VERSION,
+  getMethodologyMd,
+  type MethodologyVersion,
+} from "@/lib/agents/system-prompts/methodology";
 import {
   DISCLAIMER_NOT_GUARANTEED,
   DISCLAIMER_PROJECTION,
@@ -53,9 +57,18 @@ export interface RunScenarioNarrativeOptions {
    * strictly unchanged.
    */
   userId?: string;
+  /**
+   * Methodology version cited by the agent. Defaults to `v1.0` because the
+   * rule-based `ScenarioOutput` is produced under v1.0. Callers narrating a
+   * Monte Carlo output (`runMonteCarlo`) must pass `"v2.0"` so the system
+   * prompt inlines the correct source and the agent does not assert v1.0 on
+   * a probabilistic result.
+   */
+  methodologyVersion?: MethodologyVersion;
 }
 
-const SYSTEM_INSTRUCTIONS = `You are the Scenario Narrative Agent for Hearst Connect.
+function buildSystemInstructions(version: MethodologyVersion): string {
+  return `You are the Scenario Narrative Agent for Hearst Connect.
 
 Your job is to convert a single scenario run (computed by a deterministic, pure-function engine) into a short narrative for institutional / professional investors.
 
@@ -66,14 +79,16 @@ Rules:
 - If confidence is "low", the narrative MUST open with an explicit low-confidence note (e.g. "Note: this projection has low confidence because...").
 - APY is always a RANGE, never a single point. When you quote APY, use the provided range verbatim.
 - Tone: institutional, factual, concise. No marketing. No emojis.
-- Methodology version: ${METHODOLOGY_VERSION}. Reference it implicitly via the methodology you were given; do not invent metrics.
+- Methodology version: ${version}. Reference it implicitly via the methodology you were given; do not invent metrics.
+- PTAI format is MANDATORY. You MUST return a \`ptai\` object with four short strings — \`projection\` (expected outcome / APY range / posture), \`trigger\` (the rule or condition that fires; cite the btc_tactical rule id when one is armed), \`action\` (what the vault does as a result), \`impact\` (numerical impact: APY delta, risk score shift, exposure change). Each PTAI string is a single sentence, ≤500 chars, never empty, must avoid the forbidden words above.
 
 Disclaimers (templated; never rewrite, never paraphrase):
 ${DISCLAIMER_NOT_GUARANTEED}
 ${DISCLAIMER_PROJECTION}
 
 Methodology (immutable, do not contradict):
-${METHODOLOGY_MD}`;
+${getMethodologyMd(version)}`;
+}
 
 function buildUserPrompt(input: ScenarioNarrativeInput): string {
   const out = input.scenario_output;
@@ -108,6 +123,12 @@ function buildUserPrompt(input: ScenarioNarrativeInput): string {
         risk_warning: "string (<= 500 chars)",
         confidence: '"low" | "medium" | "high"',
         key_drivers: ["string", "string", "string (1-5 items)"],
+        ptai: {
+          projection: "string (<= 500 chars, expected outcome / APY range / posture)",
+          trigger: "string (<= 500 chars, rule id + condition that fires)",
+          action: "string (<= 500 chars, what the vault does)",
+          impact: "string (<= 500 chars, quantified APY/risk/exposure impact)",
+        },
       },
       null,
       2,
@@ -119,6 +140,7 @@ function buildUserPrompt(input: ScenarioNarrativeInput): string {
     "- If confidence is low, narrative_md MUST begin with an explicit low-confidence note.",
     "- key_drivers are the 1-5 short bullet drivers behind the projected outcome.",
     "- The confidence field in your output SHOULD generally match the engine confidence; deviate only if the narrative reveals a stronger or weaker signal and state the reason in narrative_md.",
+    "- ptai is MANDATORY. Derive `trigger` from the first armed btc_tactical trigger (use its `id` and `condition`); if none is armed, state \"No active rule triggered — holding current posture.\". Derive `action` from the same trigger's `action` field plus a one-line allocation posture summary. `projection` MUST quote the formatted apy_range above. `impact` MUST cite the stressed_apy and risk_score.",
   ].join("\n");
 }
 
@@ -143,6 +165,7 @@ export async function runScenarioNarrative(
   opts: RunScenarioNarrativeOptions = {},
 ): Promise<ScenarioNarrativeOutput> {
   const model = opts.model ?? SCENARIO_NARRATIVE_MODEL;
+  const methodologyVersion: MethodologyVersion = opts.methodologyVersion ?? METHODOLOGY_VERSION;
 
   // Build system blocks: first block is the cached methodology (always present).
   // If a userId is provided, load per-user persona and inject a second block
@@ -154,7 +177,7 @@ export async function runScenarioNarrative(
   const systemBlocks: SystemBlock[] = [
     {
       type: "text",
-      text: SYSTEM_INSTRUCTIONS,
+      text: buildSystemInstructions(methodologyVersion),
       cache_control: { type: "ephemeral" },
     },
   ];
@@ -214,6 +237,12 @@ export async function runScenarioNarrative(
 
   assertNoForbiddenWords(validated.narrative_md);
   assertNoForbiddenWords(validated.risk_warning);
+  // PTAI strings ship directly to the UI <Ptai> primitive and the Investor
+  // Memo PDF — apply the same forbidden-words lint as the narrative body.
+  assertNoForbiddenWords(validated.ptai.projection);
+  assertNoForbiddenWords(validated.ptai.trigger);
+  assertNoForbiddenWords(validated.ptai.action);
+  assertNoForbiddenWords(validated.ptai.impact);
   assertCitesAssumption(validated.narrative_md);
 
   if (validated.confidence === "low" && !/low confidence/i.test(validated.narrative_md)) {

@@ -1,5 +1,9 @@
 import { Text, View } from "@react-pdf/renderer";
 
+import {
+  PdfProvenance,
+  type PdfProvenanceKind,
+} from "./components/pdf-provenance";
 import { styles } from "./memo-styles";
 
 export function PageHeader({ period }: { period: string }) {
@@ -52,16 +56,29 @@ export function KpiCell({
   label,
   value,
   hint,
+  provenance,
 }: {
   label: string;
   value: string;
   hint?: string;
+  /**
+   * Provenance badge printed under the value. Mandatory per CLAUDE.md §2
+   * for every metric reaching investors. Optional only for non-numeric
+   * descriptors (e.g. "Methodology v1.0") — but should be passed where
+   * meaningful.
+   */
+  provenance?: PdfProvenanceKind;
 }) {
   return (
     <View style={styles.kpiCell}>
       <Text style={styles.kpiCellLabel}>{label}</Text>
       <Text style={styles.kpiCellValue}>{value}</Text>
       {hint ? <Text style={styles.kpiCellHint}>{hint}</Text> : null}
+      {provenance ? (
+        <View style={{ marginTop: 4 }}>
+          <PdfProvenance kind={provenance} />
+        </View>
+      ) : null}
     </View>
   );
 }

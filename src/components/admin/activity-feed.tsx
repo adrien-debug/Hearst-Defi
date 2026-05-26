@@ -23,9 +23,9 @@ const dateFmt = new Intl.DateTimeFormat("en-US", {
 /**
  * Activity Feed — last 5 rebalance / distribution / risk events. Each row
  * opens a PTAI modal (Projection / Trigger / Action / Impact). The
- * `triggerText` already follows the PTAI convention in fixtures and DB rows
- * (see `src/lib/demo/fixtures.ts` and `src/lib/data/dashboard.ts`); we split
- * the strings into the four PTAI slots without inventing copy.
+ * `triggerText` already follows the PTAI convention in DB rows
+ * (see `src/lib/data/dashboard.ts`); we split the strings into the four
+ * PTAI slots without inventing copy.
  */
 export function ActivityFeed({ events }: ActivityFeedProps) {
   const [openId, setOpenId] = useState<string | null>(null);

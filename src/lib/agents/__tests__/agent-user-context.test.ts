@@ -88,6 +88,12 @@ vi.mock("@/lib/llm/client", () => ({
               risk_warning: "Hashprice volatility could compress mining margin.",
               confidence: "medium",
               key_drivers: ["hashprice stability", "uptime above 98%", "USDC base yield"],
+              ptai: {
+                projection: "APY 9.0-12.0% in Balanced mode under stable hashprice.",
+                trigger: "No active rule triggered — holding current posture.",
+                action: "Hold current allocation: mining 45%, btc_tactical 25%.",
+                impact: "Stressed APY 6.4%; risk score 38/100 (moderate).",
+              },
             });
       return {
         response: {

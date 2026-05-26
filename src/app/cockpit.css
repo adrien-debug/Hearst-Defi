@@ -24,12 +24,13 @@
 
   --ct-text-faint: rgba(245, 245, 245, 0.40);
 
-  /* Status semantic colors (source of truth — tokens.css n'en a pas) */
+  /* Status semantic colors (source of truth — tokens.css n'en a pas).
+     Success = canonical accent green (#A7FB90) — single green across UI. */
   --ct-product-connect: var(--ct-accent);
-  --ct-status-success: #4ade80;
-  --ct-status-success-soft: rgba(74, 222, 128, 0.10);
-  --ct-status-success-border: rgba(74, 222, 128, 0.20);
-  --ct-status-success-glow: rgba(74, 222, 128, 0.50);
+  --ct-status-success: var(--ct-accent);
+  --ct-status-success-soft: color-mix(in srgb, var(--ct-accent) 10%, transparent);
+  --ct-status-success-border: color-mix(in srgb, var(--ct-accent) 20%, transparent);
+  --ct-status-success-glow: color-mix(in srgb, var(--ct-accent) 50%, transparent);
 
   --ct-status-warning: #fbbf24;
   --ct-status-warning-soft: rgba(251, 191, 36, 0.10);
@@ -115,17 +116,23 @@
   --ct-space-16: 4rem;      /* 64px */
   --ct-space-24: 6rem;      /* 96px */
 
-  /* Text scale (mirrors Tailwind, + micro pour badges/légendes 10px). */
-  --ct-text-micro: 0.625rem;  /* 10px */
-  --ct-text-xs: 0.6875rem;    /* 11px — utilisé massivement dans dashboard */
-  --ct-text-sm: 0.875rem;     /* 14px */
-  --ct-text-base: 1rem;       /* 16px */
-  --ct-text-lg: 1.125rem;     /* 18px */
-  --ct-text-xl: 1.25rem;      /* 20px */
-  --ct-text-2xl: 1.75rem;     /* 28px */
-  --ct-text-3xl: 2rem;        /* 32px */
-  --ct-text-5xl: 2.75rem;     /* 44px */
-  --ct-text-display: 3rem;    /* 48px */
+  /* Text scale — RESPONSIVE via clamp(min, fluid, max).
+     - Small (base/sm/xs/micro) restent fixes pour la lisibilité du body sur mobile.
+     - Big (lg → display) interpolent linéairement du mobile (375px) au desktop
+       (1440px). Au-delà de 1440px, plafonnés à la valeur max. En dessous de
+       375px, plancher à la valeur min.
+     Formule : fluid = (max_px − min_px) / (1440 − 375) × (100vw − 375px) + min_px,
+     converti en `Xrem + Yvw`. */
+  --ct-text-micro: 0.625rem;  /* 10px — fix */
+  --ct-text-xs: 0.6875rem;    /* 11px — fix (utilisé massivement dans dashboard) */
+  --ct-text-sm: 0.875rem;     /* 14px — fix */
+  --ct-text-base: 1rem;       /* 16px — fix */
+  --ct-text-lg:      clamp(1rem,     0.956rem + 0.188vw, 1.125rem);  /* 16 → 18 */
+  --ct-text-xl:      clamp(1.125rem, 1.081rem + 0.188vw, 1.25rem);   /* 18 → 20 */
+  --ct-text-2xl:     clamp(1.25rem,  1.162rem + 0.376vw, 1.5rem);    /* 20 → 24 */
+  --ct-text-3xl:     clamp(1.5rem,   1.412rem + 0.376vw, 1.75rem);   /* 24 → 28 */
+  --ct-text-5xl:     clamp(1.75rem,  1.574rem + 0.751vw, 2.25rem);   /* 28 → 36 */
+  --ct-text-display: clamp(2rem,     1.824rem + 0.751vw, 2.5rem);    /* 32 → 40 */
 
   /* Font weight scale (mirrors Tailwind). */
   --ct-font-light: 300;
@@ -739,6 +746,36 @@ html[data-rail-mode="expanded"] .ct-rail-item-tooltip {
 /* Séparateur pleine largeur en mode déplié. */
 html[data-rail-mode="expanded"] .ct-rail-sep {
   width: 100%;
+}
+
+/* ── RAIL COLLAPSIBLE — replié (html[data-rail-mode="collapsed"]) ──
+   En mode replié, on ne garde que le mark H dans le header du rail (le badge
+   .ct-rail-top-badge fourni par le package @hearst/cockpit-shell). Le nom du
+   produit (`.ct-rail-top-name` = « Connect ») est masqué — il revient quand
+   l'utilisateur déplie le rail. */
+html[data-rail-mode="collapsed"] .ct-rail-top-name {
+  display: none;
+}
+
+/* ── RAIL COLLAPSIBLE — déplié, logo officiel HearstConnect ──
+   En mode déplié, on remplace le H + nom par le wordmark complet
+   « HEARST Connect » officiel (SVG /logos/hearst-connect-blackbg.svg, déjà
+   en accent vert #a7fb90). Le SVG d'origine a un viewBox 1920×1080 avec
+   beaucoup d'espace vide autour du logo ; on utilise `background-size: cover`
+   pour zoomer sur la zone centrale utile (le wordmark). */
+html[data-rail-mode="expanded"] .ct-rail-top-badge,
+html[data-rail-mode="expanded"] .ct-rail-top-name {
+  display: none;
+}
+html[data-rail-mode="expanded"] .ct-rail-top {
+  flex-direction: row;
+  justify-content: center;
+  padding: 0;
+  min-height: 72px;
+  background:
+    url("/logos/hearst-connect-blackbg.svg") no-repeat center / cover;
+  border-radius: var(--ct-radius-md);
+  overflow: hidden;
 }
 
 /* Bouton repli/dépli — même gabarit qu'un item. */

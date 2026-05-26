@@ -76,7 +76,7 @@ function AuditRow({ entry }: { entry: AuditTrailEntry }) {
       <td className="ct-table-cell tabular ct-text-faint whitespace-nowrap">
         {dateFmt.format(new Date(entry.occurredAt))}
       </td>
-      <td className="ct-table-cell ct-text-muted font-mono text-xs">
+      <td className="ct-table-cell ct-text-muted mono text-xs">
         {wallet}
       </td>
       <td className="ct-table-cell ct-text-body font-medium">
@@ -85,7 +85,7 @@ function AuditRow({ entry }: { entry: AuditTrailEntry }) {
       <td className="ct-table-cell ct-text-muted">
         {entry.entityType}
       </td>
-      <td className="ct-table-cell ct-text-faint font-mono text-xs">
+      <td className="ct-table-cell ct-text-faint mono text-xs">
         {entityId}
       </td>
     </tr>

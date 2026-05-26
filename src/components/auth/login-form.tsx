@@ -53,6 +53,10 @@ export function LoginForm() {
           disabled={isPending}
           placeholder="you@institution.com"
           className="ct-input"
+          style={{ 
+            background: "color-mix(in srgb, var(--ct-bg-deep) 40%, transparent)",
+            borderColor: "var(--ct-border-soft)"
+          }}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? "login-error" : undefined}
         />
@@ -71,6 +75,10 @@ export function LoginForm() {
           disabled={isPending}
           placeholder="••••••••"
           className="ct-input"
+          style={{ 
+            background: "color-mix(in srgb, var(--ct-bg-deep) 40%, transparent)",
+            borderColor: "var(--ct-border-soft)"
+          }}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? "login-error" : undefined}
         />
@@ -82,16 +90,18 @@ export function LoginForm() {
         </p>
       ) : null}
 
-      <Button
-        type="submit"
-        variant="primary"
-        size="md"
-        className="w-full shadow-none hover:shadow-none"
-        disabled={isPending}
-        aria-busy={isPending}
-      >
-        {isPending ? "Signing in…" : "Sign in"}
-      </Button>
+      <div className="flex justify-center">
+        <Button
+          type="submit"
+          variant="primary"
+          size="md"
+          className="w-full max-w-48 shadow-none hover:shadow-none"
+          disabled={isPending}
+          aria-busy={isPending}
+        >
+          {isPending ? "Signing in…" : "Sign in"}
+        </Button>
+      </div>
     </form>
   );
 }

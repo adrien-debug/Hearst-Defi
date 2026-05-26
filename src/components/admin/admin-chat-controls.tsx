@@ -268,7 +268,7 @@ export function AdminChatControls() {
         <div
           className={cn(
             "sticky top-0 z-10 flex items-center gap-2",
-            "border-b border-[var(--ct-border-soft)] bg-[var(--ct-surface-1)]",
+            "bg-transparent",
             "px-4 py-2",
           )}
           role="toolbar"

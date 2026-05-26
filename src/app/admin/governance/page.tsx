@@ -154,14 +154,14 @@ export default async function GovernancePage({ searchParams }: PageProps) {
                   {/* Vault + action */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="ct-pill text-xs font-mono">{proposal.vaultTicker}</span>
+                      <span className="ct-pill text-xs mono">{proposal.vaultTicker}</span>
                       <span className="body-sm ct-text-strong font-semibold truncate">
                         {proposal.actionType}
                       </span>
                     </div>
                     <p className="text-xs ct-text-muted">
                       Proposed by{" "}
-                      <span className="font-mono">
+                      <span className="mono">
                         {proposal.proposedBy.slice(0, 8)}…
                       </span>
                       {" · "}
@@ -192,7 +192,7 @@ export default async function GovernancePage({ searchParams }: PageProps) {
                 {proposal.state === "TIMELOCK" && proposal.etaAt && (
                   <div className="mt-3 pt-3 border-t border-[var(--ct-border-soft)] text-xs ct-text-muted">
                     Timelock ETA:{" "}
-                    <span className="ct-text-primary font-mono">
+                    <span className="ct-text-primary mono">
                       {proposal.etaAt.toISOString().replace("T", " ").slice(0, 19)} UTC
                     </span>
                   </div>

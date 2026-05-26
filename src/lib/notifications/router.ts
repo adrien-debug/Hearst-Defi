@@ -15,6 +15,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { containsForbidden } from "@/lib/agents/forbidden-words";
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -117,22 +119,26 @@ function parseFrontmatter(raw: string): { subject: string; body: string } {
   return { subject, body: (body ?? "").trim() };
 }
 
-/** Forbidden words in template content (outside the "not guaranteed" exception). */
-const FORBIDDEN_WORDS_RE =
-  /\b(?:guarantee(?!d)|promise|certain(?!ly not)|will deliver|risk-free)\b/i;
-
 /**
  * Asserts a template contains no forbidden words.
- * "not guaranteed" is the only permitted form.
+ *
+ * Delegates to the canonical `containsForbidden` matcher from
+ * `@/lib/agents/forbidden-words` so the boot-time template check is in lock-
+ * step with the agent validator, the wizard hook, and the vault server-action
+ * Zod refines — see `docs/audit/coherence-2026-05-26/06-forbidden-words.md`
+ * (P0₁ + P2₂).
+ *
+ * Negated forms ("not guaranteed", "no promise of returns") are exempted via
+ * the shared 3-word negation window — there is no longer a hand-rolled
+ * `replace(/not guaranteed/, "")` pre-pass.
  */
 function assertNoForbiddenWords(key: string, text: string): void {
-  // Strip the allowed "not guaranteed" phrase before checking.
-  const sanitised = text.replace(/\bnot guaranteed\b/gi, "");
-  if (FORBIDDEN_WORDS_RE.test(sanitised)) {
-    throw new Error(
-      `Template "${key}" contains a forbidden word. Revise the template copy.`,
-    );
-  }
+  const result = containsForbidden(text);
+  if (!result) return;
+  const first = result.found[0]!;
+  throw new Error(
+    `Template "${key}" contains a forbidden word ("${first}"). Revise the template copy.`,
+  );
 }
 
 /** Pre-built map: templateKey → { subject, body } loaded at module init. */

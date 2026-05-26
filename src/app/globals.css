@@ -60,16 +60,20 @@
   --font-mono: "Satoshi Variable", sans-serif;
 
   /* Typography scale: cockpit.css --ct-text-* tokens are the source of truth.
-     These @theme values mirror them 1:1 (design-lock stage 0). */
+     These @theme values mirror them 1:1 — small sizes fixes, big sizes
+     responsive via clamp(min, fluid, max) entre mobile 375px et desktop 1440px.
+     Si cockpit.css change un token, mirror ICI pour que les classes Tailwind
+     (text-xl/2xl/3xl/etc.) restent en phase avec les usages CSS directs
+     `var(--ct-text-*)`. */
   --text-micro: 0.625rem;
   --text-xs: 0.6875rem;
   --text-sm: 0.875rem;
   --text-md: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.25rem;
-  --text-2xl: 1.75rem;
-  --text-3xl: 2rem;
-  --text-4xl: 2.75rem;
+  --text-lg: clamp(1rem, 0.956rem + 0.188vw, 1.125rem);    /* 16 → 18 */
+  --text-xl: clamp(1.125rem, 1.081rem + 0.188vw, 1.25rem); /* 18 → 20 */
+  --text-2xl: clamp(1.25rem, 1.162rem + 0.376vw, 1.5rem);  /* 20 → 24 */
+  --text-3xl: clamp(1.5rem, 1.412rem + 0.376vw, 1.75rem);  /* 24 → 28 */
+  --text-4xl: clamp(1.75rem, 1.574rem + 0.751vw, 2.25rem); /* 28 → 36 */
 
   /* Font weights */
   --weight-regular: 400;

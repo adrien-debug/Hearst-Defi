@@ -19,7 +19,7 @@ import { DepositSummary } from "@/components/vaults/deposit-summary";
 import { PreFlightCheck, isPreFlightReady } from "@/components/vaults/preflight-check";
 import { TimeToTargetChart } from "@/components/vaults/time-to-target-chart";
 import { stubDeposit, stubEpoch } from "@/lib/onchain";
-import { monthsToTarget } from "@/lib/demo/projection";
+import { monthsToTarget } from "@/lib/projection-chart";
 import type { VaultProduct } from "@/lib/data/vaults";
 
 // ---------------------------------------------------------------------------

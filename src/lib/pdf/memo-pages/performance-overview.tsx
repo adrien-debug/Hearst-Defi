@@ -1,5 +1,6 @@
 import { Page, Text, View } from "@react-pdf/renderer";
 
+import { PdfProvenance } from "../components/pdf-provenance";
 import {
   Commentary,
   EyebrowTitle,
@@ -82,6 +83,11 @@ export function PerformanceOverviewPage({
           >
             NAV
           </Text>
+          <Text
+            style={[styles.tableHeaderCell, { flex: 1.1, textAlign: "right" }]}
+          >
+            Source
+          </Text>
         </View>
         {rows.map((r, idx) => (
           <View
@@ -109,6 +115,17 @@ export function PerformanceOverviewPage({
             >
               {formatUsd(r.navUsdc)}
             </Text>
+            {/* Row blends attested distribution + live NAV snapshot +
+                estimated APY achieved -> partial. */}
+            <View
+              style={{
+                flex: 1.1,
+                flexDirection: "row",
+                justifyContent: "flex-end",
+              }}
+            >
+              <PdfProvenance kind="partial" />
+            </View>
           </View>
         ))}
       </View>
@@ -134,6 +151,9 @@ export function PerformanceOverviewPage({
           </Text>
           <Text style={[styles.tableHeaderCell, { flex: 0.9, textAlign: "right" }]}>
             Rebals
+          </Text>
+          <Text style={[styles.tableHeaderCell, { flex: 1, textAlign: "right" }]}>
+            Source
           </Text>
         </View>
         {data.input.backtests.map((bt, idx) => (
@@ -165,6 +185,16 @@ export function PerformanceOverviewPage({
             <Text style={[styles.tableCell, { flex: 0.9, textAlign: "right" }]}>
               {bt.numRebalances}
             </Text>
+            {/* Backtests are pure-engine simulations on historical windows. */}
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                justifyContent: "flex-end",
+              }}
+            >
+              <PdfProvenance kind="estimated" />
+            </View>
           </View>
         ))}
       </View>

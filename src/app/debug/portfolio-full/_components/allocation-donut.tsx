@@ -50,7 +50,7 @@ export function AllocationDonut({
 
   return (
     <article className="bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] rounded-sm p-6 flex flex-col relative flex-1 h-full min-h-[200px]" aria-label="Portfolio allocation">
-      <div className="flex justify-between items-center text-[10px] font-medium text-[var(--ct-text-muted)] tracking-widest uppercase mb-6">
+      <div className="flex justify-between items-center text-micro font-medium text-[var(--ct-text-muted)] tracking-widest uppercase mb-6">
         <span>Allocation by status</span>
         <ProvenanceBadge kind={provenance} />
       </div>
@@ -106,7 +106,7 @@ export function AllocationDonut({
                 />
                 {STATUS_LABELS[s.status] ?? s.status}
               </span>
-              <span className="text-[var(--ct-text-strong)] tabular-nums font-mono text-xs">
+              <span className="text-[var(--ct-text-strong)] tabular-nums mono text-xs">
                 {s.pct.toFixed(0)}% <span className="text-[var(--ct-text-muted)] opacity-50">·</span> {formatUsdCompact(s.valueUsdc)}
               </span>
             </div>

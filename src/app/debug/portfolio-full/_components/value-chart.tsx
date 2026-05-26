@@ -55,11 +55,11 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
 
   return (
     <article className="bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] rounded-sm p-6 flex flex-col relative flex-1 h-full min-h-[200px]" aria-label="Portfolio value — 12-month trend">
-      <div className="flex justify-between items-center text-[10px] font-medium text-[var(--ct-text-muted)] tracking-widest uppercase mb-6">
+      <div className="flex justify-between items-center text-micro font-medium text-[var(--ct-text-muted)] tracking-widest uppercase mb-6">
         <span>Portfolio value · 12-month trend</span>
         <div className="flex items-center gap-2">
           <ProvenanceBadge kind={provenance} />
-          <span className="font-mono text-[10px] uppercase tracking-widest px-1.5 py-0.5 rounded-[0.125rem] bg-[var(--ct-surface-2)] text-[var(--ct-text-primary)]">
+          <span className="mono text-micro uppercase tracking-widest px-1.5 py-0.5 rounded-[0.125rem] bg-[var(--ct-surface-2)] text-[var(--ct-text-primary)]">
             {totalValueUsdc > 0 ? formatUsdCompact(totalValueUsdc) : <span className="opacity-30">—</span>}
           </span>
         </div>
@@ -90,7 +90,7 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
         </svg>
       </div>
 
-      <div className="flex justify-between mt-2 text-xs text-[var(--ct-text-muted)] font-mono">
+      <div className="flex justify-between mt-2 text-xs text-[var(--ct-text-muted)] mono">
         {series
           .filter((_, i) => i % 3 === 0 || i === series.length - 1)
           .map((s, i) => (

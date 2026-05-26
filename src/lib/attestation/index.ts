@@ -14,5 +14,7 @@ export {
   parseAttestationPayload,
   verifyStoredAttestation,
   type StoredAttestation,
+  type StoredVerificationReason,
+  type StoredVerificationResult,
 } from "./stored";
 

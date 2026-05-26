@@ -3,7 +3,6 @@ import { headers } from "next/headers";
 
 import { AdminRailIntra } from "@/components/nav/product-rail-intra";
 import { AdminSubNav } from "@/components/nav/admin-sub-nav";
-import { DemoModeToggleSlot } from "@/components/demo/demo-mode-toggle-slot";
 import { VaultBreadcrumb } from "@/components/admin/vault-breadcrumb";
 import { getSession } from "@/lib/auth/session";
 import { requireAdmin } from "@/lib/auth/require-admin";
@@ -84,11 +83,6 @@ export default async function AdminLayout({
   return (
     <>
       <AdminRailIntra />
-      {/* Demo toggle lifted out of the content flow (was pushing the tabs/title
-          down) — pinned bottom-left, clear of the left rail (≤232px expanded). */}
-      <div className="fixed bottom-4 left-[15rem] z-[var(--ct-z-dropdown)]">
-        <DemoModeToggleSlot />
-      </div>
       {/* Sticky breadcrumb — sits between the rail and the sub-nav tabs */}
       <VaultBreadcrumb
         segments={segments}

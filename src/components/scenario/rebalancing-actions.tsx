@@ -1,20 +1,26 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/cn";
+import { Ptai } from "@/components/ui/ptai";
 import type { BtcTriggerKind, ScenarioOutput } from "@/lib/engine/types";
 
 // ── Rebalancing action list ───────────────────────────────────────────────────
 //
-// Derives an ordered list of rebalancing actions (max 4) from the engine output.
-// All strings come from the engine's btc_tactical triggers and allocations.
-// No new arithmetic — only string formatting + ordering of existing fields.
+// Derives an ordered list of rebalancing actions (max 4) from the engine output
+// and renders each one through the canonical <Ptai> primitive (Projection /
+// Trigger / Action / Impact). All four strings come from the engine — no
+// arithmetic, no copy invented in the component. PTAI format is mandated by
+// CLAUDE.md non-negotiable #3 and audit coherence-2026-05-26 / 08-ptai-format
+// (P1.1).
 
 type BadgeVariant = "success" | "warning" | "danger" | "default" | "brand";
 
 interface RebalancingAction {
   ruleId: string;
   label: string;
-  detail: string;
+  projection: string;
+  trigger: string;
+  action: string;
+  impact: string;
   armed: boolean;
   priority: number;
   variant: BadgeVariant;
@@ -34,8 +40,35 @@ const KIND_VARIANT: Record<BtcTriggerKind, BadgeVariant> = {
   hold: "default",
 };
 
+// ── PTAI string derivation (display-only, no math) ────────────────────────────
+
+function formatModeLabel(mode: ScenarioOutput["mode"]): string {
+  if (mode === "defensive") return "Defensive";
+  if (mode === "opportunistic") return "Opportunistic";
+  return "Balanced";
+}
+
+function projectionLine(output: ScenarioOutput): string {
+  const { low, high } = output.apy_range;
+  return `APY ${low.toFixed(1)}–${high.toFixed(1)}% in ${formatModeLabel(output.mode)} mode (confidence: ${output.confidence}).`;
+}
+
+function impactLine(output: ScenarioOutput): string {
+  const { low, high } = output.apy_range;
+  const stressed = output.stressed_apy.toFixed(1);
+  const riskLabel =
+    output.risk_score > 70
+      ? "elevated"
+      : output.risk_score > 40
+        ? "moderate"
+        : "low";
+  return `APY range ${low.toFixed(1)}–${high.toFixed(1)}%; stressed floor ${stressed}%. Risk score ${output.risk_score.toFixed(0)}/100 (${riskLabel}).`;
+}
+
 function deriveActions(output: ScenarioOutput): RebalancingAction[] {
   const actions: RebalancingAction[] = [];
+  const projection = projectionLine(output);
+  const impact = impactLine(output);
 
   // 1. BTC tactical armed triggers first
   for (const trigger of output.btc_tactical.triggers) {
@@ -43,7 +76,10 @@ function deriveActions(output: ScenarioOutput): RebalancingAction[] {
     actions.push({
       ruleId: trigger.id,
       label: KIND_LABEL[trigger.kind],
-      detail: trigger.action,
+      projection,
+      trigger: `${trigger.id}: ${trigger.condition}.`,
+      action: trigger.action,
+      impact,
       armed: true,
       priority: trigger.kind === "hold" ? 4 : 1,
       variant: KIND_VARIANT[trigger.kind],
@@ -55,8 +91,12 @@ function deriveActions(output: ScenarioOutput): RebalancingAction[] {
     actions.push({
       ruleId: "R1/R2",
       label: "Switch to Defensive",
-      detail:
-        "BTC drawdown or mining margin breach — reduce BTC, increase stable reserve.",
+      projection,
+      trigger:
+        "R1/R2: BTC drawdown or mining margin breach detected by the engine.",
+      action:
+        "Reduce BTC tactical exposure, increase stable reserve allocation.",
+      impact,
       armed: true,
       priority: 2,
       variant: "danger",
@@ -65,8 +105,11 @@ function deriveActions(output: ScenarioOutput): RebalancingAction[] {
     actions.push({
       ruleId: "R3",
       label: "Maintain Opportunistic",
-      detail:
-        "Mining margin healthy + risk low — maintain elevated BTC tactical allocation.",
+      projection,
+      trigger:
+        "R3: Mining margin healthy and risk score low — opportunistic mode armed.",
+      action: "Maintain elevated BTC tactical allocation within target bands.",
+      impact,
       armed: true,
       priority: 2,
       variant: "success",
@@ -79,7 +122,13 @@ function deriveActions(output: ScenarioOutput): RebalancingAction[] {
     actions.push({
       ruleId: g.id,
       label: `Review: ${g.label}`,
-      detail: g.detail,
+      projection,
+      trigger: `${g.id} (${g.status}): ${g.detail}`,
+      action:
+        g.status === "breached"
+          ? "Engine flagged guardrail breach — review allocation against target bands."
+          : "Engine flagged guardrail warning — monitor closely against target bands.",
+      impact,
       armed: g.status === "breached",
       priority: g.status === "breached" ? 1 : 3,
       variant: g.status === "breached" ? "danger" : "warning",
@@ -133,48 +182,45 @@ export function RebalancingActions({ output }: RebalancingActionsProps) {
     <Card>
       <CardHeader className="mb-4">
         <CardTitle>Rebalancing Actions</CardTitle>
-        <span className="eyebrow">Max 4 · Rule-based</span>
+        <span className="eyebrow">Max 4 · Rule-based · PTAI</span>
       </CardHeader>
 
-      <ol className="space-y-3">
+      <ol className="space-y-4">
         {actions.map((action, idx) => (
-          <li
-            key={action.ruleId}
-            className={cn(
-              "flex gap-4 rounded-[var(--ct-radius-sm)] glass-panel-subtle",
-              "px-4 py-3",
-            )}
-          >
-            {/* Step number bubble */}
-            <span
-              className={cn(
-                "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center",
-                "rounded-full text-micro font-bold tabular-nums",
-                action.armed
-                  ? "bg-[var(--ct-accent)] text-[var(--ct-bg-deep)]"
-                  : "bg-[var(--ct-surface-3)] text-[var(--ct-text-muted)]",
-              )}
-              aria-hidden
-            >
-              {idx + 1}
-            </span>
-
-            <div className="min-w-0 flex-1 space-y-1.5">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-semibold text-[var(--ct-text-primary)]">
-                  {action.label}
-                </span>
-                <Badge variant={action.variant} className="text-micro">
-                  {action.ruleId}
-                </Badge>
-              </div>
-              <p className="text-xs text-[var(--ct-text-body)]">
-                {action.detail}
-              </p>
+          <li key={action.ruleId} className="space-y-2">
+            <div className="flex items-center gap-3">
+              <span
+                className={
+                  "mt-0 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-micro font-bold tabular-nums " +
+                  (action.armed
+                    ? "bg-[var(--ct-accent)] text-[var(--ct-bg-deep)]"
+                    : "bg-[var(--ct-surface-3)] text-[var(--ct-text-muted)]")
+                }
+                aria-hidden
+              >
+                {idx + 1}
+              </span>
+              <span className="text-sm font-semibold text-[var(--ct-text-primary)]">
+                {action.label}
+              </span>
+              <Badge variant={action.variant} className="text-micro">
+                {action.ruleId}
+              </Badge>
             </div>
+
+            <Ptai
+              projection={action.projection}
+              trigger={action.trigger}
+              action={action.action}
+              impact={action.impact}
+            />
           </li>
         ))}
       </ol>
+
+      <p className="mt-4 text-xs italic text-[var(--ct-text-faint)] leading-[var(--ct-leading-relaxed)]">
+        Conditional projection — not guaranteed. Methodology v1.0.
+      </p>
     </Card>
   );
 }

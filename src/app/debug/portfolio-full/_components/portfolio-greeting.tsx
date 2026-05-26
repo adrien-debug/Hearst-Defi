@@ -32,7 +32,7 @@ export function PortfolioGreeting({ name, data }: PortfolioGreetingProps) {
       <h1 className="text-2xl font-light text-[var(--ct-text-primary)] tracking-tight leading-tight m-0">
         Welcome back, <span className="font-medium text-[var(--ct-text-strong)]">{name}</span>
       </h1>
-      <p className="text-[11px] text-[var(--ct-text-muted)] font-mono m-0 opacity-80 uppercase tracking-widest">{recap}</p>
+      <p className="text-xs text-[var(--ct-text-muted)] mono m-0 opacity-80 uppercase tracking-widest">{recap}</p>
     </div>
   );
 }

@@ -8,6 +8,10 @@ import { recordAdminAudit } from "@/lib/admin/audit";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { assertRateLimit } from "@/lib/rate-limit";
+import {
+  containsForbidden,
+  FORBIDDEN_WORDS,
+} from "@/lib/agents/forbidden-words";
 
 /** Admin vault actions rate limit: 30 requests / 60s / admin. */
 const VAULT_RATE_MAX = 30;
@@ -15,22 +19,18 @@ const VAULT_RATE_WINDOW_MS = 60_000;
 
 // ---------------------------------------------------------------------------
 // Forbidden words in disclaimers (CLAUDE.md non-négociable #5)
+//
+// All matching delegates to the canonical module `@/lib/agents/forbidden-words`
+// so the wizard inline check, the agent output validator, the notification
+// template loader, and these server-side refines all stay in lock-step.
+// See `docs/audit/coherence-2026-05-26/06-forbidden-words.md` (P0₃, P1₃, P2₂).
 // ---------------------------------------------------------------------------
 
-const FORBIDDEN_WORDS = [
-  "guarantee",
-  "promise",
-  "certain",
-  "will deliver",
-  "risk-free",
-] as const;
+const FORBIDDEN_WORDS_HUMAN = FORBIDDEN_WORDS.join(" / ");
 
 function containsForbiddenWord(text: string): string | null {
-  const lower = text.toLowerCase();
-  for (const word of FORBIDDEN_WORDS) {
-    if (lower.includes(word)) return word;
-  }
-  return null;
+  const result = containsForbidden(text);
+  return result ? result.found[0] ?? null : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -71,7 +71,7 @@ const CreateDraftSchema = z.object({
     .refine((v) => {
       const hit = containsForbiddenWord(v);
       return hit === null;
-    }, "Disclaimers contain a forbidden word (guarantee / promise / certain / will deliver / risk-free)"),
+    }, `Disclaimers contain a forbidden word (${FORBIDDEN_WORDS_HUMAN})`),
   targetMiningBps: z.number().min(0).max(10000),
   targetBtcTacticalBps: z.number().min(0).max(10000),
   targetUsdcBaseBps: z.number().min(0).max(10000),
@@ -112,8 +112,7 @@ const CreateDraftSchema = z.object({
       return containsForbiddenWord(d.description) === null;
     },
     {
-      message:
-        "Description contains a forbidden word (guarantee / promise / certain / will deliver / risk-free)",
+      message: `Description contains a forbidden word (${FORBIDDEN_WORDS_HUMAN})`,
       path: ["description"],
     },
   )
@@ -128,8 +127,7 @@ const CreateDraftSchema = z.object({
   .refine(
     (d) => containsForbiddenWord(d.name) === null,
     {
-      message:
-        "Name contains a forbidden word (guarantee / promise / certain / will deliver / risk-free)",
+      message: `Name contains a forbidden word (${FORBIDDEN_WORDS_HUMAN})`,
       path: ["name"],
     },
   );

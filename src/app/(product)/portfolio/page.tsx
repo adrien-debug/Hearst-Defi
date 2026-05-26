@@ -1,6 +1,6 @@
 import "./portfolio.css";
 
-import { loadPortfolio } from "@/lib/demo/loaders";
+import { loadPortfolio } from "@/lib/data/portfolio";
 import { getInvestor } from "@/lib/auth/session";
 import {
   loadLockMeterProps,
@@ -8,10 +8,12 @@ import {
   loadDistribCalendarProps,
   loadProofPulseProps,
   loadYieldStackProps,
+  loadTaxPreview,
 } from "@/lib/data/portfolio";
+import type { TaxPreview } from "@/lib/portfolio/tax";
+import { TaxDocsDrawerButton } from "@/components/portfolio/tax-docs-drawer";
 
 import { PortfolioGreeting } from "@/components/portfolio/portfolio-greeting";
-import { PortfolioKpiRow } from "@/components/portfolio/kpi-row";
 import { AllocationDonut } from "@/components/portfolio/allocation-donut";
 import { ValueChart } from "@/components/portfolio/value-chart";
 import { PositionsList } from "@/components/portfolio/positions-list";
@@ -22,6 +24,7 @@ import { DistribCalendar } from "@/components/portfolio/distrib-calendar";
 import { ProofPulse } from "@/components/portfolio/proof-pulse";
 import { YieldStack } from "@/components/portfolio/yield-stack";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
+import { formatUsdCompact } from "@/lib/format/usd-compact";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +72,18 @@ function Section({ "data-section": dataSectionAttr, children, label }: SectionPr
 // Surprise & Delight bar — export PDF / preview 1099 / LP secondary (V2)
 // ---------------------------------------------------------------------------
 
-function SurpriseDelightBar() {
+interface SurpriseDelightBarProps {
+  /** Investor DB id — used to build the /api/statements/[id]/pdf URL. */
+  investorId: string | null;
+  /** Tax preview backed by real YTD distributions; null when no investor. */
+  taxPreview: TaxPreview | null;
+}
+
+function SurpriseDelightBar({ investorId, taxPreview }: SurpriseDelightBarProps) {
+  const pdfHref = investorId
+    ? `/api/statements/${investorId}/pdf`
+    : null;
+
   return (
     <div
       data-testid="surprise-delight-bar"
@@ -79,23 +93,47 @@ function SurpriseDelightBar() {
         Tools
       </span>
 
-      {/* Export PDF statement */}
-      <button
-        type="button"
-        className="body-xs flex items-center gap-1.5 rounded-[var(--ct-radius-md)] border border-[var(--ct-border-soft)] bg-[var(--ct-surface-2)] px-3 py-1.5 text-[var(--ct-text-body)] transition-colors hover:border-[var(--ct-border-accent)] hover:text-[var(--ct-text-primary)]"
-        aria-label="Export PDF statement"
-      >
-        <span aria-hidden>↓</span> Export PDF statement
-      </button>
+      {/* Export PDF statement — real download link when investorId is available */}
+      {pdfHref ? (
+        <a
+          href={pdfHref}
+          download
+          className="body-xs flex items-center gap-1.5 rounded-[var(--ct-radius-md)] border border-[var(--ct-border-soft)] bg-[var(--ct-surface-2)] px-3 py-1.5 text-[var(--ct-text-body)] transition-colors hover:border-[var(--ct-border-accent)] hover:text-[var(--ct-text-primary)]"
+          aria-label="Export PDF statement"
+        >
+          <span aria-hidden>↓</span> Export PDF statement
+        </a>
+      ) : (
+        <button
+          type="button"
+          disabled
+          className="body-xs flex cursor-not-allowed items-center gap-1.5 rounded-[var(--ct-radius-md)] border border-[var(--ct-border-soft)] bg-[var(--ct-surface-2)] px-3 py-1.5 text-[var(--ct-text-faint)] opacity-50"
+          aria-label="Export PDF statement — sign in required"
+        >
+          <span aria-hidden>↓</span> Export PDF statement
+        </button>
+      )}
 
-      {/* Preview 1099 / CRS */}
-      <button
-        type="button"
-        className="body-xs flex items-center gap-1.5 rounded-[var(--ct-radius-md)] border border-[var(--ct-border-soft)] bg-[var(--ct-surface-2)] px-3 py-1.5 text-[var(--ct-text-body)] transition-colors hover:border-[var(--ct-border-accent)] hover:text-[var(--ct-text-primary)]"
-        aria-label="Preview 1099 or CRS document"
-      >
-        <span aria-hidden>📄</span> Preview 1099 / CRS
-      </button>
+      {/* Preview 1099 / CRS — wired to real YTD distributions via loadTaxPreview.
+          When the investor is not signed in (or there is no preview yet) we
+          render the same disabled button shape used by the PDF export so the
+          bar layout stays stable. */}
+      {investorId && taxPreview ? (
+        <TaxDocsDrawerButton
+          userId={investorId}
+          preview={taxPreview}
+          className="body-xs"
+        />
+      ) : (
+        <button
+          type="button"
+          disabled
+          className="body-xs flex cursor-not-allowed items-center gap-1.5 rounded-[var(--ct-radius-md)] border border-[var(--ct-border-soft)] bg-[var(--ct-surface-2)] px-3 py-1.5 text-[var(--ct-text-faint)] opacity-50"
+          aria-label="Preview 1099 or CRS document — sign in required"
+        >
+          <span aria-hidden>📄</span> Preview 1099 / CRS
+        </button>
+      )}
 
       {/* LP → LP secondary (V2 badge) */}
       <span
@@ -182,6 +220,67 @@ function PositionValueKpi({ totalValueUsdc, source }: PositionValueKpiProps) {
 }
 
 // ---------------------------------------------------------------------------
+// Yield YTD KPI
+// ---------------------------------------------------------------------------
+
+interface YieldYtdKpiProps {
+  totalYieldYtdUsdc: number;
+  hasPositions: boolean;
+  source: "live" | "fallback";
+}
+
+function YieldYtdKpi({ totalYieldYtdUsdc, hasPositions, source }: YieldYtdKpiProps) {
+  const provenance = source === "fallback" ? "stale" : "estimated";
+  return (
+    <article className="dash-cell" aria-label="Yield year to date" data-testid="yield-ytd-kpi">
+      <div className="dash-label">
+        <span>Yield YTD</span>
+        <ProvenanceBadge kind={provenance} />
+      </div>
+      <div className="dash-value-group">
+        <span className="dash-value">
+          {hasPositions ? formatUsdCompact(totalYieldYtdUsdc) : "—"}
+        </span>
+        <span className="dash-unit">USDC</span>
+      </div>
+      <p className="body-xs ct-text-muted mt-2 italic">Accrued + distributed. Not projected forward.</p>
+    </article>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Next Distribution KPI
+// ---------------------------------------------------------------------------
+
+interface NextDistributionKpiProps {
+  nextDistributionAt: Date;
+  source: "live" | "fallback";
+}
+
+function NextDistributionKpi({ nextDistributionAt, source }: NextDistributionKpiProps) {
+  const provenance = source === "fallback" ? "stale" : "estimated";
+  const monthDayFmt = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+  return (
+    <article className="dash-cell" aria-label="Next distribution date" data-testid="next-distribution-kpi">
+      <div className="dash-label">
+        <span>Next Distribution</span>
+        <ProvenanceBadge kind={provenance} />
+      </div>
+      <div className="dash-value-group">
+        <span className="dash-value-range stat-value tabular">
+          {monthDayFmt.format(nextDistributionAt)}
+        </span>
+      </div>
+      <p className="body-xs ct-text-muted mt-2">Monthly cadence · Day 1, T+5</p>
+    </article>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 
@@ -203,11 +302,16 @@ export default async function PortfolioPage() {
     loadProofPulseProps(),
     loadYieldStackProps(),
   ]);
+  // Tax preview is loaded after the investor is known so its loader can reuse
+  // the same session lookup; running it inside the Promise.all is safe since
+  // `loadTaxPreview` resolves the investor internally. Keeping it serial is
+  // simpler here than threading the investor object into the loader.
+  const taxPreview = await loadTaxPreview();
 
   const name = displayName(investor);
 
   // Strip the `source` field before forwarding to widget components
-  // (widgets don't accept it — it's used only for ProvenanceBadge decisions here).
+  // (widgets that don't accept source-driven provenance keep their default badge).
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { source: _lmSource, ...lockMeterProps } = lockMeterPropsRaw;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -216,8 +320,21 @@ export default async function PortfolioPage() {
   const { source: _dcSource, ...distribCalendarProps } = distribCalendarPropsRaw;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { source: _ppSource, ...proofPulseProps } = proofPulsePropsRaw;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { source: _ysSource, ...yieldStackProps } = yieldStackPropsRaw;
+  // YieldStack accepts source — forward it so its ProvenanceBadge reflects DB state.
+  // For a user with no positions, suppress the vault-level sources and ranges: the
+  // widget would otherwise display a forward yield projection (Mining +6.2%, USDC
+  // +4.8%, …) that has nothing to do with the user's empty portfolio. Hand it an
+  // empty payload so it falls through to its "No yield source data yet" empty state.
+  const yieldStackProps =
+    data.positions.length === 0
+      ? {
+          ...yieldStackPropsRaw,
+          sources: [],
+          blendedLow: 0,
+          blendedHigh: 0,
+          stressedBearRange: { low: 0, high: 0 },
+        }
+      : yieldStackPropsRaw;
 
   return (
     <div className="space-y-12" data-testid="portfolio-page">
@@ -226,7 +343,7 @@ export default async function PortfolioPage() {
       <Section data-section="hero-pulse" label="Hero Pulse — key portfolio metrics">
         <PortfolioGreeting name={name} data={data} />
 
-        {/* 5 KPI cards: NAV/share · Position Value · APY · Next Distribution · Lock·Liquidity */}
+        {/* 5 KPI cards: NAV/share · Position Value · Yield YTD · Next Distribution · Lock·Liquidity */}
         <div
           className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5"
           data-testid="hero-kpi-grid"
@@ -240,13 +357,15 @@ export default async function PortfolioPage() {
             totalValueUsdc={data.totalValueUsdc}
             source={data.source}
           />
-          {/* Yield YTD + Next Distribution live inside PortfolioKpiRow — split
-              the grid by rendering the KPI row spanning 3 cols so it fills the
-              remaining slots inside the 5-col hero grid. */}
-          <div className="contents">
-            <PortfolioKpiRow data={data} />
-          </div>
-          {/* Lock·Liquidity widget (widget H) */}
+          <YieldYtdKpi
+            totalYieldYtdUsdc={data.totalYieldYtdUsdc}
+            hasPositions={data.positions.length > 0}
+            source={data.source}
+          />
+          <NextDistributionKpi
+            nextDistributionAt={data.nextDistributionAt}
+            source={data.source}
+          />
           <div data-testid="lock-meter-widget">
             <LockMeter {...lockMeterProps} />
           </div>
@@ -308,7 +427,10 @@ export default async function PortfolioPage() {
         />
 
         {/* Surprise & Delight bar */}
-        <SurpriseDelightBar />
+        <SurpriseDelightBar
+          investorId={investor?.id ?? null}
+          taxPreview={taxPreview}
+        />
       </Section>
 
     </div>

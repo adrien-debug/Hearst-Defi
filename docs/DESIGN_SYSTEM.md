@@ -24,24 +24,34 @@ dans `cockpit.css` (pattern établi : Sonner, rails).
 
 | Token | Valeur | Usage |
 |---|---|---|
-| `--ct-bg-deep` | `#050A05` | Fond global, rails, cellules |
-| `--ct-accent` | `#A7FB90` | Accent produit (piloté ThemeAccent) |
+| `--ct-bg-deep` | `#000000` | Fond global iOS-dark, rails, cellules |
+| `--ct-accent` | `#A7FB90` | **Seul vert de l'UI** (piloté ThemeAccent) |
 | `--ct-accent-soft` | `accent 18% + transparent` | Halo ambiant, charts soft tone |
-| `--ct-accent-strong` | `accent 78% + #fff` | Arc actif jauges/charts |
-| `--ct-accent-soft` | `accent 18% + transparent` | Fills légers |
+| `--ct-accent-strong` | `accent 82% + #fff` | Arc actif jauges/charts |
 | `--ct-surface-0..3` | `rgba(255,255,255,.02→.09)` | Verre dépoli (élévation croissante) |
 | `--ct-text-strong` | `#ffffff` | Chiffres clés, titres |
 | `--ct-text-primary` | `rgba(245,245,245,.92)` | Texte courant |
 | `--ct-text-body` | `rgba(245,245,245,.72)` | Texte secondaire |
 | `--ct-text-muted` | `rgba(245,245,245,.48)` | Labels, captions |
+| `--ct-text-faint` | `rgba(245,245,245,.40)` | Disclaimers, micro |
 | `--ct-border-soft / border / strong` | `rgba(255,255,255,.06/.10/.16)` | Séparateurs |
-| `--ct-status-success` | `#4ade80` | Live, positif |
+| `--ct-status-success` | `var(--ct-accent)` | Live, positif — **= accent** (un seul vert) |
 | `--ct-status-warning` | `#fbbf24` | Estimated, attention |
 | `--ct-status-danger` | `#f87171` | Stale, négatif |
-| `--ct-status-info` | `#60a5fa` | Oracle, neutre info |
+| `--ct-status-info` | `#60a5fa` | Oracle, USDC bucket, neutre info |
 
-**Interdit** : tout hex hors de ces tokens dans `src/**` (exception documentée :
-`src/lib/cockpit-tokens.ts` pour PDF/Privy/registry). Pas de `dark:`.
+**🔒 Règles dures** (CI/audit) :
+- Tout hex/rgba en dehors de ces tokens dans `src/**` = **interdit**.
+  Exception unique documentée : `src/lib/cockpit-tokens.ts` (palette PDF print
+  + Privy theme — ne peuvent pas lire de CSS vars runtime).
+- **Un seul vert dans l'UI web** = `--ct-accent`. Pas de Tailwind green-*, pas
+  de `#4ade80`, pas d'`accent-soft` comme « couleur de catégorie alternative ».
+  Pour différencier visuellement, prendre `--ct-status-info` (bleu),
+  `--ct-status-warning` (orange) ou `--ct-text-faint/muted` (gris).
+- Aucun `dark:` modifier (dark-only au MVP).
+- Aucun `font-mono` className (Tailwind utility) — utiliser `.mono` ou
+  `.tabular` (custom, ajoutent `tabular-nums` + `ss01`). `var(--font-mono)`
+  CSS var reste autorisée (alias officiel vers Satoshi).
 
 ## 3. Radius / Z / Motion
 

@@ -5,7 +5,11 @@ import {
   type InvestorMemoOutput,
 } from "@/lib/agents/schemas";
 import { callLlm, type LlmClientLike } from "@/lib/llm/client";
-import { METHODOLOGY_MD, METHODOLOGY_VERSION } from "@/lib/agents/system-prompts/methodology";
+import {
+  METHODOLOGY_VERSION,
+  getMethodologyMd,
+  type MethodologyVersion,
+} from "@/lib/agents/system-prompts/methodology";
 import {
   DISCLAIMER_NOT_GUARANTEED,
   DISCLAIMER_PROJECTION,
@@ -66,9 +70,17 @@ export interface RunInvestorMemoOptions {
    * strictly unchanged.
    */
   userId?: string;
+  /**
+   * Methodology version cited by the memo. Defaults to `v1.0` (rule-based
+   * scenarios + backtests). Pass `"v2.0"` when the memo consumes Monte Carlo
+   * outputs alongside the rule-based scenarios so the methodology_note cites
+   * the ratified MC source instead of v1.0.
+   */
+  methodologyVersion?: MethodologyVersion;
 }
 
-const SYSTEM_INSTRUCTIONS = `You are the Investor Memo Agent for Hearst Connect.
+function buildSystemInstructions(version: MethodologyVersion): string {
+  return `You are the Investor Memo Agent for Hearst Connect.
 
 You receive full vault state, scenario outputs, and backtest summaries. You produce a structured 8-section Markdown memo for institutional / qualified investors (Cayman SPV structure, $250k minimum ticket, 60-day soft lock-up).
 
@@ -81,7 +93,7 @@ Rules — apply all without exception:
 - If any input data is missing or ambiguous, state it explicitly in the relevant section. Do not invent numbers.
 - Disclaimers are pre-supplied as templates; reproduce them verbatim in the \`disclaimer\` field. Do not paraphrase or shorten.
 - Tone: institutional, factual, professional. No marketing superlatives. No emojis.
-- Methodology version: ${METHODOLOGY_VERSION}.
+- Methodology version: ${version}.
 
 The 8 sections and their purpose:
 1. executive_summary — high-level overview of vault performance and posture (2-3 paragraphs)
@@ -99,7 +111,8 @@ ${DISCLAIMER_NOT_GUARANTEED}
 ${DISCLAIMER_PROJECTION}
 
 Methodology (immutable, do not contradict):
-${METHODOLOGY_MD}`;
+${getMethodologyMd(version)}`;
+}
 
 function buildScenarioBlock(scenario: ScenarioOutput, idx: number): string {
   const allocLines = scenario.allocations
@@ -135,7 +148,10 @@ function buildBacktestBlock(bt: BacktestOutput, idx: number): string {
   ].join("\n");
 }
 
-function buildUserPrompt(input: InvestorMemoInput): string {
+function buildUserPrompt(
+  input: InvestorMemoInput,
+  methodologyVersion: MethodologyVersion,
+): string {
   const scenarioBlocks = input.scenarios.map(buildScenarioBlock).join("\n\n");
   const backtestBlocks = input.backtests.map(buildBacktestBlock).join("\n\n");
   const vaultName = input.vault.name ?? "Hearst Yield Vault";
@@ -144,7 +160,7 @@ function buildUserPrompt(input: InvestorMemoInput): string {
   const vaultAssumptionLines =
     vaultAssumptions.length > 0
       ? vaultAssumptions.map((a) => `    - ${a}`).join("\n")
-      : "    (none provided — fall back to the methodology v1.0 defaults)";
+      : `    (none provided — fall back to the methodology ${methodologyVersion} defaults)`;
 
   return [
     `Produce an Investor Memo for the ${vaultName} (vault id=${vaultId}). Use ONLY this vault's name and assumptions throughout — do not silently substitute another vault's posture or projections.`,
@@ -214,6 +230,7 @@ export async function runInvestorMemo(
   opts: RunInvestorMemoOptions = {},
 ): Promise<InvestorMemoOutput> {
   const model = opts.model ?? INVESTOR_MEMO_MODEL;
+  const methodologyVersion: MethodologyVersion = opts.methodologyVersion ?? METHODOLOGY_VERSION;
 
   // Build system blocks: first block is the cached methodology (always present).
   // If a userId is provided, load per-user persona and inject a second block
@@ -225,7 +242,7 @@ export async function runInvestorMemo(
   const systemBlocks: SystemBlock[] = [
     {
       type: "text",
-      text: SYSTEM_INSTRUCTIONS,
+      text: buildSystemInstructions(methodologyVersion),
       cache_control: { type: "ephemeral" },
     },
   ];
@@ -261,7 +278,7 @@ export async function runInvestorMemo(
       messages: [
         {
           role: "user",
-          content: buildUserPrompt(input),
+          content: buildUserPrompt(input, methodologyVersion),
         },
       ],
     },

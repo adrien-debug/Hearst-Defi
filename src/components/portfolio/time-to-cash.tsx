@@ -107,7 +107,7 @@ export function TimeToCash({
         {/* Countdown — aria-live so JS can update it client-side if hydrated */}
         <p
           className={cn(
-            "font-mono tabular-nums text-xl font-semibold leading-tight",
+            "mono tabular-nums text-xl font-semibold leading-tight",
             daysRemaining === 0 && hoursRemaining === 0
               ? "ct-status-success"
               : "ct-text-primary",

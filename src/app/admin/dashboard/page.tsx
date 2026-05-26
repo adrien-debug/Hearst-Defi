@@ -19,11 +19,9 @@ import { SkeletonCard } from "@/components/ui/skeleton";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { allocationLabelFor, allocationStrokeFor } from "@/lib/allocation-colors";
 import { loadCustody } from "@/lib/data/custody";
-import {
-  loadAdvancedMetrics,
-  loadDashboardData,
-  loadRiskFramework,
-} from "@/lib/demo/loaders";
+import { loadAdvancedMetrics } from "@/lib/data/advanced-metrics";
+import { loadDashboardData } from "@/lib/data/dashboard";
+import { loadRiskFramework } from "@/lib/data/risk-framework";
 import { listAllVaults } from "@/lib/vaults/resolver";
 import { vaultSlug, vaultLabel } from "@/lib/vaults/slug";
 

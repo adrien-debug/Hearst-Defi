@@ -177,7 +177,7 @@ function GasRow({ gas, usd }: { gas: number; usd: number }) {
       <span className="text-[length:var(--ct-text-xs)] text-[var(--ct-text-muted)] uppercase tracking-[var(--ct-tracking-wide)]">
         Gas estimate
       </span>
-      <span className="font-mono tabular-nums text-[length:var(--ct-text-sm)] text-[var(--ct-text-strong)]">
+      <span className="mono tabular-nums text-[length:var(--ct-text-sm)] text-[var(--ct-text-strong)]">
         {gas.toLocaleString("en-US")}{" "}
         <span className="text-[var(--ct-text-muted)]">
           (${usd.toFixed(2)})
@@ -202,15 +202,15 @@ function StateDiffSection({ entries }: { entries: StateDiffEntry[] }) {
               key={i}
               className="rounded-[var(--ct-radius-md)] border border-[var(--ct-border-soft)] bg-[var(--ct-surface-1)] px-3 py-2.5 space-y-1"
             >
-              <p className="font-mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-muted)] truncate">
+              <p className="mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-muted)] truncate">
                 {entry.contract}
               </p>
-              <p className="font-mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-faint)] truncate">
+              <p className="mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-faint)] truncate">
                 slot {entry.slot.slice(0, 18)}…
               </p>
               <div className="flex items-center gap-2 flex-wrap">
                 <span
-                  className="font-mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-faint)]"
+                  className="mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-faint)]"
                   title={entry.before}
                 >
                   {truncateHex(entry.before)}
@@ -222,7 +222,7 @@ function StateDiffSection({ entries }: { entries: StateDiffEntry[] }) {
                   →
                 </span>
                 <span
-                  className="font-mono text-[length:var(--ct-text-micro)] text-[var(--ct-accent)]"
+                  className="mono text-[length:var(--ct-text-micro)] text-[var(--ct-accent)]"
                   title={entry.after}
                 >
                   {truncateHex(entry.after)}
@@ -254,12 +254,12 @@ function BalanceDeltaSection({ entries }: { entries: BalanceDeltaEntry[] }) {
                 key={i}
                 className="flex items-center justify-between gap-4 rounded-[var(--ct-radius-md)] border border-[var(--ct-border-soft)] bg-[var(--ct-surface-1)] px-3 py-2"
               >
-                <span className="font-mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-muted)] truncate">
+                <span className="mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-muted)] truncate">
                   {entry.address.slice(0, 10)}…
                 </span>
                 <span
                   className={cn(
-                    "font-mono tabular-nums text-[length:var(--ct-text-xs)]",
+                    "mono tabular-nums text-[length:var(--ct-text-xs)]",
                     isPositive
                       ? "text-[var(--ct-accent)]"
                       : "text-[var(--ct-status-danger)]",
@@ -296,7 +296,7 @@ function RevertsSection({ entries }: { entries: RevertEntry[] }) {
             <p className="text-[length:var(--ct-text-xs)] font-medium text-[var(--ct-status-danger)]">
               {entry.reason}
             </p>
-            <p className="mt-0.5 font-mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-faint)]">
+            <p className="mt-0.5 mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-faint)]">
               PC: {entry.pc}
             </p>
           </li>
@@ -327,11 +327,11 @@ function EventsSection({ entries }: { entries: EventEntry[] }) {
               <ul className="space-y-0.5">
                 {Object.entries(entry.args).map(([key, val]) => (
                   <li key={key} className="flex gap-2 items-start">
-                    <span className="shrink-0 font-mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-muted)] min-w-[5rem]">
+                    <span className="shrink-0 mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-muted)] min-w-[5rem]">
                       {key}
                     </span>
                     <span
-                      className="font-mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-faint)] truncate"
+                      className="mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-faint)] truncate"
                       title={String(val)}
                     >
                       {String(val)}

@@ -94,12 +94,12 @@ export function BatchSelectionBar({
         "fixed bottom-6 left-1/2 z-[9000] -translate-x-1/2",
         // Surface — glass with accent border.
         "flex items-center gap-2",
-        "rounded-[var(--ct-radius-xl,12px)]",
-        "bg-[var(--ct-glass-bg,rgba(0,0,0,0.7))]",
-        "backdrop-blur-[var(--ct-glass-blur,40px)]",
+        "rounded-[var(--ct-radius-xl)]",
+        "bg-[color-mix(in_srgb,var(--ct-bg-deep)_70%,transparent)]",
+        "backdrop-blur-[40px]",
         "border border-[var(--ct-accent)]",
         "px-4 py-2",
-        "shadow-[var(--ct-shadow-lg,0_8px_32px_rgba(0,0,0,0.5))]",
+        "shadow-[var(--ct-shadow-elevated)]",
         // Animation.
         "animate-in slide-in-from-bottom-3 fade-in duration-200",
         className,
@@ -156,10 +156,10 @@ export function BatchSelectionBar({
               role="menu"
               className={cn(
                 "absolute bottom-full right-0 mb-2 min-w-[140px]",
-                "rounded-[var(--ct-radius-lg,8px)]",
+                "rounded-[var(--ct-radius-lg)]",
                 "bg-[var(--ct-surface-2)]",
                 "border border-[var(--ct-border-soft)]",
-                "py-1 shadow-[var(--ct-shadow-lg,0_8px_32px_rgba(0,0,0,0.4))]",
+                "py-1 shadow-[var(--ct-shadow-elevated)]",
                 "animate-in slide-in-from-bottom-1 fade-in duration-150",
               )}
             >

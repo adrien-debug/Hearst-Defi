@@ -117,15 +117,15 @@ describe("Blended range contract", () => {
 // ── 5. Stressed bear displayed ────────────────────────────────────────────────
 
 describe("Stressed bear contract", () => {
-  it("stressedBear=5.2 formats to '5.2%'", () => {
-    const stressed = 5.2;
-    expect(`${stressed.toFixed(1)}%`).toBe("5.2%");
+  it("stressedBearRange={low:5.2,high:6.0} formats to '5.2–6.0%' (CLAUDE.md #1: range, not point)", () => {
+    const range = { low: 5.2, high: 6.0 };
+    expect(`${range.low.toFixed(1)}–${range.high.toFixed(1)}%`).toBe("5.2–6.0%");
   });
 
-  it("stressed bear is strictly less than blended low (bear scenario semantics)", () => {
-    const stressedBear = 5.2;
+  it("stressed bear range upper bound is strictly less than blended low (bear scenario semantics)", () => {
+    const stressedHigh = 6.0;
     const blendedLow = 9.4;
-    expect(stressedBear).toBeLessThan(blendedLow);
+    expect(stressedHigh).toBeLessThan(blendedLow);
   });
 });
 

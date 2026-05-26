@@ -4,8 +4,13 @@ import { NextResponse } from "next/server";
 import { renderToBuffer, Document, Page, Text, View, Svg, Rect, G, StyleSheet } from "@react-pdf/renderer";
 
 import { requireAuth } from "@/lib/auth/require-auth";
+import { CT_PDF_DARK } from "@/lib/cockpit-tokens";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import {
+  PdfProvenance,
+  type PdfProvenanceKind,
+} from "@/lib/pdf/components/pdf-provenance";
 import { assertRateLimit } from "@/lib/rate-limit";
 import {
   aggregateLpPnl,
@@ -58,13 +63,15 @@ function ytdStart(): Date {
 // Styles (PDF)
 // ---------------------------------------------------------------------------
 
-const ACCENT = "#A7FB90";
-const BG_DEEP = "#0A0A0A";
-const SURFACE = "#141414";
-const TEXT_PRIMARY = "#F5F5F5";
-const TEXT_MUTED = "#8A8A8A";
-const TEXT_FAINT = "#4A4A4A";
-const BORDER = "#222222";
+const {
+  accent: ACCENT,
+  bgDeep: BG_DEEP,
+  surface: SURFACE,
+  textPrimary: TEXT_PRIMARY,
+  textMuted: TEXT_MUTED,
+  textFaint: TEXT_FAINT,
+  border: BORDER,
+} = CT_PDF_DARK;
 
 const styles = StyleSheet.create({
   page: {
@@ -239,22 +246,14 @@ const styles = StyleSheet.create({
     fontSize: 7,
     color: TEXT_FAINT,
   },
-  provenanceDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: ACCENT,
-    marginRight: 4,
-  },
-  provenanceRow: {
-    flexDirection: "row",
-    alignItems: "center",
+  provenanceWrap: {
     marginTop: 4,
   },
-  provenanceLabel: {
-    fontSize: 7,
-    color: TEXT_MUTED,
-    letterSpacing: 0.4,
+  cellProvenance: {
+    flex: 0.7,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
   },
   pnlSubtitle: {
     fontSize: 8,
@@ -302,30 +301,69 @@ function LogoSvg() {
 // PDF Document
 // ---------------------------------------------------------------------------
 
+/**
+ * Per-metric provenance map.
+ *
+ * The route is the authoritative place to map each printed metric back to
+ * the system that produced it — the data sources are heterogeneous (DB
+ * `Position`, DB `InvestorTransaction`, DB `VaultDeployment`, pure engine
+ * `aggregateLpPnl`) so we cannot rely on a single flag.
+ *
+ * Source mapping rationale:
+ *   - Principal           : DB `Position.principalUsdc` set at subscription
+ *                           confirmation -> attested (on-chain tx)
+ *   - Accrued yield       : DB `Position.accruedYieldUsdc`, refreshed by a
+ *                           cron from snapshots -> estimated (model output)
+ *   - Distributed         : DB `Position.distributedUsdc` (cumulative paid)
+ *                           -> attested
+ *   - APY range           : `VaultDeployment.targetApyLowBps/HighBps`,
+ *                           published target -> estimated (forward-looking)
+ *   - Total value         : principal (attested) + accrued (estimated)
+ *                           -> partial (mixed lineage)
+ *   - Yield YTD           : distributions (attested) + accrued (estimated)
+ *                           -> partial
+ *   - Net return / annual : `aggregateLpPnl` pure-fn over the above
+ *                           -> estimated
+ *   - Cost basis          : sum of principals -> attested
+ *   - Current value       : principal + accrued -> partial
+ *   - Unrealized          : engine, accrued not yet paid -> estimated
+ *   - Realized            : sum of distributed -> attested
+ *   - Total return        : realized + unrealized -> partial
+ *   - Distribution rows   : DB ledger -> attested (paid) | estimated (scheduled)
+ */
+interface PositionRow {
+  id: string;
+  vaultName: string;
+  vaultTicker: string;
+  status: string;
+  principalUsdc: number;
+  accruedYieldUsdc: number;
+  distributedUsdc: number;
+  apyLow: number;
+  apyHigh: number;
+  subscribedAt: Date;
+  daysHeld: number;
+}
+
+interface DistributionRow {
+  id: string;
+  period: string;
+  amountUsdc: number;
+  occurredAt: Date;
+  type: string;
+  /**
+   * `attested` once the entry has been recorded as paid in the ledger
+   * (`type: "distribution"`), `estimated` while still scheduled.
+   */
+  provenance: PdfProvenanceKind;
+}
+
 interface StatementData {
   investorId: string;
   investorEmail: string | null;
   generatedAt: Date;
-  positions: Array<{
-    id: string;
-    vaultName: string;
-    vaultTicker: string;
-    status: string;
-    principalUsdc: number;
-    accruedYieldUsdc: number;
-    distributedUsdc: number;
-    apyLow: number;
-    apyHigh: number;
-    subscribedAt: Date;
-    daysHeld: number;
-  }>;
-  ytdDistributions: Array<{
-    id: string;
-    period: string;
-    amountUsdc: number;
-    occurredAt: Date;
-    type: string;
-  }>;
+  positions: PositionRow[];
+  ytdDistributions: DistributionRow[];
   totalValueUsdc: number;
   totalYieldYtdUsdc: number;
 }
@@ -382,9 +420,9 @@ function StatementDocument({ data }: { data: StatementData }) {
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Total Value</Text>
             <Text style={styles.summaryValue}>{usd(data.totalValueUsdc)}</Text>
-            <View style={styles.provenanceRow}>
-              <View style={styles.provenanceDot} />
-              <Text style={styles.provenanceLabel}>Live · Oracle</Text>
+            <View style={styles.provenanceWrap}>
+              {/* principal (attested) + accrued (estimated) = partial */}
+              <PdfProvenance kind="partial" hint="principal + accrued" />
             </View>
           </View>
 
@@ -396,6 +434,10 @@ function StatementDocument({ data }: { data: StatementData }) {
             <Text style={styles.summaryUnit}>
               As of {data.generatedAt.getUTCFullYear()}
             </Text>
+            <View style={styles.provenanceWrap}>
+              {/* distributions (attested) + accrued (estimated) = partial */}
+              <PdfProvenance kind="partial" hint="ledger + accrual" />
+            </View>
           </View>
 
           <View style={styles.summaryCard}>
@@ -404,6 +446,10 @@ function StatementDocument({ data }: { data: StatementData }) {
               {pct(aggregatePnl.netReturnPct)}
             </Text>
             <Text style={styles.summaryUnit}>Total since inception</Text>
+            <View style={styles.provenanceWrap}>
+              {/* engine pure-fn output derived from positions */}
+              <PdfProvenance kind="estimated" hint="engine" />
+            </View>
           </View>
 
           {aggregatePnl.annualizedReturnPct !== null && (
@@ -413,6 +459,10 @@ function StatementDocument({ data }: { data: StatementData }) {
               <Text style={styles.summaryUnit}>
                 Annualized: {pct(aggregatePnl.annualizedReturnPct)}
               </Text>
+              <View style={styles.provenanceWrap}>
+                {/* published target range + engine annualisation */}
+                <PdfProvenance kind="estimated" hint="target range" />
+              </View>
             </View>
           )}
         </View>
@@ -428,6 +478,7 @@ function StatementDocument({ data }: { data: StatementData }) {
             <Text style={styles.tableHeaderCellRight}>Distributed</Text>
             <Text style={styles.tableHeaderCellRight}>APY Range</Text>
             <Text style={styles.tableHeaderCellRight}>Since</Text>
+            <Text style={styles.tableHeaderCellRight}>Source</Text>
           </View>
           {data.positions.map((p, i) => (
             <View
@@ -436,13 +487,23 @@ function StatementDocument({ data }: { data: StatementData }) {
             >
               <Text style={[styles.cell, { flex: 2 }]}>{p.vaultName}</Text>
               <Text style={styles.cellMuted}>{p.status}</Text>
+              {/* principal = attested (on-chain subscription) */}
               <Text style={styles.cellRight}>{usd(p.principalUsdc)}</Text>
+              {/* accrued = estimated (engine projection until paid) */}
               <Text style={styles.cellAccent}>{usd(p.accruedYieldUsdc)}</Text>
+              {/* distributed = attested (cumulative paid in USDC) */}
               <Text style={styles.cellRight}>{usd(p.distributedUsdc)}</Text>
+              {/* APY range = estimated (vault target) */}
               <Text style={styles.cellAccent}>
                 {p.apyLow}–{p.apyHigh}%
               </Text>
               <Text style={styles.cellMuted}>{fmtDate(p.subscribedAt)}</Text>
+              {/* Composite source badge for the row — partial because the
+                  row mixes attested principal/distributed with estimated
+                  accrued and target APY. */}
+              <View style={styles.cellProvenance}>
+                <PdfProvenance kind="partial" />
+              </View>
             </View>
           ))}
         </View>
@@ -460,6 +521,10 @@ function StatementDocument({ data }: { data: StatementData }) {
               {usd(aggregatePnl.contributedUsdc)}
             </Text>
             <Text style={styles.summaryUnit}>Total contributed</Text>
+            {/* sum of attested principals */}
+            <View style={styles.provenanceWrap}>
+              <PdfProvenance kind="attested" />
+            </View>
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Current Value</Text>
@@ -467,6 +532,10 @@ function StatementDocument({ data }: { data: StatementData }) {
               {usd(aggregatePnl.currentValueUsdc)}
             </Text>
             <Text style={styles.summaryUnit}>Principal + unrealized</Text>
+            {/* attested principal + estimated accrued */}
+            <View style={styles.provenanceWrap}>
+              <PdfProvenance kind="partial" />
+            </View>
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Unrealized</Text>
@@ -474,6 +543,10 @@ function StatementDocument({ data }: { data: StatementData }) {
               {usd(aggregatePnl.unrealizedUsdc)}
             </Text>
             <Text style={styles.summaryUnit}>Accrued, not yet paid</Text>
+            {/* engine projection until paid */}
+            <View style={styles.provenanceWrap}>
+              <PdfProvenance kind="estimated" />
+            </View>
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Realized</Text>
@@ -481,6 +554,10 @@ function StatementDocument({ data }: { data: StatementData }) {
               {usd(aggregatePnl.realizedUsdc)}
             </Text>
             <Text style={styles.summaryUnit}>Cash received</Text>
+            {/* sum of paid distributions */}
+            <View style={styles.provenanceWrap}>
+              <PdfProvenance kind="attested" />
+            </View>
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Total Return</Text>
@@ -490,6 +567,10 @@ function StatementDocument({ data }: { data: StatementData }) {
             <Text style={styles.summaryUnit}>
               {pct(aggregatePnl.netReturnPct)} net
             </Text>
+            {/* realized (attested) + unrealized (estimated) */}
+            <View style={styles.provenanceWrap}>
+              <PdfProvenance kind="partial" />
+            </View>
           </View>
         </View>
 
@@ -507,6 +588,7 @@ function StatementDocument({ data }: { data: StatementData }) {
               <Text style={styles.tableHeaderCell}>Date</Text>
               <Text style={styles.tableHeaderCell}>Type</Text>
               <Text style={styles.tableHeaderCellRight}>Amount</Text>
+              <Text style={styles.tableHeaderCellRight}>Source</Text>
             </View>
             {data.ytdDistributions.map((tx, i) => (
               <View
@@ -515,7 +597,12 @@ function StatementDocument({ data }: { data: StatementData }) {
               >
                 <Text style={styles.cellMuted}>{fmtDate(tx.occurredAt)}</Text>
                 <Text style={styles.cell}>{tx.type}</Text>
+                {/* amount is recorded in the ledger -> attested when paid,
+                    estimated while still scheduled (see DistributionRow). */}
                 <Text style={styles.cellAccent}>{usd(tx.amountUsdc)}</Text>
+                <View style={styles.cellProvenance}>
+                  <PdfProvenance kind={tx.provenance} />
+                </View>
               </View>
             ))}
           </View>
@@ -665,12 +752,19 @@ export async function GET(
     ytdTxs.reduce((sum, t) => sum + toNumber(t.amountUsdc), 0) +
     positions.reduce((sum, p) => sum + p.accruedYieldUsdc, 0);
 
-  const ytdDistributions = ytdTxs.map((t) => ({
+  const ytdDistributions: DistributionRow[] = ytdTxs.map((t) => ({
     id: t.id,
     period: t.occurredAt.toISOString().slice(0, 7),
     amountUsdc: toNumber(t.amountUsdc),
     occurredAt: t.occurredAt,
     type: t.type,
+    // Paid distributions (type === "distribution" | "claim") sit in the
+    // ledger with an executed transfer -> attested. Anything else (rare
+    // placeholder statuses) is still a projection -> estimated.
+    provenance:
+      t.type === "distribution" || t.type === "claim"
+        ? "attested"
+        : "estimated",
   }));
 
   // 6. Build statement data.

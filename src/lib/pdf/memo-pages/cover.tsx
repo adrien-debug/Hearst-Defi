@@ -1,5 +1,6 @@
 import { Page, Text, View } from "@react-pdf/renderer";
 
+import { PdfProvenance } from "../components/pdf-provenance";
 import {
   type MemoPdfData,
   formatApyRange,
@@ -41,6 +42,10 @@ export function CoverPage({ data }: { data: MemoPdfData }) {
           <Text style={styles.coverKpiLabel}>Period</Text>
           <Text style={styles.coverKpiValue}>{period}</Text>
           <Text style={styles.coverKpiHint}>Generated {dateLabel} UTC</Text>
+          {/* Period label is set by the report scheduler — manual curation. */}
+          <View style={{ marginTop: 6 }}>
+            <PdfProvenance kind="manual" />
+          </View>
         </View>
         <View style={styles.coverKpi}>
           <Text style={styles.coverKpiLabel}>Target APY range</Text>
@@ -50,6 +55,10 @@ export function CoverPage({ data }: { data: MemoPdfData }) {
           <Text style={styles.coverKpiHint}>
             Range, not point estimate &middot; vault mode {input.vault.mode}
           </Text>
+          {/* Engine-published target — forward-looking band. */}
+          <View style={{ marginTop: 6 }}>
+            <PdfProvenance kind="estimated" />
+          </View>
         </View>
         <View style={styles.coverKpi}>
           <Text style={styles.coverKpiLabel}>AUM</Text>
@@ -57,6 +66,10 @@ export function CoverPage({ data }: { data: MemoPdfData }) {
             {formatUsd(input.vault.aumUsdc)}
           </Text>
           <Text style={styles.coverKpiHint}>USDC, end-of-period snapshot</Text>
+          {/* End-of-period custody snapshot. */}
+          <View style={{ marginTop: 6 }}>
+            <PdfProvenance kind="live" hint="custody snapshot" />
+          </View>
         </View>
         <View style={styles.coverKpi}>
           <Text style={styles.coverKpiLabel}>Risk score</Text>
@@ -64,6 +77,10 @@ export function CoverPage({ data }: { data: MemoPdfData }) {
           <Text style={styles.coverKpiHint}>
             Composite, methodology v1.0 weighting
           </Text>
+          {/* Composite — derived from sub-scores under methodology v1.0. */}
+          <View style={{ marginTop: 6 }}>
+            <PdfProvenance kind="estimated" />
+          </View>
         </View>
       </View>
 

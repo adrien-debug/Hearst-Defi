@@ -90,11 +90,11 @@ export function UndoToastProvider() {
         "fixed bottom-6 left-6 z-[9999]",
         // Surface
         "flex items-center gap-3",
-        "rounded-[var(--ct-radius-lg,8px)]",
+        "rounded-[var(--ct-radius-lg)]",
         "bg-[var(--ct-surface-2)]",
         "border border-[var(--ct-border-soft)]",
         "px-4 py-2.5",
-        "shadow-[var(--ct-shadow-lg,0_8px_32px_rgba(0,0,0,0.4))]",
+        "shadow-[var(--ct-shadow-elevated)]",
         "text-sm text-[var(--ct-text-primary)]",
         // Animation
         "animate-in slide-in-from-bottom-2 fade-in duration-200",

@@ -737,7 +737,7 @@ export function VaultForm(props: VaultFormProps) {
               </div>
             </div>
 
-            {/* Monte Carlo inline projection (ADR-006, methodology v2.0-draft) */}
+            {/* Monte Carlo inline projection (ADR-006, methodology v2.0 ratified 2026-05-22) */}
             <MonteCarloReview
               vaultDraft={{
                 targetApyLowBps: form.targetApyLowBps,

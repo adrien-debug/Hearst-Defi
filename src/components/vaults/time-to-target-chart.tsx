@@ -4,7 +4,7 @@
 // Non-negotiable #5: no forbidden words in labels.
 // Non-negotiable #10: "not guaranteed" disclaimer mandatory.
 
-import { monthsToTarget, buildProjectionSeries } from "@/lib/demo/projection";
+import { monthsToTarget, buildProjectionSeries } from "@/lib/projection-chart";
 import type { VaultProduct } from "@/lib/data/vaults";
 import { ChartProvenanceCorner } from "@/components/ui/chart-provenance-corner";
 import { ChartDisclaimerUnderlay } from "@/components/ui/chart-disclaimer-underlay";

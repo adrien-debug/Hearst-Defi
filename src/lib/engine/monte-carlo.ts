@@ -41,6 +41,14 @@ export interface DifficultyAssumptions {
   maxMultiple: number;
 }
 
+// Methodology v2.0 §Inputs requires "correlated Wiener increment, ρ(BTC,
+// difficulty) from historical data" between the BTC GBM and the difficulty
+// process. The methodology does not pin a numeric value (calibration is left to
+// the trailing 36m MiningMetric window). We default to a conservative ρ=0.4
+// because difficulty adjusts lagged-positively to BTC price (miners turn rigs
+// on when BTC rallies, off in drawdowns). Caller can override per scenario.
+const DEFAULT_BTC_DIFFICULTY_CORRELATION = 0.4;
+
 export interface BlendedYieldAssumptions {
   /** Fraction of NAV earning mining yield (0..1). */
   miningWeight: number;
@@ -70,6 +78,13 @@ export interface MonteCarloInput {
   yield: BlendedYieldAssumptions;
   /** Floor APY (fraction, e.g. 0.08 = 8%) for the P(apy < floor) statistic. */
   floorApy: number;
+  /**
+   * Correlation ρ ∈ [-1, 1] between the BTC GBM shock and the difficulty
+   * shock (methodology v2.0 §Inputs). Applied via Cholesky on a 2×2
+   * `[[1, ρ], [ρ, 1]]` matrix: `zDiff_corr = ρ·zBtc + √(1-ρ²)·zDiff_indep`.
+   * Defaults to 0.4 (see `DEFAULT_BTC_DIFFICULTY_CORRELATION`).
+   */
+  btcDifficultyCorrelation?: number;
 }
 
 export interface Percentiles {
@@ -139,6 +154,10 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloOutput {
   const diffFloor = difficulty.start * difficulty.minMultiple;
   const diffCeil = difficulty.start * difficulty.maxMultiple;
 
+  const rhoRaw = input.btcDifficultyCorrelation ?? DEFAULT_BTC_DIFFICULTY_CORRELATION;
+  const rho = Math.max(-1, Math.min(1, rhoRaw));
+  const rhoComplement = Math.sqrt(Math.max(0, 1 - rho * rho));
+
   const pathApys = new Array<number>(paths);
 
   for (let p = 0; p < paths; p += 1) {
@@ -150,8 +169,12 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloOutput {
       const zBtc = prng.nextGaussian();
       price *= Math.exp(muStep + sigmaStep * zBtc);
 
+      // Cholesky-correlated difficulty shock: cov(zBtc, zDiffCorr) = ρ while
+      // each leg stays standard-normal (methodology v2.0 §Inputs).
+      const zDiffIndep = prng.nextGaussian();
+      const zDiff = rho * zBtc + rhoComplement * zDiffIndep;
+
       // Bounded mean-reverting difficulty (Euler step of an OU-like process).
-      const zDiff = prng.nextGaussian();
       const pull = difficulty.reversionSpeed * (difficulty.longRun - diff) * dt;
       diff = diff + pull + diff * diffSigmaStep * zDiff;
       if (diff < diffFloor) diff = diffFloor;

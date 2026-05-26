@@ -9,18 +9,18 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "font-bold bg-[var(--ct-accent)] text-[var(--ct-bg-deep)] hover:bg-[var(--ct-accent-strong)] shadow-[var(--ct-glow-subtle)] hover:shadow-[var(--ct-glow-soft)]",
+          "font-bold bg-[var(--ct-accent)] text-[var(--ct-bg-deep)] hover:bg-[var(--ct-accent-strong)] shadow-[0_0_1rem_color-mix(in_srgb,var(--ct-accent)_25%,transparent)]",
         secondary:
-          "bg-[var(--ct-surface-0)] backdrop-blur-xl border border-[var(--ct-border-soft)] text-[var(--ct-text-primary)] hover:bg-[var(--ct-surface-2)] hover:border-[var(--ct-border-strong)] hover:text-[var(--ct-text-strong)] shadow-[var(--ct-shadow-soft)]",
+          "bg-[var(--ct-surface-0)] backdrop-blur-xl border border-[var(--ct-border-soft)] text-[var(--ct-text-primary)] hover:bg-[var(--ct-surface-2)] hover:border-[var(--ct-border-strong)] hover:text-[var(--ct-text-strong)]",
         ghost:
           "text-[var(--ct-text-muted)] hover:bg-[var(--ct-surface-1)] hover:text-[var(--ct-text-strong)]",
         danger:
-          "border border-[var(--ct-status-danger-border)] bg-[var(--ct-status-danger-soft)] text-[var(--ct-status-danger)] hover:bg-[var(--ct-status-danger-soft)] shadow-[var(--ct-shadow-soft)]",
+          "border border-[var(--ct-status-danger-border)] bg-[var(--ct-status-danger-soft)] text-[var(--ct-status-danger)] hover:bg-[var(--ct-status-danger-soft)]",
       },
       size: {
-        sm: "h-8 px-4 text-xs",
-        md: "h-10 px-5 text-sm",
-        lg: "h-12 px-6 text-base",
+        sm: "h-5 px-2 text-micro",
+        md: "h-7 px-3 text-xs",
+        lg: "h-9 px-4 text-sm",
       },
     },
     defaultVariants: {

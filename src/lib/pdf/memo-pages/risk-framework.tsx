@@ -93,16 +93,22 @@ export function RiskFrameworkPage({
           label="Composite risk score"
           value={`${data.input.vault.riskScore} / 100`}
           hint="Lower is safer; methodology v1.0"
+          // Engine composite under methodology v1.0.
+          provenance="estimated"
         />
         <KpiCell
           label="Risks tracked"
           value={`${risks.length}`}
           hint="Canonical Hearst taxonomy"
+          // Taxonomy is curated, count is deterministic.
+          provenance="manual"
         />
         <KpiCell
           label="Methodology"
           value="v1.0"
           hint="Immutable; bump on change"
+          // Methodology version is curated and immutable per release.
+          provenance="manual"
         />
       </View>
 

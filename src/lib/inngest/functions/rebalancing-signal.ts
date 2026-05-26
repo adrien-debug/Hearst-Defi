@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { fetchBtcPrice } from "@/lib/data/btc-price";
 import { fetchHashprice } from "@/lib/data/hashprice";
+import { getEnergyCostUsdPerKwh } from "@/lib/data/energy-cost";
 import { computeMiningRevenue } from "@/lib/engine/mining";
 import { decideMode } from "@/lib/engine/rebalancing";
 import {
@@ -69,7 +70,9 @@ const IDEMPOTENCY_WINDOW_MS = 60 * 60 * 1000; // 1 hour per ruleId
 
 // Defaults used when the DB has no rows yet (fallback path, signals will
 // still evaluate against the engine; this matches the dashboard fallback).
-const FALLBACK_ENERGY_COST_KWH = 0.05;
+// Energy cost is resolved via `getEnergyCostUsdPerKwh()` so the env override
+// applies even on the fallback path; we keep a constant here only as the
+// absolute floor used when the loader itself is unavailable.
 const FALLBACK_STABLE_APY_PCT = 4.5;
 const FALLBACK_VOL_INDEX = 50;
 const FALLBACK_BTC_POSITION_PCT = 14;
@@ -124,7 +127,7 @@ export async function loadVaultStateForSignal(): Promise<VaultStateForSignal> {
 
   const energyCostKwh = latestMining
     ? latestMining.energyCost.toNumber()
-    : FALLBACK_ENERGY_COST_KWH;
+    : getEnergyCostUsdPerKwh().usdPerKwh;
 
   // Stable APY: undo the bps-at-pct encoding stored on the allocation row.
   const usdcBaseAlloc = latestSnapshot?.allocations.find(

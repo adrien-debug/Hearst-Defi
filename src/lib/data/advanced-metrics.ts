@@ -11,6 +11,10 @@ import {
   loadVaultMonthlyHistory,
   type VaultMonthlyRow,
 } from "@/lib/agents/loaders/vault";
+import {
+  getRiskFreeRate,
+  type RiskFreeRateProvenance,
+} from "@/lib/data/risk-free-rate";
 
 // ---------------------------------------------------------------------------
 // Advanced (institutional) risk ratios for the dashboard.
@@ -27,11 +31,6 @@ const HISTORY_WINDOW_MONTHS = 24;
 const MIN_MONTHS_FOR_RATIOS = 6;
 /** VaR confidence used by the dashboard. */
 const VAR_CONFIDENCE = 0.95;
-/** Sortino target return — matches Sharpe risk-free for consistency. */
-// TODO: source from config/oracle (currently mirrors the risk-free rate).
-const SORTINO_TARGET = 0.045;
-// TODO: source from config/oracle.
-const RISK_FREE_RATE = 0.045;
 const PERIODS_PER_YEAR = 12;
 
 export interface AdvancedMetricsData {
@@ -50,6 +49,10 @@ export interface AdvancedMetricsData {
   calmar: number;
   /** Finite when Calmar is computable; null when MDD is zero. */
   calmarFinite: boolean;
+  /** Annual risk-free rate (decimal) used for Sharpe + Sortino target. */
+  riskFreeRate: number;
+  /** Where the risk-free rate came from (UI can render a provenance badge). */
+  riskFreeRateProvenance: RiskFreeRateProvenance;
 }
 
 /**
@@ -59,7 +62,10 @@ export interface AdvancedMetricsData {
  * (no layout shift when toggling Advanced on/off).
  */
 export async function loadAdvancedMetrics(): Promise<AdvancedMetricsData> {
-  const history = await loadVaultMonthlyHistory(HISTORY_WINDOW_MONTHS);
+  const [history, riskFree] = await Promise.all([
+    loadVaultMonthlyHistory(HISTORY_WINDOW_MONTHS),
+    getRiskFreeRate(),
+  ]);
 
   if (history.length < MIN_MONTHS_FOR_RATIOS) {
     return {
@@ -72,14 +78,18 @@ export async function loadAdvancedMetrics(): Promise<AdvancedMetricsData> {
       maxDrawdownDecimal: 0,
       calmar: 0,
       calmarFinite: false,
+      riskFreeRate: riskFree.value,
+      riskFreeRateProvenance: riskFree.provenance,
     };
   }
 
   const navSeries = history.map((m) => m.nav_usdc);
   const returns = buildReturnsSeries(history);
 
-  const sharpe = calcSharpe(returns, RISK_FREE_RATE, PERIODS_PER_YEAR);
-  const sortino = calcSortino(returns, SORTINO_TARGET, PERIODS_PER_YEAR);
+  // Sortino target mirrors the Sharpe risk-free rate to keep the two ratios
+  // comparable (excess return measured against the same hurdle).
+  const sharpe = calcSharpe(returns, riskFree.value, PERIODS_PER_YEAR);
+  const sortino = calcSortino(returns, riskFree.value, PERIODS_PER_YEAR);
   const varDecimal = calcVaR(returns, VAR_CONFIDENCE);
   const maxDrawdownDecimal = calcMaxDrawdown(navSeries);
   const calmar = calcCalmar(returns, navSeries, PERIODS_PER_YEAR);
@@ -103,6 +113,8 @@ export async function loadAdvancedMetrics(): Promise<AdvancedMetricsData> {
     maxDrawdownDecimal,
     calmar: calmarFinite ? calmar : 0,
     calmarFinite,
+    riskFreeRate: riskFree.value,
+    riskFreeRateProvenance: riskFree.provenance,
   };
 }
 

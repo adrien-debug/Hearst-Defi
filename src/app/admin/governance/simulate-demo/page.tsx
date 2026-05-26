@@ -117,13 +117,13 @@ export default function SimulateDemoPage() {
         </div>
 
         <div className="rounded-[var(--ct-radius-md)] bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] px-3 py-2.5 space-y-1">
-          <p className="font-mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-muted)]">
+          <p className="mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-muted)]">
             vault: {selectedProposal.vaultAddress}
           </p>
-          <p className="font-mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-faint)] truncate">
+          <p className="mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-faint)] truncate">
             calldata: {selectedProposal.calldata}
           </p>
-          <p className="font-mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-faint)]">
+          <p className="mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-faint)]">
             actionType: {selectedProposal.actionType}
           </p>
         </div>

@@ -2,6 +2,7 @@ import "server-only";
 
 import { prisma } from "@/lib/db";
 import { fetchBtcPrice } from "@/lib/data/btc-price";
+import { getEnergyCostUsdPerKwh } from "@/lib/data/energy-cost";
 import { computeRiskBreakdown } from "@/lib/engine/risk";
 import type { ScenarioInputs } from "@/lib/engine/types";
 
@@ -76,13 +77,19 @@ export interface RiskFrameworkData {
 // so the visual still reads "Medium" when the DB is empty.
 // ---------------------------------------------------------------------------
 
-const FALLBACK_INPUTS: ScenarioInputs = {
-  btc_price_change_pct: 0,
-  hashprice_usd_th_day: 0.078,
-  energy_cost_kwh: 0.05,
-  stable_apy_pct: 4.5,
-  vol_index: 50,
-};
+// Built lazily so the energy-cost env override (`MINING_ENERGY_COST_USD_PER_KWH`)
+// is honoured even on the no-DB fallback path. We never compute this at module
+// import time because `getEnergyCostUsdPerKwh()` reads env via the validated
+// `env` module which itself imports `server-only`.
+function buildFallbackInputs(): ScenarioInputs {
+  return {
+    btc_price_change_pct: 0,
+    hashprice_usd_th_day: 0.078,
+    energy_cost_kwh: getEnergyCostUsdPerKwh().usdPerKwh,
+    stable_apy_pct: 4.5,
+    vol_index: 50,
+  };
+}
 
 // Stable proxy for vol_index — same constant the mining loader uses to keep
 // agent inputs and dashboard inputs aligned. Real BTC realised-vol feed is
@@ -240,7 +247,7 @@ export async function loadRiskFramework(): Promise<RiskFrameworkData> {
         stable_apy_pct: stableApyPct,
         vol_index: VOL_INDEX_PROXY,
       }
-    : FALLBACK_INPUTS;
+    : buildFallbackInputs();
 
   // ---- Numeric breakdown (delegated to the engine, pure) ------------------
   const breakdown = computeRiskBreakdown(inputs);

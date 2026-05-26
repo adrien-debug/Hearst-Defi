@@ -138,7 +138,7 @@ function CommandItem({
       {command.shortcut && (
         <kbd
           className={cn(
-            "shrink-0 font-mono text-xs tabular-nums px-1.5 py-0.5",
+            "shrink-0 mono text-xs tabular-nums px-1.5 py-0.5",
             "rounded-[var(--ct-radius-sm)] border border-[var(--ct-border)]",
             "text-[var(--ct-text-muted)] bg-[var(--ct-surface-1)]",
           )}
@@ -349,7 +349,10 @@ export function CommandPalette({ commands, onClose }: CommandPaletteProps) {
     <div
       role="presentation"
       className="fixed inset-0 z-[var(--ct-z-overlay)] flex items-start justify-center pt-[12vh]"
-      style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+      style={{
+        backgroundColor: "color-mix(in srgb, var(--ct-bg-deep) 60%, transparent)",
+        backdropFilter: "blur(4px)",
+      }}
       onClick={handleBackdropClick}
     >
       {/* Dialog */}
@@ -402,7 +405,7 @@ export function CommandPalette({ commands, onClose }: CommandPaletteProps) {
           />
           <kbd
             className={cn(
-              "shrink-0 font-mono text-xs px-1.5 py-0.5",
+              "shrink-0 mono text-xs px-1.5 py-0.5",
               "rounded-[var(--ct-radius-sm)] border border-[var(--ct-border)]",
               "text-[var(--ct-text-muted)] bg-[var(--ct-surface-2)]",
             )}
@@ -481,19 +484,19 @@ export function CommandPalette({ commands, onClose }: CommandPaletteProps) {
           )}
         >
           <span>
-            <kbd className="font-mono text-[0.65rem] px-1 rounded border border-[var(--ct-border)] bg-[var(--ct-surface-1)]">
+            <kbd className="mono text-[0.65rem] px-1 rounded border border-[var(--ct-border)] bg-[var(--ct-surface-1)]">
               ↑↓
             </kbd>{" "}
             navigate
           </span>
           <span>
-            <kbd className="font-mono text-[0.65rem] px-1 rounded border border-[var(--ct-border)] bg-[var(--ct-surface-1)]">
+            <kbd className="mono text-[0.65rem] px-1 rounded border border-[var(--ct-border)] bg-[var(--ct-surface-1)]">
               ↵
             </kbd>{" "}
             select
           </span>
           <span>
-            <kbd className="font-mono text-[0.65rem] px-1 rounded border border-[var(--ct-border)] bg-[var(--ct-surface-1)]">
+            <kbd className="mono text-[0.65rem] px-1 rounded border border-[var(--ct-border)] bg-[var(--ct-surface-1)]">
               esc
             </kbd>{" "}
             close

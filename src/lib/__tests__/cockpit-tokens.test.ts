@@ -32,7 +32,9 @@ function readToken(name: string): string {
 
 describe("cockpit-tokens — web/PDF status drift is intentional", () => {
   it("pins web status tokens to their dark-UI values", () => {
-    expect(readToken("status-success")).toBe("#4ade80");
+    // success is the canonical accent green (single green across the UI —
+    // user pref 2026-05-26: no other green than --ct-accent).
+    expect(readToken("status-success")).toBe("var(--ct-accent)");
     expect(readToken("status-warning")).toBe("#fbbf24");
     expect(readToken("status-danger")).toBe("#f87171");
   });
@@ -44,6 +46,8 @@ describe("cockpit-tokens — web/PDF status drift is intentional", () => {
   });
 
   it("guarantees web ≠ PDF for every status (no silent unification)", () => {
+    // web success = var(--ct-accent) (resolved hex #A7FB90), PDF = #16a34a.
+    // Drift preserved: web prints as glow over dark, PDF as dense ink on white.
     expect(CT_PDF.statusSuccess).not.toBe(readToken("status-success"));
     expect(CT_PDF.statusWarning).not.toBe(readToken("status-warning"));
     expect(CT_PDF.statusDanger).not.toBe(readToken("status-danger"));

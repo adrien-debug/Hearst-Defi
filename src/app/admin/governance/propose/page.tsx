@@ -129,7 +129,7 @@ export default async function ProposePage() {
               name="calldata"
               rows={4}
               placeholder='{"newFeeBps": 250}'
-              className="w-full rounded-[var(--ct-radius-md)] border border-[var(--ct-border)] bg-[var(--ct-surface-1)] px-3 py-2 text-sm ct-text-primary font-mono focus:outline-none focus:border-[var(--ct-border-strong)] resize-y"
+              className="w-full rounded-[var(--ct-radius-md)] border border-[var(--ct-border)] bg-[var(--ct-surface-1)] px-3 py-2 text-sm ct-text-primary mono focus:outline-none focus:border-[var(--ct-border-strong)] resize-y"
             />
           </div>
 

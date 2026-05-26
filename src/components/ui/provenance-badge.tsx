@@ -34,7 +34,11 @@ const variants: Record<
 
 export function ProvenanceBadge({ kind }: { kind: Provenance }) {
   return (
-    <Badge variant={variants[kind]} title={`Data provenance: ${labels[kind]}`}>
+    <Badge
+      variant={variants[kind]}
+      title={`Data provenance: ${labels[kind]}`}
+      className="shrink-0 whitespace-nowrap"
+    >
       <span
         aria-hidden
         className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-current"

@@ -99,6 +99,12 @@ const NARRATIVE_FIXTURE = {
     "Projections are conditional on stated assumptions and are not guaranteed.",
   confidence: "medium" as const,
   key_drivers: ["mining margin", "stable APY", "volatility regime"],
+  ptai: {
+    projection: "APY 8.5-12.0% in Balanced mode under stable hashprice.",
+    trigger: "No active rule triggered — holding current posture.",
+    action: "Hold current allocation: mining 45%, btc_tactical 25%.",
+    impact: "Stressed APY 6.4%; risk score 38/100 (moderate).",
+  },
 };
 
 describe("runScenarioAction Server Action", () => {

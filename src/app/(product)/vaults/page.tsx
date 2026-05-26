@@ -2,7 +2,7 @@
 // Server Component. Single ProductSelectCard at MVP (forward-compatible grid).
 // Non-negotiable #9: single vault MVP, no multi-vault abstractions today.
 
-import { listVaults } from "@/lib/demo/loaders";
+import { listVaults } from "@/lib/data/vaults";
 import { ProductSelectCard } from "@/components/vaults/product-select-card";
 import { StepProgress } from "@/components/vaults/step-progress";
 import { Card } from "@/components/ui/card";

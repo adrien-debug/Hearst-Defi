@@ -407,7 +407,7 @@ describe("YieldStack props — loadYieldStackProps shape", () => {
     ],
     blendedLow: 9.4,
     blendedHigh: 12.8,
-    stressedBear: 5.6,
+    stressedBearRange: { low: 5.2, high: 6.0 },
     methodologyVersion: "1.0",
   };
 
@@ -424,8 +424,12 @@ describe("YieldStack props — loadYieldStackProps shape", () => {
     expect(props.blendedHigh).toBe(12.8);
   });
 
-  it("stressedBear is strictly less than blendedLow", () => {
-    expect(props.stressedBear).toBeLessThan(props.blendedLow);
+  it("stressedBearRange.high is strictly less than blendedLow", () => {
+    expect(props.stressedBearRange.high).toBeLessThan(props.blendedLow);
+  });
+
+  it("stressedBearRange is a range, never a single point (CLAUDE.md #1)", () => {
+    expect(props.stressedBearRange.low).toBeLessThan(props.stressedBearRange.high);
   });
 
   it("btc_tactical is marked as volatile", () => {
