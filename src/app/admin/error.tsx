@@ -30,15 +30,12 @@ export default function AdminError({ error, reset }: AdminErrorProps) {
       errorMessage={message}
       actions={
         <>
-          <Button type="button" variant="primary" size="sm" onClick={() => reset()}>
+          <Button type="button" variant="primary" size="md" onClick={() => reset()}>
             Try again
           </Button>
-          <Link
-            href="/admin"
-            className="inline-flex items-center rounded-full border border-[var(--ct-border-strong)] bg-[var(--ct-surface-1)] px-4 py-2 text-sm font-medium text-[var(--ct-text-primary)] no-underline"
-          >
-            Back to admin
-          </Link>
+          <Button variant="secondary" size="md" asChild>
+            <Link href="/admin">Back to admin</Link>
+          </Button>
         </>
       }
     />
