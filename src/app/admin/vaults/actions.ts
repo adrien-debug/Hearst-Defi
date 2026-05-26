@@ -80,7 +80,38 @@ const CreateDraftSchema = z.object({
     .array(z.string().min(1))
     .min(2, "At least 2 signers required")
     .max(5, "At most 5 signers allowed"),
-});
+})
+  .refine(
+    (d) => d.targetApyHighBps > d.targetApyLowBps,
+    {
+      message: "targetApyHighBps must be strictly greater than targetApyLowBps",
+      path: ["targetApyHighBps"],
+    },
+  )
+  .refine(
+    (d) =>
+      d.targetMiningBps +
+        d.targetBtcTacticalBps +
+        d.targetUsdcBaseBps +
+        d.targetStableReserveBps ===
+      10_000,
+    {
+      message:
+        "Allocation bps must sum to exactly 10000 (targetMiningBps + targetBtcTacticalBps + targetUsdcBaseBps + targetStableReserveBps)",
+      path: ["targetMiningBps"],
+    },
+  )
+  .refine(
+    (d) => {
+      if (!d.description) return true;
+      return containsForbiddenWord(d.description) === null;
+    },
+    {
+      message:
+        "Description contains a forbidden word (guarantee / promise / certain / will deliver / risk-free)",
+      path: ["description"],
+    },
+  );
 
 export type CreateDraftInput = z.infer<typeof CreateDraftSchema>;
 

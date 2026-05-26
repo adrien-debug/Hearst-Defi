@@ -27,6 +27,7 @@ vi.mock("@/lib/db", () => ({
     vaultDeployment: {
       findUnique: vi.fn(),
       update: vi.fn(),
+      create: vi.fn(),
     },
     vaultDeploymentApproval: {
       deleteMany: vi.fn(),
@@ -53,11 +54,16 @@ vi.mock("@/lib/logger", () => ({
   },
 }));
 
+vi.mock("@/lib/rate-limit", () => ({
+  assertRateLimit: vi.fn().mockResolvedValue(undefined),
+}));
+
 // ── Imports (after mocks) ──────────────────────────────────────────────────
 
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/db";
-import { rejectDeployment } from "../actions";
+import { createDraftVault, rejectDeployment } from "../actions";
+import type { CreateDraftInput } from "../actions";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -180,5 +186,90 @@ describe("rejectDeployment", () => {
       "Admin access required.",
     );
     expect(prisma.vaultDeployment.findUnique).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// CreateDraftSchema Zod refinement tests (P1)
+// ---------------------------------------------------------------------------
+
+/** Minimal valid payload that satisfies all CreateDraftSchema rules. */
+function validDraftInput(): CreateDraftInput {
+  return {
+    ticker: "HYV-A",
+    name: "Hearst Yield Vault Series A",
+    description: undefined,
+    strategy: "mining_yield",
+    colorTag: "accent",
+    minTicketUsdc: 250_000,
+    capacityUsdc: 10_000_000,
+    mgmtFeeBps: 100,
+    perfFeeBps: 1_000,
+    softLockupDays: 60,
+    targetApyLowBps: 800,
+    targetApyHighBps: 1_500,
+    spvJurisdiction: "cayman",
+    shareClass: "A",
+    regExemption: "regD_506c",
+    disclaimers:
+      "This is not an offer of securities. Past performance does not predict future results. Capital is subject to market risk. This is a projection only.",
+    targetMiningBps: 6_000,
+    targetBtcTacticalBps: 2_500,
+    targetUsdcBaseBps: 1_000,
+    targetStableReserveBps: 500,
+    signersWhitelist: ["0xSignerA", "0xSignerB"],
+  };
+}
+
+describe("CreateDraftSchema — Zod refinements (P1)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(requireAdmin).mockResolvedValue({
+      userId: "user_admin",
+      walletAddress: "0xAdmin",
+    });
+    vi.mocked(prisma.vaultDeployment.create).mockResolvedValue({
+      id: "vault_new_001",
+      ticker: "HYV-A",
+    } as never);
+  });
+
+  it("happy path — valid input passes all refinements", async () => {
+    const result = await createDraftVault(validDraftInput());
+    expect(result.ok).toBe(true);
+  });
+
+  it("APY range invariant — targetApyHighBps <= targetApyLowBps → rejected", async () => {
+    const input = validDraftInput();
+    input.targetApyHighBps = 800; // equal to low → must fail
+    input.targetApyLowBps = 800;
+    const result = await createDraftVault(input);
+    expect(result.ok).toBe(false);
+    if (!result.ok && typeof result.issues !== "string") {
+      const msgs = result.issues.map((i) => i.message);
+      expect(msgs.some((m) => /targetApyHighBps.*greater.*targetApyLowBps/i.test(m))).toBe(true);
+    }
+  });
+
+  it("Allocation sum — does not equal 10000 bps → rejected", async () => {
+    const input = validDraftInput();
+    input.targetMiningBps = 5_000; // sum becomes 9000
+    const result = await createDraftVault(input);
+    expect(result.ok).toBe(false);
+    if (!result.ok && typeof result.issues !== "string") {
+      const msgs = result.issues.map((i) => i.message);
+      expect(msgs.some((m) => /sum.*10000|10000.*sum/i.test(m))).toBe(true);
+    }
+  });
+
+  it("Description forbidden word — contains 'guarantee' → rejected", async () => {
+    const input = validDraftInput();
+    input.description = "We guarantee excellent returns.";
+    const result = await createDraftVault(input);
+    expect(result.ok).toBe(false);
+    if (!result.ok && typeof result.issues !== "string") {
+      const msgs = result.issues.map((i) => i.message);
+      expect(msgs.some((m) => /forbidden word/i.test(m))).toBe(true);
+    }
   });
 });

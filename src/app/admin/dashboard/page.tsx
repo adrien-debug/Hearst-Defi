@@ -17,6 +17,7 @@ import { Metric } from "@/components/ui/metric";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import type { VaultId } from "@/lib/engine/types";
 import { allocationLabelFor, allocationStrokeFor } from "@/lib/allocation-colors";
 import { loadCustody } from "@/lib/data/custody";
 import {
@@ -120,7 +121,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         actions={
           <div className="flex flex-wrap items-center gap-3">
             <VaultSelector
-              active={vaultMeta.id}
+              active={vaultMeta.id as VaultId}
               preserveParams={
                 mode === "advanced" ? { mode: "advanced" } : undefined
               }

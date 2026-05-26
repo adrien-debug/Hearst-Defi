@@ -21,6 +21,8 @@ import {
   type AllocationTargets,
   type VaultDefinition,
 } from "@/lib/engine/vaults";
+import type { VaultRef } from "@/lib/vaults/resolver";
+import { toVaultProfile } from "@/lib/vaults/profile";
 
 // ---------------------------------------------------------------------------
 // Public dashboard contract.
@@ -110,7 +112,14 @@ export interface DashboardTimeseries {
  * reuse each other's projections.
  */
 export interface DashboardVaultMeta {
-  id: VaultId;
+  /**
+   * Vault identifier. For engine fixtures this is a `VaultId` ("yield" /
+   * "defensive" / "btc-plus"). For Prisma deployments it is the lowercased
+   * ticker slug (e.g. "hyv-a"). Widened to `string` so no cast is needed at
+   * the assignment site and downstream consumers that do enum-style comparisons
+   * against the 3 known fixture ids still work (string includes VaultId).
+   */
+  id: string;
   /** Human label, e.g. "Hearst Yield Vault". */
   name: string;
   /** Vault's OWN projected APY band (engine preset, never another vault's). */
@@ -170,6 +179,15 @@ const STRESSED_APY_BAND = 0.15;
 // renders plausible numbers before the first `pnpm db:seed` run.
 const FALLBACK_HASHPRICE_TREND_PCT = -3.4;
 const FALLBACK_OPERATIONAL_CONFIDENCE = 81;
+
+/** Milliseconds in 30 days — used for trailing-window queries. */
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+/** Number of monthly history rows fetched for the charts. */
+const MONTHLY_HISTORY_MONTHS = 4;
+
+/** Minimum number of trailing snapshot rows required to build a timeseries; below this we serve a fallback. */
+const TIMESERIES_MIN_ROWS = 7;
 
 /**
  * Derives the stressed APY range from the engine's single-point projection.
@@ -235,7 +253,39 @@ export async function loadDashboardData(
   const isYield = resolvedId === VAULT_YIELD.id;
   const livePreview = !isYield || vaultFallback;
 
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const vaultMeta: DashboardVaultMeta = {
+    id: resolvedId,
+    name: vaultDef.label,
+    apyTarget: { low: vaultDef.apyTarget.low, high: vaultDef.apyTarget.high },
+    allocationTargets: { ...vaultDef.allocationTargets },
+    assumptions: [...vaultDef.assumptions],
+    livePreview,
+  };
+
+  return buildDashboardFromSnapshot(vaultMeta);
+}
+
+// ---------------------------------------------------------------------------
+// buildDashboardFromSnapshot — shared data-fetching core
+// ---------------------------------------------------------------------------
+
+/**
+ * Private helper: fetches all DB-bound sections (snapshots, mining ops,
+ * distributions, rebalance events, timeseries) and assembles a
+ * {@link DashboardData} for the given `vaultMeta`.
+ *
+ * Both {@link loadDashboardData} and {@link loadDashboardForRef} resolve their
+ * vault-specific metadata first, then delegate here. This eliminates ~120
+ * lines of duplication while keeping each public function's own resolution
+ * logic (fixture enum vs VaultRef/profile) cleanly separated.
+ *
+ * `vaultMeta.livePreview` is pre-computed by the caller; this function does
+ * not touch it.
+ */
+async function buildDashboardFromSnapshot(
+  vaultMeta: DashboardVaultMeta,
+): Promise<DashboardData> {
+  const thirtyDaysAgo = new Date(Date.now() - THIRTY_DAYS_MS);
 
   const [
     latestSnapshot,
@@ -259,7 +309,7 @@ export async function loadDashboardData(
     loadMiningOpsSnapshot(),
     safeLoadLatestMining(),
     loadLatestDistribution(),
-    loadVaultMonthlyHistory(4),
+    loadVaultMonthlyHistory(MONTHLY_HISTORY_MONTHS),
     fetchBtcPrice(),
     prisma.rebalanceEvent.findMany({
       orderBy: { executedAt: "desc" },
@@ -296,7 +346,8 @@ export async function loadDashboardData(
   });
 
   const hashpriceTrendPct = latestMiningRow?.hashpriceTrendPct ?? FALLBACK_HASHPRICE_TREND_PCT;
-  const operationalConfidence = latestMiningRow?.operationalConfidence ?? FALLBACK_OPERATIONAL_CONFIDENCE;
+  const operationalConfidence =
+    latestMiningRow?.operationalConfidence ?? FALLBACK_OPERATIONAL_CONFIDENCE;
   if (latestMiningRow === null) usedFallback = true;
 
   const recentEvents: DashboardRecentEvent[] = rebalanceRows.map((r) => ({
@@ -319,15 +370,6 @@ export async function loadDashboardData(
       : usedFallback
         ? "partial"
         : "db";
-
-  const vaultMeta: DashboardVaultMeta = {
-    id: resolvedId,
-    name: vaultDef.label,
-    apyTarget: { low: vaultDef.apyTarget.low, high: vaultDef.apyTarget.high },
-    allocationTargets: { ...vaultDef.allocationTargets },
-    assumptions: [...vaultDef.assumptions],
-    livePreview,
-  };
 
   return {
     vault,
@@ -410,7 +452,7 @@ async function buildVault(
   }
 
   // Compute 30d AUM delta by finding a snapshot ~30 days older.
-  const thirtyDaysAgo = new Date(snapshot.takenAt.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const thirtyDaysAgo = new Date(snapshot.takenAt.getTime() - THIRTY_DAYS_MS);
   const [prior, oldest] = await Promise.all([
     prisma.vaultSnapshot.findFirst({
       where: { takenAt: { lte: thirtyDaysAgo }, source: { in: TIMELINE_SOURCES } },
@@ -576,7 +618,7 @@ function buildTimeseries(
   rows: TrailingSnapshotRow[],
   markFallback: () => void,
 ): DashboardTimeseries {
-  if (rows.length < 7) {
+  if (rows.length < TIMESERIES_MIN_ROWS) {
     markFallback();
     return { nav30d: [], apy30d: [], source: "fallback" };
   }
@@ -602,6 +644,45 @@ function buildTimeseries(
   }));
 
   return { nav30d, apy30d, source: "db" };
+}
+
+// ---------------------------------------------------------------------------
+// loadDashboardForRef — multi-vault bridge (VaultRef → DashboardData)
+// ---------------------------------------------------------------------------
+
+/**
+ * Loads the dashboard for any {@link VaultRef} — fixture or Prisma deployment.
+ *
+ * - Fixture refs: the vault profile is derived 1:1 from the engine
+ *   `VaultDefinition`; the result is identical to `loadDashboardData(vaultId)`.
+ * - Deployment refs: `vaultMeta` is built from the deployment row. Live
+ *   snapshot fields (AUM, allocations, mining ops) are NOT yet scoped per
+ *   deployment — the DB only carries the Yield Vault timeline. The loader
+ *   returns the same live snapshot with `livePreview = true`. No invented data.
+ *
+ * The legacy `loadDashboardData(vaultId?)` signature is fully preserved; this
+ * function is an additive sibling, not a replacement.
+ */
+export async function loadDashboardForRef(ref: VaultRef): Promise<DashboardData> {
+  const profile = toVaultProfile(ref);
+
+  // Determine whether we are on the canonical Yield Vault live timeline.
+  // For fixtures: only the "yield" fixture maps to the live timeline.
+  // For deployments: no deployment has a separate snapshot table yet — always preview.
+  const isYieldFixture =
+    ref.kind === "fixture" && ref.fixture.id === VAULT_YIELD.id;
+  const livePreview = !isYieldFixture;
+
+  const vaultMeta: DashboardVaultMeta = {
+    id: profile.id,
+    name: profile.label,
+    apyTarget: { low: profile.apyTarget.low, high: profile.apyTarget.high },
+    allocationTargets: { ...profile.allocationTargets },
+    assumptions: [...profile.assumptions],
+    livePreview,
+  };
+
+  return buildDashboardFromSnapshot(vaultMeta);
 }
 
 // ---------------------------------------------------------------------------

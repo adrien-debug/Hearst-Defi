@@ -136,6 +136,64 @@ référence rapide. Il ne remplace pas la DB.
 
 ---
 
+## Phase MVP+ (mois 3-4) — UX redesign · Institutional grade
+
+**Ajoutée le 2026-05-26** suite au flow redesign de 10 agents Opus en parallèle
+(`docs/audit/flow-redesign-2026-05-26.html`). Score UX actuel **4/10**, cible
+**8/10** post-phase. **54 items** répartis sur 4 sprints.
+
+### Bug structurel à régler en premier (semaine 1)
+
+**Schism `VaultDeployment` Prisma ↔ `VaultId` enum hardcodé** — les vaults
+créés via le wizard sont invisibles depuis `/admin/dashboard`,
+`/admin/investor-memo`, `/admin/scenario-lab`. Tant que ce bug existe, tout
+le reste est cosmétique. Item bloquant : `vault-schema-reconciliation`.
+
+### Sprint 1 (semaine 1) — Foundation
+
+- `vault-schema-reconciliation`, `vault-context-provider`, `admin-route-redirects`
+  (308 vers IA vault-centric)
+- `required-signers-picker` (kill hardcode 2 → picker 2-5)
+- `distributions-vault-fk`, `proof-center-dedup`, `promote-to-draft-fix`
+
+### Sprint 2-3 (semaine 2-3) — Cockpit admin + Dashboard LP
+
+- `admin-cockpit-unified` 3-colonnes (action queue / live metrics / live ops)
+- `action-queue-10-types`, `pending-approvals-inbox` cross-vaults
+- Dashboard LP 3 sections + 5 widgets nouveaux : Lock meter, Risk Pulse,
+  Distributions Calendar, Proof Pulse, Yield source stack
+- Kill 4 placeholders charts (BacktestChart, NavSparkline, ValueChart,
+  TimeToTargetChart)
+- 4 charts up-leveled : NAV+drawdown, Risk waterfall, Mining heatmap,
+  Allocation hierarchical donut
+- Pattern `ChartProvenanceCorner` + `ChartTimeSelector` + disclaimer underlay
+
+### Sprint 4-6 (semaine 4-6) — Wizard + Multisig + LP onboarding
+
+- **Wizard 5 → 7 steps** : autosave `VaultDraft`, Resume in progress, Clone
+  from existing, Monte Carlo inline Step 6, Sign & Deploy séparé Step 7,
+  forbidden words inline
+- **Multisig + Timelock UX** : state machine 6 états, Safe EIP-712 off-chain
+  collection, `TimelockController` schedule, cancel-quorum 2/5 distinct,
+  Tenderly fork simulation pre-signature, public countdown 48h, notification
+  matrix (signers Telegram, LPs email)
+- **LP onboarding 4 → 9 stages** : Landing S0 (manquant aujourd'hui !), 3
+  paths divergents (Individual Privy / Corporate Fireblocks / Fund-of-funds
+  white-glove), Persona KYC inline, DocuSign embedded, S9 institutional
+  confirmation (NAV0 + lockup countdown + next distrib + PDF + .ics + ops
+  contact nommé)
+
+### Trim (parallèle) — Power-user tools + 3 big ideas SOTA
+
+- ⌘K palette (30 commands), ⌘/ search (10 entities), notifications bell,
+  batch actions, 8 saved views Linear-style, keyboard shortcuts
+- **Carta** : event-based atomic exec (1 click = tx + ledger + PCAP + emails)
+- **Maple** : Time-to-cash widget LP
+- **Anchorage** : allowlist quorum routing
+- Surprise & delight LP : Export PDF statement, Tax docs preview (1099/CRS)
+
+---
+
 ## Phase V1 (mois 4-6) — Share classes + mainnet
 
 | Item | État |
