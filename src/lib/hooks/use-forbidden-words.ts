@@ -31,22 +31,42 @@ export interface ForbiddenMatch {
   length: number;
 }
 
+const NEGATION_WORDS = new Set(["not", "no", "never", "without"]);
+
+/** Strip all non-alpha characters so hyphenated tokens like "not" in
+ *  "guaranteed-not-applicable" are normalised correctly. */
+function stripPunct(word: string): string {
+  return word.toLowerCase().replace(/[^a-z]/g, "");
+}
+
 /**
- * Returns whether a match at `index` for `word` is exempted because it is
- * preceded by a negation (not / no / never / without) within 3 words.
+ * Returns whether a match at `index` / `matchLength` is exempted because a
+ * negation word (not / no / never / without) appears within a 3-word window
+ * BEFORE **or** AFTER the matched forbidden word.
  *
- * We inspect the substring that ends immediately before the matched word.
- * If that substring ends with a negation word followed by 0–2 intermediate
- * words and then whitespace, the occurrence is considered negated.
+ * Lookbehind: inspect the 3 words immediately preceding the match (up to 100
+ * chars).  Words are split on whitespace only — punctuation is stripped from
+ * each token before comparison, so "guaranteed-not-applicable" correctly
+ * surfaces "not" in the post-match window.
+ *
+ * Lookahead: inspect the 3 words immediately following the match end (up to
+ * 100 chars).  This handles "money-back guarantee, not applicable" and
+ * "guarantee not on Tuesdays".
  */
-function isNegated(text: string, index: number): boolean {
-  // Take up to 40 chars before the match — enough for "not at all guaranteed"
-  const before = text.slice(Math.max(0, index - 40), index);
-  // Pattern: negation word, whitespace, then optionally 1-2 intervening words
-  // each followed by a space, finishing at the end of `before` (which is right
-  // before the matched word in the original string).
-  const negationPattern = /\b(not|no|never|without)\s+(?:\w+\s+){0,2}$/i;
-  return negationPattern.test(before);
+function isNegated(text: string, index: number, matchLength: number): boolean {
+  const WINDOW = 3;
+
+  const before = text.slice(Math.max(0, index - 100), index);
+  const after = text.slice(index + matchLength, index + matchLength + 100);
+
+  // Split on whitespace OR hyphens so that hyphenated tokens like
+  // "-not-applicable" are broken into individual words for negation checks.
+  const beforeWords = before.split(/[\s-]+/).slice(-WINDOW);
+  const afterWords = after.split(/[\s-]+/).slice(0, WINDOW);
+
+  return [...beforeWords, ...afterWords].some((w) =>
+    NEGATION_WORDS.has(stripPunct(w)),
+  );
 }
 
 /**
@@ -58,8 +78,8 @@ function isNegated(text: string, index: number): boolean {
  * identity unless the text actually changes).
  *
  * Special case: "not guaranteed" (and similar negated forms) is **not** a
- * violation — the exception is implemented via a lookbehind on the 3 words
- * preceding the match.
+ * violation — the exception is implemented via a look-behind **and**
+ * look-ahead window of 3 words around the match.
  */
 export function useForbiddenWords(text: string): ForbiddenMatch[] {
   return useMemo(() => {
@@ -77,7 +97,7 @@ export function useForbiddenWords(text: string): ForbiddenMatch[] {
       while ((m = pattern.exec(lower)) !== null) {
         const idx = m.index;
         // Skip negated occurrences ("not guaranteed", "no risk-free claim", …)
-        if (isNegated(lower, idx)) continue;
+        if (isNegated(lower, idx, m[0].length)) continue;
         matches.push({ word, index: idx, length: m[0].length });
       }
     }

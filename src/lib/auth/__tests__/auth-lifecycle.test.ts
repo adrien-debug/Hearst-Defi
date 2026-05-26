@@ -9,7 +9,7 @@
  * between cycles, and with two concurrent tokens to prove tokens never cross.
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // ---------------------------------------------------------------------------
 // Mocks — hoisted before the module under test is imported
@@ -105,7 +105,11 @@ function makeJar(initial?: Record<string, string>) {
   };
 }
 
+/** Frozen instant used by every test — eliminates all Date.now() flake. */
+const FROZEN_NOW = new Date("2026-05-26T10:00:00Z").getTime();
+
 beforeEach(() => {
+  vi.useFakeTimers({ now: FROZEN_NOW });
   vi.clearAllMocks();
   table = new Map();
   seq = 0;
@@ -139,17 +143,22 @@ beforeEach(() => {
   }) as never);
 });
 
+afterEach(() => {
+  vi.useRealTimers();
+});
+
 // ---------------------------------------------------------------------------
 // createSession → getSession → destroySession (one clean cycle)
 // ---------------------------------------------------------------------------
 
 describe("session lifecycle — single cycle", () => {
   it("createSession persists a row with a future expiry", async () => {
-    const before = Date.now();
+    // Date.now() is frozen at FROZEN_NOW via vi.useFakeTimers — deterministic.
+    const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
     const { token, expiresAt } = await createSession("user_alice");
 
     expect(token).toBe("sess_1");
-    expect(expiresAt.getTime()).toBeGreaterThan(before);
+    expect(expiresAt.getTime()).toBe(FROZEN_NOW + SESSION_TTL_MS);
     expect(table.get("sess_1")?.userId).toBe("user_alice");
   });
 
@@ -268,8 +277,8 @@ describe("concurrent sessions", () => {
 describe("session expiry", () => {
   it("deletes the stale row and returns null when expiry is in the past", async () => {
     const { token } = await createSession("user_alice");
-    // Force the row to be expired.
-    table.get(token)!.expiresAt = new Date(Date.now() - 1_000);
+    // Force the row to be expired — 1 s before the frozen instant.
+    table.get(token)!.expiresAt = new Date(FROZEN_NOW - 1_000);
     mockCookies.mockResolvedValue(makeJar({ [SESSION_COOKIE]: token }).cookies);
 
     expect(await getSession()).toBeNull();
@@ -279,26 +288,29 @@ describe("session expiry", () => {
 
   it("treats expiry exactly at 'now' as expired (<= boundary), deletes + null", async () => {
     const { token } = await createSession("user_alice");
-    const now = 1_900_000_000_000;
-    vi.spyOn(Date, "now").mockReturnValue(now);
-    table.get(token)!.expiresAt = new Date(now); // exactly the frontier
+    // Advance fake clock to a distinct instant for the boundary check.
+    const boundary = 1_900_000_000_000;
+    vi.setSystemTime(boundary);
+    table.get(token)!.expiresAt = new Date(boundary); // exactly the frontier
     mockCookies.mockResolvedValue(makeJar({ [SESSION_COOKIE]: token }).cookies);
 
     expect(await getSession()).toBeNull();
     expect(mockSessionDelete).toHaveBeenCalledWith({ where: { id: token } });
-    vi.restoreAllMocks();
+    // Reset back to frozen base so remaining afterEach is clean.
+    vi.setSystemTime(FROZEN_NOW);
   });
 
   it("accepts a session expiring 1ms in the future", async () => {
     const { token } = await createSession("user_alice");
-    const now = 1_900_000_000_000;
-    vi.spyOn(Date, "now").mockReturnValue(now);
-    table.get(token)!.expiresAt = new Date(now + 1);
+    // Advance fake clock to a distinct instant for the boundary check.
+    const boundary = 1_900_000_000_000;
+    vi.setSystemTime(boundary);
+    table.get(token)!.expiresAt = new Date(boundary + 1);
     mockCookies.mockResolvedValue(makeJar({ [SESSION_COOKIE]: token }).cookies);
 
     expect((await getSession())?.userId).toBe("user_alice");
     expect(mockSessionDelete).not.toHaveBeenCalled();
-    vi.restoreAllMocks();
+    vi.setSystemTime(FROZEN_NOW);
   });
 });
 

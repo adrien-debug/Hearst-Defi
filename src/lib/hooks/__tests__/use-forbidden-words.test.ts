@@ -89,4 +89,50 @@ describe("useForbiddenWords", () => {
       /^promise/,
     );
   });
+
+  // -------------------------------------------------------------------------
+  // Lookahead negation (negation word appears AFTER the forbidden word)
+  // -------------------------------------------------------------------------
+
+  it("money-back guarantee, not applicable — no match (negation after)", () => {
+    const matches = useForbiddenWords("money-back guarantee, not applicable");
+    expect(matches.filter((m) => m.word === "guarantee")).toHaveLength(0);
+  });
+
+  it("guaranteed-not-applicable — no match (negation inside hyphenated token)", () => {
+    const matches = useForbiddenWords("guaranteed-not-applicable");
+    expect(matches.filter((m) => m.word === "guarantee")).toHaveLength(0);
+  });
+
+  it("this is guaranteed — match (no negation anywhere)", () => {
+    const matches = useForbiddenWords("this is guaranteed");
+    expect(matches.find((m) => m.word === "guarantee")).toBeDefined();
+  });
+
+  it("never guarantee — no match (negation before, already covered by lookbehind)", () => {
+    const matches = useForbiddenWords("never guarantee");
+    expect(matches.filter((m) => m.word === "guarantee")).toHaveLength(0);
+  });
+
+  it("I would not guarantee this — no match (negation 3 words before)", () => {
+    const matches = useForbiddenWords("I would not guarantee this");
+    expect(matches.filter((m) => m.word === "guarantee")).toHaveLength(0);
+  });
+
+  it("guarantee not on Tuesdays — no match (negation 1 word after)", () => {
+    const matches = useForbiddenWords("guarantee not on Tuesdays");
+    expect(matches.filter((m) => m.word === "guarantee")).toHaveLength(0);
+  });
+
+  it("guarantee not but maybe yes — no match (negation 1 word after)", () => {
+    const matches = useForbiddenWords("guarantee not but maybe yes");
+    expect(matches.filter((m) => m.word === "guarantee")).toHaveLength(0);
+  });
+
+  it("guarantee, sometimes never — match (negation 2 words after, past the comma boundary)", () => {
+    // "sometimes" is word 1 after, "never" is word 2 after — within window of 3,
+    // so this IS negated and should produce no match.
+    const matches = useForbiddenWords("guarantee, sometimes never");
+    expect(matches.filter((m) => m.word === "guarantee")).toHaveLength(0);
+  });
 });
