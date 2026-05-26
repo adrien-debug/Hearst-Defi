@@ -32,6 +32,10 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
+vi.mock("@/lib/rate-limit", () => ({
+  assertRateLimit: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock("@/lib/logger", () => ({
   logger: {
     info: vi.fn(),

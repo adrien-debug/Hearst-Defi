@@ -124,6 +124,14 @@ const CreateDraftSchema = z.object({
         "requiredSigners cannot exceed the number of signers in signersWhitelist",
       path: ["requiredSigners"],
     },
+  )
+  .refine(
+    (d) => containsForbiddenWord(d.name) === null,
+    {
+      message:
+        "Name contains a forbidden word (guarantee / promise / certain / will deliver / risk-free)",
+      path: ["name"],
+    },
   );
 
 export type CreateDraftInput = z.infer<typeof CreateDraftSchema>;

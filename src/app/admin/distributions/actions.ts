@@ -21,9 +21,12 @@ const PeriodSchema = z.string().regex(/^\d{4}-\d{2}$/, {
   message: "Period must be in YYYY-MM format, e.g. 2026-05",
 });
 
+const VaultRefSchema = z.string().min(1, "Vault is required");
+
 const ComputeSchema = z.object({
   period: PeriodSchema,
   totalUsdc: z.number().positive(),
+  vaultRef: VaultRefSchema,
 });
 
 const ConfirmSchema = z.object({
@@ -32,6 +35,7 @@ const ConfirmSchema = z.object({
     .string()
     .regex(/^0x[a-fA-F0-9]{40}$/, "Must be a valid Ethereum address"),
   totalUsdc: z.number().positive(),
+  vaultRef: VaultRefSchema,
 });
 
 // ---------------------------------------------------------------------------
@@ -48,6 +52,7 @@ export interface DistributionRecipient {
 export interface ComputeDistributionResult {
   period: string;
   totalUsdc: number;
+  vaultRef: string;
   recipients: DistributionRecipient[];
 }
 
@@ -68,6 +73,7 @@ const REQUIRED_SIGNERS = 2;
 export async function computeDistribution(
   period: string,
   totalUsdc: number,
+  vaultRef: string,
 ): Promise<ComputeDistributionResult> {
   const admin = await requireAdmin();
 
@@ -81,7 +87,7 @@ export async function computeDistribution(
     throw new Error("Too many requests");
   }
 
-  const parsed = ComputeSchema.safeParse({ period, totalUsdc });
+  const parsed = ComputeSchema.safeParse({ period, totalUsdc, vaultRef });
   if (!parsed.success) {
     throw new Error(`Invalid input: ${parsed.error.message}`);
   }
@@ -92,7 +98,7 @@ export async function computeDistribution(
   });
 
   if (activePositions.length === 0) {
-    return { period, totalUsdc, recipients: [] };
+    return { period, totalUsdc, vaultRef, recipients: [] };
   }
 
   // Sum total principal across all active positions
@@ -102,7 +108,7 @@ export async function computeDistribution(
   );
 
   if (totalPrincipal === 0) {
-    return { period, totalUsdc, recipients: [] };
+    return { period, totalUsdc, vaultRef, recipients: [] };
   }
 
   const recipients: DistributionRecipient[] = activePositions.map((pos) => {
@@ -122,11 +128,12 @@ export async function computeDistribution(
   logger.info("[distributions] compute dry-run", {
     period,
     totalUsdc,
+    vaultRef,
     recipientsCount: recipients.length,
     totalPrincipal,
   });
 
-  return { period, totalUsdc, recipients };
+  return { period, totalUsdc, vaultRef, recipients };
 }
 
 // ---------------------------------------------------------------------------
@@ -137,6 +144,7 @@ export async function confirmDistribution(
   period: string,
   signerWallet: string,
   totalUsdc: number,
+  vaultRef: string,
 ): Promise<{ confirmed: boolean; signersCount: number; required: number }> {
   const admin = await requireAdmin();
 
@@ -150,7 +158,7 @@ export async function confirmDistribution(
     throw new Error("Too many requests");
   }
 
-  const parsed = ConfirmSchema.safeParse({ period, signerWallet, totalUsdc });
+  const parsed = ConfirmSchema.safeParse({ period, signerWallet, totalUsdc, vaultRef });
   if (!parsed.success) {
     throw new Error(`Invalid input: ${parsed.error.message}`);
   }
@@ -215,7 +223,7 @@ export async function confirmDistribution(
   }
 
   // Threshold reached — execute using the REFERENCE amount (first signer's)
-  const computed = await computeDistribution(period, lockedUsdc);
+  const computed = await computeDistribution(period, lockedUsdc, vaultRef);
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -225,6 +233,7 @@ export async function confirmDistribution(
           amountUsdc: computed.totalUsdc,
           recipientsCount: computed.recipients.length,
           period,
+          vaultRef: computed.vaultRef,
         },
       });
 
@@ -270,6 +279,7 @@ export async function confirmDistribution(
           totalUsdc: computed.totalUsdc,
           recipientsCount: computed.recipients.length,
           signersCount,
+          vaultRef: computed.vaultRef,
         },
       });
 

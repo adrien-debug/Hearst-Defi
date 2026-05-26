@@ -308,4 +308,24 @@ describe("CreateDraftSchema — Zod refinements (P1)", () => {
     const result = await createDraftVault(input);
     expect(result.ok).toBe(true);
   });
+
+  it("Name forbidden word — contains 'guarantee' → rejected", async () => {
+    const input = validDraftInput();
+    input.name = "Hearst Guaranteed Vault";
+    const result = await createDraftVault(input);
+    expect(result.ok).toBe(false);
+    if (!result.ok && typeof result.issues !== "string") {
+      const msgs = result.issues.map((i) => i.message);
+      expect(
+        msgs.some(
+          (m) =>
+            /forbidden word/i.test(m) &&
+            result.issues !== "string" &&
+            (result.issues as import("zod").ZodIssue[]).some(
+              (issue) => issue.path.includes("name"),
+            ),
+        ),
+      ).toBe(true);
+    }
+  });
 });

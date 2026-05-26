@@ -3,7 +3,7 @@ import type { PortfolioPosition } from "@/lib/data/portfolio";
 import { formatUsdCompact } from "@/lib/format/usd-compact";
 
 /**
- * 12-month value chart — SVG removed, placeholder only.
+ * 12-month portfolio value area chart with monthly distribution markers.
  *
  * Derives a deterministic monthly series from the positions list:
  * start = sum of principals (subscribed month), end = totalValueUsdc today.
@@ -12,13 +12,19 @@ import { formatUsdCompact } from "@/lib/format/usd-compact";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+// ViewBox constants — 200×60 grid for this larger chart.
+const VB_W = 200;
+const VB_H = 60;
+const PAD_X = 0;
+const PAD_Y = 4;
+
 function buildMonthSeries(
   positions: PortfolioPosition[],
   totalValueUsdc: number,
   asOf: Date,
-): Array<{ label: string; value: number }> {
+): Array<{ label: string; value: number; isDistribution: boolean }> {
   const points = 12;
-  const result: Array<{ label: string; value: number }> = [];
+  const result: Array<{ label: string; value: number; isDistribution: boolean }> = [];
   const startValue =
     positions.reduce((s, p) => s + p.principalUsdc, 0) || totalValueUsdc;
   const endValue = totalValueUsdc > 0 ? totalValueUsdc : startValue;
@@ -36,10 +42,140 @@ function buildMonthSeries(
     // Smooth monotone curve with a small oscillation for visual depth.
     const wave = Math.sin(i * 0.9) * (endValue - startValue) * 0.04;
     const value = Math.round(startValue + (endValue - startValue) * t + wave);
-    result.push({ label: MONTHS[d.getUTCMonth() % 12] ?? "", value });
+    // Monthly distributions happen every 30 days — mark every month as a potential
+    // distribution point (the real cadence is monthly per the product spec).
+    const isDistribution = i > 0 && i % 1 === 0;
+    result.push({
+      label: MONTHS[d.getUTCMonth() % 12] ?? "",
+      value,
+      isDistribution,
+    });
   }
   return result;
 }
+
+// ── SVG helpers ───────────────────────────────────────────────────────────────
+
+function toXY(
+  values: number[],
+  min: number,
+  max: number,
+): Array<{ x: number; y: number }> {
+  const n = values.length;
+  const span = max - min || 1;
+  const innerH = VB_H - PAD_Y * 2;
+  return values.map((v, i) => ({
+    x: PAD_X + (n === 1 ? VB_W / 2 : (i / (n - 1)) * (VB_W - PAD_X * 2)),
+    y: PAD_Y + innerH - ((v - min) / span) * innerH,
+  }));
+}
+
+function polyline(pts: Array<{ x: number; y: number }>): string {
+  return pts.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ");
+}
+
+// ── Area chart SVG ────────────────────────────────────────────────────────────
+
+interface AreaChartProps {
+  series: Array<{ label: string; value: number; isDistribution: boolean }>;
+  ariaLabel: string;
+}
+
+function AreaChart({ series, ariaLabel: _ariaLabel }: AreaChartProps) {
+  const values = series.map((d) => d.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+
+  const pts = toXY(values, min, max);
+  const linePts = polyline(pts);
+
+  // Area polygon: line pts + bottom-right + bottom-left corners.
+  const first = pts[0];
+  const last  = pts[pts.length - 1];
+  const areaPts = `${linePts} ${last ? `${last.x.toFixed(2)},${VB_H}` : ""} ${first ? `${first.x.toFixed(2)},${VB_H}` : ""}`;
+
+  // Unique IDs for SVG defs.
+  const gradId  = "vc-area-grad";
+  const titleId = "vc-title";
+  const descId  = "vc-desc";
+
+  return (
+    <svg
+      viewBox={`0 0 ${VB_W} ${VB_H}`}
+      preserveAspectRatio="none"
+      className="w-full h-full"
+      role="img"
+      aria-labelledby={`${titleId} ${descId}`}
+    >
+      <title id={titleId}>Portfolio Value — 12-Month Trend</title>
+      <desc id={descId}>
+        Area chart showing portfolio value over the past 12 months with monthly distribution markers.
+      </desc>
+
+      <defs>
+        {/* Vertical gradient: accent at top, transparent at bottom */}
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="var(--ct-accent)" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="var(--ct-accent)" stopOpacity="0.02" />
+        </linearGradient>
+      </defs>
+
+      {/* Disclaimer watermark underlay */}
+      <text
+        x="50%"
+        y="50%"
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize="6"
+        fill="var(--ct-text-faint)"
+        opacity="0.08"
+        transform={`rotate(-12, ${VB_W / 2}, ${VB_H / 2})`}
+        style={{ userSelect: "none", pointerEvents: "none" }}
+        aria-hidden="true"
+      >
+        projections · not guaranteed
+      </text>
+
+      {/* Area fill */}
+      <polygon
+        points={areaPts}
+        fill={`url(#${gradId})`}
+      />
+
+      {/* Line stroke */}
+      <polyline
+        points={linePts}
+        fill="none"
+        stroke="var(--ct-accent)"
+        strokeWidth="0.8"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+      />
+
+      {/* Monthly distribution markers — small circles on the line */}
+      {pts.map((p, i) => {
+        const point = series[i];
+        if (!point?.isDistribution) return null;
+        return (
+          <circle
+            key={i}
+            cx={p.x.toFixed(2)}
+            cy={p.y.toFixed(2)}
+            r="1.2"
+            fill="var(--ct-accent-soft)"
+            stroke="var(--ct-accent)"
+            strokeWidth="0.4"
+            vectorEffect="non-scaling-stroke"
+            aria-label={`Distribution marker — ${point.label}`}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 interface ValueChartProps {
   positions: PortfolioPosition[];
@@ -51,6 +187,8 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
   const provenance: Provenance = source === "fallback" ? "stale" : "estimated";
   const asOf = new Date(); // rendered server-side; consistent within a request
   const series = buildMonthSeries(positions, totalValueUsdc, asOf);
+
+  const isEmpty = totalValueUsdc === 0 && positions.length === 0;
 
   return (
     <article className="dash-cell" aria-label="Portfolio value — 12-month trend">
@@ -64,11 +202,29 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
         </span>
       </div>
 
-      <div
-        className="mt-3 block pf-value-chart-placeholder w-full rounded-[var(--ct-radius-md)] bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)]"
-        style={{ minHeight: "5rem", maxHeight: "9rem", height: "120px" }}
-        aria-hidden="true"
-      />
+      {isEmpty ? (
+        /* Empty state preserved */
+        <div
+          className="mt-3 flex w-full items-center justify-center rounded-[var(--ct-radius-md)] border border-dashed border-[var(--ct-border-soft)] bg-[var(--ct-surface-1)]"
+          style={{ minHeight: "5rem", height: "120px" }}
+          aria-label="No portfolio data yet"
+        >
+          <p className="text-xs text-[var(--ct-text-muted)]">
+            No position data yet.
+          </p>
+        </div>
+      ) : (
+        /* Real area chart */
+        <div
+          className="mt-3 block w-full overflow-hidden rounded-[var(--ct-radius-md)]"
+          style={{ minHeight: "5rem", maxHeight: "9rem", height: "120px" }}
+        >
+          <AreaChart
+            series={series}
+            ariaLabel={`Portfolio value area chart, 12 months, current value ${totalValueUsdc > 0 ? formatUsdCompact(totalValueUsdc) : "n/a"}`}
+          />
+        </div>
+      )}
 
       {/* Month labels */}
       <div className="stat-label ct-text-muted flex justify-between mt-1 mono">

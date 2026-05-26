@@ -99,60 +99,38 @@ function RailSeparator() {
   );
 }
 
-const RAIL_STORAGE_KEY = "hc-rail-expanded";
-
-// External store backing the rail-expanded preference. Memory is the source of
-// truth (so private mode where localStorage throws still toggles), localStorage
-// is persistence. Read through useSyncExternalStore so SSR/first client render
-// use the default and the client reconciles without a setState-in-effect.
-let railExpandedState: boolean | null = null;
+// External store backing the rail-expanded state. Memory-only — the rail
+// always starts collapsed on every page load (no localStorage persistence).
+// The toggle changes the in-memory state for the current page session; a hard
+// reload resets it.
+let railExpandedState = false;
 const railListeners = new Set<() => void>();
 
 function readRailExpanded(): boolean {
-  if (railExpandedState !== null) return railExpandedState;
-  try {
-    railExpandedState = localStorage.getItem(RAIL_STORAGE_KEY) !== "0";
-  } catch {
-    railExpandedState = true;
-  }
   return railExpandedState;
 }
 
 function writeRailExpanded(next: boolean): void {
   railExpandedState = next;
-  try {
-    localStorage.setItem(RAIL_STORAGE_KEY, next ? "1" : "0");
-  } catch {
-    // localStorage unavailable (private mode) — memory state still drives the UI.
-  }
   railListeners.forEach((cb) => cb());
 }
 
 function subscribeRail(cb: () => void): () => void {
   railListeners.add(cb);
-  const onStorage = (e: StorageEvent) => {
-    if (e.key === RAIL_STORAGE_KEY) {
-      railExpandedState = null; // invalidate cache, re-read on next snapshot
-      cb();
-    }
-  };
-  window.addEventListener("storage", onStorage);
   return () => {
     railListeners.delete(cb);
-    window.removeEventListener("storage", onStorage);
   };
 }
 
 /**
- * Collapsible rail state. Default expanded (labels shown). Persisted in
- * localStorage and reflected onto <html data-rail-mode> so the shell's reserved
- * column (.ct-rail-left) can widen in lockstep and push the content, instead of
- * the rail overlaying it.
+ * Collapsible rail state. Always starts collapsed on every page load. The
+ * toggle changes the state for the current session only — no persistence.
+ * Reflected onto <html data-rail-mode> so the shell's reserved column
+ * (.ct-rail-left) widens in lockstep and pushes the content, instead of the
+ * rail overlaying it.
  */
 function useRailExpanded(): { expanded: boolean; toggle: () => void } {
-  // Default expanded on the server + first client render; the store reconciles
-  // to the persisted value on the client (no setState-in-effect).
-  const expanded = useSyncExternalStore(subscribeRail, readRailExpanded, () => true);
+  const expanded = useSyncExternalStore(subscribeRail, readRailExpanded, () => false);
 
   useEffect(() => {
     document.documentElement.dataset.railMode = expanded ? "expanded" : "collapsed";

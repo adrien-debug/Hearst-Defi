@@ -1,10 +1,10 @@
 "use client";
 
-// TimeToTargetChart — SVG removed, placeholder only.
+// TimeToTargetChart — cumulative yield curve + target milestone marker.
 // Non-negotiable #5: no forbidden words in labels.
 // Non-negotiable #10: "not guaranteed" disclaimer mandatory.
 
-import { monthsToTarget } from "@/lib/demo/projection";
+import { monthsToTarget, buildProjectionSeries } from "@/lib/demo/projection";
 import type { VaultProduct } from "@/lib/data/vaults";
 
 interface TimeToTargetChartProps {
@@ -15,18 +15,267 @@ interface TimeToTargetChartProps {
 const CHART_MONTHS = 24;
 const TARGET_CUMULATIVE_PCT = 10; // 10% cumulative yield as "milestone"
 
-export function TimeToTargetChart({ vault }: TimeToTargetChartProps) {
+// ViewBox dimensions
+const VB_W = 300;
+const VB_H = 120;
+const PAD_L = 8;
+const PAD_R = 8;
+const PAD_T = 12;
+const PAD_B = 8;
+const INNER_W = VB_W - PAD_L - PAD_R;
+const INNER_H = VB_H - PAD_T - PAD_B;
+
+/** Map a data index to an x coordinate. */
+function xAt(i: number, total: number): number {
+  if (total <= 1) return PAD_L + INNER_W / 2;
+  return PAD_L + (i / (total - 1)) * INNER_W;
+}
+
+/** Map a nav value to a y coordinate (higher nav → lower y). */
+function yAt(nav: number, minNav: number, maxNav: number): number {
+  const span = maxNav - minNav || 1;
+  return PAD_T + INNER_H - ((nav - minNav) / span) * INNER_H;
+}
+
+/** Build SVG path d for a line. */
+function linePath(xs: number[], ys: number[]): string {
+  return xs
+    .map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(2)},${(ys[i] ?? PAD_T).toFixed(2)}`)
+    .join(" ");
+}
+
+/** Build SVG path d for a filled area (line + baseline). */
+function areaPath(xs: number[], ys: number[]): string {
+  if (xs.length === 0) return "";
+  const line = xs
+    .map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(2)},${(ys[i] ?? PAD_T).toFixed(2)}`)
+    .join(" ");
+  const firstX = (xs[0] ?? PAD_L).toFixed(2);
+  const lastX = (xs[xs.length - 1] ?? PAD_L + INNER_W).toFixed(2);
+  const baselineY = (PAD_T + INNER_H).toFixed(2);
+  return `${line} L${lastX},${baselineY} L${firstX},${baselineY} Z`;
+}
+
+export function TimeToTargetChart({ amount, vault }: TimeToTargetChartProps) {
   const midApy = (vault.apyLow + vault.apyHigh) / 2;
   const months10pct = monthsToTarget(midApy, TARGET_CUMULATIVE_PCT, CHART_MONTHS);
+
+  // Build the mid-line cumulative yield series (NAV indexed to 100).
+  // We use buildProjectionSeries with a normalized principal of 100 so the
+  // y-axis shows cumulative yield % rather than raw USDC.
+  const series = buildProjectionSeries(100, vault.apyLow, vault.apyHigh, CHART_MONTHS);
+  const midPts = series.mid;
+  const highPts = series.high;
+
+  // Check for empty / degenerate state.
+  const hasData = midPts.length >= 2;
+
+  if (!hasData) {
+    return (
+      <div className="space-y-2">
+        <div
+          className="w-full rounded-[var(--ct-radius-md)] bg-[var(--ct-surface-1)] border border-dashed border-[var(--ct-border-soft)] flex items-center justify-center"
+          style={{ height: "160px" }}
+          role="img"
+          aria-label="No projection data available"
+        >
+          <p className="text-xs text-[var(--ct-text-muted)]">No projection data.</p>
+        </div>
+        <p className="body-xs ct-text-faint text-center">
+          Conditional projection — not a projection of future returns. Methodology v1.0.
+        </p>
+      </div>
+    );
+  }
+
+  const navValues = midPts.map((p) => p.nav);
+  const highValues = highPts.map((p) => p.nav);
+  const allValues = [...navValues, ...highValues];
+  const minNav = Math.min(...allValues);
+  const maxNav = Math.max(...allValues);
+
+  const totalPts = midPts.length;
+  const xs = midPts.map((_, i) => xAt(i, totalPts));
+  const ysHigh = highValues.map((v) => yAt(v, minNav, maxNav));
+  const ysMid = navValues.map((v) => yAt(v, minNav, maxNav));
+
+  // Area path for mid fill
+  const midArea = areaPath(xs, ysMid);
+  const midLine = linePath(xs, ysMid);
+
+  // High line (band ceiling)
+  const highLine = linePath(xs, ysHigh);
+
+  // Band area between mid and high
+  const highXs = highPts.map((_, i) => xAt(i, totalPts));
+  const bandArea = (() => {
+    const top = highXs.map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(2)},${(ysHigh[i] ?? PAD_T).toFixed(2)}`).join(" ");
+    const reversed = [...xs].reverse();
+    const reversedYsMid = [...ysMid].reverse();
+    const bottom = reversed.map((x, i) => `L${x.toFixed(2)},${(reversedYsMid[i] ?? PAD_T + INNER_H).toFixed(2)}`).join(" ");
+    return `${top} ${bottom} Z`;
+  })();
+
+  // Target milestone vertical line
+  const targetX = months10pct !== null ? xAt(months10pct, totalPts) : null;
+
+  // Label for target: USDC value at milestone month
+  const targetNav = months10pct !== null ? (midPts[months10pct]?.nav ?? null) : null;
+  const targetUsdcRaw = targetNav !== null && amount > 0 ? (targetNav / 100) * amount : null;
+  const targetLabel =
+    targetUsdcRaw !== null
+      ? `Target: $${Math.round(targetUsdcRaw).toLocaleString("en-US")} at M${months10pct ?? "—"}`
+      : months10pct !== null
+        ? `+${TARGET_CUMULATIVE_PCT}% at M${months10pct}`
+        : null;
+
+  // Horizontal grid lines (3 guides)
+  const gridYs = [0.25, 0.5, 0.75].map((frac) => PAD_T + INNER_H * (1 - frac));
+
+  // Month axis labels: 0, 6, 12, 18, 24
+  const axisMonths = [0, 6, 12, 18, 24].filter((m) => m < totalPts);
 
   return (
     <div className="space-y-2">
       <div
-        className="w-full rounded-[var(--ct-radius-md)] bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)]"
+        className="w-full rounded-[var(--ct-radius-md)] bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] overflow-hidden"
         style={{ height: "160px" }}
-        aria-label="Projected NAV growth chart"
-        role="img"
-      />
+      >
+        <svg
+          viewBox={`0 0 ${VB_W} ${VB_H}`}
+          preserveAspectRatio="xMidYMid meet"
+          className="w-full h-full"
+          role="img"
+          aria-labelledby="tttc-title tttc-desc"
+        >
+          <title id="tttc-title">
+            Cumulative yield projection for {vault.name}
+          </title>
+          <desc id="tttc-desc">
+            A line chart showing projected NAV growth over {CHART_MONTHS} months based on
+            the {vault.apyLow}%–{vault.apyHigh}% APY range. A dashed vertical marker
+            indicates when the +{TARGET_CUMULATIVE_PCT}% cumulative yield milestone is reached.
+            These are conditional projections, not a commitment to future returns.
+          </desc>
+
+          {/* Disclaimer watermark */}
+          <text
+            x={VB_W / 2}
+            y={VB_H / 2}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fill="var(--ct-text-faint)"
+            fontSize="9"
+            fontFamily="inherit"
+            opacity="0.08"
+            transform={`rotate(-12, ${VB_W / 2}, ${VB_H / 2})`}
+            aria-hidden="true"
+          >
+            projections · not guaranteed
+          </text>
+
+          {/* Horizontal grid lines */}
+          {gridYs.map((gy, idx) => (
+            <line
+              key={idx}
+              x1={PAD_L}
+              y1={gy}
+              x2={PAD_L + INNER_W}
+              y2={gy}
+              stroke="var(--ct-border-soft)"
+              strokeWidth="0.4"
+              aria-hidden="true"
+            />
+          ))}
+
+          {/* Band fill between mid and high */}
+          <path
+            d={bandArea}
+            fill="var(--ct-accent)"
+            opacity="0.07"
+            aria-hidden="true"
+          />
+
+          {/* Mid area fill */}
+          <path
+            d={midArea}
+            fill="var(--ct-accent)"
+            opacity="0.18"
+            aria-hidden="true"
+          />
+
+          {/* High line (band ceiling) */}
+          <path
+            d={highLine}
+            fill="none"
+            stroke="var(--ct-accent)"
+            strokeWidth="0.5"
+            strokeOpacity="0.45"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            vectorEffect="non-scaling-stroke"
+            aria-hidden="true"
+          />
+
+          {/* Mid cumulative yield curve */}
+          <path
+            d={midLine}
+            fill="none"
+            stroke="var(--ct-accent)"
+            strokeWidth="1.2"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            vectorEffect="non-scaling-stroke"
+          />
+
+          {/* Target milestone vertical dashed line */}
+          {targetX !== null && (
+            <>
+              <line
+                x1={targetX}
+                y1={PAD_T}
+                x2={targetX}
+                y2={PAD_T + INNER_H}
+                stroke="var(--ct-warning)"
+                strokeWidth="0.8"
+                strokeDasharray="2,2"
+                vectorEffect="non-scaling-stroke"
+                aria-hidden="true"
+              />
+              {/* Target label */}
+              {targetLabel !== null && (
+                <text
+                  x={Math.min(targetX + 2, VB_W - PAD_R - 40)}
+                  y={PAD_T + 5}
+                  fill="var(--ct-warning)"
+                  fontSize="5"
+                  fontFamily="inherit"
+                  fontWeight="600"
+                  aria-hidden="true"
+                >
+                  {targetLabel}
+                </text>
+              )}
+            </>
+          )}
+
+          {/* Month axis labels */}
+          {axisMonths.map((m) => (
+            <text
+              key={m}
+              x={xAt(m, totalPts)}
+              y={VB_H - 1}
+              textAnchor="middle"
+              fill="var(--ct-text-faint)"
+              fontSize="4"
+              fontFamily="inherit"
+              aria-hidden="true"
+            >
+              M{m}
+            </text>
+          ))}
+        </svg>
+      </div>
 
       {months10pct !== null && (
         <p className="body-xs ct-text-faint text-center">

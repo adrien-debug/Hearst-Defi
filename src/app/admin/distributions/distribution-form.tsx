@@ -23,13 +23,30 @@ function getCurrentPeriod(): string {
 }
 
 // ---------------------------------------------------------------------------
+// Props
+// ---------------------------------------------------------------------------
+
+export interface VaultOption {
+  value: string; // vaultSlug — e.g. "yield", "defensive", "btc-plus", "hyv-a"
+  label: string; // human label — e.g. "Hearst Yield Vault"
+}
+
+export interface DistributionFormProps {
+  /** Vault list built on the server via listAllVaults({ status: "live-or-paused" }). */
+  vaultOptions: VaultOption[];
+}
+
+// ---------------------------------------------------------------------------
 // DistributionForm
 // ---------------------------------------------------------------------------
 
-export function DistributionForm() {
+export function DistributionForm({ vaultOptions }: DistributionFormProps) {
   const [isPending, startTransition] = useTransition();
   const [period, setPeriod] = useState(getCurrentPeriod);
   const [totalUsdc, setTotalUsdc] = useState("");
+  const [selectedVault, setSelectedVault] = useState(
+    vaultOptions[0]?.value ?? "",
+  );
   const [preview, setPreview] = useState<ComputeDistributionResult | null>(
     null,
   );
@@ -54,13 +71,21 @@ export function DistributionForm() {
       setError("Total USDC must be a positive number.");
       return;
     }
+    if (!selectedVault) {
+      setError("Vault is required.");
+      return;
+    }
     setError(null);
     setPreview(null);
     setConfirmResult(null);
 
     startTransition(async () => {
       try {
-        const result = await computeDistribution(period, totalUsdcNum);
+        const result = await computeDistribution(
+          period,
+          totalUsdcNum,
+          selectedVault,
+        );
         setPreview(result);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Compute failed.");
@@ -93,6 +118,7 @@ export function DistributionForm() {
           period,
           signerWallet.trim(),
           totalUsdcNum,
+          selectedVault,
         );
         setConfirmResult(result);
         if (result.confirmed) {
@@ -103,6 +129,10 @@ export function DistributionForm() {
       }
     });
   }
+
+  // Label for selected vault (used in confirmation recap)
+  const selectedVaultLabel =
+    vaultOptions.find((o) => o.value === selectedVault)?.label ?? selectedVault;
 
   return (
     <div className="ct-card space-y-6">
@@ -115,7 +145,33 @@ export function DistributionForm() {
       </div>
 
       {/* Inputs */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {/* Vault select */}
+        <div className="space-y-1">
+          <label className="stat-label" htmlFor="dist-vault">
+            Vault
+          </label>
+          <select
+            id="dist-vault"
+            value={selectedVault}
+            onChange={(e) => setSelectedVault(e.target.value)}
+            className="ct-input w-full"
+            disabled={isPending}
+            required
+          >
+            {vaultOptions.length === 0 && (
+              <option value="" disabled>
+                No live vaults
+              </option>
+            )}
+            {vaultOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="space-y-1">
           <label className="stat-label" htmlFor="dist-period">
             Period (YYYY-MM)
@@ -151,7 +207,7 @@ export function DistributionForm() {
       <Button
         variant="secondary"
         onClick={handleCompute}
-        disabled={isPending || !period || !totalUsdc}
+        disabled={isPending || !period || !totalUsdc || !selectedVault}
       >
         {isPending && !preview ? "Computing…" : "Compute"}
       </Button>
@@ -196,7 +252,8 @@ export function DistributionForm() {
               {confirmResult && !confirmResult.confirmed && (
                 <p className="body-xs ct-status-info-bg px-3 py-2 rounded-[var(--ct-radius-lg)]">
                   Signature {confirmResult.signersCount}/{confirmResult.required}{" "}
-                  recorded. Awaiting {confirmResult.required - confirmResult.signersCount} more
+                  recorded. Awaiting{" "}
+                  {confirmResult.required - confirmResult.signersCount} more
                   distinct signer(s).
                 </p>
               )}
@@ -206,8 +263,16 @@ export function DistributionForm() {
                   <p className="eyebrow">Confirm distribution</p>
                   <div className="space-y-1">
                     <div className="flex justify-between body-sm">
+                      <span className="ct-text-muted">Vault</span>
+                      <span className="ct-text-body font-semibold">
+                        {selectedVaultLabel}
+                      </span>
+                    </div>
+                    <div className="flex justify-between body-sm">
                       <span className="ct-text-muted">Period</span>
-                      <span className="ct-text-body font-semibold mono">{period}</span>
+                      <span className="ct-text-body font-semibold mono">
+                        {period}
+                      </span>
                     </div>
                     <div className="flex justify-between body-sm">
                       <span className="ct-text-muted">Total USDC</span>
@@ -217,7 +282,9 @@ export function DistributionForm() {
                     </div>
                     <div className="flex justify-between body-sm">
                       <span className="ct-text-muted">Recipients</span>
-                      <span className="ct-text-body tabular">{preview.recipients.length}</span>
+                      <span className="ct-text-body tabular">
+                        {preview.recipients.length}
+                      </span>
                     </div>
                   </div>
                   <p className="body-xs ct-text-muted">
@@ -239,7 +306,9 @@ export function DistributionForm() {
                       disabled={isPending}
                       className="flex-1"
                     >
-                      {isPending ? "Confirming…" : "Confirm distribution (multisig)"}
+                      {isPending
+                        ? "Confirming…"
+                        : "Confirm distribution (multisig)"}
                     </Button>
                   </div>
                 </Card>

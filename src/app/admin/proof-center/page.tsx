@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { VaultSelector } from "@/components/admin/vault-selector";
 import { ChainStatusBadge } from "@/components/proof/chain-status-badge";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { ProofFilter } from "@/components/proof/proof-filter";
@@ -10,22 +11,47 @@ import type { UnifiedProof } from "@/components/proof/proof-types";
 import { ContractsAuditTrail } from "@/components/proof-center/contracts-audit-trail";
 import { EventTimeline } from "@/components/proof-center/event-timeline";
 import { PorSummary } from "@/components/proof-center/por-summary";
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { isChainConfigured } from "@/lib/chain/client";
 import { fetchOnChainEvents } from "@/lib/chain/event-logger";
 import { fetchOnChainAttestations } from "@/lib/chain/por-registry";
 import { loadCustody } from "@/lib/data/custody";
 import { getProofs } from "@/lib/demo/loaders";
+import { listAllVaults, resolveVault } from "@/lib/vaults/resolver";
+import { vaultSlug, vaultLabel } from "@/lib/vaults/slug";
 
-interface ProofCenterPageProps {
-  searchParams: Promise<{ type?: string | string[] }>;
+interface AdminProofCenterPageProps {
+  searchParams: Promise<{ type?: string | string[]; vault?: string }>;
 }
 
-export default async function ProofCenterPage({
+export default async function AdminProofCenterPage({
   searchParams,
-}: ProofCenterPageProps) {
+}: AdminProofCenterPageProps) {
+  await requireAdmin();
+
   const params = await searchParams;
   const raw = Array.isArray(params.type) ? params.type[0] : params.type;
   const filter = parseFilter(raw);
+  const requestedVault = params.vault;
+
+  // Build vault selector options (fixtures + live/paused deployments)
+  const allVaultRefs = await listAllVaults({ status: "live-or-paused" });
+  const vaultOptions = allVaultRefs.map((ref) => ({
+    id: vaultSlug(ref),
+    label: vaultLabel(ref),
+  }));
+
+  // Resolve which vault is active — default to "yield" if none requested
+  const resolvedRef = requestedVault
+    ? await resolveVault(requestedVault)
+    : null;
+  const activeVaultId = resolvedRef
+    ? vaultSlug(resolvedRef)
+    : "yield";
+  const isAllVaults = !requestedVault;
+  const scopeLabel = isAllVaults
+    ? "All vaults"
+    : (resolvedRef ? vaultLabel(resolvedRef) : requestedVault ?? "Unknown");
 
   const chainConfigured = isChainConfigured();
   const [onChainEvents, onChainAttestations, paper, custody] =
@@ -36,8 +62,7 @@ export default async function ProofCenterPage({
       loadCustody(),
     ]);
 
-  // Latest PoR attestation for the summary panel (most recent = index 0,
-  // because fetchOnChainAttestations returns descending order).
+  // Latest PoR attestation for the summary panel (descending order, index 0 = newest)
   const latestAttestation = onChainAttestations[0] ?? null;
 
   const proofs: UnifiedProof[] = [
@@ -58,25 +83,56 @@ export default async function ProofCenterPage({
     ...paper.map((p): UnifiedProof => ({ ...p, source: "paper" })),
   ];
 
+  // Cross-vault proof count for the "All vaults" header
+  const totalProofCount = proofs.length;
+
   return (
     <div className="space-y-12">
       {/* ── Header ─────────────────────────────────────────── */}
       <AdminPageHeader
         title="Proof Center"
         actions={
-          <ChainStatusBadge
-            configured={chainConfigured}
-            eventCount={onChainEvents.length}
-            attestationCount={onChainAttestations.length}
-          />
+          <div className="flex flex-wrap items-center gap-3">
+            <VaultSelector
+              active={activeVaultId}
+              options={vaultOptions}
+              basePath="/admin/proof-center"
+            />
+            <ChainStatusBadge
+              configured={chainConfigured}
+              eventCount={onChainEvents.length}
+              attestationCount={onChainAttestations.length}
+            />
+          </div>
         }
       />
-      <p className="body-sm max-w-2xl">
-        Every data point that backs the vault — mining attestations, custody
-        snapshots, audits, and the methodology itself — hashed and posted with
-        its source URI. Built so the LP committee has nothing to attack on
-        provenance.
-      </p>
+
+      {/* ── Scope indicator ────────────────────────────────── */}
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
+        <h2 className="h3">
+          {isAllVaults ? (
+            <>
+              All vaults
+              <span className="ml-2 text-[length:var(--ct-text-sm)] font-normal ct-text-muted">
+                {totalProofCount} proof{totalProofCount !== 1 ? "s" : ""}
+              </span>
+            </>
+          ) : (
+            scopeLabel
+          )}
+        </h2>
+        {isAllVaults ? (
+          <p className="body-sm ct-text-muted max-w-2xl">
+            Cross-vault aggregation — proof activity across all live and paused
+            vaults. Use the vault selector to drill down on a single vault.
+          </p>
+        ) : (
+          <p className="body-sm ct-text-muted max-w-2xl">
+            Proof activity scoped to <strong>{scopeLabel}</strong>. On-chain
+            entries are read live from Base Sepolia.
+          </p>
+        )}
+      </div>
 
       {/* ── Proof of Reserves summary ───────────────────────── */}
       <section aria-labelledby="por-heading">
@@ -98,7 +154,7 @@ export default async function ProofCenterPage({
       <section aria-labelledby="proof-grid-heading">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <h2 id="proof-grid-heading" className="h2">
-            All proofs
+            {isAllVaults ? "All proofs" : `${scopeLabel} · proofs`}
           </h2>
           <ProofFilter />
         </div>

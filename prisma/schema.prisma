@@ -160,8 +160,13 @@ model Distribution {
   txHash          String?
   recipientsCount Int
   period          String   // "2026-04"
+  // Vault reference — slug or ticker (vaultSlug(ref)) identifying which vault
+  // this distribution belongs to. Optional for backward compatibility with
+  // historical rows created before multi-vault support (mvp-plus, 2026-05-26).
+  vaultRef        String?
 
   @@index([distributedAt])
+  @@index([vaultRef])
 }
 
 /**

@@ -36,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-rail-mode="expanded" suppressHydrationWarning>
+    <html lang="en" data-rail-mode="collapsed" suppressHydrationWarning>
       <body suppressHydrationWarning>
         <AppChrome>
           <a

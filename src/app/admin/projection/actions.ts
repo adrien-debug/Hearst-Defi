@@ -224,12 +224,86 @@ export async function runProjectionStudy(input: {
   };
 }
 
+// ─── Promotion defaults ───────────────────────────────────────────────────────
+
+/** Default fee/lockup/governance values applied when promoting a study to draft. */
+const PROMOTE_DEFAULTS = {
+  mgmtFeeBps: 200,
+  perfFeeBps: 2_000,
+  hurdleBps: 0,
+  softLockupDays: 60,
+  requiredSigners: 2,
+  shareClass: "A",
+  spvJurisdiction: "cayman",
+  regExemption: "regD_506c",
+  minTicketUsdc: 250_000,
+  capacityUsdc: 25_000_000,
+  /** Placeholder whitelist — operator must replace with real wallet addresses. */
+  signersWhitelist: ["PLACEHOLDER_SIGNER_1", "PLACEHOLDER_SIGNER_2"],
+  disclaimers:
+    "Projections are conditional on stated assumptions and are not warranted. Past performance does not predict future results. Hearst Yield Vault is offered exclusively to professional and qualified investors. Capital is subject to market risk. This is a scenario projection only, not an offer or solicitation.",
+  /** Fallback allocation defaults summing to 10000 bps (40/20/25/15). */
+  fallbackAllocBps: {
+    mining: 4_000,
+    btcTactical: 2_000,
+    usdcBase: 2_500,
+    stableReserve: 1_500,
+  },
+} as const;
+
+/**
+ * Normalise four allocation bps values so they sum to exactly 10000.
+ *
+ * Strategy: compute the raw values, distribute any rounding residual onto
+ * the largest bucket so the invariant is always satisfied.
+ */
+function normaliseAllocBps(
+  miningPct: number,
+  btcPct: number,
+  usdcPct: number,
+  reservePct: number,
+): { mining: number; btcTactical: number; usdcBase: number; stableReserve: number } {
+  const totalPct = miningPct + btcPct + usdcPct + reservePct;
+
+  // If the engine returned all-zero allocations, fall back to defaults.
+  if (totalPct === 0) {
+    return { ...PROMOTE_DEFAULTS.fallbackAllocBps };
+  }
+
+  // Scale all buckets so they nominally sum to 10000, then floor each.
+  const scale = 10_000 / totalPct;
+  const mining = Math.floor(miningPct * scale);
+  const btcTactical = Math.floor(btcPct * scale);
+  const usdcBase = Math.floor(usdcPct * scale);
+  const stableReserve = Math.floor(reservePct * scale);
+
+  // Distribute the residual onto the largest bucket.
+  const residual = 10_000 - (mining + btcTactical + usdcBase + stableReserve);
+  const buckets = [
+    { key: "mining" as const, val: mining },
+    { key: "btcTactical" as const, val: btcTactical },
+    { key: "usdcBase" as const, val: usdcBase },
+    { key: "stableReserve" as const, val: stableReserve },
+  ];
+  const largest = buckets.reduce((a, b) => (b.val > a.val ? b : a));
+  const result = { mining, btcTactical, usdcBase, stableReserve };
+  result[largest.key] += residual;
+  return result;
+}
+
 /**
  * promoteStudyToDraft
  *
  * Reads the first ScenarioRun of a study and creates a VaultDeployment in
- * status=draft with APY targets and allocation ratios seeded from the engine
- * output. The admin can then edit the deployment before submitting for review.
+ * status=draft with ALL fields required by CreateDraftSchema seeded from the
+ * engine output and sensible defaults. The admin can then edit the deployment
+ * in the wizard before submitting for review — the form will be ≥ 80% pre-filled.
+ *
+ * Fields seeded from study:  targetApyLowBps, targetApyHighBps, allocation bps,
+ *                             name (from study label), description.
+ * Fields set to defaults:    mgmtFeeBps, perfFeeBps, hurdleBps, softLockupDays,
+ *                             requiredSigners, shareClass, spvJurisdiction,
+ *                             regExemption, disclaimers, signersWhitelist (placeholders).
  */
 export async function promoteStudyToDraft(
   studyId: string,
@@ -282,7 +356,7 @@ export async function promoteStudyToDraft(
     throw new Error("Invalid scenario outputs format");
   }
 
-  // Derive allocation targets (bps) from engine output
+  // Derive allocation targets (pct) from engine output
   const findAlloc = (bucket: string) =>
     outputs.allocations.find((a) => a.bucket === bucket)?.pct ?? 0;
 
@@ -291,8 +365,15 @@ export async function promoteStudyToDraft(
   const usdcPct = findAlloc("usdc_base");
   const reservePct = findAlloc("stable_reserve");
 
+  // Normalise to exactly 10000 bps (handles float rounding and all-zero edge case)
+  const allocBps = normaliseAllocBps(miningPct, btcPct, usdcPct, reservePct);
+
   const apyLowBps = Math.round(outputs.apy_range.low * 100);
   const apyHighBps = Math.round(outputs.apy_range.high * 100);
+
+  // APY range must be a valid range; guard against degenerate engine outputs.
+  const finalApyLow = apyLowBps;
+  const finalApyHigh = apyHighBps > apyLowBps ? apyHighBps : apyLowBps + 100;
 
   const derivedTicker =
     tickerParsed ?? `HYV-${Date.now().toString(36).toUpperCase().slice(-4)}`;
@@ -304,19 +385,24 @@ export async function promoteStudyToDraft(
       description: `Seeded from ProjectionStudyRun ${study.id}. Methodology v1.0.`,
       strategy: "mining_yield",
       status: "draft",
-      minTicketUsdc: 250_000,
-      capacityUsdc: 25_000_000,
-      targetApyLowBps: apyLowBps,
-      targetApyHighBps: apyHighBps,
-      spvJurisdiction: "cayman",
-      regExemption: "regD_506c",
-      disclaimers:
-        "Projections are conditional on stated assumptions and not guaranteed. Past performance does not predict future results.",
-      targetMiningBps: Math.round(miningPct * 100),
-      targetBtcTacticalBps: Math.round(btcPct * 100),
-      targetUsdcBaseBps: Math.round(usdcPct * 100),
-      targetStableReserveBps: Math.round(reservePct * 100),
-      signersWhitelist: JSON.stringify([]),
+      minTicketUsdc: PROMOTE_DEFAULTS.minTicketUsdc,
+      capacityUsdc: PROMOTE_DEFAULTS.capacityUsdc,
+      mgmtFeeBps: PROMOTE_DEFAULTS.mgmtFeeBps,
+      perfFeeBps: PROMOTE_DEFAULTS.perfFeeBps,
+      hurdleBps: PROMOTE_DEFAULTS.hurdleBps,
+      softLockupDays: PROMOTE_DEFAULTS.softLockupDays,
+      targetApyLowBps: finalApyLow,
+      targetApyHighBps: finalApyHigh,
+      spvJurisdiction: PROMOTE_DEFAULTS.spvJurisdiction,
+      shareClass: PROMOTE_DEFAULTS.shareClass,
+      regExemption: PROMOTE_DEFAULTS.regExemption,
+      disclaimers: PROMOTE_DEFAULTS.disclaimers,
+      targetMiningBps: allocBps.mining,
+      targetBtcTacticalBps: allocBps.btcTactical,
+      targetUsdcBaseBps: allocBps.usdcBase,
+      targetStableReserveBps: allocBps.stableReserve,
+      signersWhitelist: JSON.stringify(PROMOTE_DEFAULTS.signersWhitelist),
+      requiredSigners: PROMOTE_DEFAULTS.requiredSigners,
       createdBy: userId,
       seededFromStudyId: study.id,
     },
