@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-26-all-validated",
+  "version": "2026-05-26-lp-landing-cancelled",
   "lastUpdated": "2026-05-26",
   "snapshot_doc": "/docs/roadmap-status-2026-05-26.md",
   "flow_redesign_ref": "/docs/audit/flow-redesign-2026-05-26.html",
@@ -680,7 +680,9 @@
               "label": "S0 Landing page marketing (track-record + CTA Request access) — actuellement redirect blind",
               "owner": "ui-dev+design",
               "spec_ref": "/docs/audit/flow-redesign-2026-05-26.html",
-              "status": "todo"
+              "status": "cancelled",
+              "cancelledAt": "2026-05-26",
+              "cancelledReason": "Replaced by login split-screen at /. Marketing content moved to hearst.app."
             },
             {
               "id": "lp-onboarding-9-stages",
