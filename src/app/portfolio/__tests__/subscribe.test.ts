@@ -1,205 +1,200 @@
 /**
- * Unit tests for src/app/portfolio/actions.ts — subscribe() Server Action.
+ * Unit tests for src/app/actions/subscribe.ts — Class B wiring (E2).
  *
- * Three cases:
- *   1. ok: valid vault + active class A + amount ≥ minTicket → { ok: true }
- *   2. amount too low: amount < minTicket → { ok: false, error: <min ticket msg> }
- *   3. non-auth: no session → { ok: false, error: "Sign in to subscribe." }
+ * Mock strategy mirrors src/app/admin/vaults/__tests__/actions.test.ts:
+ *  • getInvestor      — vi.mock'd, controlled per test
+ *  • getVault         — vi.mock'd, returns a live vault fixture
+ *  • prisma.*         — vi.mock'd
+ *  • next/cache       — vi.mock'd (revalidatePath silenced)
  *
- * DB is mocked via vi.mock; no real SQLite connection required.
- * next/cache.revalidatePath is stubbed so it does not throw in test mode.
- *
- * Decimal handling: Prisma returns Decimal objects; we simulate that by
- * returning { toNumber: () => n } shaped objects from the mock.
+ * Coverage (3 mandatory cases per task E2 acceptance criteria):
+ *   1. Subscribe B — valid $2M on live vault → ok: true, positionId present
+ *   2. Subscribe B — amount $500k < $1M minimum → ok: false with clear error
+ *   3. Subscribe B — non-authenticated → throws (unauthenticated guard)
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// ---------------------------------------------------------------------------
-// Module mocks (must be at the top level before any import of the SUT).
-// ---------------------------------------------------------------------------
+// ── Mocks (declared before the module under test is imported) ─────────────
 
-// Stub next/cache so revalidatePath does not throw in vitest/node.
-vi.mock("next/cache", () => ({
-  revalidatePath: vi.fn(),
+vi.mock("@/lib/auth/session", () => ({
+  getInvestor: vi.fn(),
 }));
 
-// Stub next/headers to avoid "Cannot read properties of undefined" errors that
-// arise when `cookies()` is called from session.ts outside a Next.js RSC context.
-vi.mock("next/headers", () => ({
-  cookies: vi.fn().mockResolvedValue({
-    get: vi.fn().mockReturnValue(undefined),
-    set: vi.fn(),
-    delete: vi.fn(),
-  }),
+vi.mock("@/lib/data/vaults", () => ({
+  getVault: vi.fn(),
 }));
 
-// Stub the Prisma client — we control every query result in tests.
 vi.mock("@/lib/db", () => ({
   prisma: {
-    shareClass: {
-      findUnique: vi.fn(),
-    },
     vaultDeployment: {
       findUnique: vi.fn(),
     },
-    subscription: {
+    position: {
       create: vi.fn(),
     },
   },
 }));
 
-// Stub auth — we control session / investor resolution.
-vi.mock("@/lib/auth/session", () => ({
-  getSession: vi.fn(),
-  getInvestor: vi.fn(),
+vi.mock("next/cache", () => ({
+  revalidatePath: vi.fn(),
 }));
 
-// ---------------------------------------------------------------------------
-// Imports (after mocks are wired).
-// ---------------------------------------------------------------------------
+// ── Imports (after mocks) ─────────────────────────────────────────────────
 
-import { subscribe } from "../actions";
+import { getInvestor } from "@/lib/auth/session";
+import { getVault } from "@/lib/data/vaults";
 import { prisma } from "@/lib/db";
-import { getSession, getInvestor } from "@/lib/auth/session";
+import { subscribe } from "@/app/actions/subscribe";
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** Build a mock Prisma Decimal-like object. */
-function decimal(n: number): { toNumber: () => number } {
-  return { toNumber: () => n };
-}
-
-const VAULT_ID = "hearst-yield-vault";
-const CLASS_CODE = "A";
-const SHARE_CLASS_ID = "sc-a-001";
-
-const MOCK_SHARE_CLASS = {
-  id: SHARE_CLASS_ID,
-  vaultId: VAULT_ID,
-  code: CLASS_CODE,
-  minTicket: decimal(250_000),
-  lockupDays: 60,
-  mgmtFeeBps: 100,
-  perfFeeBps: 1000,
-  active: true,
-};
-
-const MOCK_VAULT_LIVE = { id: VAULT_ID, status: "live" };
-
-const MOCK_SESSION = {
-  userId: "user-001",
-  email: "investor@hearst.connect",
-  role: "investor" as const,
-  walletAddress: null,
-};
+// ── Fixtures ──────────────────────────────────────────────────────────────
 
 const MOCK_INVESTOR = {
-  id: "inv-001",
-  userId: "user-001",
+  id: "inv_cuid_001",
+  userId: "user_cuid_001",
   walletAddress: null,
-  email: null,
+  email: "lp@hedgefund.io",
   kycStatus: "approved",
   createdAt: new Date(),
   updatedAt: new Date(),
 };
 
-const MOCK_SUBSCRIPTION = {
-  id: "sub-001",
-  lockupUntil: new Date(Date.now() + 60 * 86_400_000),
+/** A live vault with enough capacity for a $2M Class B subscription. */
+const LIVE_VAULT = {
+  id: "hearst-yield-vault",
+  ticker: "HYV-A",
+  name: "Hearst Yield Vault",
+  description: "Mining-backed structured yield.",
+  strategy: "mining_yield" as const,
+  status: "live" as const,
+  apyLow: 8,
+  apyHigh: 15,
+  minTicketUsdc: 250_000,   // Class A min (vault-level guard, kept as reference)
+  softLockupDays: 60,
+  capacityUsdc: 100_000_000,
+  currentAumUsdc: 10_000_000,
+  fees: { mgmtBps: 100, perfBps: 1_000, hurdleBps: 0 },
+  riskLevel: "low-moderate" as const,
+  spvJurisdiction: "cayman",
+  shareClass: "A",
+  regExemption: "regS",
+  disclaimers: "Projections are not guaranteed.",
+  targetMiningBps: 6000,
+  targetBtcTacticalBps: 2500,
+  targetUsdcBaseBps: 1000,
+  targetStableReserveBps: 500,
 };
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
+// ── Tests ─────────────────────────────────────────────────────────────────
 
-describe("subscribe() Server Action", () => {
+describe("subscribe — Class B wiring (E2)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default: no matching DB deployment row → vaultKey fallback
+    vi.mocked(prisma.vaultDeployment.findUnique).mockResolvedValue(null);
   });
 
-  // ── Case 1: happy path ────────────────────────────────────────────────────
-
-  it("1 — ok: valid vault + active class A + amount ≥ minTicket returns ok:true", async () => {
-    vi.mocked(getSession).mockResolvedValue(MOCK_SESSION);
+  // ── Case 1: happy path — $2M Class B on a live vault ───────────────────
+  it("Class B — valid $2M subscription on live vault → ok: true with positionId", async () => {
     vi.mocked(getInvestor).mockResolvedValue(MOCK_INVESTOR);
+    vi.mocked(getVault).mockResolvedValue(LIVE_VAULT);
+    vi.mocked(prisma.position.create).mockResolvedValue({
+      id: "pos_cuid_b_001",
+      investorId: MOCK_INVESTOR.id,
+      vaultDeploymentId: null,
+      vaultKey: "hearst-yield-vault:class-B",
+      principalUsdc: 2_000_000 as unknown as import("@prisma/client").Prisma.Decimal,
+      accruedYieldUsdc: 0 as unknown as import("@prisma/client").Prisma.Decimal,
+      distributedUsdc: 0 as unknown as import("@prisma/client").Prisma.Decimal,
+      status: "active",
+      subscribedAt: new Date(),
+      maturedAt: null,
+      exitedAt: null,
+      txHashOpen: null,
+    });
 
-    vi.mocked(prisma.shareClass.findUnique).mockResolvedValue(
-      MOCK_SHARE_CLASS as never,
-    );
-    vi.mocked(prisma.vaultDeployment.findUnique).mockResolvedValue(
-      MOCK_VAULT_LIVE as never,
-    );
-    vi.mocked(prisma.subscription.create).mockResolvedValue(
-      MOCK_SUBSCRIPTION as never,
-    );
-
-    const result = await subscribe(VAULT_ID, CLASS_CODE, 300_000);
+    const result = await subscribe("hearst-yield-vault", 2_000_000, "B");
 
     expect(result.ok).toBe(true);
-    if (!result.ok) throw new Error("narrowing");
+    if (result.ok) {
+      expect(result.positionId).toBe("pos_cuid_b_001");
+    }
 
-    expect(result.subscriptionId).toBe("sub-001");
-    expect(result.lockupUntil).toBeInstanceOf(Date);
-
-    // Subscription row was persisted with the correct amount.
-    expect(prisma.subscription.create).toHaveBeenCalledWith(
+    // Verify the position was created with the class-B key suffix
+    expect(prisma.position.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          vaultId: VAULT_ID,
-          shareClassId: SHARE_CLASS_ID,
-          amount: 300_000,
-          status: "pending",
+          vaultKey: "hearst-yield-vault:class-B",
+          principalUsdc: 2_000_000,
         }),
       }),
     );
   });
 
-  // ── Case 2: amount too low ────────────────────────────────────────────────
-
-  it("2 — amount too low: returns ok:false with minimum ticket error", async () => {
-    vi.mocked(getSession).mockResolvedValue(MOCK_SESSION);
+  // ── Case 2: below Class B minimum ($500k < $1M) → clear error ──────────
+  it("Class B — $500k below $1M minimum → ok: false with minimum-ticket error", async () => {
     vi.mocked(getInvestor).mockResolvedValue(MOCK_INVESTOR);
+    vi.mocked(getVault).mockResolvedValue(LIVE_VAULT);
 
-    vi.mocked(prisma.shareClass.findUnique).mockResolvedValue(
-      MOCK_SHARE_CLASS as never,
-    );
-    // Vault lookup should not be reached, but stub it defensively.
-    vi.mocked(prisma.vaultDeployment.findUnique).mockResolvedValue(
-      MOCK_VAULT_LIVE as never,
-    );
-
-    // Amount below $250k minimum.
-    const result = await subscribe(VAULT_ID, CLASS_CODE, 100_000);
+    const result = await subscribe("hearst-yield-vault", 500_000, "B");
 
     expect(result.ok).toBe(false);
-    if (result.ok) throw new Error("narrowing");
+    if (!result.ok) {
+      expect(result.error).toMatch(/1000k.*class b/i);
+    }
 
-    expect(result.error).toMatch(/minimum ticket/i);
-    expect(result.error).toMatch(/250k/i);
-
-    // Subscription must NOT be created when amount is too low.
-    expect(prisma.subscription.create).not.toHaveBeenCalled();
+    // No position should have been created
+    expect(prisma.position.create).not.toHaveBeenCalled();
   });
 
-  // ── Case 3: non-auth ──────────────────────────────────────────────────────
-
-  it("3 — non-auth: no session returns ok:false with sign-in error", async () => {
-    vi.mocked(getSession).mockResolvedValue(null);
-    // getInvestor should not even be reached.
+  // ── Case 3: not authenticated → throws ────────────────────────────────
+  it("Class B — unauthenticated investor → throws", async () => {
     vi.mocked(getInvestor).mockResolvedValue(null);
+    vi.mocked(getVault).mockResolvedValue(LIVE_VAULT);
 
-    const result = await subscribe(VAULT_ID, CLASS_CODE, 300_000);
+    await expect(
+      subscribe("hearst-yield-vault", 2_000_000, "B"),
+    ).rejects.toThrow("Unauthenticated");
+
+    // No vault fetch, no position write should have happened
+    expect(prisma.position.create).not.toHaveBeenCalled();
+  });
+
+  // ── Bonus: Class A still works after the refactor ──────────────────────
+  it("Class A — $250k (minimum) still accepted without classCode arg (backward compat)", async () => {
+    vi.mocked(getInvestor).mockResolvedValue(MOCK_INVESTOR);
+    vi.mocked(getVault).mockResolvedValue(LIVE_VAULT);
+    vi.mocked(prisma.position.create).mockResolvedValue({
+      id: "pos_cuid_a_001",
+      investorId: MOCK_INVESTOR.id,
+      vaultDeploymentId: null,
+      vaultKey: "hearst-yield-vault:class-A",
+      principalUsdc: 250_000 as unknown as import("@prisma/client").Prisma.Decimal,
+      accruedYieldUsdc: 0 as unknown as import("@prisma/client").Prisma.Decimal,
+      distributedUsdc: 0 as unknown as import("@prisma/client").Prisma.Decimal,
+      status: "active",
+      subscribedAt: new Date(),
+      maturedAt: null,
+      exitedAt: null,
+      txHashOpen: null,
+    });
+
+    // Omit classCode — defaults to "A"
+    const result = await subscribe("hearst-yield-vault", 250_000);
+
+    expect(result.ok).toBe(true);
+  });
+
+  // ── Bonus: Class A $249k → fails with Class A message ─────────────────
+  it("Class A — $249k below $250k minimum → ok: false mentioning Class A", async () => {
+    vi.mocked(getInvestor).mockResolvedValue(MOCK_INVESTOR);
+    vi.mocked(getVault).mockResolvedValue(LIVE_VAULT);
+
+    const result = await subscribe("hearst-yield-vault", 249_000, "A");
 
     expect(result.ok).toBe(false);
-    if (result.ok) throw new Error("narrowing");
-
-    expect(result.error).toBe("Sign in to subscribe.");
-
-    // No DB access when not authenticated.
-    expect(prisma.shareClass.findUnique).not.toHaveBeenCalled();
-    expect(prisma.subscription.create).not.toHaveBeenCalled();
+    if (!result.ok) {
+      expect(result.error).toMatch(/250k.*class a/i);
+    }
   });
 });

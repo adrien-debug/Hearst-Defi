@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getInvestor } from "@/lib/auth/session";
 import { getVault } from "@/lib/data/vaults";
+import { SHARE_CLASS_A, SHARE_CLASS_B, type ShareClassTerms } from "@/lib/engine/share-class";
 
 /**
  * Subscribe to a vault — creates a real DB position for the current investor.
@@ -15,6 +16,7 @@ import { getVault } from "@/lib/data/vaults";
  * Guards:
  *  - Requires a resolved investor (Privy in prod, dev investor locally).
  *  - Validates the amount against the vault's minimum ticket and capacity.
+ *  - Validates the classCode against the share class terms (A: $250k/60d, B: $1M/90d).
  *  - Links `vaultDeploymentId` only when the id matches a real DB deployment;
  *    otherwise falls back to the `vaultKey` column (single-vault MVP fixture).
  *
@@ -24,17 +26,26 @@ import { getVault } from "@/lib/data/vaults";
 /** Hard ceiling on a single subscription amount (1 billion USDC). */
 const MAX_SUBSCRIBE_USDC = 1_000_000_000;
 
+/** Supported share class codes. */
+export type ShareClassCode = "A" | "B";
+
 export type SubscribeResult =
   | { ok: true; positionId: string }
   | { ok: false; error: string };
 
+/** Resolve the canonical terms for a given share class code. */
+function resolveClassTerms(classCode: ShareClassCode): ShareClassTerms {
+  return classCode === "B" ? SHARE_CLASS_B : SHARE_CLASS_A;
+}
+
 export async function subscribe(
   vaultId: string,
   amountUsdc: number,
+  classCode: ShareClassCode = "A",
 ): Promise<SubscribeResult> {
   const investor = await getInvestor();
   if (!investor) {
-    return { ok: false, error: "Sign in to subscribe." };
+    throw new Error("Unauthenticated");
   }
 
   if (amountUsdc > MAX_SUBSCRIBE_USDC) {
@@ -52,12 +63,16 @@ export async function subscribe(
   if (!Number.isFinite(amountUsdc) || amountUsdc <= 0) {
     return { ok: false, error: "Enter a valid amount." };
   }
-  if (amountUsdc < vault.minTicketUsdc) {
+
+  // Validate against the selected share class minimum ticket.
+  const classTerms = resolveClassTerms(classCode);
+  if (amountUsdc < classTerms.minTicketUsdc) {
     return {
       ok: false,
-      error: `Below minimum ticket of $${(vault.minTicketUsdc / 1_000).toFixed(0)}k.`,
+      error: `Below minimum ticket of $${(classTerms.minTicketUsdc / 1_000).toFixed(0)}k for Class ${classCode}.`,
     };
   }
+
   const remaining = vault.capacityUsdc - vault.currentAumUsdc;
   if (amountUsdc > remaining) {
     return { ok: false, error: "Amount exceeds remaining capacity." };
@@ -76,6 +91,10 @@ export async function subscribe(
     data: {
       investorId: investor.id,
       vaultDeploymentId: deployment?.id ?? null,
+      // Store the share class code in the vaultKey field as a suffix so that
+      // downstream loaders can distinguish A vs B positions without a schema
+      // migration (additive, non-breaking to E1 Class A positions).
+      vaultKey: `${vaultId}:class-${classCode}`,
       principalUsdc: amountUsdc,
       status: "active",
       transactions: {

@@ -22,6 +22,7 @@ import {
   VAULT_YIELD,
   type VaultDefinition,
 } from "../src/lib/engine/vaults";
+import { SHARE_CLASS_A, SHARE_CLASS_B } from "../src/lib/engine/share-class";
 
 const prisma = makePrismaClient();
 
@@ -772,9 +773,10 @@ async function seedDefensiveTestnetDeployment(): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// Share classes — idempotent upsert of class A for every VaultDeployment.
-// Canonical terms from engine/share-class.ts (SHARE_CLASS_A):
-//   minTicket=250k, lockup=60d, mgmt=100bps, perf=1000bps.
+// Share classes — idempotent upsert of class A + B for every VaultDeployment.
+// E1: class A (minTicket=250k, 60d, mgmt=100bps, perf=1000bps)
+// E2: class B (minTicket=1M, 90d, mgmt=75bps, perf=800bps)
+// Uses schema field names from E1 (minTicket, not minTicketUsdc).
 // ---------------------------------------------------------------------------
 
 async function seedShareClasses(): Promise<number> {
@@ -782,27 +784,33 @@ async function seedShareClasses(): Promise<number> {
     select: { id: true },
   });
   let count = 0;
+  const classSpecs = [
+    { code: "A", minTicket: 250_000, lockupDays: 60, mgmtFeeBps: 100, perfFeeBps: 1000 },
+    { code: "B", minTicket: 1_000_000, lockupDays: 90, mgmtFeeBps: 75, perfFeeBps: 800 },
+  ];
   for (const vault of vaults) {
-    await prisma.shareClass.upsert({
-      where: { vaultId_code: { vaultId: vault.id, code: "A" } },
-      update: {
-        minTicket: 250_000,
-        lockupDays: 60,
-        mgmtFeeBps: 100,
-        perfFeeBps: 1000,
-        active: true,
-      },
-      create: {
-        vaultId: vault.id,
-        code: "A",
-        minTicket: 250_000,
-        lockupDays: 60,
-        mgmtFeeBps: 100,
-        perfFeeBps: 1000,
-        active: true,
-      },
-    });
-    count++;
+    for (const cls of classSpecs) {
+      await prisma.shareClass.upsert({
+        where: { vaultId_code: { vaultId: vault.id, code: cls.code } },
+        update: {
+          minTicket: cls.minTicket,
+          lockupDays: cls.lockupDays,
+          mgmtFeeBps: cls.mgmtFeeBps,
+          perfFeeBps: cls.perfFeeBps,
+          active: true,
+        },
+        create: {
+          vaultId: vault.id,
+          code: cls.code,
+          minTicket: cls.minTicket,
+          lockupDays: cls.lockupDays,
+          mgmtFeeBps: cls.mgmtFeeBps,
+          perfFeeBps: cls.perfFeeBps,
+          active: true,
+        },
+      });
+      count++;
+    }
   }
   return count;
 }
@@ -858,7 +866,7 @@ async function main(): Promise<void> {
   const vaultDeployments = await seedVaultDeployments();
   // Testnet-only Defensive Vault stub (Base Sepolia, chain 84532).
   await seedDefensiveTestnetDeployment();
-  // ShareClasses depend on VaultDeployment rows existing first.
+  // ShareClasses (A + B) depend on VaultDeployment rows existing first.
   const shareClasses = await seedShareClasses();
   const admins = await seedAdminUsers();
   const presetVault = await seedPresetVaultSnapshots();
@@ -872,7 +880,7 @@ async function main(): Promise<void> {
 
   console.log("Hearst Connect seed complete:");
   console.log(`  VaultDeployment: ${vaultDeployments + 1} (3 first-class vaults + 1 testnet defensive — ADR-006)`);
-  console.log(`  ShareClass:      ${shareClasses} (class A per vault)`);
+  console.log(`  ShareClass:      ${shareClasses} (A + B per vault)`);
   console.log(`  AdminUser:       ${admins}`);
   console.log(`  VaultSnapshot:   ${presetVault.snapshots + dailyVault.snapshots} (${presetVault.snapshots} preset + ${dailyVault.snapshots} daily)`);
   console.log(`  Allocation:      ${presetVault.allocations + dailyVault.allocations}`);

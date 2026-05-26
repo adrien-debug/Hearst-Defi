@@ -1,212 +1,143 @@
-import "server-only";
-
-import { prisma } from "@/lib/db";
-import { cn } from "@/lib/cn";
-import { Card } from "@/components/ui/card";
-import { ProvenanceBadge } from "@/components/ui/provenance-badge";
+"use client";
 
 /**
- * ShareClassPicker — Server Component.
+ * ShareClassPicker — toggle switcher between Class A and Class B.
  *
- * Lists all active share classes for a given vault, showing each class's
- * terms (min ticket, lock-up, management fee, performance fee).
+ * Displays both classes with their key terms so the investor can make an
+ * informed choice before subscribing. Calls `onChange` with the selected
+ * class code so the parent subscription form can apply the correct constraints.
  *
- * Fees are displayed in percent (mgmtFeeBps / 100 → 1.0%).
- * APY is never shown as a single point here — the parent page owns that.
- *
- * Design tokens: --ct-* only. No hard-coded hex. No new primitives.
- * Provenance badge: "estimated" — terms are contract-defined, not live data.
+ * Cockpit tokens throughout (--ct-*). No forbidden words. No hardcoded hex.
  */
 
+import { cn } from "@/lib/cn";
+import { SHARE_CLASS_A, SHARE_CLASS_B } from "@/lib/engine/share-class";
+import type { ShareClassCode } from "@/app/actions/subscribe";
+
+const usdCompact = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  notation: "compact",
+  maximumFractionDigits: 0,
+});
+
+const CLASSES = [
+  {
+    code: "A" as ShareClassCode,
+    terms: SHARE_CLASS_A,
+    label: "Class A",
+    tagline: "Institutional entry",
+  },
+  {
+    code: "B" as ShareClassCode,
+    terms: SHARE_CLASS_B,
+    label: "Class B",
+    tagline: "Premier terms",
+  },
+] as const;
+
 interface ShareClassPickerProps {
-  /** VaultDeployment.id */
-  vaultId: string;
-  /** Optionally highlight a specific class code ("A" or "B"). */
-  selectedCode?: string;
+  value: ShareClassCode;
+  onChange: (code: ShareClassCode) => void;
+  disabled?: boolean;
 }
 
-interface ShareClassRow {
-  id: string;
-  code: string;
-  minTicket: number;
-  lockupDays: number;
-  mgmtFeeBps: number;
-  perfFeeBps: number;
-  active: boolean;
-}
-
-async function loadShareClasses(vaultId: string): Promise<ShareClassRow[]> {
-  try {
-    const rows = await prisma.shareClass.findMany({
-      where: { vaultId, active: true },
-      orderBy: { code: "asc" },
-      select: {
-        id: true,
-        code: true,
-        minTicket: true,
-        lockupDays: true,
-        mgmtFeeBps: true,
-        perfFeeBps: true,
-        active: true,
-      },
-    });
-    return rows.map((r) => ({
-      id: r.id,
-      code: r.code,
-      minTicket: r.minTicket.toNumber(),
-      lockupDays: r.lockupDays,
-      mgmtFeeBps: r.mgmtFeeBps,
-      perfFeeBps: r.perfFeeBps,
-      active: r.active,
-    }));
-  } catch {
-    // DB unavailable — return empty; caller should show a skeleton.
-    return [];
-  }
-}
-
-function formatMinTicket(usdcAmount: number): string {
-  if (usdcAmount >= 1_000_000) {
-    return `$${(usdcAmount / 1_000_000).toFixed(1)}M`;
-  }
-  return `$${(usdcAmount / 1_000).toFixed(0)}k`;
-}
-
-function formatFeePct(bps: number): string {
-  return `${(bps / 100).toFixed(2).replace(/\.00$/, "")}%`;
-}
-
-interface ShareClassCardProps {
-  row: ShareClassRow;
-  selected: boolean;
-}
-
-function ShareClassCard({ row, selected }: ShareClassCardProps) {
-  return (
-    <article
-      aria-label={`Share Class ${row.code}`}
-      data-testid={`share-class-card-${row.code}`}
-      className={cn(
-        "flex flex-col gap-3 rounded-[var(--ct-radius-lg)] border p-5 transition-colors",
-        selected
-          ? "border-[var(--ct-border-accent)] bg-[var(--ct-surface-1)]"
-          : "border-[var(--ct-border-soft)] bg-[var(--ct-surface-0)] hover:border-[var(--ct-border-strong)]",
-      )}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span
-            className={cn(
-              "inline-flex items-center justify-center w-8 h-8 rounded-[var(--ct-radius-md)] font-bold text-sm",
-              selected
-                ? "bg-[var(--ct-accent)] text-[var(--ct-bg-deep)]"
-                : "bg-[var(--ct-surface-2)] text-[var(--ct-text-body)]",
-            )}
-            aria-hidden
-          >
-            {row.code}
-          </span>
-          <h3 className="font-semibold text-[var(--ct-text-strong)]">
-            Class {row.code}
-          </h3>
-        </div>
-        <ProvenanceBadge kind="estimated" />
-      </div>
-
-      {/* Terms grid */}
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-2">
-        <div>
-          <dt className="body-xs text-[var(--ct-text-muted)]">Min. Ticket</dt>
-          <dd
-            className="body-sm font-semibold tabular text-[var(--ct-text-primary)]"
-            data-testid={`min-ticket-${row.code}`}
-          >
-            {formatMinTicket(row.minTicket)} USDC
-          </dd>
-        </div>
-
-        <div>
-          <dt className="body-xs text-[var(--ct-text-muted)]">Soft Lock-Up</dt>
-          <dd
-            className="body-sm font-semibold tabular text-[var(--ct-text-primary)]"
-            data-testid={`lockup-${row.code}`}
-          >
-            {row.lockupDays} days
-          </dd>
-        </div>
-
-        <div>
-          <dt className="body-xs text-[var(--ct-text-muted)]">Mgmt Fee</dt>
-          <dd
-            className="body-sm font-semibold tabular text-[var(--ct-text-primary)]"
-            data-testid={`mgmt-fee-${row.code}`}
-          >
-            {formatFeePct(row.mgmtFeeBps)} / yr
-          </dd>
-        </div>
-
-        <div>
-          <dt className="body-xs text-[var(--ct-text-muted)]">Perf Fee</dt>
-          <dd
-            className="body-sm font-semibold tabular text-[var(--ct-text-primary)]"
-            data-testid={`perf-fee-${row.code}`}
-          >
-            {formatFeePct(row.perfFeeBps)}
-          </dd>
-        </div>
-      </dl>
-
-      {/* Disclaimer — mandatory non-negotiable #10 */}
-      <p className="body-xs text-[var(--ct-text-faint)] border-t border-[var(--ct-border-soft)] pt-2">
-        Terms are subject to the SPV subscription agreement. Not a projection or
-        an offer where prohibited.
-      </p>
-    </article>
-  );
-}
-
-export async function ShareClassPicker({
-  vaultId,
-  selectedCode,
+/**
+ * Accessible dual-option switcher.
+ *
+ * Each card shows: class label, min ticket, lockup, management fee and
+ * performance fee. The selected card gets the accent ring.
+ */
+export function ShareClassPicker({
+  value,
+  onChange,
+  disabled = false,
 }: ShareClassPickerProps) {
-  const classes = await loadShareClasses(vaultId);
-
-  if (classes.length === 0) {
-    return (
-      <Card>
-        <p className="body-sm text-[var(--ct-text-muted)]">
-          No active share classes available for this vault.
-        </p>
-      </Card>
-    );
-  }
-
   return (
-    <section
-      aria-label="Share classes"
-      data-testid="share-class-picker"
-      className="flex flex-col gap-4"
+    <fieldset
+      className="flex gap-3 flex-wrap"
+      aria-label="Share class"
+      disabled={disabled}
     >
-      <div className="flex items-center gap-2">
-        <h2 className="eyebrow text-[var(--ct-text-muted)]">Share Classes</h2>
-        <ProvenanceBadge kind="estimated" />
-      </div>
+      <legend className="sr-only">Select share class</legend>
+      {CLASSES.map(({ code, terms, label, tagline }) => {
+        const selected = value === code;
+        return (
+          <label
+            key={code}
+            className={cn(
+              "relative flex flex-col gap-1.5 px-4 py-3 rounded-[var(--ct-radius-md)] cursor-pointer",
+              "border transition-all duration-150",
+              "min-w-[160px] flex-1",
+              selected
+                ? "border-[var(--ct-accent)] bg-[var(--ct-surface-2)]"
+                : "border-[var(--ct-border)] bg-[var(--ct-surface-1)] hover:border-[var(--ct-border-strong)]",
+              disabled && "opacity-50 cursor-not-allowed",
+            )}
+          >
+            <input
+              type="radio"
+              name="shareClass"
+              value={code}
+              checked={selected}
+              onChange={() => onChange(code)}
+              disabled={disabled}
+              className="sr-only"
+              aria-label={label}
+            />
 
-      <div
-        className={cn(
-          "grid gap-4",
-          classes.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2",
-        )}
-      >
-        {classes.map((cls) => (
-          <ShareClassCard
-            key={cls.id}
-            row={cls}
-            selected={cls.code === selectedCode}
-          />
-        ))}
-      </div>
-    </section>
+            {/* Header row */}
+            <div className="flex items-center justify-between gap-2">
+              <span
+                className={cn(
+                  "body-sm font-semibold",
+                  selected ? "ct-text-strong" : "text-[var(--ct-text-primary)]",
+                )}
+              >
+                {label}
+              </span>
+              {selected && (
+                <span
+                  className="w-2 h-2 rounded-full shrink-0"
+                  style={{ background: "var(--ct-accent)" }}
+                  aria-hidden="true"
+                />
+              )}
+            </div>
+
+            {/* Tagline */}
+            <span className="body-xs text-[var(--ct-text-muted)]">{tagline}</span>
+
+            {/* Key terms */}
+            <dl className="mt-1 flex flex-col gap-0.5">
+              <div className="flex justify-between gap-2 body-xs">
+                <dt className="text-[var(--ct-text-muted)]">Min ticket</dt>
+                <dd className="tabular text-[var(--ct-text-body)] font-medium">
+                  {usdCompact.format(terms.minTicketUsdc)}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-2 body-xs">
+                <dt className="text-[var(--ct-text-muted)]">Lock-up</dt>
+                <dd className="tabular text-[var(--ct-text-body)] font-medium">
+                  {terms.softLockupDays}d soft
+                </dd>
+              </div>
+              <div className="flex justify-between gap-2 body-xs">
+                <dt className="text-[var(--ct-text-muted)]">Mgmt fee</dt>
+                <dd className="tabular text-[var(--ct-text-body)] font-medium">
+                  {(terms.mgmtFeeBps / 100).toFixed(2)}%
+                </dd>
+              </div>
+              <div className="flex justify-between gap-2 body-xs">
+                <dt className="text-[var(--ct-text-muted)]">Carry</dt>
+                <dd className="tabular text-[var(--ct-text-body)] font-medium">
+                  {(terms.perfFeeBps / 100).toFixed(0)}%
+                </dd>
+              </div>
+            </dl>
+          </label>
+        );
+      })}
+    </fieldset>
   );
 }
