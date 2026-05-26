@@ -4,6 +4,24 @@ import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
 import type { MiningHealth } from "@/lib/mock/dashboard";
 
+// ── Pure helpers (exported for tests) ───────────────────────────────────────
+
+export function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+/**
+ * Returns a margin score 0–100 for a given hashprice × BTC price cell.
+ * Simplified linear preview — replace with real engine when available.
+ */
+export function marginScoreCell(hashprice: number, btcPrice: number): number {
+  const hp = clamp((hashprice - 0.05) / 0.05, 0, 1);
+  const bp = clamp((btcPrice - 50000) / 25000, 0, 1);
+  return Math.round((hp * 0.6 + bp * 0.4) * 100);
+}
+
+// ── Types ────────────────────────────────────────────────────────────────────
+
 export interface MiningHealthHashprice {
   usd_per_th_day: number;
   stale: boolean;
@@ -12,6 +30,10 @@ export interface MiningHealthHashprice {
 interface MiningHealthSectionProps {
   miningHealth: MiningHealth;
   hashprice?: MiningHealthHashprice | null;
+  /** Optional current hashprice/BTC pair for the heatmap marker overlay. */
+  currentPair?: { hashprice: number; btcPrice: number };
+  /** Which view to render. Default: "heatmap". */
+  view?: "bars" | "heatmap";
 }
 
 type Tone = "good" | "warn" | "bad";
@@ -45,6 +67,95 @@ const TONE_DOT_CLASS: Record<Tone, string> = {
   warn: "ct-status-dot-warning",
   bad: "ct-status-dot-danger",
 };
+
+// ── Heatmap constants ────────────────────────────────────────────────────────
+
+// 12 hashprice columns: 0.05 → 0.10 $/TH/day in 0.00417 steps
+const HP_COUNT = 12;
+const HP_MIN = 0.05;
+const HP_MAX = 0.10;
+
+// 8 BTC price rows (top = highest): 75k → 50k in 3571 steps
+const BTC_COUNT = 8;
+const BTC_MIN = 50000;
+const BTC_MAX = 75000;
+
+/** Pre-computed grid of hashprice columns (x) × BTC price rows (y, top→bottom). */
+export function buildHeatmapGrid(): Array<
+  Array<{ hashprice: number; btcPrice: number; score: number }>
+> {
+  const rows: Array<Array<{ hashprice: number; btcPrice: number; score: number }>> = [];
+  for (let r = 0; r < BTC_COUNT; r++) {
+    // rows[0] = top row = highest BTC price
+    const btcPrice =
+      BTC_MAX - (r / (BTC_COUNT - 1)) * (BTC_MAX - BTC_MIN);
+    const cells: Array<{ hashprice: number; btcPrice: number; score: number }> = [];
+    for (let c = 0; c < HP_COUNT; c++) {
+      const hashprice =
+        HP_MIN + (c / (HP_COUNT - 1)) * (HP_MAX - HP_MIN);
+      cells.push({ hashprice, btcPrice, score: marginScoreCell(hashprice, btcPrice) });
+    }
+    rows.push(cells);
+  }
+  return rows;
+}
+
+/**
+ * Returns the SVG fill color+opacity for a given margin score.
+ * Uses design-system CSS vars per the spec.
+ */
+export function cellFill(score: number): { fill: string; opacity: number } {
+  if (score < 1) return { fill: "var(--ct-text-faint)", opacity: 0.25 };
+  if (score < 40) return { fill: "var(--ct-status-danger)", opacity: 0.6 };
+  if (score < 60) return { fill: "var(--ct-warning)", opacity: 0.6 };
+  if (score < 80) return { fill: "var(--ct-accent)", opacity: 0.5 };
+  return { fill: "var(--ct-accent)", opacity: 0.9 };
+}
+
+/**
+ * Maps a { hashprice, btcPrice } pair to SVG pixel coordinates
+ * within the heatmap grid area.
+ */
+export function pairToXY(
+  hashprice: number,
+  btcPrice: number,
+  svgWidth: number,
+  svgHeight: number,
+  padLeft: number,
+  padTop: number,
+  padRight: number,
+  padBottom: number,
+): { cx: number; cy: number } {
+  const gridW = svgWidth - padLeft - padRight;
+  const gridH = svgHeight - padTop - padBottom;
+  const cellW = gridW / HP_COUNT;
+  const cellH = gridH / BTC_COUNT;
+
+  const col = clamp(
+    (hashprice - HP_MIN) / (HP_MAX - HP_MIN),
+    0,
+    1,
+  ) * (HP_COUNT - 1);
+  const row = (1 - clamp((btcPrice - BTC_MIN) / (BTC_MAX - BTC_MIN), 0, 1)) *
+    (BTC_COUNT - 1);
+
+  return {
+    cx: padLeft + (col + 0.5) * cellW,
+    cy: padTop + (row + 0.5) * cellH,
+  };
+}
+
+// ── Legend data (exported for tests) ────────────────────────────────────────
+
+export const LEGEND_SWATCHES = [
+  { label: "Unprofitable", fill: "var(--ct-text-faint)", opacity: 0.25 },
+  { label: "<40", fill: "var(--ct-status-danger)", opacity: 0.6 },
+  { label: "40–60", fill: "var(--ct-warning)", opacity: 0.6 },
+  { label: "60–80", fill: "var(--ct-accent)", opacity: 0.5 },
+  { label: ">80", fill: "var(--ct-accent)", opacity: 0.9 },
+] as const;
+
+// ── Sub-components ───────────────────────────────────────────────────────────
 
 interface ScoreRowProps {
   label: string;
@@ -87,52 +198,6 @@ function ScoreRow({ label, hint, value, tone, bar }: ScoreRowProps) {
   );
 }
 
-export function MiningHealthSection({
-  miningHealth,
-  hashprice,
-}: MiningHealthSectionProps) {
-  const marginTone = scoreTone(miningHealth.marginScore);
-  const trendT = trendTone(miningHealth.hashpriceTrendPct);
-  const opTone = scoreTone(miningHealth.opConfidence);
-  const trendPctClamped =
-    50 + Math.max(-50, Math.min(50, miningHealth.hashpriceTrendPct * 5));
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Mining Health</CardTitle>
-        <ProvenanceBadge kind={miningHealth.provenance} />
-      </CardHeader>
-      <div className="divide-y divide-[var(--ct-border-soft)]">
-        <ScoreRow
-          label="Mining Margin Score"
-          hint="current margin / target margin"
-          value={`${miningHealth.marginScore}/100`}
-          tone={marginTone}
-          bar={miningHealth.marginScore}
-        />
-        <ScoreRow
-          label="Hashprice Trend"
-          hint="30d avg vs 60d avg"
-          value={`${miningHealth.hashpriceTrendPct >= 0 ? "+" : ""}${miningHealth.hashpriceTrendPct.toFixed(1)}%`}
-          tone={trendT}
-          bar={trendPctClamped}
-        />
-        <ScoreRow
-          label="Operational Confidence"
-          hint="uptime + attestation freshness + energy stability"
-          value={`${miningHealth.opConfidence}/100`}
-          tone={opTone}
-          bar={miningHealth.opConfidence}
-        />
-        {hashprice && hashprice.usd_per_th_day > 0 ? (
-          <HashpriceRow hashprice={hashprice} />
-        ) : null}
-      </div>
-    </Card>
-  );
-}
-
 interface HashpriceRowProps {
   hashprice: MiningHealthHashprice;
 }
@@ -154,11 +219,277 @@ function HashpriceRow({ hashprice }: HashpriceRowProps) {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-lg font-semibold leading-tight text-[var(--ct-text-primary)] tabular-nums">
-            ${hashprice.usd_per_th_day.toFixed(3)} <span className="text-sm text-[var(--ct-text-muted)] font-normal">/TH/day</span>
+            ${hashprice.usd_per_th_day.toFixed(3)}{" "}
+            <span className="text-sm text-[var(--ct-text-muted)] font-normal">/TH/day</span>
           </span>
           <ProvenanceBadge kind={provenance} />
         </div>
       </div>
     </div>
+  );
+}
+
+// ── Mining Margin Heatmap SVG ────────────────────────────────────────────────
+
+const SVG_W = 300;
+const SVG_H = 160;
+const PAD_LEFT = 36;
+const PAD_TOP = 8;
+const PAD_RIGHT = 8;
+const PAD_BOTTOM = 28;
+const GRID_W = SVG_W - PAD_LEFT - PAD_RIGHT;
+const GRID_H = SVG_H - PAD_TOP - PAD_BOTTOM;
+const CELL_W = GRID_W / HP_COUNT;
+const CELL_H = GRID_H / BTC_COUNT;
+
+// BTC price axis labels (top → bottom)
+const BTC_LABELS = ["$75k", "$72k", "$68k", "$64k", "$60k", "$57k", "$54k", "$50k"];
+// Hashprice axis labels (left → right, every other column)
+const HP_LABELS = ["0.05", "0.06", "0.07", "0.08", "0.09", "0.10"];
+
+interface HeatmapSVGProps {
+  marginScore: number;
+  currentPair?: { hashprice: number; btcPrice: number };
+}
+
+function HeatmapSVG({ marginScore, currentPair }: HeatmapSVGProps) {
+  const grid = buildHeatmapGrid();
+
+  // Marker position
+  const marker =
+    currentPair !== undefined
+      ? pairToXY(
+          currentPair.hashprice,
+          currentPair.btcPrice,
+          SVG_W,
+          SVG_H,
+          PAD_LEFT,
+          PAD_TOP,
+          PAD_RIGHT,
+          PAD_BOTTOM,
+        )
+      : null;
+
+  return (
+    <div className="space-y-3">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-[var(--ct-text-muted)] uppercase tracking-wider">
+          Mining Margin Heatmap · 90d
+        </span>
+        <span
+          className={cn(
+            "text-sm font-semibold tabular-nums",
+            scoreTone(marginScore) === "good"
+              ? "text-[var(--ct-accent)]"
+              : scoreTone(marginScore) === "warn"
+                ? "text-[var(--ct-warning)]"
+                : "text-[var(--ct-status-danger)]",
+          )}
+        >
+          Margin Score: {marginScore}/100
+        </span>
+      </div>
+
+      {/* SVG grid */}
+      <svg
+        viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+        width="100%"
+        role="img"
+        aria-label={`Mining margin heatmap. Current margin score: ${marginScore}/100.`}
+      >
+        {/* BTC price Y-axis labels */}
+        {BTC_LABELS.map((label, r) => (
+          <text
+            key={label}
+            x={PAD_LEFT - 4}
+            y={PAD_TOP + (r + 0.5) * CELL_H + 3}
+            textAnchor="end"
+            fontSize={7}
+            fill="var(--ct-text-muted)"
+          >
+            {label}
+          </text>
+        ))}
+
+        {/* Cells */}
+        {grid.map((row, r) =>
+          row.map((cell, c) => {
+            const { fill, opacity } = cellFill(cell.score);
+            const x = PAD_LEFT + c * CELL_W;
+            const y = PAD_TOP + r * CELL_H;
+            return (
+              <rect
+                key={`${r}-${c}`}
+                x={x + 1}
+                y={y + 1}
+                width={CELL_W - 2}
+                height={CELL_H - 2}
+                fill={fill}
+                opacity={opacity}
+                rx={2}
+              >
+                <title>
+                  {`Hashprice $${cell.hashprice.toFixed(3)}/TH/d · BTC $${Math.round(cell.btcPrice).toLocaleString()} · Margin ${cell.score}/100`}
+                </title>
+              </rect>
+            );
+          }),
+        )}
+
+        {/* Hashprice X-axis labels */}
+        {HP_LABELS.map((label, i) => {
+          const colIdx = Math.round((i / (HP_LABELS.length - 1)) * (HP_COUNT - 1));
+          return (
+            <text
+              key={label}
+              x={PAD_LEFT + (colIdx + 0.5) * CELL_W}
+              y={SVG_H - PAD_BOTTOM + 10}
+              textAnchor="middle"
+              fontSize={7}
+              fill="var(--ct-text-muted)"
+            >
+              {label}
+            </text>
+          );
+        })}
+
+        {/* X-axis unit label */}
+        <text
+          x={PAD_LEFT + GRID_W / 2}
+          y={SVG_H - 2}
+          textAnchor="middle"
+          fontSize={6}
+          fill="var(--ct-text-faint)"
+        >
+          $/TH/day
+        </text>
+
+        {/* Current position marker */}
+        {marker !== null ? (
+          <g>
+            {/* Halo */}
+            <circle
+              cx={marker.cx}
+              cy={marker.cy}
+              r={7}
+              fill="var(--ct-glow-accent)"
+              opacity={0.25}
+            />
+            {/* Outer ring */}
+            <circle
+              cx={marker.cx}
+              cy={marker.cy}
+              r={4.5}
+              fill="none"
+              stroke="var(--ct-text-primary)"
+              strokeWidth={1.5}
+            />
+            {/* Inner dot */}
+            <circle
+              cx={marker.cx}
+              cy={marker.cy}
+              r={2}
+              fill="var(--ct-text-primary)"
+            />
+            <title>
+              {`Current position — hashprice $${currentPair!.hashprice.toFixed(3)}/TH/d, BTC $${Math.round(currentPair!.btcPrice).toLocaleString()}`}
+            </title>
+          </g>
+        ) : null}
+      </svg>
+
+      {/* Legend */}
+      <div
+        className="flex flex-wrap items-center gap-x-3 gap-y-1"
+        aria-label="Margin score legend"
+        data-testid="heatmap-legend"
+      >
+        {LEGEND_SWATCHES.map((s) => (
+          <div key={s.label} className="flex items-center gap-1">
+            <span
+              aria-hidden
+              style={{
+                display: "inline-block",
+                width: 10,
+                height: 10,
+                borderRadius: 2,
+                background: s.fill,
+                opacity: s.opacity,
+              }}
+            />
+            <span className="text-[10px] text-[var(--ct-text-muted)]">{s.label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Current position caption */}
+      {currentPair !== undefined ? (
+        <p className="text-[10px] text-[var(--ct-text-faint)]">
+          ◐ current position — hashprice ${currentPair.hashprice.toFixed(3)}, BTC $
+          {Math.round(currentPair.btcPrice).toLocaleString()}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+// ── Public export ────────────────────────────────────────────────────────────
+
+export function MiningHealthSection({
+  miningHealth,
+  hashprice,
+  currentPair,
+  view = "heatmap",
+}: MiningHealthSectionProps) {
+  const marginTone = scoreTone(miningHealth.marginScore);
+  const trendT = trendTone(miningHealth.hashpriceTrendPct);
+  const opTone = scoreTone(miningHealth.opConfidence);
+  const trendPctClamped =
+    50 + Math.max(-50, Math.min(50, miningHealth.hashpriceTrendPct * 5));
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Mining Health</CardTitle>
+        <ProvenanceBadge kind="oracle" />
+      </CardHeader>
+
+      {view === "heatmap" ? (
+        <div className="px-4 pb-4">
+          <HeatmapSVG
+            marginScore={miningHealth.marginScore}
+            currentPair={currentPair}
+          />
+        </div>
+      ) : (
+        <div className="divide-y divide-[var(--ct-border-soft)]">
+          <ScoreRow
+            label="Mining Margin Score"
+            hint="current margin / target margin"
+            value={`${miningHealth.marginScore}/100`}
+            tone={marginTone}
+            bar={miningHealth.marginScore}
+          />
+          <ScoreRow
+            label="Hashprice Trend"
+            hint="30d avg vs 60d avg"
+            value={`${miningHealth.hashpriceTrendPct >= 0 ? "+" : ""}${miningHealth.hashpriceTrendPct.toFixed(1)}%`}
+            tone={trendT}
+            bar={trendPctClamped}
+          />
+          <ScoreRow
+            label="Operational Confidence"
+            hint="uptime + attestation freshness + energy stability"
+            value={`${miningHealth.opConfidence}/100`}
+            tone={opTone}
+            bar={miningHealth.opConfidence}
+          />
+          {hashprice && hashprice.usd_per_th_day > 0 ? (
+            <HashpriceRow hashprice={hashprice} />
+          ) : null}
+        </div>
+      )}
+    </Card>
   );
 }

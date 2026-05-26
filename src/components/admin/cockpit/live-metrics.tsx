@@ -1,0 +1,148 @@
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/cn";
+import type { VaultLiveMetric } from "@/lib/data/cockpit";
+
+interface LiveMetricsProps {
+  vaults: VaultLiveMetric[];
+}
+
+const usdCompact = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+/**
+ * Cockpit Admin — Live Metrics column.
+ *
+ * Compact table rows per vault: TVL, mining margin, risk score,
+ * oracle delay, BTC posture.
+ */
+export function LiveMetrics({ vaults }: LiveMetricsProps) {
+  return (
+    <Card aria-label="Live metrics">
+      <p className="eyebrow mb-4">Live Metrics</p>
+
+      {vaults.length === 0 ? (
+        <div className="py-8 ct-empty-state">
+          <p className="body-sm ct-text-muted text-center">No vault data.</p>
+        </div>
+      ) : (
+        <div className="flex flex-col divide-y divide-[var(--ct-border-soft)]">
+          {vaults.map((vault) => (
+            <VaultMetricRow key={vault.vaultId} vault={vault} />
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function VaultMetricRow({ vault }: { vault: VaultLiveMetric }) {
+  const oracleLabel = vault.oracleDelayMs === null
+    ? "—"
+    : vault.oracleDelayMs > 21_600_000
+      ? "Stale"
+      : `${Math.round(vault.oracleDelayMs / 60_000)}m`;
+
+  const oracleStale = vault.oracleDelayMs === null || vault.oracleDelayMs > 21_600_000;
+
+  const marginColor =
+    vault.miningMarginScore < 15
+      ? "text-[var(--ct-status-danger)]"
+      : vault.miningMarginScore < 40
+        ? "text-[var(--ct-status-warning)]"
+        : "text-[var(--ct-status-success)]";
+
+  const riskColor =
+    vault.riskScore > 70
+      ? "text-[var(--ct-status-danger)]"
+      : vault.riskScore > 45
+        ? "text-[var(--ct-status-warning)]"
+        : "text-[var(--ct-status-success)]";
+
+  return (
+    <div
+      className="py-3 first:pt-0 last:pb-0"
+      aria-label={`Vault ${vault.vaultName} metrics`}
+    >
+      {/* Vault name + status */}
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <span className="body-sm ct-text-strong font-medium truncate">
+          {vault.vaultName}
+        </span>
+        <VaultStatusPill status={vault.status} />
+      </div>
+
+      {/* Metric grid — 5 compact cells */}
+      <div className="grid grid-cols-5 gap-1">
+        <MetricCell
+          label="TVL"
+          value={vault.tvlUsdc > 0 ? usdCompact.format(vault.tvlUsdc) : "—"}
+        />
+        <MetricCell
+          label="Margin"
+          value={`${vault.miningMarginScore}`}
+          valueClassName={marginColor}
+        />
+        <MetricCell
+          label="Risk"
+          value={`${vault.riskScore}`}
+          valueClassName={riskColor}
+        />
+        <MetricCell
+          label="Oracle"
+          value={oracleLabel}
+          valueClassName={oracleStale ? "text-[var(--ct-status-danger)]" : undefined}
+        />
+        <MetricCell
+          label="BTC"
+          value={vault.btcPosture.charAt(0).toUpperCase() + vault.btcPosture.slice(1)}
+        />
+      </div>
+    </div>
+  );
+}
+
+function MetricCell({
+  label,
+  value,
+  valueClassName,
+}: {
+  label: string;
+  value: string;
+  valueClassName?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[10px] uppercase tracking-wide ct-text-faint font-medium">
+        {label}
+      </span>
+      <span className={cn("body-xs tabular font-semibold ct-text-strong", valueClassName)}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function VaultStatusPill({ status }: { status: string }) {
+  const styles: Record<string, string> = {
+    live: "bg-[var(--ct-status-success-soft)] text-[var(--ct-status-success)] border-[var(--ct-status-success-border)]",
+    paused: "bg-[var(--ct-status-warning-soft)] text-[var(--ct-status-warning)] border-[var(--ct-status-warning-border)]",
+    review: "bg-[var(--ct-surface-1)] ct-text-muted border-[var(--ct-border)]",
+    draft: "bg-[var(--ct-surface-1)] ct-text-faint border-[var(--ct-border-soft)]",
+    closed: "bg-[var(--ct-surface-0)] ct-text-faint border-[var(--ct-border-soft)]",
+  };
+
+  return (
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center rounded-[var(--ct-radius-sm)] border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+        styles[status] ?? styles["draft"],
+      )}
+    >
+      {status}
+    </span>
+  );
+}
