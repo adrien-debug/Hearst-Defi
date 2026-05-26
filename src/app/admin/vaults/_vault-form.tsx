@@ -9,6 +9,7 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { MonteCarloReview } from "@/components/admin/monte-carlo-review";
 import { ProjectionFooter } from "@/components/admin/projection-footer";
+import { ForbiddenWordsInput } from "@/components/admin/forbidden-words-input";
 import {
   createDraftVault,
   updateDraftVault,
@@ -295,12 +296,13 @@ export function VaultForm(props: VaultFormProps) {
 
             <label className="block space-y-1.5">
               <span className="stat-label">Name *</span>
-              <input
+              <ForbiddenWordsInput
                 className={inputClass()}
                 value={form.name}
-                onChange={(e) => set("name", e.target.value)}
+                onChange={(v) => set("name", v)}
                 placeholder="Hearst Yield Vault — Series A"
                 maxLength={80}
+                aria-label="Vault name"
               />
             </label>
 
@@ -321,12 +323,14 @@ export function VaultForm(props: VaultFormProps) {
 
             <label className="block space-y-1.5">
               <span className="stat-label">Description</span>
-              <textarea
+              <ForbiddenWordsInput
+                multiline
                 className={inputClass("ct-textarea")}
                 value={form.description ?? ""}
-                onChange={(e) => set("description", e.target.value)}
+                onChange={(v) => set("description", v)}
                 rows={3}
                 placeholder="Optional — brief fund description for admin UI"
+                aria-label="Vault description"
               />
             </label>
 
@@ -555,12 +559,14 @@ export function VaultForm(props: VaultFormProps) {
 
             <label className="block space-y-1.5">
               <span className="stat-label">Disclaimers * (min 80 chars)</span>
-              <textarea
+              <ForbiddenWordsInput
+                multiline
                 className={inputClass("ct-textarea")}
                 value={form.disclaimers}
-                onChange={(e) => set("disclaimers", e.target.value)}
+                onChange={(v) => set("disclaimers", v)}
                 rows={6}
                 placeholder="Required legal disclaimers. Must include 'not guaranteed' and assumptions..."
+                aria-label="Vault disclaimers"
               />
               <span className="body-xs ct-text-faint">
                 {form.disclaimers.length} chars — restricted terms will be flagged on submit
