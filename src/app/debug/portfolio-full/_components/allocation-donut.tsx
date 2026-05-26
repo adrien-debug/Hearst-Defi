@@ -49,13 +49,22 @@ export function AllocationDonut({
   }
 
   return (
-    <article className="bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] rounded-sm p-6 flex flex-col relative flex-1 h-full min-h-[200px]" aria-label="Portfolio allocation">
-      <div className="flex justify-between items-center text-micro font-medium text-[var(--ct-text-muted)] tracking-widest uppercase mb-6">
+    <article 
+      className="flex flex-col relative flex-1 h-full min-h-[200px] p-6 overflow-hidden" 
+      style={{
+        background: "color-mix(in srgb, var(--ct-surface-1) 20%, transparent)",
+        backdropFilter: "blur(24px)",
+        borderRadius: "var(--ct-radius-2xl)",
+        border: "1px solid color-mix(in srgb, var(--ct-border-soft) 50%, transparent)",
+      }}
+      aria-label="Portfolio allocation"
+    >
+      <div className="flex justify-between items-center text-micro font-medium text-(--ct-text-muted) tracking-widest uppercase mb-6 relative z-10">
         <span>Allocation by status</span>
         <ProvenanceBadge kind={provenance} />
       </div>
 
-      <div className="flex flex-col items-center gap-4 mt-2">
+      <div className="flex flex-col items-center gap-4 mt-2 relative z-10">
         <div className="relative w-48 h-48 flex items-center justify-center my-2">
           <svg
             className="absolute inset-0 w-full h-full -rotate-90"
@@ -89,30 +98,30 @@ export function AllocationDonut({
             ))}
           </svg>
           <div className="flex flex-col items-center justify-center text-center z-10">
-            <span className="text-3xl font-light text-[var(--ct-text-strong)] tabular-nums">
+            <span className="text-3xl font-light text-(--ct-text-strong) tabular-nums">
               {totalValueUsdc > 0 ? formatUsdCompact(totalValueUsdc) : <span className="opacity-30">—</span>}
             </span>
-            <span className="text-xs text-[var(--ct-text-muted)] uppercase tracking-widest mt-1">Portfolio</span>
+            <span className="text-xs text-(--ct-text-muted) uppercase tracking-widest mt-1">Portfolio</span>
           </div>
         </div>
 
         <div className="w-full flex flex-col gap-2 mt-2">
           {segments.map((s) => (
             <div key={s.status} className="flex justify-between items-center text-sm">
-              <span className="flex items-center gap-2 text-[var(--ct-text-primary)]">
+              <span className="flex items-center gap-2 text-(--ct-text-primary)">
                 <span
                   className="w-2 h-2 rounded-full"
                   style={{ backgroundColor: STATUS_COLORS[s.status] ?? "var(--ct-text-muted)" }}
                 />
                 {STATUS_LABELS[s.status] ?? s.status}
               </span>
-              <span className="text-[var(--ct-text-strong)] tabular-nums mono text-xs">
-                {s.pct.toFixed(0)}% <span className="text-[var(--ct-text-muted)] opacity-50">·</span> {formatUsdCompact(s.valueUsdc)}
+              <span className="text-(--ct-text-strong) tabular-nums mono text-xs">
+                {s.pct.toFixed(0)}% <span className="text-(--ct-text-muted) opacity-50">·</span> {formatUsdCompact(s.valueUsdc)}
               </span>
             </div>
           ))}
           {segments.length === 0 && (
-            <span className="text-sm text-[var(--ct-text-muted)] italic">
+            <span className="text-sm text-(--ct-text-muted) italic">
               No positions
             </span>
           )}

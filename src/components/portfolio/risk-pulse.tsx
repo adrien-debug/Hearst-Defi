@@ -268,13 +268,13 @@ export function RiskPulse({
   composite30dTrend,
 }: RiskPulseProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Risk Pulse</CardTitle>
+    <article className="dash-cell dash-cell-premium h-full flex flex-col">
+      <div className="dash-label relative z-10">
+        <span className="font-semibold text-[var(--ct-text-strong)]">Risk Pulse</span>
         <ProvenanceBadge kind="live" />
-      </CardHeader>
+      </div>
 
-      <ul className="ct-divide-soft" aria-label="Risk dimension scores">
+      <ul className="ct-divide-soft relative z-10" aria-label="Risk dimension scores">
         {scores.map((item) => (
           <ScoreRow key={item.dimension} item={item} />
         ))}
@@ -286,11 +286,11 @@ export function RiskPulse({
         trend={composite30dTrend}
       />
 
-      <p className="mt-4 body-xs italic leading-[var(--ct-leading-relaxed)]">
+      <p className="mt-auto pt-4 body-xs italic leading-[var(--ct-leading-relaxed)] relative z-10 opacity-70">
         Scores are 0–100 (higher = more risk). Composite is the weighted sum of
         the five dimensions per Methodology v1.0. Conditional projection — not
         guaranteed.
       </p>
-    </Card>
+    </article>
   );
 }

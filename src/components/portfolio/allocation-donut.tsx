@@ -59,14 +59,14 @@ export function AllocationDonut({
   }
 
   return (
-    <article className="dash-cell" aria-label="Portfolio allocation">
-      <div className="dash-label">
+    <article className="dash-cell dash-cell-premium" aria-label="Portfolio allocation">
+      <div className="dash-label relative z-10">
         <span>Allocation by status</span>
         <ProvenanceBadge kind={provenance} />
       </div>
 
-      <div className="flex flex-col items-center gap-4 mt-2">
-        <div className="dash-chart-container mt-0 w-[var(--ct-donut-size)] h-[var(--ct-donut-size)]">
+      <div className="flex flex-col items-center gap-4 mt-2 relative z-10">
+        <div className="dash-chart-container mt-0 w-(--ct-donut-size) h-(--ct-donut-size)">
           <svg
             className="dash-chart-svg w-full h-full"
             viewBox="0 0 42 42"
@@ -116,7 +116,7 @@ export function AllocationDonut({
             </div>
           ))}
           {segments.length === 0 && (
-            <span className="dash-legend-left text-[var(--ct-text-muted)]">
+            <span className="dash-legend-left text-(--ct-text-muted)">
               No positions
             </span>
           )}

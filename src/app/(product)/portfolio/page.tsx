@@ -8,17 +8,18 @@ import {
   loadDistribCalendarProps,
   loadProofPulseProps,
   loadYieldStackProps,
+  loadTimeToCashProps,
   loadTaxPreview,
 } from "@/lib/data/portfolio";
 import type { TaxPreview } from "@/lib/portfolio/tax";
-import { TaxDocsDrawerButton } from "@/components/portfolio/tax-docs-drawer";
-
+import { SurpriseDelightBar } from "@/components/portfolio/surprise-delight-bar";
 import { PortfolioGreeting } from "@/components/portfolio/portfolio-greeting";
 import { AllocationDonut } from "@/components/portfolio/allocation-donut";
 import { ValueChart } from "@/components/portfolio/value-chart";
 import { PositionsList } from "@/components/portfolio/positions-list";
 import { RecentActivity } from "@/components/portfolio/recent-activity";
 import { LockMeter } from "@/components/portfolio/lock-meter";
+import { TimeToCash } from "@/components/portfolio/time-to-cash";
 import { RiskPulse } from "@/components/portfolio/risk-pulse";
 import { DistribCalendar } from "@/components/portfolio/distrib-calendar";
 import { ProofPulse } from "@/components/portfolio/proof-pulse";
@@ -61,92 +62,10 @@ function Section({ "data-section": dataSectionAttr, children, label }: SectionPr
     <section
       data-section={dataSectionAttr}
       aria-label={label}
-      className="flex flex-col gap-6 border-t border-[var(--ct-border-soft)] pt-8 first:border-t-0 first:pt-0"
+      className="flex flex-col gap-6 border-t border-(--ct-border-soft) pt-12 first:border-t-0 first:pt-0"
     >
       {children}
     </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Surprise & Delight bar — export PDF / preview 1099 / LP secondary (V2)
-// ---------------------------------------------------------------------------
-
-interface SurpriseDelightBarProps {
-  /** Investor DB id — used to build the /api/statements/[id]/pdf URL. */
-  investorId: string | null;
-  /** Tax preview backed by real YTD distributions; null when no investor. */
-  taxPreview: TaxPreview | null;
-}
-
-function SurpriseDelightBar({ investorId, taxPreview }: SurpriseDelightBarProps) {
-  const pdfHref = investorId
-    ? `/api/statements/${investorId}/pdf`
-    : null;
-
-  return (
-    <div
-      data-testid="surprise-delight-bar"
-      className="flex flex-wrap items-center gap-3 rounded-[var(--ct-radius-lg)] border border-[var(--ct-border-soft)] bg-[var(--ct-surface-1)] px-5 py-3"
-    >
-      <span className="body-xs font-semibold uppercase tracking-[var(--ct-tracking-wide)] text-[var(--ct-text-muted)] mr-auto">
-        Tools
-      </span>
-
-      {/* Export PDF statement — real download link when investorId is available */}
-      {pdfHref ? (
-        <a
-          href={pdfHref}
-          download
-          className="body-xs flex items-center gap-1.5 rounded-[var(--ct-radius-md)] border border-[var(--ct-border-soft)] bg-[var(--ct-surface-2)] px-3 py-1.5 text-[var(--ct-text-body)] transition-colors hover:border-[var(--ct-border-accent)] hover:text-[var(--ct-text-primary)]"
-          aria-label="Export PDF statement"
-        >
-          <span aria-hidden>↓</span> Export PDF statement
-        </a>
-      ) : (
-        <button
-          type="button"
-          disabled
-          className="body-xs flex cursor-not-allowed items-center gap-1.5 rounded-[var(--ct-radius-md)] border border-[var(--ct-border-soft)] bg-[var(--ct-surface-2)] px-3 py-1.5 text-[var(--ct-text-faint)] opacity-50"
-          aria-label="Export PDF statement — sign in required"
-        >
-          <span aria-hidden>↓</span> Export PDF statement
-        </button>
-      )}
-
-      {/* Preview 1099 / CRS — wired to real YTD distributions via loadTaxPreview.
-          When the investor is not signed in (or there is no preview yet) we
-          render the same disabled button shape used by the PDF export so the
-          bar layout stays stable. */}
-      {investorId && taxPreview ? (
-        <TaxDocsDrawerButton
-          userId={investorId}
-          preview={taxPreview}
-          className="body-xs"
-        />
-      ) : (
-        <button
-          type="button"
-          disabled
-          className="body-xs flex cursor-not-allowed items-center gap-1.5 rounded-[var(--ct-radius-md)] border border-[var(--ct-border-soft)] bg-[var(--ct-surface-2)] px-3 py-1.5 text-[var(--ct-text-faint)] opacity-50"
-          aria-label="Preview 1099 or CRS document — sign in required"
-        >
-          <span aria-hidden>📄</span> Preview 1099 / CRS
-        </button>
-      )}
-
-      {/* LP → LP secondary (V2 badge) */}
-      <span
-        className="body-xs flex items-center gap-1.5 rounded-[var(--ct-radius-md)] border border-dashed border-[var(--ct-border-soft)] px-3 py-1.5 text-[var(--ct-text-faint)] opacity-60"
-        title="Available in V2"
-        aria-label="LP to LP secondary transfer — available in version 2"
-      >
-        LP→LP secondary{" "}
-        <span className="inline-block rounded-[var(--ct-radius-sm)] bg-[var(--ct-surface-3)] px-1 py-0.5 font-bold uppercase tracking-wide text-[var(--ct-accent)]">
-          V2
-        </span>
-      </span>
-    </div>
   );
 }
 
@@ -169,18 +88,18 @@ function NavShareKpi({ positions, totalValueUsdc, source }: NavShareKpiProps) {
   const navPerShare = totalValueUsdc > 0 ? totalValueUsdc / shares : 1;
 
   return (
-    <article className="dash-cell" aria-label="NAV per share" data-testid="nav-share-kpi">
+    <article className="dash-cell dash-cell-premium" aria-label="NAV per share" data-testid="nav-share-kpi">
       <div className="dash-label">
         <span>NAV / share</span>
         <ProvenanceBadge kind={provenance} />
       </div>
-      <div className="dash-value-group">
+      <div className="dash-value-group relative z-10">
         <span className="dash-value">
           {navPerShare.toFixed(4)}
         </span>
         <span className="dash-unit">USDC</span>
       </div>
-      <p className="body-xs ct-text-muted mt-2">Par $1.00 · class A</p>
+      <p className="body-xs ct-text-muted mt-2 relative z-10">Par $1.00 · class A</p>
     </article>
   );
 }
@@ -203,18 +122,18 @@ function PositionValueKpi({ totalValueUsdc, source }: PositionValueKpiProps) {
   });
 
   return (
-    <article className="dash-cell" aria-label="Position value" data-testid="position-value-kpi">
+    <article className="dash-cell dash-cell-premium" aria-label="Position value" data-testid="position-value-kpi">
       <div className="dash-label">
         <span>Position Value</span>
         <ProvenanceBadge kind={provenance} />
       </div>
-      <div className="dash-value-group">
+      <div className="dash-value-group relative z-10">
         <span className="dash-value">
           {totalValueUsdc > 0 ? fmt.format(totalValueUsdc) : "—"}
         </span>
         <span className="dash-unit">USDC</span>
       </div>
-      <p className="body-xs ct-text-muted mt-2">Principal + accrued yield</p>
+      <p className="body-xs ct-text-muted mt-2 relative z-10">Principal + accrued yield</p>
     </article>
   );
 }
@@ -232,18 +151,18 @@ interface YieldYtdKpiProps {
 function YieldYtdKpi({ totalYieldYtdUsdc, hasPositions, source }: YieldYtdKpiProps) {
   const provenance = source === "fallback" ? "stale" : "estimated";
   return (
-    <article className="dash-cell" aria-label="Yield year to date" data-testid="yield-ytd-kpi">
+    <article className="dash-cell dash-cell-premium" aria-label="Yield year to date" data-testid="yield-ytd-kpi">
       <div className="dash-label">
         <span>Yield YTD</span>
         <ProvenanceBadge kind={provenance} />
       </div>
-      <div className="dash-value-group">
+      <div className="dash-value-group relative z-10">
         <span className="dash-value">
           {hasPositions ? formatUsdCompact(totalYieldYtdUsdc) : "—"}
         </span>
         <span className="dash-unit">USDC</span>
       </div>
-      <p className="body-xs ct-text-muted mt-2 italic">Accrued + distributed. Not projected forward.</p>
+      <p className="body-xs ct-text-muted mt-2 italic relative z-10">Accrued + distributed. Not projected forward.</p>
     </article>
   );
 }
@@ -264,18 +183,33 @@ function NextDistributionKpi({ nextDistributionAt, source }: NextDistributionKpi
     day: "numeric",
     timeZone: "UTC",
   });
+
+  // Calculate days remaining (mock logic for visual density)
+  const now = new Date();
+  const diffTime = Math.max(0, nextDistributionAt.getTime() - now.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
   return (
-    <article className="dash-cell" aria-label="Next distribution date" data-testid="next-distribution-kpi">
+    <article className="dash-cell dash-cell-premium" aria-label="Next distribution date" data-testid="next-distribution-kpi">
       <div className="dash-label">
         <span>Next Distribution</span>
         <ProvenanceBadge kind={provenance} />
       </div>
-      <div className="dash-value-group">
+      <div className="dash-value-group relative z-10">
         <span className="dash-value-range stat-value tabular">
           {monthDayFmt.format(nextDistributionAt)}
         </span>
       </div>
-      <p className="body-xs ct-text-muted mt-2">Monthly cadence · Day 1, T+5</p>
+      <div className="flex items-center gap-2 mt-2 relative z-10">
+        <p className="text-xs text-(--ct-text-muted) mono uppercase tracking-wider leading-4 truncate opacity-70">
+          Monthly · Day 1, T+5
+        </p>
+        {diffDays > 0 && (
+          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-(--ct-accent)/10 text-(--ct-accent) border border-(--ct-accent)/20">
+            {diffDays}d left
+          </span>
+        )}
+      </div>
     </article>
   );
 }
@@ -289,6 +223,7 @@ export default async function PortfolioPage() {
     data,
     investor,
     lockMeterPropsRaw,
+    timeToCashPropsRaw,
     riskPulsePropsRaw,
     distribCalendarPropsRaw,
     proofPulsePropsRaw,
@@ -297,6 +232,7 @@ export default async function PortfolioPage() {
     loadPortfolio(),
     getInvestor(),
     loadLockMeterProps(),
+    loadTimeToCashProps(),
     loadRiskPulseProps(),
     loadDistribCalendarProps(),
     loadProofPulseProps(),
@@ -314,6 +250,8 @@ export default async function PortfolioPage() {
   // (widgets that don't accept source-driven provenance keep their default badge).
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { source: _lmSource, ...lockMeterProps } = lockMeterPropsRaw;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { source: _tcSource, ...timeToCashProps } = timeToCashPropsRaw;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { source: _rpSource, ...riskPulseProps } = riskPulsePropsRaw;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -339,20 +277,24 @@ export default async function PortfolioPage() {
   return (
     <div className="space-y-12" data-testid="portfolio-page">
 
-      {/* ── Section 1 — Hero Pulse ────────────────────────────────────────── */}
-      <Section data-section="hero-pulse" label="Hero Pulse — key portfolio metrics">
+      {/* ── Header & Quick Actions ────────────────────────────────────────── */}
+      <div className="flex flex-col gap-6">
         <PortfolioGreeting name={name} data={data} />
+        
+        {/* Quick access to reporting documents */}
+        <SurpriseDelightBar
+          investorId={investor?.id ?? null}
+          taxPreview={taxPreview}
+        />
+      </div>
 
-        {/* 5 KPI cards: NAV/share · Position Value · Yield YTD · Next Distribution · Lock·Liquidity */}
+      {/* ── Section 1 — Performance & Liquidity (Hero) ────────────────────── */}
+      <Section data-section="hero-pulse" label="Hero Pulse — key performance and liquidity">
+        {/* Ligne 1 : 4 Pure KPIs */}
         <div
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5"
-          data-testid="hero-kpi-grid"
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          data-testid="hero-top-metrics"
         >
-          <NavShareKpi
-            positions={data.positions}
-            totalValueUsdc={data.totalValueUsdc}
-            source={data.source}
-          />
           <PositionValueKpi
             totalValueUsdc={data.totalValueUsdc}
             source={data.source}
@@ -362,75 +304,78 @@ export default async function PortfolioPage() {
             hasPositions={data.positions.length > 0}
             source={data.source}
           />
+          <NavShareKpi
+            positions={data.positions}
+            totalValueUsdc={data.totalValueUsdc}
+            source={data.source}
+          />
           <NextDistributionKpi
             nextDistributionAt={data.nextDistributionAt}
             source={data.source}
           />
-          <div data-testid="lock-meter-widget">
+        </div>
+
+        {/* Ligne 2 : ValueChart (2/3) + Liquidity Column (1/3) */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          {/* Performance Chart */}
+          <div className="lg:col-span-8 flex flex-col">
+            <ValueChart
+              positions={data.positions}
+              totalValueUsdc={data.totalValueUsdc}
+              source={data.source}
+            />
+          </div>
+
+          {/* Liquidity Column */}
+          <div className="lg:col-span-4 flex flex-col gap-6">
+            <TimeToCash {...timeToCashProps} />
             <LockMeter {...lockMeterProps} />
           </div>
         </div>
-
-        {/* NAV 13-month area chart */}
-        <ValueChart
-          positions={data.positions}
-          totalValueUsdc={data.totalValueUsdc}
-          source={data.source}
-        />
       </Section>
 
-      {/* ── Section 2 — Yield Posture ────────────────────────────────────── */}
-      <Section data-section="yield-posture" label="Yield Posture — allocation and risk breakdown">
+      {/* ── Section 2 — Under the Hood (Yield & Trust) ────────────────────── */}
+      <Section data-section="yield-trust" label="Yield and Trust — analytics and risk">
+        {/* Ligne 1 : Yield Analytics */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Allocation donut (existing) */}
           <AllocationDonut
             positions={data.positions}
             totalValueUsdc={data.totalValueUsdc}
             source={data.source}
           />
-
-          {/* Yield source stack (widget L) */}
           <div data-testid="yield-stack-widget">
             <YieldStack {...yieldStackProps} />
           </div>
         </div>
 
+        {/* Ligne 2 : Security & Trust */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Risk Pulse 5 scores (widget I) */}
           <div data-testid="risk-pulse-widget">
             <RiskPulse {...riskPulseProps} />
           </div>
-
-          {/* Positions table (existing) */}
-          <PositionsList positions={data.positions} source={data.source} />
-        </div>
-      </Section>
-
-      {/* ── Section 3 — Activity, Proofs & Distributions ─────────────────── */}
-      <Section data-section="activity-proofs" label="Activity, Proofs and Distributions">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Distributions Calendar (widget J) */}
-          <div data-testid="distrib-calendar-widget">
-            <DistribCalendar {...distribCalendarProps} />
-          </div>
-
-          {/* Proof & Methodology Pulse (widget K) */}
           <div data-testid="proof-pulse-widget">
             <ProofPulse {...proofPulseProps} />
           </div>
         </div>
+      </Section>
 
-        {/* Recent Activity (existing) */}
-        <RecentActivity
-          transactions={data.recentTransactions}
-          source={data.source}
-        />
+      {/* ── Section 3 — Details & History ─────────────────────────────────── */}
+      <Section data-section="details-history" label="Details and History — positions and activity">
+        {/* Positions List — Full width */}
+        <PositionsList positions={data.positions} source={data.source} />
 
-        {/* Surprise & Delight bar */}
-        <SurpriseDelightBar
-          investorId={investor?.id ?? null}
-          taxPreview={taxPreview}
-        />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Distributions Calendar */}
+          <div data-testid="distrib-calendar-widget">
+            <DistribCalendar {...distribCalendarProps} />
+          </div>
+
+          {/* Recent Activity */}
+          <RecentActivity
+            transactions={data.recentTransactions}
+            source={data.source}
+          />
+        </div>
       </Section>
 
     </div>

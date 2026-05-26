@@ -54,23 +54,34 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
   const areaD = `M 0,40 L ${points.join(" L ")} L 100,40 Z`;
 
   return (
-    <article className="bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] rounded-sm p-6 flex flex-col relative flex-1 h-full min-h-[200px]" aria-label="Portfolio value — 12-month trend">
-      <div className="flex justify-between items-center text-micro font-medium text-[var(--ct-text-muted)] tracking-widest uppercase mb-6">
+    <article 
+      className="flex flex-col relative flex-1 h-full min-h-[200px] p-6 overflow-hidden" 
+      style={{
+        background: "color-mix(in srgb, var(--ct-surface-1) 20%, transparent)",
+        backdropFilter: "blur(24px)",
+        borderRadius: "var(--ct-radius-2xl)",
+        border: "1px solid color-mix(in srgb, var(--ct-border-soft) 50%, transparent)",
+        backgroundImage: "radial-gradient(circle, color-mix(in srgb, var(--ct-accent) 6%, transparent) 1px, transparent 1px)",
+        backgroundSize: "32px 32px",
+      }}
+      aria-label="Portfolio value — 12-month trend"
+    >
+      <div className="flex justify-between items-center text-micro font-medium text-(--ct-text-muted) tracking-widest uppercase mb-6 relative z-10">
         <span>Portfolio value · 12-month trend</span>
         <div className="flex items-center gap-2">
           <ProvenanceBadge kind={provenance} />
-          <span className="mono text-micro uppercase tracking-widest px-1.5 py-0.5 rounded-[0.125rem] bg-[var(--ct-surface-2)] text-[var(--ct-text-primary)]">
+          <span className="mono text-micro uppercase tracking-widest px-1.5 py-0.5 rounded-xs bg-(--ct-surface-2) text-(--ct-text-primary)">
             {totalValueUsdc > 0 ? formatUsdCompact(totalValueUsdc) : <span className="opacity-30">—</span>}
           </span>
         </div>
       </div>
 
       <div
-        className="mt-3 w-full rounded-md bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] relative overflow-hidden flex items-end"
+        className="mt-3 w-full rounded-xl bg-black/20 border border-(--ct-border-soft) overflow-hidden flex items-end relative z-10"
         style={{ height: "140px" }}
         aria-hidden="true"
       >
-        <svg className="w-full h-[90%] text-[var(--ct-accent)]" viewBox="0 0 100 40" preserveAspectRatio="none">
+        <svg className="w-full h-[90%] text-(--ct-accent)" viewBox="0 0 100 40" preserveAspectRatio="none">
           <defs>
             <linearGradient id="spark-gradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="currentColor" stopOpacity="0.2" />
@@ -90,7 +101,7 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
         </svg>
       </div>
 
-      <div className="flex justify-between mt-2 text-xs text-[var(--ct-text-muted)] mono">
+      <div className="flex justify-between mt-2 text-xs text-(--ct-text-muted) mono relative z-10">
         {series
           .filter((_, i) => i % 3 === 0 || i === series.length - 1)
           .map((s, i) => (
@@ -98,7 +109,7 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
           ))}
       </div>
 
-      <p className="text-xs text-[var(--ct-text-muted)] mt-auto pt-4 italic">
+      <p className="text-xs text-(--ct-text-muted) mt-auto pt-4 italic relative z-10">
         Indicative trend based on position history. Past performance does not predict future results.
       </p>
     </article>

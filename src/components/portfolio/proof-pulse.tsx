@@ -120,28 +120,28 @@ export function ProofPulse({
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Proof &amp; Methodology Pulse</CardTitle>
+    <article className="dash-cell dash-cell-premium h-full flex flex-col">
+      <div className="dash-label relative z-10">
+        <span className="font-semibold text-[var(--ct-text-strong)]">Proof &amp; Methodology Pulse</span>
         <div className="flex items-center gap-2">
           <ProvenanceBadge kind="attested" />
           <ProvenanceBadge kind="oracle" />
         </div>
-      </CardHeader>
+      </div>
 
       {/* ── Last PoR block ─────────────────────────────────────────────────── */}
-      <section aria-label="Last Proof of Reserves">
-        <h4 className="body-xs font-semibold uppercase tracking-[var(--ct-tracking-wide)] ct-text-muted mb-3">
+      <section aria-label="Last Proof of Reserves" className="relative z-10">
+        <h4 className="body-xs font-semibold uppercase tracking-[var(--ct-tracking-wide)] text-[var(--ct-text-muted)] mb-3">
           Last PoR
           <time
             dateTime={formatIso(timestamp)}
-            className="ml-2 font-normal normal-case tracking-normal ct-text-faint"
+            className="ml-2 font-normal normal-case tracking-normal text-[var(--ct-text-faint)]"
           >
             {formatDateHuman(timestamp)} · {formatTimeUtc(timestamp)}
           </time>
         </h4>
 
-        <div className="rounded-[var(--ct-radius-lg)] glass-panel-subtle px-4 py-1">
+        <div className="rounded-[var(--ct-radius-lg)] bg-black/20 border border-[var(--ct-border-soft)] px-4 py-1">
           <DataRow label="Vault TVL">{formatUsdc(statedTvlUsdc)}</DataRow>
 
           <DataRow label="On-chain">
@@ -175,15 +175,15 @@ export function ProofPulse({
       </section>
 
       {/* ── Methodology block ──────────────────────────────────────────────── */}
-      <section aria-label="Methodology" className="mt-6">
-        <h4 className="body-xs font-semibold uppercase tracking-[var(--ct-tracking-wide)] ct-text-muted mb-3">
+      <section aria-label="Methodology" className="mt-6 relative z-10">
+        <h4 className="body-xs font-semibold uppercase tracking-[var(--ct-tracking-wide)] text-[var(--ct-text-muted)] mb-3">
           Methodology
         </h4>
 
-        <div className="rounded-[var(--ct-radius-lg)] glass-panel-subtle px-4 py-1">
+        <div className="rounded-[var(--ct-radius-lg)] bg-black/20 border border-[var(--ct-border-soft)] px-4 py-1">
           <DataRow label="Version">
             <span className="flex items-center justify-end gap-2">
-              <span className="ct-text-faint">{methodologyVersion}</span>
+              <span className="text-[var(--ct-text-faint)]">{methodologyVersion}</span>
               {methodologyLocked && (
                 <Badge variant="default" aria-label="Methodology is locked">
                   locked
@@ -199,7 +199,7 @@ export function ProofPulse({
                 {formatTimeUtc(nextAttestation)}
               </time>
             ) : (
-              <span className="ct-text-faint italic">no scheduled</span>
+              <span className="text-[var(--ct-text-faint)] italic">no scheduled</span>
             )}
           </DataRow>
 
@@ -208,15 +208,15 @@ export function ProofPulse({
       </section>
 
       {/* ── CTA ────────────────────────────────────────────────────────────── */}
-      <div className="mt-6 flex justify-end">
+      <div className="mt-auto pt-6 flex justify-end relative z-10">
         <Link
           href={proofCenterHref}
-          className="body-xs ct-text-muted hover:ct-text-primary transition-colors underline underline-offset-2 decoration-[var(--ct-border)]"
+          className="body-xs text-[var(--ct-text-muted)] hover:text-[var(--ct-text-primary)] transition-colors underline underline-offset-2 decoration-[var(--ct-border)]"
           aria-label="Open proof center"
         >
           open proof center →
         </Link>
       </div>
-    </Card>
+    </article>
   );
 }

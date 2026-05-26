@@ -82,7 +82,7 @@ export function YieldStack({
   methodologyVersion = "1.0",
   source = "estimated",
 }: YieldStackProps) {
-  // Normalise stressed bear range so low ≤ high.
+  // ... (rest of normalization)
   const [stressedLow, stressedHigh] =
     stressedBearRange.low <= stressedBearRange.high
       ? [stressedBearRange.low, stressedBearRange.high]
@@ -102,40 +102,20 @@ export function YieldStack({
 
   return (
     <article
-      className="dash-cell"
+      className="dash-cell dash-cell-premium h-full flex flex-col"
       aria-label="Yield source stack — 12 month forward projection"
     >
       {/* Header */}
-      <div className="dash-label">
+      <div className="dash-label relative z-10">
         <span className="body-xs uppercase tracking-[var(--ct-tracking-wide)] text-[var(--ct-text-muted)]">
           Yield Source Stack (12m fwd)
         </span>
         <ProvenanceBadge kind={source} />
       </div>
 
-      {/* Bar rows — accessible table fallback for screen readers */}
-      <table className="sr-only" aria-label="Yield source contributions">
-        <thead>
-          <tr>
-            <th scope="col">Source</th>
-            <th scope="col">Contribution</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sources.map((s) => (
-            <tr key={s.bucket}>
-              <th scope="row">{s.label}</th>
-              <td>
-                {formatContribution(s.contributionPct, s.isVolatile ?? false)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
       {/* Visual bar stack */}
       <div
-        className="mt-3 flex flex-col gap-2"
+        className="mt-3 flex flex-col gap-2 relative z-10"
         aria-hidden="true"
         role="presentation"
       >
@@ -197,7 +177,7 @@ export function YieldStack({
 
       {/* Empty state — no allocation snapshot in DB yet. */}
       {!hasData && (
-        <p className="body-sm ct-text-muted mt-3" role="note">
+        <p className="body-sm text-[var(--ct-text-muted)] mt-3 relative z-10" role="note">
           No yield source data yet — awaiting first vault snapshot.
         </p>
       )}
@@ -205,14 +185,14 @@ export function YieldStack({
       {/* Divider */}
       {hasData && (
         <hr
-          className="my-4 border-0 border-t border-[var(--ct-border)]"
+          className="my-4 border-0 border-t border-[var(--ct-border-soft)] relative z-10"
           aria-hidden="true"
         />
       )}
 
       {/* Summary metrics — only when we have a snapshot. */}
       {hasData && (
-        <dl className="flex flex-col gap-2">
+        <dl className="flex flex-col gap-2 relative z-10">
           {/* Blended forward range */}
           <div className="flex items-baseline justify-between">
             <dt className="body-xs text-[var(--ct-text-muted)]">
@@ -243,7 +223,7 @@ export function YieldStack({
 
       {/* Disclaimer — visible, not tooltip-only (CLAUDE.md non-negotiable #10) */}
       <p
-        className="mt-3 body-xs italic text-[var(--ct-text-faint)]"
+        className="mt-auto pt-4 body-xs italic text-[var(--ct-text-faint)] relative z-10"
         role="note"
       >
         not guaranteed · methodology v{methodologyVersion} · projections show

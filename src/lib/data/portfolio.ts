@@ -19,6 +19,7 @@ import type { RiskPulseProps } from "@/components/portfolio/risk-pulse";
 import type { DistribCalendarProps, DistribEntry } from "@/components/portfolio/distrib-calendar";
 import type { ProofPulseProps } from "@/components/portfolio/proof-pulse";
 import type { YieldStackProps } from "@/components/portfolio/yield-stack";
+import type { TimeToCashProps } from "@/components/portfolio/time-to-cash";
 
 // ---------------------------------------------------------------------------
 // PositionDetail — extended view for the /portfolio/[positionId] page
@@ -543,6 +544,69 @@ export async function loadYieldStackProps(): Promise<YieldStackProps & { source:
     blendedHigh,
     stressedBearRange,
     methodologyVersion: "1.0",
+    source: "live",
+  };
+}
+
+/**
+ * Build TimeToCashProps from the first active position and vault yield.
+ * Returns neutral state when no investor / no active position.
+ */
+export async function loadTimeToCashProps(): Promise<TimeToCashProps & { source: "live" | "stale" }> {
+  const now = new Date();
+  const investor = await getInvestor();
+  
+  // Default cycle: 1st of current month, 30 days.
+  const cycleStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const cycleDays = 30;
+
+  if (!investor) {
+    return {
+      cycleStart,
+      cycleDays,
+      projectedUsdc: 0,
+      aprLow: 0,
+      aprHigh: 0,
+      asOf: now,
+      source: "stale",
+    };
+  }
+
+  const [position, snapshot] = await Promise.all([
+    prisma.position.findFirst({
+      where: { investorId: investor.id, status: "active" },
+      orderBy: { subscribedAt: "asc" },
+    }),
+    prisma.vaultSnapshot.findFirst({ orderBy: { takenAt: "desc" } }),
+  ]);
+
+  if (!position || !snapshot) {
+    return {
+      cycleStart,
+      cycleDays,
+      projectedUsdc: 0,
+      aprLow: 0,
+      aprHigh: 0,
+      asOf: now,
+      source: "stale",
+    };
+  }
+
+  const principal = toNumber(position.principalUsdc);
+  const aprLow = toNumber(snapshot.currentApyLow);
+  const aprHigh = toNumber(snapshot.currentApyHigh);
+  
+  // Simple projection: principal * (avg apr / 12)
+  const avgApr = (aprLow + aprHigh) / 2;
+  const projectedUsdc = (principal * (avgApr / 100)) / 12;
+
+  return {
+    cycleStart,
+    cycleDays,
+    projectedUsdc,
+    aprLow,
+    aprHigh,
+    asOf: now,
     source: "live",
   };
 }

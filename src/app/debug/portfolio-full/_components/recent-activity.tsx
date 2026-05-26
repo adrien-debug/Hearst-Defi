@@ -30,17 +30,17 @@ function relativeTime(date: Date, asOf: Date): string {
 function TxIcon({ type }: { type: string }) {
   const colorClass =
     type === "deposit"
-      ? "bg-[var(--ct-accent)]"
+      ? "bg-(--ct-accent)"
       : type === "distribution"
-        ? "bg-[var(--ct-accent-strong)]"
+        ? "bg-(--ct-accent-strong)"
         : type === "withdraw"
-          ? "bg-[var(--ct-status-danger)]"
-          : "bg-[var(--ct-text-muted)]";
+          ? "bg-(--ct-status-danger)"
+          : "bg-(--ct-text-muted)";
 
   return (
     <span
       aria-hidden="true"
-      className={`inline-block w-3 h-3 rounded-[0.125rem] shrink-0 ${colorClass}`}
+      className={`inline-block w-3 h-3 rounded-xs shrink-0 ${colorClass}`}
     />
   );
 }
@@ -56,39 +56,42 @@ export function RecentActivity({ transactions, source }: RecentActivityProps) {
   const displayed = transactions.slice(0, 5);
 
   return (
-    <article className="bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] rounded-sm p-6 flex flex-col relative flex-1 h-full min-h-[200px] overflow-hidden" aria-label="Recent account activity">
-      <div className="flex justify-between items-center text-micro font-medium text-[var(--ct-text-muted)] tracking-widest uppercase mb-6 shrink-0">
+    <article 
+      className="dash-cell dash-cell-premium flex flex-col h-full overflow-hidden" 
+      aria-label="Recent account activity"
+    >
+      <div className="flex justify-between items-center text-micro font-medium text-(--ct-text-muted) tracking-widest uppercase mb-6 shrink-0 relative z-10">
         <span>Recent Activity</span>
         <ProvenanceBadge kind={provenance} />
       </div>
 
-      <div className="overflow-y-auto flex-1 pr-2 -mr-2">
+      <div className="overflow-y-auto flex-1 pr-2 -mr-2 relative z-10">
         {displayed.length === 0 ? (
-          <p className="text-sm text-[var(--ct-text-muted)] mt-2 italic">No transactions yet.</p>
+          <p className="text-sm text-(--ct-text-muted) mt-2 italic">No transactions yet.</p>
         ) : (
           <div className="flex flex-col gap-0.5 mt-1">
             {displayed.map((tx) => (
               <div
                 key={tx.id}
-                className="flex items-center gap-3 py-2 border-b border-[var(--ct-border-soft)] last:border-0 hover:bg-[var(--ct-surface-2)] -mx-2 px-2 rounded-sm transition-colors"
+                className="flex items-center gap-3 py-2 border-b border-(--ct-border-soft) last:border-0 hover:bg-(--ct-surface-2) -mx-2 px-2 rounded-sm transition-colors"
               >
                 <TxIcon type={tx.type} />
 
                 <div className="flex-1 min-w-0 overflow-hidden">
-                  <div className="text-sm text-[var(--ct-text-primary)] font-medium truncate">
+                  <div className="text-sm text-(--ct-text-primary) font-medium truncate">
                     {TYPE_LABELS[tx.type] ?? tx.type}
                     {tx.positionVaultName && (
-                      <span className="text-[var(--ct-text-muted)] font-normal">
+                      <span className="text-(--ct-text-muted) font-normal">
                         {" "}· {tx.positionVaultName}
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-[var(--ct-text-muted)] mt-0.5 mono truncate uppercase tracking-wider">
+                  <div className="text-xs text-(--ct-text-muted) mt-0.5 mono truncate uppercase tracking-wider">
                     {relativeTime(tx.occurredAt, asOf)}
                   </div>
                 </div>
 
-                <span className="tabular-nums text-sm text-[var(--ct-text-strong)] mono font-medium shrink-0">
+                <span className="tabular-nums text-sm text-(--ct-text-strong) mono font-medium shrink-0">
                   {usdFmt.format(tx.amountUsdc)}
                 </span>
               </div>

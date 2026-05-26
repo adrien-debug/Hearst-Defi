@@ -129,17 +129,11 @@ Et le hub d'audit DS local :
 
 ---
 
-## Méthode de travail visuel (RÈGLE DURE)
+## Méthode de travail visuel (RÈGLES ASSOUPLIES)
 
-> **1 seul changement atomique → 1 screenshot → STOP → attendre validation
-> explicite d'Adrien.**
-
-- Un changement à la fois. Pas de refonte structurelle d'un coup, même si
-  Adrien a validé une direction.
-- Validation visuelle obligatoire entre chaque pas.
+- Initiative visuelle encouragée (Glassmorphism, lueurs, gradients) pour l'aspect premium.
 - Réversibilité : pas de `git add/commit/push/reset` sans demande explicite.
-- Accent = vert `#A7FB90` uniquement. Fond noir `--ct-bg-deep`.
-- Ne jamais "améliorer" ce qui n'a pas été demandé.
+- Accent = vert `#A7FB90` (fond noir `--ct-bg-deep`). Les textures et effets de profondeur sont autorisés.
 
 ---
 

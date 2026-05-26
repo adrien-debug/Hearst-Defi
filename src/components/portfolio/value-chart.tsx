@@ -177,9 +177,9 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
   const isEmpty = totalValueUsdc === 0 && positions.length === 0;
 
   return (
-    <article className="dash-cell relative" aria-label="Portfolio value — 12-month trend">
+    <article className="dash-cell dash-cell-premium relative h-full" aria-label="Portfolio value — 12-month trend">
       <ChartProvenanceCorner kind={provenance} />
-      <div className="dash-label">
+      <div className="dash-label relative z-10">
         <span>Portfolio value · 12-month trend</span>
         <span className="dash-label-meta">
           <span className="dash-trend flat">
@@ -191,19 +191,19 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
       {isEmpty ? (
         /* Empty state preserved */
         <div
-          className="mt-3 flex w-full items-center justify-center rounded-[var(--ct-radius-md)] border border-dashed border-[var(--ct-border-soft)] bg-[var(--ct-surface-1)]"
-          style={{ minHeight: "5rem", height: "120px" }}
+          className="mt-3 flex w-full flex-1 items-center justify-center rounded-(--ct-radius-md) border border-dashed border-(--ct-border-soft) bg-(--ct-surface-1) relative z-10"
+          style={{ minHeight: "5rem" }}
           aria-label="No portfolio data yet"
         >
-          <p className="text-xs text-[var(--ct-text-muted)]">
+          <p className="text-xs text-(--ct-text-muted)">
             No position data yet.
           </p>
         </div>
       ) : (
         /* Real area chart */
         <div
-          className="relative mt-3 block w-full overflow-hidden rounded-[var(--ct-radius-md)]"
-          style={{ minHeight: "5rem", maxHeight: "9rem", height: "120px" }}
+          className="relative mt-3 block w-full flex-1 overflow-hidden rounded-(--ct-radius-md) z-10"
+          style={{ minHeight: "5rem" }}
         >
           <ChartDisclaimerUnderlay />
           <AreaChart
@@ -214,7 +214,7 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
       )}
 
       {/* Month labels */}
-      <div className="stat-label ct-text-muted flex justify-between mt-1 mono">
+      <div className="stat-label ct-text-muted flex justify-between mt-4 mono relative z-10">
         {series
           .filter((_, i) => i % 3 === 0 || i === series.length - 1)
           .map((s, i) => (
@@ -222,7 +222,7 @@ export function ValueChart({ positions, totalValueUsdc, source }: ValueChartProp
           ))}
       </div>
 
-      <p className="body-xs ct-text-muted mt-2 italic">
+      <p className="body-xs ct-text-muted mt-4 italic relative z-10">
         Indicative trend based on position history. Past performance does not predict future results.
       </p>
     </article>

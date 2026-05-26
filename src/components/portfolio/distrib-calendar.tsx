@@ -282,13 +282,13 @@ export function DistribCalendar({
     <article
       aria-label="Distributions calendar"
       className={cn(
-        "dash-cell flex flex-col gap-3",
+        "dash-cell dash-cell-premium flex flex-col gap-3 h-full",
       )}
     >
       {/* Header */}
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-3 relative z-10">
         <div className="flex flex-col gap-0.5">
-          <h3 className="dash-label font-semibold text-[var(--ct-text-strong)]">
+          <h3 className="dash-label mb-0 font-semibold text-[var(--ct-text-strong)]">
             DISTRIBUTIONS CALENDAR
           </h3>
           <p className="text-micro font-medium uppercase tracking-wide text-[var(--ct-text-muted)] mono">
@@ -315,7 +315,7 @@ export function DistribCalendar({
 
       {/* Chart */}
       {hasEntries ? (
-        <div className="w-full overflow-hidden rounded-[var(--ct-radius-md)]">
+        <div className="w-full overflow-hidden rounded-[var(--ct-radius-md)] relative z-10">
           <BarChart
             entries={entries}
             refYear={refYear}
@@ -324,7 +324,7 @@ export function DistribCalendar({
         </div>
       ) : (
         <div
-          className="flex items-center justify-center rounded-[var(--ct-radius-md)] border border-dashed border-[var(--ct-border-soft)] bg-[var(--ct-surface-1)]"
+          className="flex items-center justify-center rounded-[var(--ct-radius-md)] border border-dashed border-[var(--ct-border-soft)] bg-[var(--ct-surface-1)] relative z-10"
           style={{ minHeight: "8rem" }}
           aria-label="No distribution data yet"
         >
@@ -335,7 +335,7 @@ export function DistribCalendar({
       )}
 
       {/* Footer — share class + cadence */}
-      <dl className="flex gap-6 border-t border-[var(--ct-border-soft)] pt-2 mt-auto">
+      <dl className="flex gap-6 border-t border-[var(--ct-border-soft)] pt-4 mt-auto relative z-10">
         <div className="flex flex-col gap-0.5">
           <dt className="text-micro uppercase tracking-wide text-[var(--ct-text-muted)] mono">
             Share class

@@ -102,19 +102,19 @@ export function LockMeter({
 
   return (
     <article
-      className="ct-card flex flex-col gap-3"
+      className="dash-cell dash-cell-premium flex flex-col gap-3"
       aria-label="Lock and liquidity status"
     >
       {/* Header row -------------------------------------------------------- */}
-      <div className="flex items-center justify-between gap-2">
-        <span className="eyebrow ct-text-muted tracking-[var(--ct-tracking-wide)] uppercase">
+      <div className="flex items-center justify-between gap-2 relative z-10">
+        <span className="dash-label mb-0">
           LOCK · LIQUIDITY
         </span>
         <ProvenanceBadge kind="live" />
       </div>
 
       {/* Progress bar ------------------------------------------------------ */}
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5 relative z-10">
         {/* Bar */}
         <div
           role="progressbar"
@@ -122,14 +122,14 @@ export function LockMeter({
           aria-valuemin={0}
           aria-valuemax={100}
           aria-label={progressLabel}
-          className="relative h-2 w-full overflow-hidden rounded-full"
-          style={{ background: "var(--ct-surface-2)" }}
+          className="relative h-2 w-full overflow-hidden rounded-full bg-black/20 border border-[var(--ct-border-soft)]"
         >
           <div
             className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-[var(--ct-dur-base)]"
             style={{
               width: `${progressPct}%`,
               background: barFill,
+              boxShadow: isUnlocked ? "none" : "0 0 8px var(--ct-accent)",
             }}
           />
         </div>
@@ -139,13 +139,13 @@ export function LockMeter({
           <span
             className={cn(
               "body-xs tabular mono",
-              isUnlocked ? "ct-status-success" : "ct-text-primary",
+              isUnlocked ? "text-[var(--ct-status-success)]" : "text-[var(--ct-text-primary)]",
             )}
           >
             {Math.round(progressPct)}%
           </span>
           {!isUnlocked && (
-            <span className="body-xs tabular mono ct-text-muted">
+            <span className="body-xs tabular mono text-[var(--ct-text-muted)]">
               {daysRemaining}d left
             </span>
           )}
@@ -153,16 +153,16 @@ export function LockMeter({
       </div>
 
       {/* Metadata ---------------------------------------------------------- */}
-      <dl className="flex flex-col gap-1">
+      <dl className="flex flex-col gap-1 relative z-10 mt-auto">
         {/* Unlock date */}
         <div className="flex items-center justify-between gap-2">
-          <dt className="body-xs ct-text-muted">
+          <dt className="body-xs text-[var(--ct-text-muted)]">
             {isUnlocked ? "Unlocked" : "Unlock"}
           </dt>
           <dd
             className={cn(
               "body-xs tabular mono m-0",
-              isUnlocked ? "ct-status-success" : "ct-text-primary",
+              isUnlocked ? "text-[var(--ct-status-success)]" : "text-[var(--ct-text-primary)]",
             )}
           >
             {isUnlocked ? "Now" : unlockDateFmt.format(unlockDate)}
@@ -172,15 +172,15 @@ export function LockMeter({
         {/* Early-exit penalty (only shown when still locked) */}
         {!isUnlocked && earlyExitPenaltyBps !== undefined && (
           <div className="flex items-center justify-between gap-2">
-            <dt className="body-xs ct-text-muted">Penalty</dt>
+            <dt className="body-xs text-[var(--ct-text-muted)]">Penalty</dt>
             <dd
               className={cn(
                 "body-xs tabular mono m-0",
-                penaltyHalfPassed ? "ct-text-faint" : "ct-status-warning",
+                penaltyHalfPassed ? "text-[var(--ct-text-faint)]" : "text-[var(--ct-status-warning)]",
               )}
             >
               {formatBps(earlyExitPenaltyBps)}{" "}
-              <span className="ct-text-faint">(early exit)</span>
+              <span className="text-[var(--ct-text-faint)]">(early exit)</span>
             </dd>
           </div>
         )}
