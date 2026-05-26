@@ -2,7 +2,7 @@
   "name": "hearst-connect",
   "version": "0.1.0",
   "engines": {
-    "node": ">=22.0.0",
+    "node": "22.x",
     "pnpm": ">=10.0.0"
   },
   "private": true,
