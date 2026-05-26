@@ -1,7 +1,9 @@
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { VaultSelector } from "@/components/admin/vault-selector";
 import { LabShell } from "@/components/scenario/lab-shell";
+import { MonteCarloPanel } from "@/components/scenario/monte-carlo-panel";
 import { VAULTS, VAULT_YIELD } from "@/lib/engine/vaults";
+import { FEATURE_FLAGS } from "@/lib/feature-flags";
 import type { VaultId } from "@/lib/engine/types";
 
 // ---------------------------------------------------------------------------
@@ -61,6 +63,8 @@ export default async function ScenarioLabPage({
       </p>
 
       <LabShell vaultId={vaultId} />
+
+      {FEATURE_FLAGS.ENABLE_MONTE_CARLO && <MonteCarloPanel />}
     </div>
   );
 }
