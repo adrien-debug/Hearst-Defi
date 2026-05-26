@@ -313,9 +313,16 @@ export const SidebarItem = React.forwardRef<HTMLElement, SidebarItemProps>(
       width: "auto",
       ...style,
     };
+    // Polymorphic <a> | <button>: bridge the forwarded ref via a callback so
+    // the union of element types resolves cleanly (no widening cast).
+    const polymorphicRef = (node: HTMLElement | null): void => {
+      if (typeof ref === "function") ref(node);
+      else if (ref)
+        (ref as React.MutableRefObject<HTMLElement | null>).current = node;
+    };
     return (
       <Comp
-        ref={ref as React.Ref<HTMLElement>}
+        ref={polymorphicRef}
         href={href}
         type={href ? undefined : "button"}
         aria-current={active ? "page" : undefined}

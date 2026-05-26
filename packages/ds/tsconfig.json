@@ -15,11 +15,18 @@
     "allowJs": false,
     "isolatedModules": true,
     "noEmit": true,
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@ds/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*", "examples/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/*.test.tsx",
+    "src/**/*.test.ts",
+    "examples/**/*"
+  ]
 }

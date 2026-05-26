@@ -17,7 +17,7 @@ export interface SidebarProps
 }
 
 export interface SidebarSectionProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   title?: React.ReactNode;
 }
 

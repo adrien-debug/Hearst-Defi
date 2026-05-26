@@ -4,6 +4,9 @@
   "private": true,
   "description": "Token-first, multi-theme, multi-brand, multi-tenant enterprise design system. Zero hardcoded values. WCAG AAA. Stripe + Linear + Apple + Vercel quality.",
   "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
   "sideEffects": [
     "./src/tokens/**/*.css",
     "./src/themes/**/*.css",

@@ -83,7 +83,17 @@ export function useCursorMagnet(
 /*  Component                                                                  */
 /* -------------------------------------------------------------------------- */
 
-export interface MagneticAreaProps extends HTMLAttributes<HTMLDivElement> {
+/**
+ * Drag handlers are deliberately omitted from the public prop type — framer-motion's
+ * `HTMLMotionProps<"div">` defines its own `onDrag*` family (PanInfo signature) that
+ * conflicts with React's native `DragEventHandler`. Callers who need drag should drop
+ * down to `motion.div` directly.
+ */
+export interface MagneticAreaProps
+  extends Omit<
+    HTMLAttributes<HTMLDivElement>,
+    "onDrag" | "onDragEnd" | "onDragStart" | "onAnimationStart" | "onAnimationEnd" | "onAnimationIteration"
+  > {
   /** Max translation as a fraction of distance. Default 0.1 (10%). */
   strength?: number;
 }
