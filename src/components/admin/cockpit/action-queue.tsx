@@ -100,7 +100,7 @@ function SeverityPill({ severity }: { severity: ActionSeverity }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center shrink-0 w-8 h-5 rounded-[var(--ct-radius-sm)] border text-[10px] font-bold tracking-wide",
+        "inline-flex items-center justify-center shrink-0 w-8 h-5 rounded-[var(--ct-radius-sm)] border text-micro font-bold tracking-wide",
         styles[severity],
       )}
       aria-label={`Priority ${severity}`}

@@ -419,14 +419,14 @@ function HeatmapSVG({ marginScore, currentPair }: HeatmapSVGProps) {
                 opacity: s.opacity,
               }}
             />
-            <span className="text-[10px] text-[var(--ct-text-muted)]">{s.label}</span>
+            <span className="text-micro text-[var(--ct-text-muted)]">{s.label}</span>
           </div>
         ))}
       </div>
 
       {/* Current position caption */}
       {currentPair !== undefined ? (
-        <p className="text-[10px] text-[var(--ct-text-faint)]">
+        <p className="text-micro text-[var(--ct-text-faint)]">
           ◐ current position — hashprice ${currentPair.hashprice.toFixed(3)}, BTC $
           {Math.round(currentPair.btcPrice).toLocaleString()}
         </p>

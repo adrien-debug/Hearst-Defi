@@ -179,7 +179,7 @@ function OnChainEventRow({ event }: { event: OnChainEvent }) {
       </span>
       <span className="min-w-0 flex-1">
         <span className="body-xs ct-text-body truncate block">{event.label}</span>
-        <span className="text-[10px] ct-text-faint">{ago}</span>
+        <span className="text-micro ct-text-faint">{ago}</span>
       </span>
     </li>
   );

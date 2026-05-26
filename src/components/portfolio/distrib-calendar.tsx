@@ -291,7 +291,7 @@ export function DistribCalendar({
           <h3 className="dash-label font-semibold text-[var(--ct-text-strong)]">
             DISTRIBUTIONS CALENDAR
           </h3>
-          <p className="text-[10px] font-medium uppercase tracking-wide text-[var(--ct-text-muted)] mono">
+          <p className="text-micro font-medium uppercase tracking-wide text-[var(--ct-text-muted)] mono">
             12-month history · USDC
           </p>
         </div>
@@ -337,7 +337,7 @@ export function DistribCalendar({
       {/* Footer — share class + cadence */}
       <dl className="flex gap-6 border-t border-[var(--ct-border-soft)] pt-2 mt-auto">
         <div className="flex flex-col gap-0.5">
-          <dt className="text-[10px] uppercase tracking-wide text-[var(--ct-text-muted)] mono">
+          <dt className="text-micro uppercase tracking-wide text-[var(--ct-text-muted)] mono">
             Share class
           </dt>
           <dd className="text-xs font-medium text-[var(--ct-text-body)] mono">
@@ -345,7 +345,7 @@ export function DistribCalendar({
           </dd>
         </div>
         <div className="flex flex-col gap-0.5">
-          <dt className="text-[10px] uppercase tracking-wide text-[var(--ct-text-muted)] mono">
+          <dt className="text-micro uppercase tracking-wide text-[var(--ct-text-muted)] mono">
             Cadence
           </dt>
           <dd className="text-xs font-medium text-[var(--ct-text-body)] mono">

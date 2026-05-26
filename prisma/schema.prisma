@@ -154,16 +154,20 @@ model RebalanceEvent {
 }
 
 model Distribution {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   distributedAt   DateTime
   amountUsdc      Decimal
   txHash          String?
   recipientsCount Int
-  period          String   // "2026-04"
+  period          String    // "2026-04"
   // Vault reference — slug or ticker (vaultSlug(ref)) identifying which vault
   // this distribution belongs to. Optional for backward compatibility with
   // historical rows created before multi-vault support (mvp-plus, 2026-05-26).
   vaultRef        String?
+  // Atomic exec status + back-relations (Carta pattern, EE).
+  status          String    @default("pending")
+  executedAt      DateTime?
+  ledgerEntries   DistributionLedgerEntry[]
 
   @@index([distributedAt])
   @@index([vaultRef])
@@ -586,6 +590,30 @@ model ProposalSignature {
 }
 
 // =============================================================================
+// NOTIFICATIONS — per-user notification feed (action / fyi / system)
+// =============================================================================
+
+model Notification {
+  id           String    @id @default(cuid())
+  userId       String    // recipient admin
+  category     String    // "action" | "fyi" | "system"
+  severity     String    @default("info") // "urgent" | "info" | "low"
+  title        String
+  body         String
+  actionHref   String?
+  actionLabel  String?
+  entityType   String?
+  entityId     String?
+  readAt       DateTime?
+  archivedAt   DateTime?
+  snoozedUntil DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([userId, readAt])
+  @@index([userId, category])
+}
+
+// =============================================================================
 // LLM OBSERVABILITY — every agent call is traced here
 // =============================================================================
 
@@ -615,4 +643,62 @@ model LlmRun {
   @@index([status])
   @@index([userId, createdAt])
   @@index([systemPromptHash])
+}
+
+// =============================================================================
+// SAVED VIEWS — Linear-style per-user filter/sort/column presets per table
+// =============================================================================
+
+model SavedView {
+  id         String   @id @default(cuid())
+  userId     String
+  name       String
+  scope      String
+  filters    String
+  sort       String?
+  columns    String?
+  visibility String   @default("private")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  @@index([userId, scope])
+}
+
+// =============================================================================
+// ADDRESS ALLOWLIST — governance routing decision input (Anchorage pattern)
+// =============================================================================
+
+model AddressAllowlist {
+  id        String   @id @default(cuid())
+  address   String   @unique
+  label     String
+  category  String
+  addedBy   String
+  addedAt   DateTime @default(now())
+  notes     String?
+  riskScore Int      @default(0)
+  active    Boolean  @default(true)
+  @@index([active, category])
+}
+
+// =============================================================================
+// DISTRIBUTION LEDGER — per-LP entries from atomic distribution exec (Carta pattern)
+// =============================================================================
+
+model DistributionLedgerEntry {
+  id             String       @id @default(cuid())
+  distributionId String
+  distribution   Distribution @relation(fields: [distributionId], references: [id], onDelete: Cascade)
+  positionId     String
+  amountUsdc     Decimal
+  createdAt      DateTime     @default(now())
+  @@index([distributionId])
+  @@index([positionId])
+}
+
+model Pcap {
+  id             String   @id @default(cuid())
+  distributionId String?
+  generatedAt    DateTime @default(now())
+  pdfUrl         String?
+  generatedFor   String
 }

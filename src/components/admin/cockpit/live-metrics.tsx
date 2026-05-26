@@ -116,7 +116,7 @@ function MetricCell({
 }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[10px] uppercase tracking-wide ct-text-faint font-medium">
+      <span className="text-micro uppercase tracking-wide ct-text-faint font-medium">
         {label}
       </span>
       <span className={cn("body-xs tabular font-semibold ct-text-strong", valueClassName)}>
@@ -138,7 +138,7 @@ function VaultStatusPill({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center rounded-[var(--ct-radius-sm)] border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+        "inline-flex shrink-0 items-center rounded-[var(--ct-radius-sm)] border px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wide",
         styles[status] ?? styles["draft"],
       )}
     >
