@@ -63,6 +63,9 @@ const serverEnvSchema = z.object({
   // Persona KYC — HMAC secret for webhook signature verification.
   // Required at runtime when the persona webhook endpoint is active.
   PERSONA_WEBHOOK_SECRET: z.string().optional(),
+  // Persona KYC — server-side API key (optional, only needed if we call
+  // Persona's REST API to pre-create inquiries; the embed flow doesn't need it).
+  PERSONA_API_KEY: z.string().optional(),
 });
 
 type ServerEnv = z.infer<typeof serverEnvSchema>;
