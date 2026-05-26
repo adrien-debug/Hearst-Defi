@@ -16,6 +16,9 @@
  */
 export const TIMELOCK_DELAY_HOURS = 48;
 
+const MS_PER_HOUR = 60 * 60 * 1_000;
+const MS_PER_DAY = 24 * MS_PER_HOUR;
+
 export type ProposalState =
   | "DRAFT"
   | "SIGNING"
@@ -100,7 +103,7 @@ export function nextStateAfterSignature(
  * Computes the timelock ETA: submittedAt + timelockHours.
  */
 export function computeEta(submittedAt: Date, timelockHours: number): Date {
-  return new Date(submittedAt.getTime() + timelockHours * 60 * 60 * 1000);
+  return new Date(submittedAt.getTime() + timelockHours * MS_PER_HOUR);
 }
 
 /**
@@ -111,7 +114,7 @@ export function isExpired(proposal: ProposalCore, now: Date): boolean {
   if (proposal.state !== "EXECUTABLE") return false;
   if (!proposal.etaAt) return false;
   const expiry = new Date(
-    proposal.etaAt.getTime() + proposal.graceWindowDays * 24 * 60 * 60 * 1000,
+    proposal.etaAt.getTime() + proposal.graceWindowDays * MS_PER_DAY,
   );
   return now >= expiry;
 }

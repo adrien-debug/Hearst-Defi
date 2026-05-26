@@ -1,8 +1,7 @@
 import "server-only";
 
 import { NextResponse } from "next/server";
-import { renderToBuffer, Document, Page, Text, View, Svg, Rect, G } from "@react-pdf/renderer";
-import { StyleSheet } from "@react-pdf/renderer";
+import { renderToBuffer, Document, Page, Text, View, Svg, Rect, G, StyleSheet } from "@react-pdf/renderer";
 
 import { requireAuth } from "@/lib/auth/require-auth";
 import { prisma } from "@/lib/db";
@@ -15,6 +14,11 @@ import {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/** Max PDF generation requests per user per rate-limit window. */
+const PDF_RATE_LIMIT_MAX = 5;
+/** Rate-limit window in milliseconds (60 seconds). */
+const PDF_RATE_LIMIT_WINDOW_MS = 60_000;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -580,7 +584,7 @@ export async function GET(
 
   // 2. Rate limit — PDF generation is compute-intensive.
   try {
-    await assertRateLimit(`statements-pdf:${userId}`, 5, 60_000);
+    await assertRateLimit(`statements-pdf:${userId}`, PDF_RATE_LIMIT_MAX, PDF_RATE_LIMIT_WINDOW_MS);
   } catch (err) {
     logger.warn(
       "statements.pdf.rate_limited",
