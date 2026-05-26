@@ -60,6 +60,10 @@ const serverEnvSchema = z.object({
   HYPERCLI_API_KEY: z.string().min(1).optional(),
   HYPERCLI_BASE_URL: z.string().url().optional(),
   HYPERCLI_DEFAULT_MODEL: z.string().min(1).default("kimi-k2.6"),
+  /** Optional fallback model on the same Hypercli endpoint. When set, callLlm
+   *  retries on this model if the primary model fails all retries OR the
+   *  circuit breaker opens. Set "" or leave unset to disable. Suggested: "glm-5". */
+  HYPERCLI_FALLBACK_MODEL: z.string().optional(),
   HYPERCLI_ORG_ID: z.string().optional(),
   // Sentry observability — all optional, project boots without them (no-op fallback)
   SENTRY_DSN: z.string().url().optional(),

@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 
 import { CircuitBreaker } from "@/lib/circuit-breaker";
 import { prisma } from "@/lib/db";
+import { env } from "@/lib/env";
 import { kimi, KIMI_MODEL } from "@/lib/llm/kimi";
 import { estimateKimiCostUsd } from "@hearst/review-mode";
 import { getRequestContext } from "@/lib/request-context";
@@ -30,12 +31,26 @@ import { getRequestContext } from "@/lib/request-context";
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_MAX_RETRIES = 3;
 
-/** Shared circuit breaker for all Kimi calls. */
+/** Shared circuit breaker for all Kimi (primary model) calls. */
 const kimiBreaker = new CircuitBreaker({
   name: "kimi",
   failureThreshold: 5,
   cooldownMs: 60_000,
 });
+
+/** Shared circuit breaker for fallback-model calls (e.g. glm-5). */
+const fallbackBreaker = new CircuitBreaker({
+  name: "hypercli-fallback",
+  failureThreshold: 5,
+  cooldownMs: 60_000,
+});
+
+/** Resolved at module load. When `null`, no fallback model is configured and
+ *  callLlm behaves exactly like before (single-provider, kimi-only). */
+const FALLBACK_MODEL: string | null =
+  env.HYPERCLI_FALLBACK_MODEL && env.HYPERCLI_FALLBACK_MODEL.trim().length > 0
+    ? env.HYPERCLI_FALLBACK_MODEL.trim()
+    : null;
 
 /* --------------------------------------------------------------------------
  * Minimal LLM types (provider-agnostic, Anthropic-style).
@@ -117,7 +132,10 @@ export async function callLlm(
     maxRetries?: number;
   },
 ): Promise<LlmCallResult> {
-  const client: LlmClientLike = opts?.client ?? kimiAsClient();
+  // Tests inject a fully-formed `client`; in that mode we bypass the fallback
+  // path so test setups stay deterministic (one mock = one path).
+  const primaryClient: LlmClientLike =
+    opts?.client ?? hypercliAsClient(KIMI_MODEL);
   const timeoutMs = opts?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const maxRetries = opts?.maxRetries ?? DEFAULT_MAX_RETRIES;
 
@@ -145,72 +163,147 @@ export async function callLlm(
   });
 
   const start = performance.now();
+
+  // ── Attempt 1: primary model (kimi-k2.6) through its breaker. ─────────────
+  const primaryOutcome = await tryProvider({
+    client: primaryClient,
+    params,
+    timeoutMs,
+    maxRetries,
+    breaker: kimiBreaker,
+  });
+
+  if (primaryOutcome.kind === "success") {
+    return await persistSuccessAndReturn(run.id, start, primaryOutcome.response);
+  }
+
+  // ── Attempt 2: fallback model (e.g. glm-5) on the same Hypercli endpoint. ─
+  // Only when (a) a fallback is configured, (b) the caller did not inject its
+  // own client (preserves test determinism).
+  if (FALLBACK_MODEL && opts?.client === undefined) {
+    const fallbackOutcome = await tryProvider({
+      client: hypercliAsClient(FALLBACK_MODEL),
+      params,
+      timeoutMs,
+      maxRetries,
+      breaker: fallbackBreaker,
+    });
+
+    if (fallbackOutcome.kind === "success") {
+      return await persistSuccessAndReturn(
+        run.id,
+        start,
+        fallbackOutcome.response,
+        { fallbackTriggered: true, fallbackModel: FALLBACK_MODEL },
+      );
+    }
+
+    // Both providers failed — surface the fallback error so audit logs
+    // capture the most recent failure mode.
+    return await persistFailureAndThrow(run.id, start, fallbackOutcome.error);
+  }
+
+  return await persistFailureAndThrow(run.id, start, primaryOutcome.error);
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Provider attempt orchestration
+// ────────────────────────────────────────────────────────────────────────────
+
+type ProviderOutcome =
+  | { kind: "success"; response: LlmResponse }
+  | { kind: "failure"; error: unknown };
+
+interface TryProviderArgs {
+  client: LlmClientLike;
+  params: LlmParams;
+  timeoutMs: number;
+  maxRetries: number;
+  breaker: CircuitBreaker;
+}
+
+async function tryProvider(args: TryProviderArgs): Promise<ProviderOutcome> {
   let lastError: unknown;
-
   try {
-    return await kimiBreaker.run(async () => {
-      for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const response = await args.breaker.run(async () => {
+      for (let attempt = 0; attempt < args.maxRetries; attempt++) {
         try {
-          const response = await client.messages.create(params, {
-            timeout: timeoutMs,
+          return await args.client.messages.create(args.params, {
+            timeout: args.timeoutMs,
           });
-          const latency = Math.round(performance.now() - start);
-
-          const inputTokens = response.usage?.input_tokens ?? 0;
-          const outputTokens = response.usage?.output_tokens ?? 0;
-          const costUsd = estimateKimiCostUsd({
-            prompt_tokens: inputTokens,
-            completion_tokens: outputTokens,
-          });
-
-          await prisma.llmRun.update({
-            where: { id: run.id },
-            data: {
-              status: "success",
-              latencyMs: latency,
-              inputTokens,
-              outputTokens,
-              costUsd,
-            },
-          });
-
-          return { response, latencyMs: latency, runId: run.id };
         } catch (err) {
           lastError = err;
-          if (!isRetryable(err) || attempt === maxRetries - 1) {
+          if (!isRetryable(err) || attempt === args.maxRetries - 1) {
             break;
           }
           await sleep(Math.pow(2, attempt) * 1000);
         }
       }
-
       throw lastError;
     });
+    return { kind: "success", response };
   } catch (err) {
-    const latency = Math.round(performance.now() - start);
-    // `lastError` is undefined when the circuit breaker opens before any
-    // attempt. Fall back to `err` (the actual thrown value) in that case.
-    const effectiveError = lastError ?? err;
-    const errorMessage =
-      effectiveError instanceof Error
-        ? effectiveError.message
-        : String(effectiveError);
-    const isTimeout =
-      effectiveError instanceof Error &&
-      effectiveError.constructor.name === "APIConnectionTimeoutError";
-
-    await prisma.llmRun.update({
-      where: { id: run.id },
-      data: {
-        status: isTimeout ? "timeout" : "failed",
-        latencyMs: latency,
-        errorType: errorType(effectiveError),
-        errorMessage: errorMessage.slice(0, 1000),
-      },
-    });
-
-    throw effectiveError;
+    return { kind: "failure", error: lastError ?? err };
   }
+}
+
+async function persistSuccessAndReturn(
+  runId: string,
+  start: number,
+  response: LlmResponse,
+  meta?: { fallbackTriggered: true; fallbackModel: string },
+): Promise<LlmCallResult> {
+  const latency = Math.round(performance.now() - start);
+  const inputTokens = response.usage?.input_tokens ?? 0;
+  const outputTokens = response.usage?.output_tokens ?? 0;
+  const costUsd = estimateKimiCostUsd({
+    prompt_tokens: inputTokens,
+    completion_tokens: outputTokens,
+  });
+
+  // Record the model that actually answered + whether we hit the fallback path.
+  // This keeps cost audit + reliability metrics accurate per provider.
+  await prisma.llmRun.update({
+    where: { id: runId },
+    data: {
+      status: "success",
+      latencyMs: latency,
+      inputTokens,
+      outputTokens,
+      costUsd,
+      model: response.model,
+      ...(meta?.fallbackTriggered
+        ? { errorType: `fallback:${meta.fallbackModel}` }
+        : {}),
+    },
+  });
+
+  return { response, latencyMs: latency, runId };
+}
+
+async function persistFailureAndThrow(
+  runId: string,
+  start: number,
+  error: unknown,
+): Promise<never> {
+  const latency = Math.round(performance.now() - start);
+  const errorMessage =
+    error instanceof Error ? error.message : String(error);
+  const isTimeout =
+    error instanceof Error &&
+    error.constructor.name === "APIConnectionTimeoutError";
+
+  await prisma.llmRun.update({
+    where: { id: runId },
+    data: {
+      status: isTimeout ? "timeout" : "failed",
+      latencyMs: latency,
+      errorType: errorType(error),
+      errorMessage: errorMessage.slice(0, 1000),
+    },
+  });
+
+  throw error;
 }
 
 /** A retryable error is a timeout or a 429/500/503 from the OpenAI SDK. */
@@ -270,25 +363,30 @@ function flattenContent(content: LlmMessage["content"]): string {
 }
 
 /**
- * Wraps the Kimi (Hypercli) endpoint as an `LlmClientLike`. Exposes the same
+ * Wraps a Hypercli model as an `LlmClientLike`. Exposes the same
  * `messages.create(params)` surface the agents expect; internally it adapts to
  * the OpenAI-compatible chat endpoint. This keeps `callLlm` (retry, breaker,
  * LlmRun persistence) decoupled from the transport.
  */
-function kimiAsClient(): LlmClientLike {
+function hypercliAsClient(model: string): LlmClientLike {
   return {
     messages: {
       create: (body, options) =>
-        callKimi(body, options?.timeout ?? DEFAULT_TIMEOUT_MS),
+        callHypercli(model, body, options?.timeout ?? DEFAULT_TIMEOUT_MS),
     },
   };
 }
 
 /**
- * Calls Kimi via the OpenAI-compatible Hypercli endpoint and adapts the
- * response into the normalised `LlmResponse` shape callers expect.
+ * Calls a Hypercli-hosted model via the OpenAI-compatible chat endpoint and
+ * adapts the response into the normalised `LlmResponse` shape callers expect.
+ *
+ * The shared `kimi` OpenAI instance points at `HYPERCLI_BASE_URL` with
+ * `HYPERCLI_API_KEY`; the `model` parameter selects which Hypercli-hosted
+ * model handles the request (kimi-k2.6 / glm-5 / etc.).
  */
-async function callKimi(
+async function callHypercli(
+  model: string,
   params: LlmParams,
   timeoutMs: number,
 ): Promise<LlmResponse> {
@@ -309,7 +407,7 @@ async function callKimi(
 
   const completion = await kimi.chat.completions.create(
     {
-      model: KIMI_MODEL,
+      model,
       max_tokens: params.max_tokens,
       messages: chatMessages,
     },
@@ -319,7 +417,7 @@ async function callKimi(
   const text = completion.choices[0]?.message?.content ?? "";
   return {
     id: completion.id,
-    model: KIMI_MODEL,
+    model,
     content: [{ type: "text", text }],
     usage: {
       input_tokens: completion.usage?.prompt_tokens ?? 0,
