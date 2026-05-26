@@ -51,10 +51,12 @@ const MAX_CONTENT_LEN = 8_000;
 const MAX_MESSAGES = 30;
 const MAX_SYSTEM_LEN = 4_000;
 // Cap on the enriched system prompt (base + user-context block).
-// Must be > MAX_SYSTEM_LEN to leave room for the base prompt + context header.
-// customInstructions is user-influenced free text — an unbounded concat would
-// allow a malicious user to inflate the system prompt arbitrarily.
-const MAX_ENRICHED_SYSTEM_LEN = 6_000;
+// Must be >> the base COCKPIT_DEFAULT_SYSTEM_PROMPT length (currently ~11k
+// chars / ~2.7k tokens) to leave room for the per-user context block on top.
+// customInstructions is user-influenced free text — the clamp prevents a
+// malicious user from inflating the system prompt arbitrarily, but must be
+// generous enough that the base prompt is never silently truncated mid-rule.
+const MAX_ENRICHED_SYSTEM_LEN = 16_000;
 
 const HTML_TAG_RE = /<[^>]*>/g;
 
