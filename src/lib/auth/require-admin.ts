@@ -29,10 +29,20 @@ export async function requireAdmin(): Promise<{
   }
 
   // Propagate the real user id into the request context for logging/tracing.
-  enterRequestContext({
-    requestId: crypto.randomUUID(),
-    userId: session.userId,
-  });
+  // This uses AsyncLocalStorage.enterWith which is NOT supported on every
+  // runtime (Vercel Edge for instance). The context is non-critical (only
+  // used for log enrichment), so swallow failures to never block the admin
+  // gate over a logging concern.
+  try {
+    enterRequestContext({
+      requestId: crypto.randomUUID(),
+      userId: session.userId,
+    });
+  } catch (err) {
+    console.warn("[requireAdmin] enterRequestContext unavailable in this runtime; continuing without request context.", {
+      message: err instanceof Error ? err.message : String(err),
+    });
+  }
 
   return {
     userId: session.userId,
