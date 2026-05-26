@@ -1,9 +1,7 @@
 import type { ReactNode, TextareaHTMLAttributes } from "react";
 
-import type { AIPromptBoxVariantProps } from "./ai-prompt-box.variants";
-
-export type AIPromptBoxVariant = NonNullable<AIPromptBoxVariantProps["variant"]>;
-export type AIPromptBoxSize = NonNullable<AIPromptBoxVariantProps["size"]>;
+export type AIPromptBoxVariant = "default" | "minimal" | "bordered";
+export type AIPromptBoxSize = "sm" | "md" | "lg";
 
 export interface AIPromptBoxAttachment {
   /** Stable id within the parent. */
@@ -18,10 +16,11 @@ export interface AIPromptBoxAttachment {
 
 export interface AIPromptBoxProps
   extends Omit<
-      TextareaHTMLAttributes<HTMLTextAreaElement>,
-      "onChange" | "onSubmit" | "value" | "size"
-    >,
-    AIPromptBoxVariantProps {
+    TextareaHTMLAttributes<HTMLTextAreaElement>,
+    "onChange" | "onSubmit" | "value" | "size"
+  > {
+  variant?: AIPromptBoxVariant;
+  size?: AIPromptBoxSize;
   /** Controlled value. */
   value: string;
   /** Called on every keystroke. */

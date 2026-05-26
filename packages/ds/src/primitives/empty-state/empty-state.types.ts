@@ -2,7 +2,8 @@ import type * as React from "react";
 
 export type EmptyStateVariant = "default" | "bordered" | "centered" | "minimal";
 
-export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface EmptyStateProps
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   icon?: React.ReactNode;
   illustration?: React.ReactNode;
   title: React.ReactNode;

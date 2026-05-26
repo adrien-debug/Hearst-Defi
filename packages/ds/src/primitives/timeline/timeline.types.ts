@@ -14,7 +14,7 @@ export interface TimelineProps extends React.HTMLAttributes<HTMLOListElement> {
 }
 
 export interface TimelineItemProps
-  extends React.LiHTMLAttributes<HTMLLIElement> {
+  extends Omit<React.LiHTMLAttributes<HTMLLIElement>, "title"> {
   /** Displayed in the left rail (or as a meta line in compact variant). */
   time?: React.ReactNode;
   /** Optional icon rendered inside the dot. */

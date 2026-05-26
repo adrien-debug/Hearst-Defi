@@ -1,13 +1,7 @@
 import type { HTMLAttributes, ReactNode } from "react";
 
-import type { CommandPaletteVariantProps } from "./command-palette.variants";
-
-export type CommandPaletteVariant = NonNullable<
-  CommandPaletteVariantProps["variant"]
->;
-export type CommandPaletteSize = NonNullable<
-  CommandPaletteVariantProps["size"]
->;
+export type CommandPaletteVariant = "default" | "minimal";
+export type CommandPaletteSize = "sm" | "md" | "lg";
 
 export interface CommandPaletteCommand {
   /** Stable unique identifier (used for `recentIds`, keys). */
@@ -31,8 +25,11 @@ export interface CommandPaletteCommand {
 }
 
 export interface CommandPaletteProps
-  extends Omit<HTMLAttributes<HTMLDivElement>, "onChange">,
-    CommandPaletteVariantProps {
+  extends Omit<HTMLAttributes<HTMLDivElement>, "onChange"> {
+  /** Visual variant. */
+  variant?: CommandPaletteVariant;
+  /** Surface size. */
+  size?: CommandPaletteSize;
   /** Controls open state. */
   open: boolean;
   /** Called whenever the palette wants to close (Esc, overlay click, action run). */

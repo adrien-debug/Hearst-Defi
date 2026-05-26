@@ -1,9 +1,12 @@
 import type { HTMLAttributes, ReactNode } from "react";
 
-import type { KpiWidgetVariantProps } from "./kpi-widget.variants";
-
-export type KpiWidgetVariant = NonNullable<KpiWidgetVariantProps["variant"]>;
-export type KpiWidgetSize = NonNullable<KpiWidgetVariantProps["size"]>;
+export type KpiWidgetVariant =
+  | "default"
+  | "bordered"
+  | "filled"
+  | "accent"
+  | "minimal";
+export type KpiWidgetSize = "sm" | "md" | "lg";
 export type KpiProvenance = "live" | "estimated" | "stale";
 export type KpiDeltaDirection = "up" | "down" | "flat";
 
@@ -16,9 +19,9 @@ export interface KpiDelta {
   label?: string;
 }
 
-export interface KpiWidgetProps
-  extends HTMLAttributes<HTMLDivElement>,
-    KpiWidgetVariantProps {
+export interface KpiWidgetProps extends HTMLAttributes<HTMLDivElement> {
+  variant?: KpiWidgetVariant;
+  size?: KpiWidgetSize;
   /** Short label (e.g. "TVL"). */
   label: string;
   /** Primary value. */

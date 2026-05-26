@@ -1,9 +1,7 @@
 import type { HTMLAttributes } from "react";
 
-import type { TerminalVariantProps } from "./terminal.variants";
-
-export type TerminalVariant = NonNullable<TerminalVariantProps["variant"]>;
-export type TerminalSize = NonNullable<TerminalVariantProps["size"]>;
+export type TerminalVariant = "default" | "minimal" | "glass";
+export type TerminalSize = "sm" | "md" | "lg";
 export type TerminalLevel =
   | "log"
   | "info"
@@ -23,8 +21,9 @@ export interface TerminalLine {
 }
 
 export interface TerminalProps
-  extends Omit<HTMLAttributes<HTMLDivElement>, "onSubmit">,
-    TerminalVariantProps {
+  extends Omit<HTMLAttributes<HTMLDivElement>, "onSubmit"> {
+  variant?: TerminalVariant;
+  size?: TerminalSize;
   lines: TerminalLine[];
   /** Prompt string when `interactive`. Defaults to `"$ "`. */
   prompt?: string;

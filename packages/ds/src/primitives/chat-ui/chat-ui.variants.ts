@@ -45,7 +45,7 @@ export const chatVariants = tv({
       "inline-block align-baseline",
       "w-[var(--ds-spacing-0_5)] h-[1em] ml-[var(--ds-spacing-0_5)]",
       "bg-[color:var(--ds-text-primary)]",
-      "animate-[ds-chat-blink_1s_steps(2,start)_infinite]",
+      "animate-pulse",
       "motion-reduce:animate-none motion-reduce:opacity-100",
     ],
     actions: [

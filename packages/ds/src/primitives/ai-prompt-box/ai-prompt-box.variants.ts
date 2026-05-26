@@ -14,7 +14,7 @@ export const aiPromptBoxVariants = tv({
       "motion-reduce:transition-none",
       "focus-within:border-[color:var(--ds-color-focus-ring)]",
       "focus-within:shadow-[0_0_0_3px_color-mix(in_oklch,var(--ds-color-focus-ring)_25%,transparent)]",
-      "data-[loading=true]:animate-[ds-prompt-pulse_var(--ds-motion-duration-slow,400ms)_ease-in-out_infinite_alternate]",
+      "data-[loading=true]:animate-pulse",
       "motion-reduce:data-[loading=true]:animate-none",
     ],
     suggestions: [

@@ -19,6 +19,7 @@ import {
 import type {
   ForwardedRef,
   MouseEvent as ReactMouseEvent,
+  ReactElement,
   ReactNode,
 } from "react";
 
@@ -173,7 +174,7 @@ function GridLines({
 }: {
   scales: Scales;
   show: boolean;
-}): JSX.Element | null {
+}): ReactElement | null {
   if (!show) return null;
   const styles = chartVariants();
   const ticks = gridTickCount();
@@ -208,7 +209,7 @@ export function LineChart<TDatum extends Record<string, unknown>>({
   tooltip = true,
   a11yLabel,
   ...rest
-}: LineChartProps<TDatum>): JSX.Element {
+}: LineChartProps<TDatum>): ReactElement {
   const palette = colors ?? CHART_PALETTE;
   const styles = chartVariants();
 
@@ -394,7 +395,7 @@ export function AreaChart<TDatum extends Record<string, unknown>>({
   a11yLabel,
   tooltip: _tooltip = true,
   ...rest
-}: AreaChartProps<TDatum>): JSX.Element {
+}: AreaChartProps<TDatum>): ReactElement {
   const palette = colors ?? CHART_PALETTE;
   const styles = chartVariants();
   const enriched = series.map((s, i) => {
@@ -492,7 +493,7 @@ export function BarChart<TDatum extends Record<string, unknown>>({
   a11yLabel,
   tooltip: _tooltip = true,
   ...rest
-}: BarChartProps<TDatum>): JSX.Element {
+}: BarChartProps<TDatum>): ReactElement {
   const palette = colors ?? CHART_PALETTE;
   const styles = chartVariants();
   const ys = data.map((d) => Number(d[yKey]));
@@ -601,7 +602,7 @@ export function DonutChart({
   colors,
   a11yLabel,
   ...rest
-}: DonutChartProps): JSX.Element {
+}: DonutChartProps): ReactElement {
   const palette = colors ?? CHART_PALETTE;
   const styles = chartVariants();
   const total = data.reduce((acc, d) => acc + Math.max(0, d.value), 0) || 1;
@@ -662,7 +663,7 @@ export function SparklineChart({
   colors,
   a11yLabel,
   ...rest
-}: SparklineChartProps): JSX.Element {
+}: SparklineChartProps): ReactElement {
   const palette = colors ?? CHART_PALETTE;
   const ext = extentOf(data);
   const stepX = (width - padding * 2) / Math.max(1, data.length - 1);

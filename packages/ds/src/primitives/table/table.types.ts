@@ -19,13 +19,14 @@ export interface TrProps extends React.HTMLAttributes<HTMLTableRowElement> {
   interactive?: boolean;
 }
 export interface ThProps
-  extends React.ThHTMLAttributes<HTMLTableCellElement> {
+  extends Omit<React.ThHTMLAttributes<HTMLTableCellElement>, "align"> {
   sortable?: boolean;
   /** "asc" | "desc" | "none" — controls the visual sort indicator. */
   direction?: "asc" | "desc" | "none";
   align?: "start" | "center" | "end";
 }
-export interface TdProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
+export interface TdProps
+  extends Omit<React.TdHTMLAttributes<HTMLTableCellElement>, "align"> {
   align?: "start" | "center" | "end";
   numeric?: boolean;
 }
