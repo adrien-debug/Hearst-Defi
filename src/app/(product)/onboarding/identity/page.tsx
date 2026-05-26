@@ -1,8 +1,10 @@
 /**
  * S3 — Identity / KYC page.
  *
- * Persona iframe stub (P1 integration pending). Displays the placeholder
- * component and a "Continue" CTA that advances to the wallet step.
+ * Wires the real Persona embed when NEXT_PUBLIC_PERSONA_TEMPLATE_ID is set
+ * in the environment, otherwise falls back to a static placeholder so the
+ * page still renders cleanly in setups without Persona credentials.
+ *
  * Non-negotiable #5: no forbidden words.
  */
 
@@ -10,10 +12,19 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { PersonaPlaceholder } from "@/components/onboarding/PersonaPlaceholder";
+import { IdentityStep } from "@/components/onboarding/identity-step";
+import { getSession } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
-export default function IdentityPage() {
+export default async function IdentityPage() {
+  const session = await getSession();
+  const referenceId = session?.userId;
+  const templateId = process.env.NEXT_PUBLIC_PERSONA_TEMPLATE_ID;
+  const rawEnv = process.env.NEXT_PUBLIC_PERSONA_ENVIRONMENT;
+  const environment: "sandbox" | "production" = rawEnv === "production" ? "production" : "sandbox";
+  const personaReady = typeof templateId === "string" && templateId.length > 0;
+
   return (
     <div className="ct-card w-full max-w-lg flex flex-col gap-[var(--ct-space-6)]">
       {/* Header */}
@@ -38,8 +49,16 @@ export default function IdentityPage() {
         </p>
       </header>
 
-      {/* Persona stub */}
-      <PersonaPlaceholder />
+      {/* Persona embed (real SDK) when configured, placeholder otherwise */}
+      {personaReady ? (
+        <IdentityStep
+          templateId={templateId}
+          environment={environment}
+          referenceId={referenceId}
+        />
+      ) : (
+        <PersonaPlaceholder />
+      )}
 
       {/* Navigation */}
       <div className="flex flex-col gap-[var(--ct-space-3)]">
