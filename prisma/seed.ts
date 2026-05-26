@@ -704,6 +704,74 @@ async function seedVaultDeployments(): Promise<number> {
 }
 
 // ---------------------------------------------------------------------------
+// Defensive Vault — testnet-only deployment row (Base Sepolia, chain 84532).
+//
+// This row tracks the Defensive Vault stub on testnet before a mainnet audit
+// clears the way for a real deployment. The ticker "HDV-T" distinguishes it
+// from the paper-phase "HDV-A" row above. Idempotent upsert on id="defensive".
+//
+// Field mapping from task spec → VaultDeployment schema:
+//   slug          → id (primary key, human-readable for tooling)
+//   chainId 84532 → network "84532" (Base Sepolia, stored as string)
+//   address       → contractAddress (placeholder, never deployed)
+//   status TESTNET→ status "testnet"
+//   apyMin 0.06   → targetApyLowBps 600 (6 %)
+//   apyMax 0.09   → targetApyHighBps 900 (9 %)
+//   lockupDays 30 → softLockupDays 30
+//   minTicket     → minTicketUsdc 100_000
+//   requiredSigners 3 / totalSigners 5 → requiredSigners + 5-item signersWhitelist
+//
+// Allocation bps (from VAULT_DEFENSIVE targets): mining 20 % → 2000 bps,
+// btc_tactical 10 % → 1000 bps, usdc_base 35 % → 3500 bps,
+// stable_reserve 35 % → 3500 bps — sum = 10000 ✓
+// ---------------------------------------------------------------------------
+
+const DEFENSIVE_TESTNET_SIGNERS = JSON.stringify([
+  "0x0000000000000000000000000000000000000011",
+  "0x0000000000000000000000000000000000000012",
+  "0x0000000000000000000000000000000000000013",
+  "0x0000000000000000000000000000000000000014",
+  "0x0000000000000000000000000000000000000015",
+]);
+
+async function seedDefensiveTestnetDeployment(): Promise<void> {
+  const data = {
+    ticker: "HDV-T",
+    name: "Hearst Defensive Vault",
+    description: VAULT_DEFENSIVE.description,
+    strategy: "stable_reserve" as const,
+    colorTag: "accent",
+    status: "testnet",
+    network: "84532",
+    contractAddress: "0x0000000000000000000000000000000000000002",
+    minTicketUsdc: 100_000,
+    capacityUsdc: 50_000_000,
+    mgmtFeeBps: 200,
+    perfFeeBps: 1_000,
+    hurdleBps: 0,
+    softLockupDays: 30,
+    targetApyLowBps: 600,
+    targetApyHighBps: 900,
+    spvJurisdiction: "cayman",
+    shareClass: "A",
+    regExemption: "regS",
+    disclaimers: VAULT_DEFENSIVE.assumptions.join(" "),
+    targetMiningBps: 2_000,
+    targetBtcTacticalBps: 1_000,
+    targetUsdcBaseBps: 3_500,
+    targetStableReserveBps: 3_500,
+    requiredSigners: 3,
+    signersWhitelist: DEFENSIVE_TESTNET_SIGNERS,
+    createdBy: "seed-user",
+  };
+  await prisma.vaultDeployment.upsert({
+    where: { id: "defensive" },
+    update: data,
+    create: { id: "defensive", ...data },
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Admin users — idempotent. Reads ADMIN_EMAILS (CSV) + ADMIN_INITIAL_PASSWORD.
 // Upserts a role="admin" User per email. Does NOT create an Investor for the
 // admin. No-op when either env var is unset. Intentionally OUTSIDE resetTables()
@@ -752,6 +820,8 @@ async function main(): Promise<void> {
   // referencing it — but the row is not part of resetTables (deployments live
   // in admin scope). Idempotent upsert keeps it safe to re-run N times.
   const vaultDeployments = await seedVaultDeployments();
+  // Testnet-only Defensive Vault stub (Base Sepolia, chain 84532).
+  await seedDefensiveTestnetDeployment();
   const admins = await seedAdminUsers();
   const presetVault = await seedPresetVaultSnapshots();
   const dailyVault = await seedDailyVaultTimeline();
@@ -763,7 +833,7 @@ async function main(): Promise<void> {
   const proofs = await seedProofs();
 
   console.log("Hearst Connect seed complete:");
-  console.log(`  VaultDeployment: ${vaultDeployments} (3 first-class vaults — ADR-006)`);
+  console.log(`  VaultDeployment: ${vaultDeployments + 1} (3 first-class vaults + 1 testnet defensive — ADR-006)`);
   console.log(`  AdminUser:       ${admins}`);
   console.log(`  VaultSnapshot:   ${presetVault.snapshots + dailyVault.snapshots} (${presetVault.snapshots} preset + ${dailyVault.snapshots} daily)`);
   console.log(`  Allocation:      ${presetVault.allocations + dailyVault.allocations}`);
