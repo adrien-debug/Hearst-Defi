@@ -80,6 +80,21 @@ export default async function NewVaultPage({ searchParams }: NewVaultPageProps) 
   const stepLabel = resumeStep ? STEP_LABELS[resumeStep] : undefined;
   const stepNumber = resumeStep ? STEP_NUMBERS[resumeStep] : undefined;
 
+  // Gate: when a draft exists, the admin must explicitly opt into resuming it
+  // (via ?resume=1) before the wizard mounts with pre-filled data. Without this
+  // gate, opening /admin/vaults/new silently rehydrated the previous session
+  // and admins edited stale drafts by accident.
+  const rawResume = params["resume"];
+  const resumeAcknowledged =
+    typeof rawResume === "string" && (rawResume === "1" || rawResume === "true");
+
+  const showGate =
+    Boolean(draft && resumeStep && resumeForm && draftUpdatedAt && stepLabel && stepNumber) &&
+    !resumeAcknowledged;
+
+  const applyResume = resumeAcknowledged ? resumeStep : undefined;
+  const applyResumeForm = resumeAcknowledged ? resumeForm : undefined;
+
   return (
     <div className="space-y-8">
       <header className="space-y-1">
@@ -91,18 +106,24 @@ export default async function NewVaultPage({ searchParams }: NewVaultPageProps) 
         </p>
       </header>
 
-      {draft && resumeStep && resumeForm && draftUpdatedAt && stepLabel && stepNumber && (
+      {showGate && resumeForm && draftUpdatedAt && stepLabel && stepNumber ? (
         <ResumeDraftBanner
-          ticker={typeof resumeForm.ticker === "string" && resumeForm.ticker.length > 0
-            ? resumeForm.ticker
-            : undefined}
+          ticker={
+            typeof resumeForm.ticker === "string" && resumeForm.ticker.length > 0
+              ? resumeForm.ticker
+              : undefined
+          }
           stepLabel={stepLabel}
           stepNumber={stepNumber}
           updatedAt={draftUpdatedAt}
         />
+      ) : (
+        <VaultWizard
+          resumeStep={applyResume}
+          resumeForm={applyResumeForm}
+          cloneValues={cloneValues}
+        />
       )}
-
-      <VaultWizard resumeStep={resumeStep} resumeForm={resumeForm} cloneValues={cloneValues} />
     </div>
   );
 }

@@ -12,7 +12,6 @@ import { MiningHealthSection } from "@/components/dashboard/mining-health";
 import { RiskFrameworkSection } from "@/components/dashboard/risk-framework";
 import { TimeseriesSection } from "@/components/dashboard/timeseries-section";
 import { ApyRange } from "@/components/ui/apy-range";
-import { Card } from "@/components/ui/card";
 import { Metric } from "@/components/ui/metric";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -42,16 +41,6 @@ const dateFmt = new Intl.DateTimeFormat("en-US", {
 
 // ---------------------------------------------------------------------------
 // Yield source breakdown — methodology v1.0 target contributions. Estimated
-// when the live `yieldContributionBps` (already on `DashboardAllocation`) is
-// zero or unavailable. Mirrors the four buckets in /docs/spec/01-dashboard.mdx.
-// ---------------------------------------------------------------------------
-const YIELD_SOURCE_TARGETS = [
-  { bucket: "mining" as const, label: "Mining cashflow", target: "~6.2%" },
-  { bucket: "usdc_base" as const, label: "USDC base yield", target: "~4.8%" },
-  { bucket: "btc_tactical" as const, label: "BTC tactical P&L", target: "variable" },
-  { bucket: "stable_reserve" as const, label: "Stable reserve", target: "~4.5%" },
-];
-
 interface DashboardPageProps {
   searchParams: Promise<{ mode?: string; vault?: string }>;
 }

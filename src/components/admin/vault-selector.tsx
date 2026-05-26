@@ -2,11 +2,30 @@ import Link from "next/link";
 
 import { cn } from "@/lib/cn";
 
+/**
+ * Vault option shape consumed by the selector. `isLive` is optional — when
+ * omitted, the selector falls back to a heuristic (only `yield` is treated as
+ * live, matching `isYieldVaultRow` in `src/lib/data/vaults.ts`). Pass an
+ * explicit boolean (e.g. from `listAllVaults()`) once live deployments exist
+ * for other ids.
+ */
+export interface VaultSelectorOption {
+  id: string;
+  label: string;
+  /**
+   * `true` → vault has a real `VaultSnapshot` backing it (numbers are live).
+   * `false` → vault renders engine preset values only (no on-chain / DB data
+   * yet). Surfaces a "preset" badge in the tab so admins don't mistake the
+   * zeroes for real AUM.
+   */
+  isLive?: boolean;
+}
+
 /** Default fixtures-only catalog. Used when no `options` prop is provided. */
-const DEFAULT_VAULT_OPTIONS: ReadonlyArray<{ id: string; label: string }> = [
-  { id: "yield", label: "Yield" },
-  { id: "defensive", label: "Defensive" },
-  { id: "btc-plus", label: "BTC Plus" },
+const DEFAULT_VAULT_OPTIONS: ReadonlyArray<VaultSelectorOption> = [
+  { id: "yield", label: "Yield", isLive: true },
+  { id: "defensive", label: "Defensive", isLive: false },
+  { id: "btc-plus", label: "BTC Plus", isLive: false },
 ];
 
 export interface VaultSelectorProps {
@@ -18,7 +37,7 @@ export interface VaultSelectorProps {
    * deployments (built via `listAllVaults()` + `vaultSlug` / `vaultLabel`)
    * to surface wizard-created vaults in the rail.
    */
-  options?: ReadonlyArray<{ id: string; label: string }>;
+  options?: ReadonlyArray<VaultSelectorOption>;
   /** Base path to anchor links against — defaults to `/admin/dashboard`. */
   basePath?: string;
   /**
@@ -62,14 +81,30 @@ export function VaultSelector({
         const qs = params.toString();
         const href = qs ? `${basePath}?${qs}` : basePath;
         const isActive = opt.id === active;
+        // Default heuristic: only `yield` is backed by a real VaultSnapshot
+        // today (ADR-006 #9). Caller can override per-option via `isLive`.
+        const isLive = opt.isLive ?? opt.id === "yield";
         return (
           <Link
             key={opt.id}
             href={href}
             className={cn("ct-seg-btn", isActive && "active")}
             aria-current={isActive ? "page" : undefined}
+            title={
+              isLive ? undefined : "Preset only · values from engine fixture, not live data"
+            }
           >
-            {opt.label}
+            <span className="inline-flex items-center gap-1.5">
+              {opt.label}
+              {!isLive ? (
+                <span
+                  className="ct-text-faint text-[0.625rem] uppercase tracking-[0.08em] leading-none"
+                  aria-label="preset only, not live"
+                >
+                  preset
+                </span>
+              ) : null}
+            </span>
           </Link>
         );
       })}

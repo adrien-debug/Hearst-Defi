@@ -8,7 +8,10 @@ import type {
   DashboardTimeseries,
 } from "@/lib/data/dashboard";
 
-const METHODOLOGY_TARGET_APY = 12;
+// Headline APY is ALWAYS a range — never a single point (CLAUDE.md #1).
+// These bounds are the Hearst Yield Vault target band per Methodology v1.0.
+const METHODOLOGY_TARGET_APY_LOW = 9.4;
+const METHODOLOGY_TARGET_APY_HIGH = 12.8;
 
 interface TimeseriesSectionProps {
   data: DashboardTimeseries;
@@ -295,7 +298,7 @@ function ApyChart({ points, provenance }: ApyChartProps) {
     return (
       <ChartEmpty
         title="APY Range"
-        subtitle={`Trailing 30d · Target ${METHODOLOGY_TARGET_APY.toFixed(0)}%`}
+        subtitle={`Trailing 30d · Target ${METHODOLOGY_TARGET_APY_LOW.toFixed(1)}–${METHODOLOGY_TARGET_APY_HIGH.toFixed(1)}%`}
         provenance={provenance}
       />
     );
@@ -312,7 +315,7 @@ function ApyChart({ points, provenance }: ApyChartProps) {
         <div className="flex flex-col gap-0.5">
           <span className="text-micro font-bold uppercase tracking-widest text-[var(--ct-text-muted)]">APY Range</span>
           <p className="text-[10px] font-medium uppercase tracking-wide text-[var(--ct-text-faint)] mono">
-            Trailing 30d · Target {METHODOLOGY_TARGET_APY.toFixed(0)}%
+            Trailing 30d · Target {METHODOLOGY_TARGET_APY_LOW.toFixed(1)}–{METHODOLOGY_TARGET_APY_HIGH.toFixed(1)}%
           </p>
         </div>
         <div className="flex flex-col items-end">

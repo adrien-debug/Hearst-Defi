@@ -129,6 +129,43 @@ describe("listAllVaults", () => {
       expect(deployments[0].deployment.ticker).toBe("HYV-A");
   });
 
+  it("hides deployments whose name collides with a fixture label (case-insensitive)", async () => {
+    findManyMock.mockResolvedValueOnce([
+      {
+        ...DEPLOYMENT_ROW,
+        ticker: "HYV-CLONE",
+        name: "  hearst yield vault  ",
+      },
+      { ...DEPLOYMENT_ROW, ticker: "HDV-CLONE", name: "Hearst Defensive Vault" },
+      DEPLOYMENT_ROW,
+    ]);
+    const refs = await listAllVaults();
+    expect(refs).toHaveLength(4);
+    const deployments = refs.filter((r) => r.kind === "deployment");
+    expect(deployments).toHaveLength(1);
+    if (deployments[0]?.kind === "deployment")
+      expect(deployments[0].deployment.ticker).toBe("HYV-A");
+  });
+
+  it("hides deployments whose id matches a VaultId fixture", async () => {
+    findManyMock.mockResolvedValueOnce([
+      { ...DEPLOYMENT_ROW, id: "yield", ticker: "HYV-X", name: "Custom Yield" },
+      DEPLOYMENT_ROW,
+    ]);
+    const refs = await listAllVaults();
+    const deployments = refs.filter((r) => r.kind === "deployment");
+    expect(deployments).toHaveLength(1);
+    if (deployments[0]?.kind === "deployment")
+      expect(deployments[0].deployment.id).toBe(DEPLOYMENT_ROW.id);
+  });
+
+  it("dedupes duplicate deployment rows sharing ticker + name", async () => {
+    findManyMock.mockResolvedValueOnce([DEPLOYMENT_ROW, DEPLOYMENT_ROW]);
+    const refs = await listAllVaults();
+    const deployments = refs.filter((r) => r.kind === "deployment");
+    expect(deployments).toHaveLength(1);
+  });
+
   it("status=live narrows the Prisma where clause", async () => {
     await listAllVaults({ status: "live" });
     expect(findManyMock).toHaveBeenCalledWith({

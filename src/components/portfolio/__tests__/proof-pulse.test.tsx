@@ -11,6 +11,7 @@ import {
   computeDeltaPct,
   isMatch,
   deltaLevel,
+  attestationState,
 } from "@/components/portfolio/proof-pulse";
 
 // ── 1. Perfect match (delta 0%) ───────────────────────────────────────────────
@@ -121,5 +122,39 @@ describe("edge cases", () => {
 
   it("deltaLevel: 1.999 is orange", () => {
     expect(deltaLevel(1.999)).toBe("orange");
+  });
+});
+
+// ── 7. attestationState — no false ✓ on missing data ─────────────────────────
+
+describe("attestationState — no false-positive ✓ on missing data", () => {
+  it("returns 'none' when both stated and on-chain are 0", () => {
+    // Critical: previously rendered ✓ matches — a false positive on no data.
+    expect(attestationState(0, 0)).toBe("none");
+  });
+
+  it("returns 'pending' when stated > 0 but on-chain is 0", () => {
+    expect(attestationState(24_600_000, 0)).toBe("pending");
+  });
+
+  it("returns 'matched' when both > 0 and delta < 0.5%", () => {
+    expect(attestationState(24_600_000, 24_600_000)).toBe("matched");
+    expect(attestationState(24_600_000, 24_600_000 * (1 - 0.003))).toBe(
+      "matched",
+    );
+  });
+
+  it("returns 'mismatch' when both > 0 and delta >= 0.5%", () => {
+    expect(attestationState(24_600_000, 24_600_000 * (1 - 0.015))).toBe(
+      "mismatch",
+    );
+    expect(attestationState(24_600_000, 24_600_000 * (1 - 0.05))).toBe(
+      "mismatch",
+    );
+  });
+
+  it("never matches when on-chain figure is missing", () => {
+    expect(attestationState(0, 0)).not.toBe("matched");
+    expect(attestationState(1_000_000, 0)).not.toBe("matched");
   });
 });

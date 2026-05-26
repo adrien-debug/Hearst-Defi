@@ -23,6 +23,8 @@ export interface TimeToCashProps {
   aprHigh: number;
   /** As-of timestamp. Defaults to new Date(). */
   asOf?: Date;
+  /** Provenance of the underlying data. "stale" when no investor / no position / no yield. */
+  source?: "live" | "stale";
 }
 
 // ── Formatters ────────────────────────────────────────────────────────────────
@@ -56,8 +58,17 @@ export function TimeToCash({
   aprLow,
   aprHigh,
   asOf,
+  source,
 }: TimeToCashProps) {
   const effectiveAsOf = asOf ?? new Date();
+
+  // No-data guard: stale source OR no projected payout OR flat 0 APR range.
+  // When triggered, both the cycle badge and the APY range provenance flip to
+  // "Stale" so we don't badge "Live" on top of meaningless zeroes.
+  const isStale =
+    source === "stale" || projectedUsdc === 0 || aprLow + aprHigh === 0;
+  const cycleBadgeKind = isStale ? "stale" : "live";
+  const apyBadgeKind = isStale ? "stale" : "estimated";
 
   const { daysElapsed, daysRemaining, hoursRemaining, progressPct } =
     computeTimeToCash({ cycleStart, cycleDays, asOf: effectiveAsOf });
@@ -86,8 +97,8 @@ export function TimeToCash({
           TIME TO CASH
         </span>
         <div className="flex items-center gap-1.5">
-          <ProvenanceBadge kind="live" />
-          <ProvenanceBadge kind="estimated" />
+          <ProvenanceBadge kind={cycleBadgeKind} />
+          <ProvenanceBadge kind={apyBadgeKind} />
         </div>
       </div>
 

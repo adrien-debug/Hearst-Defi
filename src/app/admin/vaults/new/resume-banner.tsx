@@ -1,11 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { discardWizardDraft } from "../draft-actions";
 
-interface ResumeDraftBannerProps {
+interface DraftGateProps {
   ticker?: string;
   stepLabel: string;
   stepNumber: number;
@@ -26,16 +26,30 @@ function formatRelativeTime(date: Date): string {
   return `${diffDays} days ago`;
 }
 
+/**
+ * DraftGate — explicit entry screen shown when an existing wizard draft is
+ * detected. Forces the admin to pick between resuming the draft or starting
+ * fresh, instead of silently loading the previous session's data.
+ *
+ * Kept exported as `ResumeDraftBanner` so the page import stays stable.
+ */
 export function ResumeDraftBanner({
   ticker,
   stepLabel,
   stepNumber,
   updatedAt,
-}: ResumeDraftBannerProps) {
+}: DraftGateProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
 
-  function handleDiscard() {
+  function handleResume() {
+    // Re-enter the page with explicit consent; page.tsx reads ?resume=1
+    // and unlocks the wizard with the persisted draft.
+    router.push("/admin/vaults/new?resume=1");
+  }
+
+  function handleStartFresh() {
     startTransition(async () => {
       await discardWizardDraft();
       router.refresh();
@@ -46,33 +60,64 @@ export function ResumeDraftBanner({
   const relTime = formatRelativeTime(new Date(updatedAt));
 
   return (
-    <div className="flex items-center justify-between gap-4 p-4 rounded-[var(--ct-radius-lg)] ct-surface-2 border border-[var(--ct-border-soft)]">
-      <div className="space-y-0.5">
+    <div className="p-6 rounded-[var(--ct-radius-lg)] ct-surface-2 border border-[var(--ct-border-soft)] space-y-5 max-w-2xl">
+      <div className="space-y-1">
         <p className="body-sm ct-text-strong">
-          Resume {draftLabel} — step {stepNumber}/7: {stepLabel}
+          An autosaved {draftLabel} was found on this account.
         </p>
-        <p className="body-xs ct-text-faint">Autosaved {relTime}</p>
+        <p className="body-xs ct-text-faint">
+          Step {stepNumber}/7 — {stepLabel} · Autosaved {relTime}
+        </p>
       </div>
-      <div className="flex items-center gap-2 shrink-0">
-        <Button
-          variant="ghost"
-          size="sm"
-          type="button"
-          onClick={handleDiscard}
-          disabled={isPending}
-        >
-          {isPending ? "Discarding…" : "Discard"}
-        </Button>
-        <Button
-          variant="primary"
-          size="sm"
-          type="button"
-          onClick={() => router.refresh()}
-          disabled={isPending}
-        >
-          Continue
-        </Button>
-      </div>
+
+      {confirmDiscard ? (
+        <div className="space-y-3 p-3 rounded-[var(--ct-radius-md)] border border-[var(--ct-status-danger-border)] bg-[var(--ct-status-danger-soft)]">
+          <p className="body-xs ct-text-strong">
+            You are about to lose this draft. Continue?
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="danger"
+              size="sm"
+              type="button"
+              onClick={handleStartFresh}
+              disabled={isPending}
+            >
+              {isPending ? "Discarding…" : "Yes, discard and start fresh"}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              type="button"
+              onClick={() => setConfirmDiscard(false)}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="primary"
+            size="lg"
+            type="button"
+            onClick={handleResume}
+            disabled={isPending}
+          >
+            Resume draft (step {stepNumber}/7, autosaved {relTime})
+          </Button>
+          <Button
+            variant="secondary"
+            size="lg"
+            type="button"
+            onClick={() => setConfirmDiscard(true)}
+            disabled={isPending}
+          >
+            Start from scratch
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

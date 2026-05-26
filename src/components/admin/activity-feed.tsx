@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 
-import { Card } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
 import { Ptai } from "@/components/ui/ptai";
 import { cn } from "@/lib/cn";

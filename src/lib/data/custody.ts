@@ -72,9 +72,20 @@ export async function loadCustody(): Promise<CustodySnapshot> {
 
     const { accounts, totalUsdcReserves } = aggregateCustody(raw, { accountIds });
 
+    // Honesty guard (P1-7): an `attested` PoR requires BOTH a live signed
+    // attestation AND non-zero reserves. Fireblocks may answer "live" while
+    // the vault sits empty — that is a *pending* state, not an attested one.
+    // The `por-summary` component upgrades to `attested` only when the
+    // snapshot is `provenance: "live" && configured`; by downgrading both
+    // when reserves are zero we keep the public truth: empty vault, no
+    // attestation. Keeps `live`-as-source semantics elsewhere because the
+    // upstream Fireblocks call DID succeed.
+    const hasFunds = totalUsdcReserves > 0;
+    const scopePinned = accountIds.length > 0;
+
     return {
-      provenance: "live",
-      configured: accountIds.length > 0,
+      provenance: hasFunds ? "live" : "manual",
+      configured: scopePinned && hasFunds,
       asOf: new Date().toISOString(),
       accountsCount: accounts.length,
       totalUsdcReserves,

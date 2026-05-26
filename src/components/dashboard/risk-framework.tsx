@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ChartProvenanceCorner } from "@/components/ui/chart-provenance-corner";
 import { cn } from "@/lib/cn";

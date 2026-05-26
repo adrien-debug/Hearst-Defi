@@ -1,4 +1,3 @@
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
 
@@ -26,7 +25,13 @@ export type CompositeLabel =
 export interface RiskPulseProps {
   scores: RiskScore[]; // expects 5 entries
   composite: number; // 0–100
-  compositeLabel: CompositeLabel;
+  /**
+   * When all sub-scores are 0 and there is no underlying snapshot, the
+   * loader passes `undefined` here — the UI renders an em-dash placeholder
+   * instead of "Low", which would be a misleading positive signal on a
+   * no-data state.
+   */
+  compositeLabel: CompositeLabel | undefined;
   composite30dTrend: "rising" | "stable" | "falling";
 }
 
@@ -205,22 +210,41 @@ function ScoreRow({ item }: ScoreRowProps) {
 
 interface CompositeSectionProps {
   composite: number;
-  compositeLabel: CompositeLabel;
+  compositeLabel: CompositeLabel | undefined;
   trend: RiskPulseProps["composite30dTrend"];
+  noData: boolean;
 }
 
 function CompositeSection({
   composite,
   compositeLabel,
   trend,
+  noData,
 }: CompositeSectionProps) {
-  const trendIcon =
-    trend === "rising" ? "▲ rising" : trend === "falling" ? "▼ falling" : "━━ stable";
+  const trendIcon = noData
+    ? "—"
+    : trend === "rising"
+      ? "▲ rising"
+      : trend === "falling"
+        ? "▼ falling"
+        : "━━ stable";
+
+  const ariaLabel = noData
+    ? "Composite risk score not available, no data"
+    : `Composite risk score ${String(composite)} out of 100, ${compositeLabel ?? "unknown"}, 30-day trend ${trend}`;
+
+  const valueColor = noData
+    ? "text-[var(--ct-text-faint)]"
+    : compositeLabelColor(compositeLabel as CompositeLabel);
+
+  const labelColor = noData
+    ? "text-[var(--ct-text-faint)]"
+    : compositeLabelColor(compositeLabel as CompositeLabel);
 
   return (
     <div
       role="status"
-      aria-label={`Composite risk score ${String(composite)} out of 100, ${compositeLabel}, 30-day trend ${trend}`}
+      aria-label={ariaLabel}
       className="mt-5 flex items-center justify-between rounded-[var(--ct-radius-lg)] glass-panel-subtle px-4 py-4"
     >
       <div className="flex items-baseline gap-2">
@@ -231,10 +255,10 @@ function CompositeSection({
         <span
           className={cn(
             "tabular font-extrabold text-xl leading-none",
-            compositeLabelColor(compositeLabel),
+            valueColor,
           )}
         >
-          {composite}
+          {noData ? "—" : composite}
           <span className="text-sm font-medium text-[var(--ct-text-faint)]">
             {" "}/ 100
           </span>
@@ -245,10 +269,10 @@ function CompositeSection({
         <span
           className={cn(
             "text-xs font-semibold tracking-wide",
-            compositeLabelColor(compositeLabel),
+            labelColor,
           )}
         >
-          {compositeLabel}
+          {noData ? "—" : compositeLabel}
         </span>
         <span className="text-xs text-[var(--ct-text-faint)]">
           30d trend{" "}
@@ -267,6 +291,14 @@ export function RiskPulse({
   compositeLabel,
   composite30dTrend,
 }: RiskPulseProps) {
+  // No-data: every sub-score is 0, composite is 0, and the loader did not
+  // assign a label. Showing "Low" here would be a misleading positive signal
+  // on an empty DB — render em-dashes instead.
+  const noData =
+    compositeLabel === undefined &&
+    composite === 0 &&
+    scores.every((s) => s.score === 0);
+
   return (
     <article className="dash-cell dash-cell-premium h-full flex flex-col">
       <div className="dash-label relative z-10">
@@ -284,6 +316,7 @@ export function RiskPulse({
         composite={composite}
         compositeLabel={compositeLabel}
         trend={composite30dTrend}
+        noData={noData}
       />
 
       <p className="mt-auto pt-4 body-xs italic leading-[var(--ct-leading-relaxed)] relative z-10 opacity-70">

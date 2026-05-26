@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { cn } from "@/lib/cn";
 
@@ -42,6 +41,28 @@ export function deltaLevel(deltaPct: number): DeltaLevel {
   if (deltaPct < 0.5) return "green";
   if (deltaPct < 2) return "orange";
   return "red";
+}
+
+/**
+ * Attestation state derived from raw PoR figures.
+ *
+ * - "none": both stated and on-chain TVL are 0 → no attestation has happened
+ *   yet. We must NOT show ✓ here; that would be a false positive on missing
+ *   data.
+ * - "pending": stated > 0 but on-chain still 0 → on-chain confirmation has not
+ *   landed yet, surface a warning.
+ * - "matched" / "mismatch": both > 0, fall back to the delta threshold.
+ */
+export type AttestationState = "none" | "pending" | "matched" | "mismatch";
+
+export function attestationState(
+  statedTvlUsdc: number,
+  onChainTvlUsdc: number,
+): AttestationState {
+  if (statedTvlUsdc === 0 && onChainTvlUsdc === 0) return "none";
+  if (statedTvlUsdc > 0 && onChainTvlUsdc === 0) return "pending";
+  const delta = computeDeltaPct(statedTvlUsdc, onChainTvlUsdc);
+  return isMatch(delta) ? "matched" : "mismatch";
 }
 
 // ── Formatting helpers ────────────────────────────────────────────────────────
@@ -109,22 +130,51 @@ export function ProofPulse({
 }: ProofPulseProps) {
   const { timestamp, statedTvlUsdc, onChainTvlUsdc } = lastPor;
 
-  const deltaPct = computeDeltaPct(statedTvlUsdc, onChainTvlUsdc);
-  const matched = isMatch(deltaPct);
-  const level = deltaLevel(deltaPct);
+  const state = attestationState(statedTvlUsdc, onChainTvlUsdc);
+  const hasData = state === "matched" || state === "mismatch";
+  const deltaPct = hasData ? computeDeltaPct(statedTvlUsdc, onChainTvlUsdc) : 0;
+  const level = hasData ? deltaLevel(deltaPct) : null;
 
   const deltaColorClass = cn({
     "text-[var(--ct-status-success)]": level === "green",
     "text-[var(--ct-status-warning)]": level === "orange",
     "text-[var(--ct-status-danger)]": level === "red",
+    "text-[var(--ct-text-faint)]": level === null,
   });
+
+  // Indicator after On-chain figure: ✓ only when both figures > 0 and match.
+  // For "none" (no attestation) and "pending" (on-chain missing) we render a
+  // neutral/warning glyph — never ✓.
+  const indicator: { glyph: string; label: string; colorClass: string } | null =
+    state === "matched"
+      ? {
+          glyph: "✓",
+          label: "On-chain TVL matches stated TVL",
+          colorClass: "text-[var(--ct-status-success)]",
+        }
+      : state === "mismatch"
+        ? {
+            glyph: "✗",
+            label: "On-chain TVL mismatch detected",
+            colorClass: "text-[var(--ct-status-danger)]",
+          }
+        : state === "pending"
+          ? {
+              glyph: "…",
+              label: "On-chain confirmation pending",
+              colorClass: "text-[var(--ct-status-warning)]",
+            }
+          : null; // "none" — no glyph at all
+
+  const headerProvenance: "attested" | "stale" =
+    state === "none" ? "stale" : "attested";
 
   return (
     <article className="dash-cell dash-cell-premium h-full flex flex-col">
       <div className="dash-label relative z-10">
         <span className="font-semibold text-[var(--ct-text-strong)]">Proof &amp; Methodology Pulse</span>
         <div className="flex items-center gap-2">
-          <ProvenanceBadge kind="attested" />
+          <ProvenanceBadge kind={headerProvenance} />
           <ProvenanceBadge kind="oracle" />
         </div>
       </div>
@@ -147,29 +197,33 @@ export function ProofPulse({
           <DataRow label="On-chain">
             <span className="flex items-center justify-end gap-2">
               {formatUsdc(onChainTvlUsdc)}
-              <span
-                role="status"
-                aria-label={
-                  matched
-                    ? "On-chain TVL matches stated TVL"
-                    : "On-chain TVL mismatch detected"
-                }
-                className={cn(
-                  "text-[length:var(--ct-text-sm)] font-bold leading-none select-none",
-                  matched
-                    ? "text-[var(--ct-status-success)]"
-                    : "text-[var(--ct-status-danger)]",
-                )}
-              >
-                {matched ? "✓" : "✗"}
-              </span>
+              {indicator !== null && (
+                <span
+                  role="status"
+                  aria-label={indicator.label}
+                  className={cn(
+                    "text-[length:var(--ct-text-sm)] font-bold leading-none select-none",
+                    indicator.colorClass,
+                  )}
+                >
+                  {indicator.glyph}
+                </span>
+              )}
             </span>
           </DataRow>
 
           <DataRow label="Delta">
-            <span className={deltaColorClass}>
-              {deltaPct === 0 ? "0.00" : deltaPct.toFixed(2)}%
-            </span>
+            {hasData ? (
+              <span className={deltaColorClass}>
+                {deltaPct === 0 ? "0.00" : deltaPct.toFixed(2)}%
+              </span>
+            ) : (
+              <span className="text-[var(--ct-text-faint)] italic">
+                {state === "pending"
+                  ? "on-chain pending"
+                  : "no attestation yet"}
+              </span>
+            )}
           </DataRow>
         </div>
       </section>

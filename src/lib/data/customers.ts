@@ -54,8 +54,22 @@ export async function loadCustomers(
 ): Promise<PaginatedResult<CustomerRow>> {
   const ps = clampPageSize(pageSize);
 
+  // Resolve the set of Investor.userId values that point to an existing User
+  // FIRST, then use it in BOTH `count` and `findMany`. This guarantees the
+  // header total and the rendered rows are derived from the same population —
+  // no "Investors (3)" while only 2 rows render because one was an orphan.
+  const validUserIds = (
+    await prisma.user.findMany({
+      where: { investor: { isNot: null } },
+      select: { id: true },
+    })
+  ).map((u) => u.id);
+
+  const whereCustomers = { userId: { in: validUserIds } };
+
   const [investors, total] = await Promise.all([
     prisma.investor.findMany({
+      where: whereCustomers,
       orderBy: { createdAt: "desc" },
       include: {
         positions: { select: { status: true, principalUsdc: true } },
@@ -63,27 +77,16 @@ export async function loadCustomers(
       skip: toPrismaSkip(page, ps),
       take: ps,
     }),
-    prisma.investor.count(),
+    prisma.investor.count({ where: whereCustomers }),
   ]);
 
-  const userIds = investors.map((inv) => inv.userId).filter(Boolean);
   const users = await prisma.user.findMany({
-    where: { id: { in: userIds } },
+    where: { id: { in: investors.map((inv) => inv.userId) } },
     select: { id: true, email: true },
   });
   const userById = new Map(users.map((u) => [u.id, u.email]));
 
-  const rows = investors
-    .filter((inv) => {
-      const known = userById.has(inv.userId);
-      if (!known) {
-        console.warn(
-          `[customers] orphaned Investor ${inv.id} — userId ${inv.userId} has no User row, skipping`,
-        );
-      }
-      return known;
-    })
-    .map((inv) => {
+  const rows = investors.map((inv) => {
       const activePositions = inv.positions.filter(
         (p) => p.status === "active",
       ).length;

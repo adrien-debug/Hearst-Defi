@@ -24,6 +24,13 @@ const serverEnvSchema = z.object({
   NEXT_PUBLIC_CHAIN_RPC_URL: z.string().url().optional(),
   NEXT_PUBLIC_EVENT_LOGGER_ADDRESS: z.string().optional(),
   NEXT_PUBLIC_POR_REGISTRY_ADDRESS: z.string().optional(),
+  // Optional deploy-block hints so `eth_getLogs` can use a finite range instead
+  // of scanning from genesis (Alchemy free tier caps the window at ~10 blocks).
+  // See P1-4 audit. When unset, the loaders fall back to a 10-block tail of
+  // `latestBlock` so dev stops crashing — historic events will be missing until
+  // the deploy block is configured.
+  NEXT_PUBLIC_EVENT_LOGGER_DEPLOY_BLOCK: z.coerce.number().int().nonnegative().optional(),
+  NEXT_PUBLIC_POR_REGISTRY_DEPLOY_BLOCK: z.coerce.number().int().nonnegative().optional(),
   // Chainlink BTC/USD aggregator override. When unset, the BTC price loader
   // falls back to the canonical Ethereum mainnet address
   // (0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c). Override only if the RPC

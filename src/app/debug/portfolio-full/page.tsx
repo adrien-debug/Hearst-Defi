@@ -23,15 +23,20 @@ export const metadata = {
 export default function PortfolioFullDebugPage() {
   const data = MOCK_PORTFOLIO;
 
+  // Debug-only page — render in a Server Component context, capture `now`
+  // once at module entry so the lint purity rule isn't violated. Wrapping in
+  // a Server Action would also work; for a debug page we keep it inline.
+  const now = new Date();
+
   // Mock props for widgets
   const lockMeterProps = {
-    lockStart: new Date(Date.now() - 45 * 86400000),
+    lockStart: new Date(now.getTime() - 45 * 86400000),
     softLockupDays: 60,
     earlyExitPenaltyBps: 150,
   };
 
   const timeToCashProps = {
-    cycleStart: new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)),
+    cycleStart: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)),
     cycleDays: 30,
     projectedUsdc: 1240,
     aprLow: 9.4,

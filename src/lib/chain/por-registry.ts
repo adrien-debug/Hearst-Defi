@@ -1,7 +1,17 @@
 import "server-only";
 
+import { env } from "@/lib/env";
+
 import { POR_REGISTRY_ABI } from "./abis";
 import { getPoRRegistryAddress, getPublicClient } from "./client";
+
+/**
+ * eth_getLogs window guard — Alchemy free tier rejects ranges wider than
+ * ~10 blocks. When no deploy-block is configured we tail the head of the
+ * chain so dev still boots; set NEXT_PUBLIC_POR_REGISTRY_DEPLOY_BLOCK to
+ * widen the window (see P1-4 audit).
+ */
+const FREE_TIER_BLOCK_WINDOW = 10n;
 
 export interface OnChainAttestation {
   attestationId: bigint;
@@ -48,10 +58,28 @@ export async function fetchOnChainAttestations(
   if (!addr) return [];
 
   const limit = opts.limit ?? 12;
-  const fromBlock = opts.fromBlock ?? "earliest";
 
   try {
     const client = getPublicClient();
+
+    // Resolve a finite `fromBlock` to stay within Alchemy free-tier limits
+    // (see P1-4 audit — `eth_getLogs` capped to ~10 blocks). Priority:
+    //   1. caller-supplied opts.fromBlock (bigint only — "earliest" is downgraded)
+    //   2. NEXT_PUBLIC_POR_REGISTRY_DEPLOY_BLOCK env (contract deploy block)
+    //   3. fallback: latestBlock - 9 (window of 10 blocks, head of chain)
+    let fromBlock: bigint;
+    if (typeof opts.fromBlock === "bigint") {
+      fromBlock = opts.fromBlock;
+    } else if (env.NEXT_PUBLIC_POR_REGISTRY_DEPLOY_BLOCK !== undefined) {
+      fromBlock = BigInt(env.NEXT_PUBLIC_POR_REGISTRY_DEPLOY_BLOCK);
+    } else {
+      const latest = await client.getBlockNumber();
+      fromBlock =
+        latest > FREE_TIER_BLOCK_WINDOW - 1n
+          ? latest - (FREE_TIER_BLOCK_WINDOW - 1n)
+          : 0n;
+    }
+
     const logs = await client.getContractEvents({
       address: addr,
       abi: POR_REGISTRY_ABI,

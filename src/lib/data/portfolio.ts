@@ -338,7 +338,10 @@ export async function loadRiskPulseProps(): Promise<RiskPulseProps & { source: "
         { dimension: "counterparty",   score: 0, delta30d: 0 },
       ],
       composite: 0,
-      compositeLabel: "Low",
+      // No snapshot in DB → leave the label undefined so the UI renders an
+      // em-dash placeholder instead of "Low" (which would be a misleading
+      // positive signal on an empty-data state — see RiskPulse no-data path).
+      compositeLabel: undefined,
       composite30dTrend: "stable",
       source: "stale",
     };
@@ -595,10 +598,15 @@ export async function loadTimeToCashProps(): Promise<TimeToCashProps & { source:
   const principal = toNumber(position.principalUsdc);
   const aprLow = toNumber(snapshot.currentApyLow);
   const aprHigh = toNumber(snapshot.currentApyHigh);
-  
+
   // Simple projection: principal * (avg apr / 12)
   const avgApr = (aprLow + aprHigh) / 2;
   const projectedUsdc = (principal * (avgApr / 100)) / 12;
+
+  // If the pool yield is flat zero or there is nothing to project, the data
+  // is not "live" enough to badge — surface it as stale so the widget shows
+  // the honest provenance instead of "Live · Estimated" on top of zeroes.
+  const hasMeaningfulYield = aprLow + aprHigh > 0 && projectedUsdc > 0;
 
   return {
     cycleStart,
@@ -607,7 +615,7 @@ export async function loadTimeToCashProps(): Promise<TimeToCashProps & { source:
     aprLow,
     aprHigh,
     asOf: now,
-    source: "live",
+    source: hasMeaningfulYield ? "live" : "stale",
   };
 }
 

@@ -11,7 +11,6 @@ import {
   loadTimeToCashProps,
   loadTaxPreview,
 } from "@/lib/data/portfolio";
-import type { TaxPreview } from "@/lib/portfolio/tax";
 import { SurpriseDelightBar } from "@/components/portfolio/surprise-delight-bar";
 import { PortfolioGreeting } from "@/components/portfolio/portfolio-greeting";
 import { AllocationDonut } from "@/components/portfolio/allocation-donut";
@@ -80,12 +79,13 @@ interface NavShareKpiProps {
 }
 
 function NavShareKpi({ positions, totalValueUsdc, source }: NavShareKpiProps) {
-  const provenance = source === "fallback" ? "stale" : "live";
-  const totalPrincipal = positions.reduce((s, p) => s + p.principalUsdc, 0);
   // NAV/share: totalValueUsdc / number of "shares" proxied by principal units.
-  // We use $1 par share = each $1 of principal is 1 share.
-  const shares = totalPrincipal > 0 ? totalPrincipal : 1;
-  const navPerShare = totalValueUsdc > 0 ? totalValueUsdc / shares : 1;
+  // We use $1 par share = each $1 of principal is 1 share. No principal → no
+  // shares → no NAV/share. Show "—" rather than a fabricated 1.0000.
+  const totalPrincipal = positions.reduce((s, p) => s + p.principalUsdc, 0);
+  const hasPositions = totalPrincipal > 0;
+  const navPerShare = hasPositions ? totalValueUsdc / totalPrincipal : null;
+  const provenance = !hasPositions ? "stale" : source === "fallback" ? "stale" : "live";
 
   return (
     <article className="dash-cell dash-cell-premium" aria-label="NAV per share" data-testid="nav-share-kpi">
@@ -95,7 +95,7 @@ function NavShareKpi({ positions, totalValueUsdc, source }: NavShareKpiProps) {
       </div>
       <div className="dash-value-group relative z-10">
         <span className="dash-value">
-          {navPerShare.toFixed(4)}
+          {navPerShare !== null ? navPerShare.toFixed(4) : "—"}
         </span>
         <span className="dash-unit">USDC</span>
       </div>

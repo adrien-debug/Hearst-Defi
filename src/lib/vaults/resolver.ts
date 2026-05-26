@@ -101,9 +101,11 @@ export function resolveFixture(input: string): VaultDefinition | null {
  * deployments matching the status filter. Fixtures come first (stable order
  * yield → defensive → btc-plus), then deployments by `updatedAt desc`.
  *
- * Ticker collision: if a deployment shares a ticker with a fixture (rare —
- * the wizard regex allows it), the deployment is hidden so the fixture stays
- * canonical. The wizard should pick distinct tickers (HYV-A, HBV-B …) anyway.
+ * Collision rules: a deployment is hidden if it duplicates a fixture by any
+ * of (a) ticker, (b) id matching a `VaultId`, or (c) display name matching
+ * a fixture label (case-insensitive, trimmed). This prevents the selector
+ * from showing two "Hearst Yield Vault" entries when the wizard publishes
+ * a deployment with the canonical name but a different ticker.
  */
 export async function listAllVaults(
   options: { status?: DeploymentStatusFilter } = {},
@@ -123,9 +125,25 @@ export async function listAllVaults(
   });
 
   const fixtureTickers = new Set(FIXTURE_BY_TICKER.keys());
-  const deploymentRefs: VaultRef[] = deployments
-    .filter((d) => !fixtureTickers.has(d.ticker.toUpperCase()))
-    .map((deployment) => ({ kind: "deployment", deployment }));
+  const fixtureIds = new Set<string>(FIXTURE_BY_ID.keys());
+  const fixtureLabels = new Set(
+    FIXTURES.map((f) => f.label.trim().toLowerCase()),
+  );
+
+  const seenDeploymentKeys = new Set<string>();
+  const deploymentRefs: VaultRef[] = [];
+  for (const d of deployments) {
+    const ticker = d.ticker.toUpperCase();
+    const nameKey = d.name.trim().toLowerCase();
+    if (fixtureTickers.has(ticker)) continue;
+    if (fixtureIds.has(d.id.toLowerCase())) continue;
+    if (fixtureLabels.has(nameKey)) continue;
+    // Stable per-deployment dedup (defense in depth against duplicate rows).
+    const dedupKey = `${ticker}::${nameKey}`;
+    if (seenDeploymentKeys.has(dedupKey)) continue;
+    seenDeploymentKeys.add(dedupKey);
+    deploymentRefs.push({ kind: "deployment", deployment: d });
+  }
 
   const fixtureRefs: VaultRef[] = FIXTURES.map((fixture) => ({
     kind: "fixture",

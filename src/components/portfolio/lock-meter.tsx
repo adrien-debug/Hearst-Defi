@@ -39,6 +39,18 @@ export function computeLockMeter(
   const daysElapsed = Math.floor(
     (asOf.getTime() - lockStart.getTime()) / MS_PER_DAY,
   );
+  // softLockupDays <= 0 means the share class terms are not yet known (loader
+  // returns 0 when no `Position.shareClass` is wired). Surface a neutral state
+  // rather than dividing by zero and emitting NaN%.
+  if (softLockupDays <= 0) {
+    return {
+      daysElapsed,
+      progressPct: 0,
+      unlockDate: lockStart,
+      daysRemaining: 0,
+      isUnlocked: false,
+    };
+  }
   const progressPct = clamp((daysElapsed / softLockupDays) * 100, 0, 100);
   const unlockDate = new Date(lockStart.getTime() + softLockupDays * MS_PER_DAY);
   const daysRemaining = Math.max(0, softLockupDays - daysElapsed);
@@ -85,6 +97,10 @@ export function LockMeter({
   const { progressPct, unlockDate, daysRemaining, isUnlocked } =
     computeLockMeter(lockStart, softLockupDays, effectiveAsOf);
 
+  // When share-class terms are not wired, render a neutral "no data" state
+  // instead of a fabricated progress bar.
+  const termsUnknown = softLockupDays <= 0;
+
   // Bar fill: green accent when in progress, status-success when fully unlocked.
   const barFill = isUnlocked
     ? "var(--ct-status-success)"
@@ -94,11 +110,13 @@ export function LockMeter({
   // warning when less than 50% elapsed (early-exit risk is high).
   const penaltyHalfPassed = progressPct >= 50;
 
-  const progressLabel = `Lockup progress: ${Math.floor(progressPct)}% — ${
-    isUnlocked
-      ? "fully unlocked"
-      : `${daysRemaining} day${daysRemaining !== 1 ? "s" : ""} remaining of ${softLockupDays}`
-  }`;
+  const progressLabel = termsUnknown
+    ? "Lock terms unavailable"
+    : `Lockup progress: ${Math.floor(progressPct)}% — ${
+        isUnlocked
+          ? "fully unlocked"
+          : `${daysRemaining} day${daysRemaining !== 1 ? "s" : ""} remaining of ${softLockupDays}`
+      }`;
 
   return (
     <article
@@ -110,7 +128,7 @@ export function LockMeter({
         <span className="dash-label mb-0">
           LOCK · LIQUIDITY
         </span>
-        <ProvenanceBadge kind="live" />
+        <ProvenanceBadge kind={termsUnknown ? "stale" : "live"} />
       </div>
 
       {/* Progress bar ------------------------------------------------------ */}
@@ -139,12 +157,16 @@ export function LockMeter({
           <span
             className={cn(
               "body-xs tabular mono",
-              isUnlocked ? "text-[var(--ct-status-success)]" : "text-[var(--ct-text-primary)]",
+              termsUnknown
+                ? "text-[var(--ct-text-faint)]"
+                : isUnlocked
+                  ? "text-[var(--ct-status-success)]"
+                  : "text-[var(--ct-text-primary)]",
             )}
           >
-            {Math.round(progressPct)}%
+            {termsUnknown ? "—" : `${Math.round(progressPct)}%`}
           </span>
-          {!isUnlocked && (
+          {!termsUnknown && !isUnlocked && (
             <span className="body-xs tabular mono text-[var(--ct-text-muted)]">
               {daysRemaining}d left
             </span>
@@ -157,15 +179,19 @@ export function LockMeter({
         {/* Unlock date */}
         <div className="flex items-center justify-between gap-2">
           <dt className="body-xs text-[var(--ct-text-muted)]">
-            {isUnlocked ? "Unlocked" : "Unlock"}
+            {termsUnknown ? "Lock terms" : isUnlocked ? "Unlocked" : "Unlock"}
           </dt>
           <dd
             className={cn(
               "body-xs tabular mono m-0",
-              isUnlocked ? "text-[var(--ct-status-success)]" : "text-[var(--ct-text-primary)]",
+              termsUnknown
+                ? "text-[var(--ct-text-faint)]"
+                : isUnlocked
+                  ? "text-[var(--ct-status-success)]"
+                  : "text-[var(--ct-text-primary)]",
             )}
           >
-            {isUnlocked ? "Now" : unlockDateFmt.format(unlockDate)}
+            {termsUnknown ? "—" : isUnlocked ? "Now" : unlockDateFmt.format(unlockDate)}
           </dd>
         </div>
 
