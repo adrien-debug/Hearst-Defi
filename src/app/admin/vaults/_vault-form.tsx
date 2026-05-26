@@ -7,6 +7,7 @@ import { ApyRange } from "@/components/ui/apy-range";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { ProjectionFooter } from "@/components/admin/projection-footer";
 import {
   createDraftVault,
   updateDraftVault,
@@ -249,7 +250,7 @@ export function VaultForm(props: VaultFormProps) {
         : "Save Changes";
 
   return (
-    <div className="space-y-8 max-w-2xl mx-auto" onBlur={handleBlur}>
+    <div className="space-y-8 max-w-2xl mx-auto pb-24" onBlur={handleBlur}>
       {/* Progress bar */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -804,6 +805,8 @@ export function VaultForm(props: VaultFormProps) {
           </div>
         </div>
       </Card>
+
+      <ProjectionFooter vaultDraft={form} />
     </div>
   );
 }
