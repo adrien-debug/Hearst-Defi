@@ -10,6 +10,59 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
+ * GET /api/cockpit-chats/[id] — load a single conversation's messages.
+ *
+ * Consumed by `@hearst/cockpit-shell`'s useChat hook on chatId change.
+ * Returns `{ messages: [{ id, role, content, created_at }] }` (snake_case
+ * `created_at` is the shape the client deserialises). A miss (wrong owner
+ * or unknown id) returns 404 to avoid leaking existence — the client falls
+ * back to a welcome message in that case.
+ */
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+): Promise<NextResponse> {
+  let userId: string;
+  try {
+    ({ userId } = await requireAuth());
+  } catch {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+
+  await assertRateLimit(`cockpit-chats:get:${userId}`, 60, 60_000);
+
+  const chat = await prisma.cockpitChat.findUnique({
+    where: { id },
+    select: { userId: true, title: true },
+  });
+  if (!chat || chat.userId !== userId) {
+    return NextResponse.json({ error: "not_found" }, { status: 404 });
+  }
+
+  const rows = await prisma.cockpitMessage.findMany({
+    where: { chatId: id },
+    orderBy: { createdAt: "asc" },
+    select: { id: true, role: true, content: true, createdAt: true },
+    take: 200,
+  });
+
+  return NextResponse.json({
+    id,
+    title: chat.title,
+    messages: rows
+      .filter((r) => r.role === "user" || r.role === "assistant")
+      .map((r) => ({
+        id: r.id,
+        role: r.role,
+        content: r.content,
+        created_at: r.createdAt.toISOString(),
+      })),
+  });
+}
+
+/**
  * DELETE /api/cockpit-chats/[id] — delete a single conversation.
  *
  * Consumed by `@hearst/cockpit-shell`'s ChatHistory (per-row trash button).
