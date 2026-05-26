@@ -38,17 +38,12 @@ export default async function AdminLayout({
     redirect("/login?from=/admin");
   }
 
-  try {
-    await requireAdmin();
-  } catch (err) {
-    // Log so we can diagnose silent admin 404s in prod.
-    console.error("[admin/layout] requireAdmin threw", {
-      userId: session.userId,
-      email: session.email,
-      role: session.role,
-      error: err instanceof Error ? { name: err.name, message: err.message, stack: err.stack?.slice(0, 1000) } : String(err),
-    });
-    // Authenticated but not an admin → hide the area.
+  // We already have `session` from above and verified role server-side.
+  // The previous try/catch over requireAdmin() was swallowing non-auth
+  // failures (e.g. logging side effects) and rendering notFound() — a
+  // legitimate admin would see a 404 because a downstream log helper
+  // throws. Be explicit: enforce role here, don't call requireAdmin().
+  if (session.role !== "admin") {
     notFound();
   }
 
