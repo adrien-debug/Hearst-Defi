@@ -40,7 +40,14 @@ export default async function AdminLayout({
 
   try {
     await requireAdmin();
-  } catch {
+  } catch (err) {
+    // Log so we can diagnose silent admin 404s in prod.
+    console.error("[admin/layout] requireAdmin threw", {
+      userId: session.userId,
+      email: session.email,
+      role: session.role,
+      error: err instanceof Error ? { name: err.name, message: err.message, stack: err.stack?.slice(0, 1000) } : String(err),
+    });
     // Authenticated but not an admin → hide the area.
     notFound();
   }
