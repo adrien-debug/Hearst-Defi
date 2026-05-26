@@ -704,3 +704,22 @@ model Pcap {
   pdfUrl         String?
   generatedFor   String
 }
+
+// =============================================================================
+// ONBOARDING — LP onboarding progress per path (individual / corporate / fund)
+// =============================================================================
+
+model OnboardingProgress {
+  id          String    @id @default(cuid())
+  userId      String
+  path        String // individual | corporate | fund
+  currentStep Int       @default(0)
+  data        String    @default("{}") // JSON serialized step data
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, path])
+  @@index([userId])
+  @@index([path])
+}
