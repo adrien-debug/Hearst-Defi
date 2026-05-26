@@ -1,10 +1,11 @@
 import "./profile.css";
 
-import { getSession, getInvestor } from "@/lib/auth/session";
+import { requireInvestor } from "@/lib/auth/require-investor";
+import { getInvestor } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
-import { redirect } from "next/navigation";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 
 export const dynamic = "force-dynamic";
 
@@ -40,10 +41,8 @@ function shortAddress(address: string): string {
 }
 
 export default async function ProfilePage() {
-  const [session, investor] = await Promise.all([getSession(), getInvestor()]);
-  if (!session) redirect("/");
+  const [session, investor] = await Promise.all([requireInvestor("/profile"), getInvestor()]);
 
-  // Count active positions and total deployed
   const positions = investor
     ? await prisma.position.findMany({
         where: { investorId: investor.id, status: "active" },
@@ -215,6 +214,9 @@ export default async function ProfilePage() {
             )}
           </li>
         </ul>
+        <div className="mt-4">
+          <SignOutButton />
+        </div>
       </div>
       <footer className="mt-8">
         <p className="body-xs ct-text-faint max-w-2xl">
