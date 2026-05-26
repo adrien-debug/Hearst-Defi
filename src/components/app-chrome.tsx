@@ -6,10 +6,17 @@ import type { ReactNode } from "react";
 import { ConnectShell } from "@/components/ConnectShell";
 import { AdminChatControls } from "@/components/admin/admin-chat-controls";
 
-// Routes that render WITHOUT the product chrome (left rail, bottom nav, Kimi
-// chat). The sign-in screen must stand alone — no navigation into product
-// surfaces is offered until the user is authenticated.
-const BARE_ROUTES = new Set<string>(["/", "/login"]);
+// Routes/prefixes that render WITHOUT the product chrome (left rail, bottom
+// nav, Kimi chat). The sign-in screen must stand alone — no navigation into
+// product surfaces is offered until the user is authenticated. Legal pages
+// (/legal/*) use their own LegalLayout and must not get a double chrome.
+const BARE_EXACT = new Set<string>(["/", "/login"]);
+const BARE_PREFIXES = ["/legal"] as const;
+
+function isBareRoute(pathname: string): boolean {
+  if (BARE_EXACT.has(pathname)) return true;
+  return BARE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
 
 /**
  * Decides whether to wrap children in the full Cockpit shell or render them
@@ -18,7 +25,7 @@ const BARE_ROUTES = new Set<string>(["/", "/login"]);
  */
 export function AppChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const bare = BARE_ROUTES.has(pathname);
+  const bare = isBareRoute(pathname);
 
   if (bare) {
     return <div className="min-h-dvh bg-[var(--ct-bg-deep)]">{children}</div>;

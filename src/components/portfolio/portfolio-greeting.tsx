@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import type { PortfolioData } from "@/lib/data/portfolio";
 import { formatUsdCompact } from "@/lib/format/usd-compact";
 
@@ -40,6 +42,13 @@ export function PortfolioGreeting({ name, data }: PortfolioGreetingProps) {
         Welcome back, <span className="pf-greeting-name">{name}</span>
       </h1>
       <p className="pf-greeting-recap">{recap}</p>
+      {count === 0 ? (
+        <div className="mt-4">
+          <Button variant="primary" size="md" asChild>
+            <Link href="/vaults">Subscribe to a vault →</Link>
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }
