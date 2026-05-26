@@ -1,4 +1,5 @@
 import type { ScenarioInputs } from "./types";
+import { calcSharpe, calcSortino, calcVaR } from "./ratios";
 
 const W_MARKET = 0.3;
 const W_MINING = 0.25;
@@ -88,4 +89,56 @@ function clip(n: number, lo: number, hi: number): number {
 function round(n: number, decimals: number): number {
   const f = Math.pow(10, decimals);
   return Math.round(n * f) / f;
+}
+
+// =============================================================================
+// STATISTICAL RISK RATIOS — thin wrappers for UI consumption
+//
+// These are pure-function facades over the lower-level helpers in ratios.ts.
+// They accept an array of period returns (decimal form) and, where applicable,
+// an annualized risk-free rate (decimal form). No I/O, no DB, no Date.now().
+//
+// `periodsPerYear` defaults to 12 (monthly series) to match VaultSnapshot cadence.
+// =============================================================================
+
+/**
+ * Annualized Sharpe ratio.
+ *
+ * @param returns     Array of simple period returns (e.g. 0.01 = +1%).
+ * @param riskFreeRate Annualized risk-free rate (e.g. 0.05 = 5%). Defaults to 0.
+ * @param periodsPerYear Number of periods per year. Defaults to 12 (monthly).
+ */
+export function computeSharpe(
+  returns: readonly number[],
+  riskFreeRate = 0,
+  periodsPerYear = 12,
+): number {
+  return calcSharpe([...returns], riskFreeRate, periodsPerYear);
+}
+
+/**
+ * Annualized Sortino ratio.
+ *
+ * @param returns     Array of simple period returns (e.g. 0.01 = +1%).
+ * @param targetReturn Annualized target/MAR. Defaults to 0 (downside vs zero).
+ * @param periodsPerYear Number of periods per year. Defaults to 12 (monthly).
+ */
+export function computeSortino(
+  returns: readonly number[],
+  targetReturn = 0,
+  periodsPerYear = 12,
+): number {
+  return calcSortino([...returns], targetReturn, periodsPerYear);
+}
+
+/**
+ * Historical 95% Value-at-Risk (positive loss number).
+ *
+ * A result of 0.04 means "5% chance of losing ≥ 4% in one period".
+ * Returns 0 when insufficient data or no observed loss at the quantile.
+ *
+ * @param returns Array of simple period returns (e.g. -0.04 = -4%).
+ */
+export function computeVar95(returns: readonly number[]): number {
+  return calcVaR([...returns], 0.95);
 }
