@@ -3,6 +3,7 @@ import { ApyRange } from "@/components/ui/apy-range";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { ChartProvenanceCorner } from "@/components/ui/chart-provenance-corner";
 import { computeDrawdownPeriods } from "@/lib/engine/drawdown";
+import { cn } from "@/lib/cn";
 import type {
   DashboardTimeseries,
 } from "@/lib/data/dashboard";
