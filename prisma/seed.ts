@@ -22,6 +22,7 @@ import {
   VAULT_YIELD,
   type VaultDefinition,
 } from "../src/lib/engine/vaults";
+import { SHARE_CLASS_A, SHARE_CLASS_B } from "../src/lib/engine/share-class";
 
 const prisma = makePrismaClient();
 
@@ -704,6 +705,46 @@ async function seedVaultDeployments(): Promise<number> {
 }
 
 // ---------------------------------------------------------------------------
+// Share classes — idempotent upserts of Class A + B per vault.
+// Runs after seedVaultDeployments so the vaultId FK is always present.
+// Additive: existing rows are updated in-place, no row ever deleted here.
+// ---------------------------------------------------------------------------
+
+async function seedShareClasses(): Promise<number> {
+  const classes = [SHARE_CLASS_A, SHARE_CLASS_B];
+  let count = 0;
+
+  for (const fixture of VAULT_DEPLOYMENT_FIXTURES) {
+    for (const cls of classes) {
+      await prisma.shareClass.upsert({
+        where: {
+          vaultId_code: { vaultId: fixture.id, code: cls.shareClass },
+        },
+        update: {
+          minTicketUsdc: cls.minTicketUsdc,
+          lockupDays: cls.softLockupDays,
+          mgmtFeeBps: cls.mgmtFeeBps,
+          perfFeeBps: cls.perfFeeBps,
+          hurdleBps: cls.hurdleBps,
+        },
+        create: {
+          vaultId: fixture.id,
+          code: cls.shareClass,
+          minTicketUsdc: cls.minTicketUsdc,
+          lockupDays: cls.softLockupDays,
+          mgmtFeeBps: cls.mgmtFeeBps,
+          perfFeeBps: cls.perfFeeBps,
+          hurdleBps: cls.hurdleBps,
+        },
+      });
+      count++;
+    }
+  }
+
+  return count;
+}
+
+// ---------------------------------------------------------------------------
 // Admin users — idempotent. Reads ADMIN_EMAILS (CSV) + ADMIN_INITIAL_PASSWORD.
 // Upserts a role="admin" User per email. Does NOT create an Investor for the
 // admin. No-op when either env var is unset. Intentionally OUTSIDE resetTables()
@@ -752,6 +793,8 @@ async function main(): Promise<void> {
   // referencing it — but the row is not part of resetTables (deployments live
   // in admin scope). Idempotent upsert keeps it safe to re-run N times.
   const vaultDeployments = await seedVaultDeployments();
+  // Share classes are seeded after vault deployments (FK dependency).
+  const shareClasses = await seedShareClasses();
   const admins = await seedAdminUsers();
   const presetVault = await seedPresetVaultSnapshots();
   const dailyVault = await seedDailyVaultTimeline();
@@ -764,6 +807,7 @@ async function main(): Promise<void> {
 
   console.log("Hearst Connect seed complete:");
   console.log(`  VaultDeployment: ${vaultDeployments} (3 first-class vaults — ADR-006)`);
+  console.log(`  ShareClass:      ${shareClasses} (A + B per vault)`);
   console.log(`  AdminUser:       ${admins}`);
   console.log(`  VaultSnapshot:   ${presetVault.snapshots + dailyVault.snapshots} (${presetVault.snapshots} preset + ${dailyVault.snapshots} daily)`);
   console.log(`  Allocation:      ${presetVault.allocations + dailyVault.allocations}`);

@@ -681,6 +681,29 @@ model AddressAllowlist {
 }
 
 // =============================================================================
+// SHARE CLASS — per-vault fee / lock-up tiers (additive, E2)
+// =============================================================================
+//
+// Each VaultDeployment can offer multiple share classes. This table is the
+// authoritative DB copy of the canonical terms defined in
+// src/lib/engine/share-class.ts. Seeded once per vault × class at startup.
+
+model ShareClass {
+  id              String   @id @default(cuid())
+  vaultId         String   // FK virtual to VaultDeployment.id
+  code            String   // "A" | "B" | …
+  minTicketUsdc   Decimal
+  lockupDays      Int
+  mgmtFeeBps      Int
+  perfFeeBps      Int
+  hurdleBps       Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  @@unique([vaultId, code])
+  @@index([vaultId])
+}
+
+// =============================================================================
 // DISTRIBUTION LEDGER — per-LP entries from atomic distribution exec (Carta pattern)
 // =============================================================================
 
