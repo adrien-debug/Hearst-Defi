@@ -739,3 +739,23 @@ model KycEvent {
   @@index([inquiryId])
   @@index([userId, receivedAt])
 }
+
+// =============================================================================
+// ONBOARDING — DocuSign subscription agreement envelopes
+// =============================================================================
+
+model SubscriptionEnvelope {
+  id          String    @id @default(cuid())
+  userId      String
+  vaultId     String
+  envelopeId  String    @unique // DocuSign envelope GUID
+  status      String    @default("sent") // sent | delivered | completed | declined | voided
+  documentUrl String? // URL to the signed PDF (populated on completion)
+  signedAt    DateTime? // populated when status = completed
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([envelopeId])
+  @@index([status])
+}
