@@ -37,7 +37,7 @@ export default async function InvestorMemoPage({
       <p className="body-sm max-w-2xl">
         Eight sections for{" "}
         <span className="ct-text-strong">{vault.label}</span>, generated on
-        demand by Claude Opus 4.7 against the current vault snapshot, scenarios,
+        demand by Kimi K2.6 (Hypercli) against the current vault snapshot, scenarios,
         and backtests. Methodology v1.0, structured-output enforced (no chat),
         forbidden-words linted on every field. Nothing is auto-distributed —
         the memo only leaves this page when you download it.

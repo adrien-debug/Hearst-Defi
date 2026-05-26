@@ -72,13 +72,13 @@ function assertBounds(inputs: ScenarioInputs): void {
  * agent.
  *
  * Flow:
- *   1. requireAuth() — Privy JWT → userId (throws on failure)
+ *   1. requireAuth() — DB-backed session (hc_session) → userId (throws on failure)
  *   2. assertRateLimit by userId — 10/min (LLM-aware threshold; was 30/min
  *      before the narrative agent was wired in)
  *   3. assertBounds(inputs) — slider bounds (throws on out-of-range)
  *   4. runScenario(inputs) — pure-function engine
  *   5. Persist ScenarioRun (engine output)
- *   6. runScenarioNarrative({ scenario_id, scenario_output }) — Sonnet 4.6
+ *   6. runScenarioNarrative({ scenario_id, scenario_output }) — Kimi K2.6
  *      with graceful degradation: if the agent throws (timeout, forbidden-words
  *      filter, schema fail), the run still returns the engine output with
  *      `narrative: null` and the error is logged.

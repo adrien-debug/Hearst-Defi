@@ -12,7 +12,7 @@ import { assertRateLimit } from "@/lib/rate-limit";
 const VaultIdSchema = z.enum(["yield", "defensive", "btc-plus"] as const);
 
 /**
- * Generates an investor memo via the Opus 4.7 agent using live vault data.
+ * Generates an investor memo via the Kimi K2.6 agent (Hypercli) using live vault data.
  *
  * Rate limited to 5 calls per minute per user.
  *

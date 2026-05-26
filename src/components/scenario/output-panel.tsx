@@ -32,7 +32,7 @@ interface OutputPanelFullProps extends OutputPanelBaseProps {
   variant?: "full";
   isPending: boolean;
   /**
-   * AI-generated narrative from the Scenario Narrative agent (Sonnet 4.6).
+   * AI-generated narrative from the Scenario Narrative agent (Kimi K2.6 via Hypercli).
    * `null` means the agent failed (timeout, forbidden-words filter, schema fail)
    * and we degrade gracefully by surfacing a discreet note instead of hiding
    * the missing section.
@@ -375,7 +375,7 @@ export function OutputPanel(props: OutputPanelProps) {
       {/* Section 2: PTAI block */}
       <PtaiBlock output={output} />
 
-      {/* Section 2.5: AI Narrative (Sonnet 4.6) */}
+      {/* Section 2.5: AI Narrative (Kimi K2.6) */}
       {narrative !== undefined ? <NarrativeCard narrative={narrative} /> : null}
 
       {/* Section 3: 12-Month NAV Projection */}

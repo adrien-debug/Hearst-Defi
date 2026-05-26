@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
  * Lab UI ("rules vs no-rules" story) and to the Proof Center (historical
  * audit trail).
  *
- * Auth   : Privy JWT (via `privy-token` cookie). 401 otherwise.
+ * Auth   : DB-backed session via `requireAuth()` (hc_session cookie). 401 otherwise.
  * Limit  : 5 backtests / 60s / userId (heavier compute than scenarios, which
  *          run at 30/min/user — see admin/scenario-lab/actions.ts).
  * Body   : { key: BacktestKey } — Zod-validated.

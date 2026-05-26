@@ -21,7 +21,7 @@ vi.mock("@/lib/agents/loaders/mining", () => ({
 }));
 
 /**
- * Mock the Mining Health Agent so the test never reaches the Anthropic SDK.
+ * Mock the Mining Health Agent so the test never reaches the Hypercli LLM endpoint.
  * The mock is hoisted by Vitest so it MUST be declared before the module
  * under test is imported (we import it inside `it()` to honour that order).
  */

@@ -121,7 +121,7 @@ export function MemoShell({
     }
     setError(null);
     const toastId = toast.loading(
-      `Generating ${vaultName} memo with Claude Opus 4.7...`,
+      `Generating ${vaultName} memo with Kimi K2.6...`,
     );
     startTransition(async () => {
       try {
@@ -199,7 +199,7 @@ export function MemoShell({
           <p className="body-sm max-w-md">
             Press{" "}
             <span className="text-[var(--ct-text-primary)]">Generate memo</span> to produce
-            the 8-section institutional memo via Claude Opus 4.7. Generation
+            the 8-section institutional memo via Kimi K2.6 (Hypercli). Generation
             takes a few seconds; nothing is auto-distributed.
           </p>
         </div>

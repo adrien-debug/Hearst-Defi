@@ -11,7 +11,7 @@ Agents produce **artifacts**, not chat. Invisible in UX except when delivering o
 
 ## The 4 agents
 
-### 1. Scenario Narrative Agent (Sonnet 4.6)
+### 1. Scenario Narrative Agent (Kimi K2.6)
 - **Trigger**: `runScenarioAction()` Server Action (`src/app/(product)/scenario-lab/actions.ts`)
 - **Input**: scenario_run JSON (assumptions + computed outputs)
 - **Output schema**:
@@ -28,7 +28,7 @@ Agents produce **artifacts**, not chat. Invisible in UX except when delivering o
   - Must mention ≥ 1 assumption
   - If confidence = low → must say so explicitly
 
-### 2. Mining Health Agent (Sonnet 4.6)
+### 2. Mining Health Agent (Kimi K2.6)
 - **Trigger**: daily 08:00 UTC cron + on-demand from Dashboard
 - **Input**: 30d hashprice, difficulty, BTC price, energy cost, uptime, allocation
 - **Output schema**:
@@ -48,7 +48,7 @@ Agents produce **artifacts**, not chat. Invisible in UX except when delivering o
   - Red alert → notify manager (no auto-action)
   - Summary must cite ≥ 2 numeric metrics
 
-### 3. Risk Explanation Agent (Sonnet 4.6)
+### 3. Risk Explanation Agent (Kimi K2.6)
 - **Trigger**: daily + on every rebalancing event
 - **Input**: 5 risk scores + 30d evolution + current allocation
 - **Output schema**:
@@ -67,7 +67,7 @@ Agents produce **artifacts**, not chat. Invisible in UX except when delivering o
   - Guardrails proposed must stay within vault bounds
   - Never claims "we will fix" — proposes, doesn't decide
 
-### 4. Investor Memo Agent (Opus 4.7)
+### 4. Investor Memo Agent (Kimi K2.6, max_tokens 4096)
 - **Trigger**: click "Generate memo" + `client_name` + `logo_url`
 - **Input**: vault state + 3 scenarios + 3 backtests + methodology version
 - **Output schema**:
@@ -88,17 +88,18 @@ Agents produce **artifacts**, not chat. Invisible in UX except when delivering o
   }
   ```
 - **Guardrails**:
-  - Methodology + glossary + disclaimers injected via **prompt caching** (immutable templates)
+  - Methodology + glossary + disclaimers injected as immutable system blocks (Kimi has no native prompt caching; `cache_control` accepted but ignored)
   - Disclaimers NEVER generated, only templated
   - If data missing → explicitly flagged in `warnings[]`, no invention
 
 ## Stack
 
-- Anthropic SDK (`@anthropic-ai/sdk`)
-- **Prompt caching** on methodology + glossary + disclaimers
-- Sonnet 4.6 for ops, Opus 4.7 for memo final
+- **Kimi K2.6 via Hypercli** (OpenAI-compatible endpoint) — single model for all 4 agents (ADR-007, 2026-05-26)
+- `openai@6.x` SDK pointed at `HYPERCLI_BASE_URL` (key in `HYPERCLI_API_KEY`)
+- No native prompt caching (Kimi limitation); `cache_control` is accepted forward-compat but ignored
 - All outputs validated via Zod schemas (`src/lib/agents/schemas.ts`)
 - Linter strips/rejects forbidden words (`src/lib/agents/validators.ts`)
+- Cost/usage tracked in `LlmRun` Prisma table (Kimi pricing $0.60 / $2.50 per MTOK indicative)
 
 ## Forbidden absolutely
 

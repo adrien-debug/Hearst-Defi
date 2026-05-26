@@ -1,6 +1,6 @@
 {
-  "version": "2026-05-24",
-  "snapshot_doc": "/docs/roadmap-status-2026-05-24.md",
+  "version": "2026-05-26",
+  "snapshot_doc": "/docs/roadmap-status-2026-05-26.md",
   "phases": [
     {
       "id": "mvp",
@@ -57,7 +57,7 @@
             { "id": "lab-presets", "label": "5 scenario preset buttons", "owner": "eng", "spec_ref": "/docs/spec/02-scenario-lab.mdx" },
             { "id": "lab-sliders", "label": "5 custom sliders with bounds + live projection", "owner": "eng", "spec_ref": "/docs/spec/02-scenario-lab.mdx" },
             { "id": "ptai-component", "label": "<Ptai> component (mandatory format)", "owner": "eng", "spec_ref": "/docs/spec/07-rebalancing-rules.mdx" },
-            { "id": "agent-scenario-narrative", "label": "Scenario Narrative Agent (Anthropic SDK)", "owner": "eng", "spec_ref": "/docs/spec/09-agents.mdx" },
+            { "id": "agent-scenario-narrative", "label": "Scenario Narrative Agent (Kimi K2.6 via Hypercli)", "owner": "eng", "spec_ref": "/docs/spec/09-agents.mdx" },
             { "id": "agent-schemas", "label": "Zod schemas + forbidden words validator", "owner": "eng", "spec_ref": "/docs/spec/09-agents.mdx" },
             { "id": "lab-comparator", "label": "Side-by-side scenario comparator (2 max)", "owner": "eng", "spec_ref": "/docs/spec/02-scenario-lab.mdx" }
           ]
@@ -78,7 +78,7 @@
           "items": [
             { "id": "agent-mining-health", "label": "Mining Health Agent (daily cron)", "owner": "eng", "spec_ref": "/docs/spec/09-agents.mdx" },
             { "id": "agent-risk-explanation", "label": "Risk Explanation Agent (daily)", "owner": "eng", "spec_ref": "/docs/spec/09-agents.mdx" },
-            { "id": "agent-investor-memo", "label": "Investor Memo Agent (Opus 4.7, structured Markdown)", "owner": "eng", "spec_ref": "/docs/spec/09-agents.mdx" },
+            { "id": "agent-investor-memo", "label": "Investor Memo Agent (Kimi K2.6, structured Markdown)", "owner": "eng", "spec_ref": "/docs/spec/09-agents.mdx" },
             { "id": "memo-pdf-template", "label": "react-pdf 8-page template", "owner": "eng+design", "spec_ref": "/docs/spec/04-investor-memo.mdx" },
             { "id": "memo-screen", "label": "Investor Memo screen (preview + branding + export)", "owner": "eng", "spec_ref": "/docs/spec/04-investor-memo.mdx" },
             { "id": "methodology-v10", "label": "Methodology v1.0 PDF (source of truth)", "owner": "product+legal", "spec_ref": "/docs/methodology/v1.0.md" }
