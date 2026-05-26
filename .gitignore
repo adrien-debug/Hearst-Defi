@@ -79,3 +79,6 @@ electron/__tests__/results/
 # Captures de dev a la racine (non versionnees)
 /*.png
 
+
+# Local release artifacts (CREDENTIALS contains a password — never commit)
+releases/
