@@ -5,6 +5,7 @@ import { EXPLORER_ADDRESS_BASE, EXPLORER_TX_BASE } from "@/lib/chain/client";
 import type { ProofType } from "@/lib/proof-center-types";
 
 import { safeUrl } from "@/lib/safe-url";
+import { abbreviateAddress } from "@/lib/onchain";
 
 import type { UnifiedProof } from "./proof-types";
 
@@ -34,15 +35,6 @@ const dateFmt = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
 });
 
-function truncateHash(hash: string): string {
-  if (hash.length <= 12) return hash;
-  return `${hash.slice(0, 6)}…${hash.slice(-4)}`;
-}
-
-function truncateAddress(addr: string): string {
-  if (addr.length <= 12) return addr;
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
-}
 
 function uriLabel(uri: string): string {
   if (uri.startsWith("ipfs://")) return "View on IPFS";
@@ -90,7 +82,7 @@ function PaperProofCard({
   proof: Extract<UnifiedProof, { source: "paper" }>;
 }) {
   const postedAt = new Date(proof.postedAt);
-  const hashTruncated = truncateHash(proof.hash);
+  const hashTruncated = abbreviateAddress(proof.hash);
 
   return (
     <Card className="flex flex-col gap-4">
@@ -209,7 +201,7 @@ function OnChainEventCard({
             className="mono tabular text-xs text-[var(--ct-text-body)]"
             title={proof.publisher}
           >
-            {truncateAddress(proof.publisher)}
+            {abbreviateAddress(proof.publisher)}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
@@ -219,7 +211,7 @@ function OnChainEventCard({
             title={proof.txHash}
             aria-label={`Transaction hash ${proof.txHash}`}
           >
-            {truncateHash(proof.txHash)}
+            {abbreviateAddress(proof.txHash)}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
@@ -228,7 +220,7 @@ function OnChainEventCard({
             className="mono tabular text-xs text-[var(--ct-text-body)]"
             title={proof.contextHash}
           >
-            {truncateHash(proof.contextHash)}
+            {abbreviateAddress(proof.contextHash)}
           </dd>
         </div>
       </dl>
@@ -316,7 +308,7 @@ function OnChainAttestationCard({
               rel="noreferrer noopener"
               className="hover:text-[var(--ct-text-strong)]"
             >
-              {truncateAddress(proof.attestor)}
+              {abbreviateAddress(proof.attestor)}
             </a>
           </dd>
         </div>
@@ -326,7 +318,7 @@ function OnChainAttestationCard({
             className="mono tabular text-xs text-[var(--ct-text-primary)]"
             title={proof.evidenceHash}
           >
-            {truncateHash(proof.evidenceHash)}
+            {abbreviateAddress(proof.evidenceHash)}
           </dd>
         </div>
       </dl>

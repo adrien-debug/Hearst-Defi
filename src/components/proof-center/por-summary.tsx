@@ -8,6 +8,7 @@ import {
 import type { OnChainAttestation } from "@/lib/chain/por-registry";
 import type { CustodySnapshot } from "@/lib/data/custody";
 import { cn } from "@/lib/cn";
+import { abbreviateAddress } from "@/lib/onchain";
 
 interface PorSummaryProps {
   attestation: OnChainAttestation | null;
@@ -34,15 +35,6 @@ function formatPeriod(period: bigint): string {
   return `${raw.slice(0, 4)}-${raw.slice(4)}`;
 }
 
-function truncateAddress(addr: string): string {
-  if (addr.length <= 12) return addr;
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
-}
-
-function truncateHash(hash: string): string {
-  if (hash.length <= 12) return hash;
-  return `${hash.slice(0, 6)}…${hash.slice(-4)}`;
-}
 
 function isStale(ts: Date): boolean {
   const ageMs = Date.now() - ts.getTime();
@@ -183,7 +175,7 @@ export function PorSummary({
               className="mono tabular text-xs text-[var(--ct-text-primary)] hover:text-[var(--ct-text-strong)] transition-colors duration-[var(--ct-dur-fast)]"
               title={attestation.attestor}
             >
-              {truncateAddress(attestation.attestor)}
+              {abbreviateAddress(attestation.attestor)}
             </a>
           </dd>
         </div>
@@ -193,7 +185,7 @@ export function PorSummary({
             className="mono tabular text-xs text-[var(--ct-text-body)]"
             title={attestation.evidenceHash}
           >
-            {truncateHash(attestation.evidenceHash)}
+            {abbreviateAddress(attestation.evidenceHash)}
           </dd>
         </div>
         <div className="flex flex-wrap items-baseline justify-between gap-3">

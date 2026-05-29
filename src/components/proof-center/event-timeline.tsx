@@ -4,6 +4,7 @@ import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { EXPLORER_TX_BASE } from "@/lib/chain/client";
 import type { EventKind, OnChainEvent } from "@/lib/chain/event-logger";
 import { cn } from "@/lib/cn";
+import { abbreviateAddress } from "@/lib/onchain";
 
 interface EventTimelineProps {
   events: ReadonlyArray<OnChainEvent>;
@@ -36,15 +37,6 @@ const dateFmt = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
 });
 
-function truncateHash(hash: string): string {
-  if (hash.length <= 12) return hash;
-  return `${hash.slice(0, 6)}…${hash.slice(-4)}`;
-}
-
-function truncateAddress(addr: string): string {
-  if (addr.length <= 12) return addr;
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
-}
 
 function ipfsGatewayUrl(cid: string): string {
   if (cid.startsWith("ipfs://")) return `https://ipfs.io/ipfs/${cid.slice(7)}`;
@@ -126,7 +118,7 @@ export function EventTimeline({ events }: EventTimelineProps) {
                     className="mono tabular text-[var(--ct-text-body)]"
                     title={event.publisher}
                   >
-                    {truncateAddress(event.publisher)}
+                    {abbreviateAddress(event.publisher)}
                   </dd>
 
                   <dt className="text-[var(--ct-text-muted)]">Tx hash</dt>
@@ -140,7 +132,7 @@ export function EventTimeline({ events }: EventTimelineProps) {
                       rel="noreferrer noopener"
                       className="hover:text-[var(--ct-text-strong)] transition-colors duration-[var(--ct-dur-fast)]"
                     >
-                      {truncateHash(event.txHash)}
+                      {abbreviateAddress(event.txHash)}
                     </a>
                   </dd>
 
@@ -149,7 +141,7 @@ export function EventTimeline({ events }: EventTimelineProps) {
                     className="mono tabular text-[var(--ct-text-muted)]"
                     title={event.contextHash}
                   >
-                    {truncateHash(event.contextHash)}
+                    {abbreviateAddress(event.contextHash)}
                   </dd>
                 </dl>
 
