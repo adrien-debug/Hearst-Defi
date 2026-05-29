@@ -174,11 +174,11 @@ const TIMELINE_SOURCES: string[] = ["daily-seed", "live", "oracle", "attested"];
  */
 const STRESSED_APY_BAND = 0.15;
 
-// Fallback values used when no DB row exists (empty DB / first boot).
-// These mirror the seed-time "paper phase" operating metrics so the dashboard
-// renders plausible numbers before the first `pnpm db:seed` run.
-const FALLBACK_HASHPRICE_TREND_PCT = -3.4;
-const FALLBACK_OPERATIONAL_CONFIDENCE = 81;
+// Mode vérité live: with no DB row, report honest zeros — never the old
+// fabricated "paper phase" numbers (−3.4% trend / 81 confidence). A zero
+// reads as "no data yet", not as a real measurement.
+const FALLBACK_HASHPRICE_TREND_PCT = 0;
+const FALLBACK_OPERATIONAL_CONFIDENCE = 0;
 
 /** Milliseconds in 30 days — used for trailing-window queries. */
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;

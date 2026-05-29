@@ -38,12 +38,16 @@ export interface MiningOpsSnapshot {
 /** Default look-back window for the ops snapshot (30 days). */
 const OPS_WINDOW_DAYS = 30;
 
-/** Fallback values used when the DB has no MiningMetric / Proof rows yet. */
+/**
+ * Mode vérité live: when the DB has no MiningMetric / Proof rows, we report
+ * zeros (an honest "no operational data") flagged `is_fallback` — never
+ * fabricated-but-plausible figures like 182 PH/s or 98.4% uptime.
+ */
 const OPS_FALLBACK: MiningOpsSnapshot = {
-  hashrate_ph_s: 182,
-  uptime_pct: 98.4,
-  margin_score: 64,
-  attestations_count: 1,
+  hashrate_ph_s: 0,
+  uptime_pct: 0,
+  margin_score: 0,
+  attestations_count: 0,
 };
 
 /** Conversion: schema stores `deployedHashrate` in TH/s; PDF wants PH/s. */
