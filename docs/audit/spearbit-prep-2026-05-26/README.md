@@ -114,6 +114,7 @@ above this SHA; they never alter contract bytecode.
 | `README.md` | This file — overview, firms, budget, timeline, freeze |
 | `scope.md` | Exact in-scope / out-of-scope boundaries (reconciled) |
 | `architecture.md` | Ownership diagram, asset-flow diagram, guardian/owner/timelock model, frozen OZ deps |
+| `asset-lifecycle.md` | RR-SC-07 — definitive lifecycle of 1 USDC (funds/data/governance flows, Model B ruling, decisions) |
 | `invariants.md` | Business + safety invariants the auditor should verify |
 | `threat-model.md` | Trust model, asset flows, attack surfaces, mitigations (reconciled) |
 | `previous-findings.md` | Pre-audit self-review (reconciled to the real code) |

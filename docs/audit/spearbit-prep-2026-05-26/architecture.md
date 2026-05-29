@@ -83,12 +83,13 @@ Fireblocks balances (off-chain) → signed attestation → Safe 3/5 calls
    Safe 3/5 calls EventLogger.logEvent(AttestationPublished, contextHash, cid)   ← audit trail
 ```
 
-**OPEN ITEM (flag for auditor & product):** the vault has **no owner/manager function to
-withdraw USDC** out of the contract. Capital deployment to the mining counterparty therefore
-happens via a mechanism that is **not on-chain in these contracts** (off-chain custody /
-Fireblocks, governed by the Cayman SPV agreement). Auditors should treat "how subscribed USDC
-reaches the mining operation" as an explicit off-chain trust assumption, not an on-chain flow.
-PoR figures are **advisory** — they are never read by `convertToShares`/`convertToAssets`.
+**RESOLVED (RR-SC-07) — see `asset-lifecycle.md`.** The vault has **no owner/manager function
+to withdraw USDC**; the only egress is a share-holder redeeming their own shares. Capital
+deployment to mining is therefore **off-chain** (SPV/Fireblocks): the implemented model is
+**Model B** — LP principal is custodied as USDC in the vault (a reserve the operator cannot
+move) and mining-derived yield is injected by transferring USDC in. PoR figures are
+**advisory** — never read by `convertToShares`/`convertToAssets`. `asset-lifecycle.md` is the
+canonical specification for Spearbit, counsel, and LPs.
 
 ---
 

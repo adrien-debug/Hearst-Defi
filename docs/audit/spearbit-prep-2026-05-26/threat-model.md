@@ -86,9 +86,10 @@ confirm one-shot-per-period (`PeriodAlreadyAttested`) and monotonic ids.
 **Vector:** ambiguity in how subscribed USDC reaches the mining counterparty, since the vault
 has **no manager-withdraw function**.
 **Mitigation/assumption:** capital deployment is off-chain (Fireblocks/SPV). The on-chain vault
-holds investor USDC; the manager reflects yield by transferring USDC in. **OPEN ITEM** for the
-architecture call — auditors should record this as an explicit off-chain trust assumption, not
-an on-chain mechanism.
+holds investor USDC; the manager reflects yield by transferring USDC in. **RESOLVED (RR-SC-07)
+— see `asset-lifecycle.md`:** implemented model is Model B (cash reserve + injected yield); the
+vault has no manager egress, so this is an explicit off-chain trust assumption, not an on-chain
+mechanism. Closure requires counsel to align the PPM/LPA to the reserve model.
 
 ### 3.7 Cross-Chain / Signature Replay
 **Vector:** replaying a signature from Base Sepolia (84532) on Base mainnet (8453).
