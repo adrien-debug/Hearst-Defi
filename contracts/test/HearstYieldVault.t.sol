@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {HearstYieldVault} from "../src/HearstYieldVault.sol";
 
 /// @dev Minimal 6-decimal mock standing in for USDC on Base Sepolia.
@@ -25,6 +26,7 @@ contract HearstYieldVaultTest is Test {
     HearstYieldVault internal vault;
 
     address internal owner = makeAddr("owner");
+    address internal guardian = makeAddr("guardian");
     address internal alice = makeAddr("alice");
     address internal bob = makeAddr("bob");
     address internal stranger = makeAddr("stranger");
@@ -33,10 +35,13 @@ contract HearstYieldVaultTest is Test {
     uint256 internal constant MIN_DEPOSIT = 100 * ONE_USDC; // 100 USDC indicative floor
 
     event MinDepositUpdated(uint256 oldMinDeposit, uint256 newMinDeposit);
+    event GuardianUpdated(address indexed oldGuardian, address indexed newGuardian);
 
     function setUp() public {
         usdc = new MockUSDC();
-        vault = new HearstYieldVault(IERC20(address(usdc)), "Hearst Yield Vault Share", "hyvUSDC", owner, MIN_DEPOSIT);
+        vault = new HearstYieldVault(
+            IERC20(address(usdc)), "Hearst Yield Vault Share", "hyvUSDC", owner, guardian, MIN_DEPOSIT
+        );
 
         usdc.mint(alice, 1_000_000 * ONE_USDC);
         usdc.mint(bob, 1_000_000 * ONE_USDC);
@@ -53,6 +58,8 @@ contract HearstYieldVaultTest is Test {
         assertEq(vault.asset(), address(usdc));
         assertEq(vault.owner(), owner);
         assertEq(vault.minDeposit(), MIN_DEPOSIT);
+        assertEq(vault.guardian(), guardian);
+        assertEq(vault.paused(), false);
         assertEq(vault.name(), "Hearst Yield Vault Share");
         assertEq(vault.symbol(), "hyvUSDC");
         assertEq(vault.totalAssets(), 0);
@@ -235,5 +242,142 @@ contract HearstYieldVaultTest is Test {
         vm.prank(alice);
         vm.expectRevert(abi.encodeWithSelector(HearstYieldVault.DepositBelowMinimum.selector, amount, MIN_DEPOSIT));
         vault.deposit(amount, alice);
+    }
+
+    /* --------------------------- pause / guardian ----------------------------- */
+
+    function test_constructor_revertsOnZeroGuardian() public {
+        vm.expectRevert(HearstYieldVault.ZeroAddress.selector);
+        new HearstYieldVault(IERC20(address(usdc)), "X", "X", owner, address(0), MIN_DEPOSIT);
+    }
+
+    function test_pause_blocksDeposit() public {
+        vm.prank(guardian);
+        vault.pause();
+        assertTrue(vault.paused());
+
+        vm.prank(alice);
+        vm.expectRevert(Pausable.EnforcedPause.selector);
+        vault.deposit(1_000 * ONE_USDC, alice);
+    }
+
+    function test_pause_blocksMint() public {
+        vm.prank(guardian);
+        vault.pause();
+
+        vm.prank(alice);
+        vm.expectRevert(Pausable.EnforcedPause.selector);
+        vault.mint(1_000 * ONE_USDC * 1e12, alice);
+    }
+
+    function test_pause_blocksWithdraw() public {
+        uint256 amount = 5_000 * ONE_USDC;
+        vm.prank(alice);
+        vault.deposit(amount, alice);
+
+        vm.prank(guardian);
+        vault.pause();
+
+        vm.prank(alice);
+        vm.expectRevert(Pausable.EnforcedPause.selector);
+        vault.withdraw(amount, alice, alice);
+    }
+
+    function test_pause_blocksRedeem() public {
+        uint256 amount = 5_000 * ONE_USDC;
+        vm.prank(alice);
+        uint256 shares = vault.deposit(amount, alice);
+
+        vm.prank(guardian);
+        vault.pause();
+
+        vm.prank(alice);
+        vm.expectRevert(Pausable.EnforcedPause.selector);
+        vault.redeem(shares, alice, alice);
+    }
+
+    function test_unpause_restoresEntryAndExit() public {
+        uint256 amount = 5_000 * ONE_USDC;
+        vm.prank(alice);
+        uint256 shares = vault.deposit(amount, alice);
+
+        vm.prank(guardian);
+        vault.pause();
+        vm.prank(guardian);
+        vault.unpause();
+        assertFalse(vault.paused());
+
+        // Exit works again after unpause.
+        vm.prank(alice);
+        uint256 assetsOut = vault.redeem(shares, alice, alice);
+        assertEq(assetsOut, amount);
+    }
+
+    function test_pause_revertsForOwner() public {
+        // The timelocked owner is intentionally NOT the guardian and cannot pause.
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(HearstYieldVault.NotGuardian.selector, owner));
+        vault.pause();
+    }
+
+    function test_pause_revertsForStranger() public {
+        vm.prank(stranger);
+        vm.expectRevert(abi.encodeWithSelector(HearstYieldVault.NotGuardian.selector, stranger));
+        vault.pause();
+    }
+
+    function test_unpause_revertsForNonGuardian() public {
+        vm.prank(guardian);
+        vault.pause();
+        vm.prank(stranger);
+        vm.expectRevert(abi.encodeWithSelector(HearstYieldVault.NotGuardian.selector, stranger));
+        vault.unpause();
+    }
+
+    function test_setGuardian_ownerSucceedsAndEmits() public {
+        address newGuardian = makeAddr("newGuardian");
+        vm.expectEmit(true, true, false, false, address(vault));
+        emit GuardianUpdated(guardian, newGuardian);
+        vm.prank(owner);
+        vault.setGuardian(newGuardian);
+        assertEq(vault.guardian(), newGuardian);
+
+        // Old guardian loses the power; new one gains it.
+        vm.prank(guardian);
+        vm.expectRevert(abi.encodeWithSelector(HearstYieldVault.NotGuardian.selector, guardian));
+        vault.pause();
+        vm.prank(newGuardian);
+        vault.pause();
+        assertTrue(vault.paused());
+    }
+
+    function test_setGuardian_revertsForNonOwner() public {
+        // Even the guardian itself cannot rotate the role — only the owner.
+        vm.prank(guardian);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, guardian));
+        vault.setGuardian(stranger);
+    }
+
+    function test_setGuardian_revertsOnZero() public {
+        vm.prank(owner);
+        vm.expectRevert(HearstYieldVault.ZeroAddress.selector);
+        vault.setGuardian(address(0));
+    }
+
+    function test_paused_ownerCanStillRotateGuardian() public {
+        // Pause must not lock out governance setters (they are not entry/exit paths).
+        vm.prank(guardian);
+        vault.pause();
+        address newGuardian = makeAddr("newGuardian");
+        vm.prank(owner);
+        vault.setGuardian(newGuardian);
+        assertEq(vault.guardian(), newGuardian);
+    }
+
+    function testFuzz_pause_onlyGuardian(address caller) public {
+        vm.assume(caller != guardian);
+        vm.prank(caller);
+        vm.expectRevert(abi.encodeWithSelector(HearstYieldVault.NotGuardian.selector, caller));
+        vault.pause();
     }
 }
