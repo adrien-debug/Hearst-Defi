@@ -10,6 +10,7 @@
 import { useState, useCallback, useDeferredValue } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 
 import { cn } from "@/lib/cn";
 import { Ptai } from "@/components/ui/ptai";
@@ -18,7 +19,13 @@ import { Card } from "@/components/ui/card";
 import { DepositSummary } from "@/components/vaults/deposit-summary";
 import { PreFlightCheck, isPreFlightReady } from "@/components/vaults/preflight-check";
 import { TimeToTargetChart } from "@/components/vaults/time-to-target-chart";
-import { stubDeposit, stubEpoch } from "@/lib/onchain";
+import {
+  depositToVault,
+  walletClientFromProvider,
+  VAULT_ADDRESS,
+  ConfigError,
+  ChainError,
+} from "@/lib/onchain/vault";
 import { monthsToTarget } from "@/lib/projection-chart";
 import type { VaultProduct } from "@/lib/data/vaults";
 
@@ -40,10 +47,21 @@ function formatUsd(n: number, compact = false): string {
 // CTA label morph logic
 // ---------------------------------------------------------------------------
 
-type CtaState = "enter_amount" | "accept_terms" | "complete_preflight" | "confirming" | "ready";
+type CtaState =
+  | "no_wallet"
+  | "no_vault_config"
+  | "enter_amount"
+  | "accept_terms"
+  | "complete_preflight"
+  | "confirming"
+  | "ready";
 
 function ctaLabel(state: CtaState, amount: number): string {
   switch (state) {
+    case "no_wallet":
+      return "Connect a wallet to continue";
+    case "no_vault_config":
+      return "Configuration en attente";
     case "enter_amount":
       return "Enter amount to confirm";
     case "accept_terms":
@@ -103,6 +121,8 @@ interface InvestFormProps {
 
 export function InvestForm({ vault }: InvestFormProps) {
   const router = useRouter();
+  const { ready } = usePrivy();
+  const { wallets } = useWallets();
 
   const maxAmount = vault.capacityUsdc - vault.currentAumUsdc;
 
@@ -115,20 +135,26 @@ export function InvestForm({ vault }: InvestFormProps) {
   const [awaitingConfirm, setAwaitingConfirm] = useState(false);
   const [depositError, setDepositError] = useState<string | null>(null);
 
-  // MVP stub wallet — simulate connected wallet
-  const STUB_WALLET = "0xABCDEF1234567890abcdef1234567890ABCDEF12";
-  const walletAddress: string | null = STUB_WALLET;
+  // Live wallet from Privy
+  const privyWallet = wallets[0] ?? null;
+  const walletAddress: string | null = privyWallet?.address ?? null;
 
   const amount = rawAmount === "" ? 0 : Math.max(0, Number(rawAmount.replace(/,/g, "")));
   const deferredAmount = useDeferredValue(amount);
 
   // Validity
   const amountValid = amount >= vault.minTicketUsdc && amount <= maxAmount;
-  const preFlightOk = isPreFlightReady(walletAddress, allowanceApproved, stubEpoch());
+
+  // Epoch — indicative, not live (no on-chain epoch registry in V1).
+  const epochIndicative = { status: "ACTIVE" as const, endsInDays: 18 };
+
+  const preFlightOk = isPreFlightReady(walletAddress, allowanceApproved, epochIndicative);
 
   // CTA gating
   function ctaState(): CtaState {
     if (depositing) return "confirming";
+    if (!ready || walletAddress === null) return "no_wallet";
+    if (!VAULT_ADDRESS) return "no_vault_config";
     if (!amountValid) return "enter_amount";
     if (!agreedToTermSheet) return "accept_terms";
     if (!preFlightOk) return "complete_preflight";
@@ -177,17 +203,47 @@ export function InvestForm({ vault }: InvestFormProps) {
       setDepositError(null);
       return;
     }
+
+    if (!privyWallet) {
+      setDepositError("No wallet connected. Connect a wallet first.");
+      setAwaitingConfirm(false);
+      return;
+    }
+
+    if (!VAULT_ADDRESS) {
+      setDepositError("Vault address not configured. Contact support.");
+      setAwaitingConfirm(false);
+      return;
+    }
+
     setDepositing(true);
     setDepositError(null);
     try {
-      const result = await stubDeposit({ vault, amount });
-      router.push(`/vaults/${vault.id}/invest/confirmed?tx=${result.txHash}&amount=${amount}`);
+      const provider = await privyWallet.getEthereumProvider();
+      const wc = walletClientFromProvider(
+        provider,
+        privyWallet.address as `0x${string}`,
+      );
+      const result = await depositToVault({
+        walletClient: wc,
+        amountUsdc: amount,
+        receiver: privyWallet.address as `0x${string}`,
+      });
+      router.push(
+        `/vaults/${vault.id}/invest/confirmed?tx=${result.txHash}&amount=${amount}`,
+      );
     } catch (e) {
-      setDepositError(e instanceof Error ? e.message : "Deposit failed. Please try again.");
+      let msg = "Deposit failed. Please try again.";
+      if (e instanceof ConfigError || e instanceof ChainError) {
+        msg = e.message;
+      } else if (e instanceof Error) {
+        msg = e.message;
+      }
+      setDepositError(msg);
       setDepositing(false);
       setAwaitingConfirm(false);
     }
-  }, [ctaEnabled, depositing, vault, amount, router]);
+  }, [ctaEnabled, depositing, privyWallet, amount, vault, router]);
 
   // Cancel — return to form without executing
   const handleCancelConfirm = useCallback(() => {
@@ -334,7 +390,7 @@ export function InvestForm({ vault }: InvestFormProps) {
               <Button
                 variant="primary"
                 size="md"
-                onClick={handleConfirm}
+                onClick={() => void handleConfirm()}
                 disabled={!ctaEnabled || depositing}
                 className="font-bold flex-1"
               >
@@ -403,6 +459,7 @@ export function InvestForm({ vault }: InvestFormProps) {
           approving={approving}
           onApproveStart={() => setApproving(true)}
           onApproveEnd={() => setApproving(false)}
+          onApproveError={(msg) => setDepositError(msg)}
         />
       </div>
     </div>

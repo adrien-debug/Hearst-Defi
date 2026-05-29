@@ -24,6 +24,10 @@ const serverEnvSchema = z.object({
   NEXT_PUBLIC_CHAIN_RPC_URL: z.string().url().optional(),
   NEXT_PUBLIC_EVENT_LOGGER_ADDRESS: z.string().optional(),
   NEXT_PUBLIC_POR_REGISTRY_ADDRESS: z.string().optional(),
+  // ERC-4626 Hearst Yield Vault address on Base Sepolia. Public — safe in the
+  // client bundle. When unset, the invest flow surfaces a "Configuration en
+  // attente" state and blocks transactions rather than silently failing.
+  NEXT_PUBLIC_HEARST_VAULT_ADDRESS: z.string().optional(),
   // Optional deploy-block hints so `eth_getLogs` can use a finite range instead
   // of scanning from genesis (Alchemy free tier caps the window at ~10 blocks).
   // See P1-4 audit. When unset, the loaders fall back to a 10-block tail of

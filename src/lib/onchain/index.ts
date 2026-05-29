@@ -1,41 +1,13 @@
 // src/lib/onchain/index.ts
-// MVP stubs — all on-chain interactions return deterministic simulated results
-// after a brief delay. Real contract wiring is deferred to sc-dev phase (ERC-4626).
-// Non-negotiable #8: smart contracts testnet event logger Phase 2 only.
-// Non-negotiable #6: engine stays pure — no on-chain deps in src/lib/engine/*.
-
-import type { VaultProduct } from "@/lib/data/vaults";
-
-const STUB_DELAY_MS = 500;
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+//
+// Shared types and display utilities for on-chain interactions.
+//
+// Real viem helpers (approve, deposit) live in ./vault.ts.
+// This file intentionally contains NO stubs — stubs have been removed.
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-
-export interface ApproveOpts {
-  vaultId: string;
-  amount: number; // USDC, integer cents equivalent
-}
-
-export interface DepositOpts {
-  vault: VaultProduct;
-  amount: number; // USDC
-}
-
-export interface ApproveResult {
-  success: true;
-  txHash: string;
-}
-
-export interface DepositResult {
-  success: true;
-  txHash: string;
-  amount: number;
-}
 
 export type EpochStatus = "ACTIVE" | "ENDING" | "SYNC";
 
@@ -45,35 +17,8 @@ export interface EpochInfo {
 }
 
 // ---------------------------------------------------------------------------
-// Stubs
+// Display utilities
 // ---------------------------------------------------------------------------
-
-/** Simulate USDC approve to vault contract. */
-export async function stubApprove(opts: ApproveOpts): Promise<ApproveResult> {
-  await delay(STUB_DELAY_MS);
-  return {
-    success: true,
-    // Date.now() is intentional here: stubs are called at runtime (not top-level),
-    // so each invocation returns a unique hash. Not a fixture invariant violation.
-    txHash: `0xstub_approve_${opts.vaultId}_${Date.now().toString(16)}`,
-  };
-}
-
-/** Simulate vault deposit (ERC-4626 stub). */
-export async function stubDeposit(opts: DepositOpts): Promise<DepositResult> {
-  await delay(STUB_DELAY_MS);
-  return {
-    success: true,
-    // Date.now() intentional: runtime-unique stub hash, not a fixture.
-    txHash: `0xstub_deposit_${opts.vault.id}_${Date.now().toString(16)}`,
-    amount: opts.amount,
-  };
-}
-
-/** Return current epoch status. MVP: always ACTIVE. */
-export function stubEpoch(): EpochInfo {
-  return { status: "ACTIVE", endsInDays: 18 };
-}
 
 /** Abbreviate wallet address for display: 0xABCD…EF12 */
 export function abbreviateAddress(address: string): string {
