@@ -1,4 +1,5 @@
 // /vaults/[id]/invest/confirmed — S9 Institutional confirmation
+import { abbreviateAddress } from "@/lib/onchain";
 //
 // Pixel-perfect spec:
 //   ✓ Amount deposited
@@ -41,10 +42,6 @@ interface PageProps {
 }
 
 /** Abbreviate a tx hash: 0x + first 4 + … + last 4 chars. */
-function abbreviateTx(hash: string): string {
-  if (hash.length < 12) return hash;
-  return `${hash.slice(0, 6)}…${hash.slice(-4)}`;
-}
 
 /** Format amount as USD integer (e.g. "$500,000"). */
 function fmtUsdc(raw: string | undefined): string {
@@ -93,11 +90,6 @@ function buildIcsDataUri(title: string, date: Date): string {
   return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
 }
 
-/** Truncate vault contract for display. */
-function abbreviateAddress(addr: string): string {
-  if (addr.length < 12) return addr;
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
-}
 
 // Real deployed vault address from env. Null → the contract row is hidden
 // entirely (never show a fabricated address).
@@ -178,7 +170,7 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
             <div className="flex flex-col gap-1">
               <span className="eyebrow ct-text-muted">Transaction</span>
               <span className="tabular mono text-sm ct-text-primary">
-                {hasHash ? abbreviateTx(txHash) : "Pending confirmation"}
+                {hasHash ? abbreviateAddress(txHash) : "Pending confirmation"}
               </span>
             </div>
             <div className="flex items-center gap-2 shrink-0">

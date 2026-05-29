@@ -2,6 +2,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { EXPLORER_ADDRESS_BASE, EXPLORER_TX_BASE } from "@/lib/chain/client";
 import { cn } from "@/lib/cn";
+import { abbreviateAddress } from "@/lib/onchain";
 
 interface DeployedContract {
   name: string;
@@ -60,10 +61,6 @@ const AUDIT_ENTRIES: ReadonlyArray<AuditEntry> = [
   },
 ];
 
-function truncateAddress(addr: string): string {
-  if (addr.length <= 12) return addr;
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
-}
 
 function truncateTx(tx: string): string {
   if (tx.length <= 12) return tx;
@@ -116,7 +113,7 @@ export function ContractsAuditTrail() {
                       className="mono tabular text-xs text-[var(--ct-text-primary)] hover:text-[var(--ct-text-strong)] transition-colors duration-[var(--ct-dur-fast)]"
                       title={contract.address}
                     >
-                      {truncateAddress(contract.address)}
+                      {abbreviateAddress(contract.address)}
                     </a>
                   </dd>
                 </div>
