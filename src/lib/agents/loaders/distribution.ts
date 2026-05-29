@@ -58,7 +58,10 @@ export async function loadLatestDistribution(): Promise<DistributionSnapshot> {
     orderBy: { takenAt: "desc" },
     select: { aumUsdc: true },
   });
-  const aum = snapshot?.aumUsdc?.toNumber() ?? 25_000_000;
+  // Mode vérité live: never invent capital. With no snapshot the real reserve
+  // basis is 0, so the synthesised amount is 0 (an honest "nothing computed"),
+  // not a fabricated $25M baseline.
+  const aum = snapshot?.aumUsdc?.toNumber() ?? 0;
   return {
     period: periodOf(new Date()),
     amount_usdc: Math.round(aum * DEFAULT_MONTHLY_RATE),

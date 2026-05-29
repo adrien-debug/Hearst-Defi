@@ -547,8 +547,10 @@ export async function loadVaultMonthlyHistory(
   // Pad the head with synthetic months going backwards from the oldest real
   // anchor (or from "now" if no real data exists at all).
   const missing = safeMonths - real.length;
+  // Mode vérité live: never anchor synthetic history on a fabricated $25M.
+  // With no real NAV/snapshot the anchor is 0 (honest "no history").
   const anchorNav =
-    real[0]?.nav_usdc ?? snapshots[0]?.aumUsdc?.toNumber() ?? 25_000_000;
+    real[0]?.nav_usdc ?? snapshots[0]?.aumUsdc?.toNumber() ?? 0;
   const fallback: VaultMonthlyRow[] = [];
   for (let i = missing; i >= 1; i -= 1) {
     const date = monthsAgo(real[0] ? parsePeriod(real[0].period) : new Date(), i);
