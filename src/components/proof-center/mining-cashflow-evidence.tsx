@@ -17,7 +17,8 @@ import type { CoverageView } from "@/lib/engine/coverage-view";
 // Required copy per state (P1).
 const COPY: Record<CoverageView["provenance"], string> = {
   live: "Coverage calculated from complete mining cash-flow inputs.",
-  estimated: "Coverage estimated from available mining inputs.",
+  estimated:
+    "Estimated from available (demo/staging) mining inputs. Not attested.",
   pending: "Coverage pending until mining cash-flow inputs are attested.",
   invalid: "Coverage unavailable — mining cash-flow inputs are invalid.",
 };
