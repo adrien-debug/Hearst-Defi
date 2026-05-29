@@ -1,6 +1,10 @@
 import "server-only";
 
 import { prisma } from "@/lib/db";
+import {
+  recommendDistributionAction,
+  type DistributionRecommendation,
+} from "@/lib/engine/distribution-policy";
 
 /**
  * Distribution snapshot consumed by the Investor Memo PDF.
@@ -28,6 +32,23 @@ export interface DistributionSnapshot {
    * Consumers MUST badge it `estimated` and label it indicative (B4).
    */
   synthesized?: boolean;
+  /**
+   * Coverage-aware distribution recommendation (P0 Coverage Engine). Optional
+   * and non-breaking: consumers that don't read it are unaffected. Until the
+   * mining-attestation coverage source is wired (P1), the coverage ratio is
+   * unknown, so this resolves to the "pending → suspend" recommendation — an
+   * honest signal that the amount above is NOT yet coverage-validated, never a
+   * fabricated coverage figure.
+   */
+  coverage?: DistributionRecommendation;
+}
+
+/**
+ * Coverage recommendation for a (possibly unknown) coverage ratio. No live
+ * coverage source exists yet (P1), so callers pass `null` → pending/suspend.
+ */
+function coverageFor(ratio: number | null): DistributionRecommendation {
+  return recommendDistributionAction(ratio);
 }
 
 /**
@@ -68,6 +89,7 @@ export async function loadLatestDistribution(): Promise<DistributionSnapshot> {
     paid_at: null,
     status: "scheduled",
     synthesized: true,
+    coverage: coverageFor(null),
   };
 }
 
@@ -88,6 +110,8 @@ function rowToSnapshot(row: DistributionRow): DistributionSnapshot {
     amount_usdc: row.amountUsdc,
     paid_at: row.distributedAt,
     status: row.txHash ? "paid" : "scheduled",
+    // No live coverage source yet (P1) → pending recommendation, not a fake ratio.
+    coverage: coverageFor(null),
   };
 }
 

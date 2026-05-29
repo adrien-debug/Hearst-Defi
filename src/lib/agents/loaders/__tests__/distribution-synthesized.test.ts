@@ -36,6 +36,29 @@ describe("loadLatestDistribution — synthesized flag (B4)", () => {
     expect(snap.synthesized).toBeUndefined();
     expect(snap.status).toBe("paid");
   });
+
+  // P0 Coverage Engine — the snapshot carries a coverage recommendation. With no
+  // live coverage source yet, it must be pending/suspend (never a fake ratio).
+  it("attaches a pending coverage recommendation (synth path)", async () => {
+    findFirstDistribution.mockResolvedValueOnce(null);
+    findFirstSnapshot.mockResolvedValueOnce({ aumUsdc: { toNumber: () => 25_000_000 } });
+    const snap = await loadLatestDistribution();
+    expect(snap.coverage?.action).toBe("suspend");
+    expect(snap.coverage?.maxPayout).toBe(0);
+    expect(snap.coverage?.state).toBe("invalid");
+  });
+
+  it("attaches a pending coverage recommendation (real-row path)", async () => {
+    findFirstDistribution.mockResolvedValueOnce({
+      distributedAt: new Date(),
+      amountUsdc: { toNumber: () => 200_000 },
+      period: "2026-05",
+      txHash: "0xrealhash",
+    });
+    const snap = await loadLatestDistribution();
+    expect(snap.coverage?.action).toBe("suspend");
+    expect(snap.coverage?.maxPayout).toBe(0);
+  });
 });
 
 // B4 — admin badge logic: a simulated 0xMOCK hash is never "attested".
