@@ -14,6 +14,7 @@ import { ContractsAuditTrail } from "@/components/proof-center/contracts-audit-t
 import { EventTimeline } from "@/components/proof-center/event-timeline";
 import { PorSummary } from "@/components/proof-center/por-summary";
 import { MiningCashFlowEvidence } from "@/components/proof-center/mining-cashflow-evidence";
+import { loadCoverageForVault } from "@/lib/agents/loaders/coverage";
 import { TimelockCountdown } from "@/components/governance/timelock-countdown";
 import { isChainConfigured } from "@/lib/chain/client";
 import { fetchOnChainEvents } from "@/lib/chain/event-logger";
@@ -48,6 +49,10 @@ export default async function ProductProofCenterPage({
     ]);
 
   const latestAttestation = onChainAttestations[0] ?? null;
+
+  // P1 — live distribution coverage for the Yield vault, current calendar month.
+  const coveragePeriod = new Date().toISOString().slice(0, 7); // YYYY-MM
+  const coverage = await loadCoverageForVault("hearst-yield-vault", coveragePeriod);
 
   const proofs: UnifiedProof[] = [
     ...onChainAttestations.map(
@@ -116,7 +121,7 @@ export default async function ProductProofCenterPage({
         <h2 id="cashflow-heading" className="sr-only">
           Mining cash-flow evidence
         </h2>
-        <MiningCashFlowEvidence />
+        <MiningCashFlowEvidence coverage={coverage} />
       </section>
 
       {/* ── On-chain event timeline ─────────────────────────── */}

@@ -1,18 +1,45 @@
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Metric } from "@/components/ui/metric";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
+import type { CoverageView } from "@/lib/engine/coverage-view";
 
 /**
- * Mining Cash-Flow Evidence — the RWA proof that matters most for this product:
- * the yield source. Reserves prove the principal is custodied; THIS proves the
- * distribution is funded by real mining revenue.
+ * Mining Cash-Flow Evidence — the RWA proof that matters most: the yield source.
+ * Reserves prove the principal is custodied; THIS proves the distribution is
+ * funded by real mining revenue, via the distribution-coverage engine.
  *
- * Pre-launch posture: no mining revenue period has settled yet, so every field
- * is "Pending" with an honest `manual`/`estimated` badge — never `live`. When
- * the first revenue-share period closes, these become attested figures
- * (period, net revenue, coverage ratio, evidence hash/CID).
+ * When `coverage` is provided it renders the live/estimated/pending state from
+ * the engine. With no inputs attested yet (pre-launch), it stays Pending — never
+ * a fabricated figure, never "Live" without complete inputs, never "healthy"
+ * when coverage < 1.0.
  */
-export function MiningCashFlowEvidence() {
+
+// Required copy per state (P1).
+const COPY: Record<CoverageView["provenance"], string> = {
+  live: "Coverage calculated from complete mining cash-flow inputs.",
+  estimated: "Coverage estimated from available mining inputs.",
+  pending: "Coverage pending until mining cash-flow inputs are attested.",
+  invalid: "Coverage unavailable — mining cash-flow inputs are invalid.",
+};
+
+// Map coverage provenance → ProvenanceBadge kind (never "live" unless attested).
+const BADGE: Record<CoverageView["provenance"], "live" | "estimated" | "manual" | "stale"> = {
+  live: "live",
+  estimated: "estimated",
+  pending: "manual",
+  invalid: "stale",
+};
+
+export function MiningCashFlowEvidence({
+  coverage,
+}: {
+  coverage?: CoverageView | null;
+}) {
+  const provenance = coverage?.provenance ?? "pending";
+  const ratioLabel =
+    coverage && coverage.ratio !== null ? `${coverage.ratio.toFixed(2)}×` : "Pending";
+  const coverageState = coverage?.state ?? "invalid";
+
   return (
     <Card>
       <CardHeader>
@@ -20,39 +47,34 @@ export function MiningCashFlowEvidence() {
           <span className="eyebrow">Mining cash-flow evidence</span>
           <CardTitle>Yield source — Bitcoin mining revenue</CardTitle>
         </div>
-        <ProvenanceBadge kind="manual" />
+        <ProvenanceBadge kind={BADGE[provenance]} />
       </CardHeader>
 
-      <p className="body-sm mb-4">
-        The monthly distribution is funded by a Bitcoin mining revenue-share.
-        Each period, net mining revenue and the resulting distribution coverage
-        are attested here alongside the custody proof-of-reserves. No revenue
-        period has settled yet — figures populate after the first period close.
-      </p>
+      <p className="body-sm mb-4">{COPY[provenance]}</p>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Metric
           label="Distribution coverage"
-          value="Pending"
+          value={ratioLabel}
           sublabel="net mining cash ÷ target"
-          provenance="estimated"
+          provenance={BADGE[provenance]}
+        />
+        <Metric
+          label="State"
+          value={coverageState}
+          sublabel={coverage?.recommendation.action ?? "—"}
+          provenance={BADGE[provenance]}
         />
         <Metric
           label="Latest revenue period"
-          value="—"
-          sublabel="awaiting first close"
+          value={coverage?.period ?? "—"}
+          sublabel={coverage?.lastUpdated ? "as of attestation" : "awaiting first close"}
           provenance="manual"
         />
         <Metric
           label="Attestation status"
-          value="Pending"
+          value={provenance === "live" ? "Attested" : "Pending"}
           sublabel="mining partner + pool"
-          provenance="manual"
-        />
-        <Metric
-          label="Evidence (hash / CID)"
-          value="—"
-          sublabel="published per period"
           provenance="manual"
         />
       </div>

@@ -228,3 +228,18 @@ export function calculateDistributionCoverage(
     healthy,
   };
 }
+
+/** Mandatory coverage input keys (used by the P1 view builder). */
+export const COVERAGE_MANDATORY_KEYS = [
+  "hashprice_usd_per_th_day",
+  "deployed_th",
+  "uptime_pct",
+  "energy_cost_usd_per_kwh",
+  "revenue_share_fraction",
+  "target_distribution_usdc",
+] as const;
+
+/** Exported for the P1 view builder (which lives in coverage-view.ts). */
+export function isCoverageNumber(n: unknown): n is number {
+  return isFiniteNumber(n);
+}

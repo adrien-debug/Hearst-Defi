@@ -45,6 +45,12 @@ const serverEnvSchema = z.object({
   // provenance badge. Methodology v1.0 promises a partner-attested feed
   // (out-of-scope for the current cluster); this env var is the bridge.
   MINING_ENERGY_COST_USD_PER_KWH: z.coerce.number().positive().optional(),
+  // Hearst's mining revenue-share, in basis points (e.g. 4000 = 40%). The
+  // distribution-coverage engine needs it to size net mining cash. No on-chain
+  // source yet; this env var is the manual bridge (provenance stays Estimated
+  // until a partner-attested feed lands). When unset, coverage is Pending —
+  // never fabricated. 0–10000.
+  MINING_REVENUE_SHARE_BPS: z.coerce.number().int().min(0).max(10000).optional(),
   // Fireblocks custody (Proof-of-Reserves). Optional — when absent, custody data
   // falls back to mock with a `Manual` provenance badge instead of `Live`.
   FIREBLOCKS_API_KEY: z.string().optional(),
