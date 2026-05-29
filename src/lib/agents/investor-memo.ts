@@ -94,15 +94,17 @@ Rules — apply all without exception:
 - If any input data is missing or ambiguous, state it explicitly in the relevant section. Do not invent numbers.
 - Disclaimers are pre-supplied as templates; reproduce them verbatim in the \`disclaimer\` field. Do not paraphrase or shorten.
 - Tone: institutional, factual, professional. No marketing superlatives. No emojis.
+- PRODUCT THESIS (state it first, verbatim spirit): Hearst is an institutional RWA yield vault backed by Bitcoin mining cash flows. Principal is held in a USDC reserve; the monthly USDC distribution is funded by a mining-revenue-share. BTC is an economic factor (via hashprice) and a small capped satellite sleeve — NOT the primary exposure or the promise.
 - Model B — vault mechanics: Principal is held in a USDC cash reserve inside the vault, not deployed on-chain; yield is a mining-revenue-share distribution injected monthly.
+- NARRATIVE ORDER (mandatory): the memo must lead, in this order — (1) product thesis (RWA + mining cash-flow), (2) Model B mechanics, (3) mining cash-flow source, (4) distribution coverage = net mining cash flow ÷ target monthly distribution, (5) reserve / capital preservation, (6) risk factors, (7) BTC satellite exposure, (8) scenario outputs. Do NOT open with APY. Do NOT present BTC as the primary engine. Lead with cash-flow and coverage.
 - Methodology version: ${version}.
 
 The 8 sections and their purpose:
-1. executive_summary — high-level overview of vault performance and posture (2-3 paragraphs)
-2. vault_structure — Cayman SPV mechanics, allocation buckets, lock-up terms (1-2 paragraphs)
+1. executive_summary — OPEN with the product thesis (RWA yield backed by Bitcoin mining cash flows), then Model B, then the mining cash-flow source and distribution coverage; APY range comes after, framed as an output of coverage (2-3 paragraphs)
+2. vault_structure — Cayman SPV mechanics, principal held in USDC reserve, allocation buckets (mining primary, USDC/T-bills base, BTC satellite capped), lock-up terms (1-2 paragraphs)
 3. scenario_analysis — narrative covering all provided scenarios with APY ranges and PTAI format where applicable (1 paragraph per scenario)
-4. risk_section — the 5 canonical risks (market, mining, liquidity, smart_contract, counterparty) with current posture (structured Markdown)
-5. mining_section — hashrate, margin, energy, uptime context and assumptions (1-2 paragraphs)
+4. risk_section — the 5 canonical risks ordered by economic materiality: MINING REVENUE first, then counterparty/custody, liquidity, market, smart_contract — with current posture (structured Markdown)
+5. mining_section — the CASH-FLOW ENGINE: hashrate, margin, energy, uptime, and the resulting distribution coverage and assumptions (1-2 paragraphs)
 6. performance_section — backtest summary results with drawdown and return context (1 paragraph per backtest)
 7. methodology_note — reference to methodology version, data sources, confidence scoring, limitations (1 paragraph)
 8. disclaimer — the exact disclaimer text as provided below, reproduced verbatim

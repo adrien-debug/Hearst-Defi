@@ -417,7 +417,7 @@ function StatementDocument({ data }: { data: StatementData }) {
           <View style={styles.headerLeft}>
             <LogoSvg />
             <Text style={[styles.tagline, { marginTop: 6 }]}>
-              Institutional DeFi · Hearst Yield Vault
+              Institutional RWA Yield · Hearst Yield Vault
             </Text>
           </View>
           <View style={styles.headerRight}>

@@ -4,7 +4,8 @@ export const dynamic = "force-static";
 
 export const metadata = {
   title: "Risk Disclaimer",
-  description: "Risk factors specific to Hearst Connect — DeFi, mining, custody, smart contracts.",
+  description:
+    "Risk factors specific to Hearst Connect — Bitcoin mining revenue, distribution coverage, the USDC principal reserve, custody, and smart contracts.",
 };
 
 export default function DisclaimerPage() {
@@ -24,20 +25,25 @@ export default function DisclaimerPage() {
       </div>
 
       <p>
-        Investment in Hearst Yield Vault involves substantial risk, including
-        loss of principal. APY ranges shown in the product are target
-        projections based on disclosed assumptions; they are not guarantees,
-        commitments, or predictions of future returns. Past performance does
-        not predict future results.
+        Hearst Yield Vault is an institutional RWA yield vault backed by Bitcoin
+        mining cash flows. Principal is held in a USDC reserve (Model B) and is
+        not deployed on-chain; the monthly USDC distribution is funded by a
+        mining-revenue-share. Bitcoin price is an economic factor (it drives
+        mining hashprice) and a small capped tactical sleeve — it is not the
+        primary exposure. Investment involves substantial risk, including loss
+        of principal. APY ranges are target projections based on disclosed
+        assumptions; they are not guarantees, commitments, or predictions of
+        future returns. Past performance does not predict future results.
       </p>
 
-      <h2>1. Market &amp; mining risk</h2>
+      <h2>1. Mining revenue risk (primary)</h2>
       <p>
-        Yield is sourced from bitcoin mining operations. Mining revenue is
-        sensitive to bitcoin price, network hashprice, energy costs, halving
+        The vault's distribution is funded by Bitcoin mining cash flows. Mining
+        revenue — and therefore distribution coverage — is sensitive to network
+        hashprice, energy costs, network difficulty, fleet uptime, halving
         events, hardware availability, and regulatory action in mining
-        jurisdictions. Adverse moves in any of these factors can reduce or
-        eliminate distributions.
+        jurisdictions. Adverse moves in any of these factors can reduce, defer,
+        or eliminate distributions, independent of Bitcoin's spot price.
       </p>
 
       <h2>2. Smart contract risk</h2>
@@ -68,8 +74,8 @@ export default function DisclaimerPage() {
       <h2>5. Regulatory &amp; jurisdiction risk</h2>
       <p>
         The SPV is incorporated in the Cayman Islands. Regulatory frameworks
-        applicable to digital assets, mining, and structured DeFi products
-        continue to evolve. Changes in law or enforcement could materially
+        applicable to digital assets, Bitcoin mining, and RWA / mining-backed
+        structured products continue to evolve. Changes in law or enforcement could materially
         affect the product or your ability to participate.
       </p>
 

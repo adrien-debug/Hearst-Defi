@@ -72,8 +72,8 @@ export default function TermsPage() {
         Investment involves substantial risk, including loss of principal. See
         the{" "}
         <a href="/legal/disclaimer">risk disclaimer</a> for a detailed list of
-        risk factors specific to DeFi, mining-backed yield, custody, and smart
-        contracts.
+        risk factors specific to Bitcoin mining revenue, distribution coverage,
+        the USDC principal reserve, custody, and smart contracts.
       </p>
 
       <h2>8. Governing law &amp; jurisdiction</h2>

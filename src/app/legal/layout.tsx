@@ -4,7 +4,8 @@ export const dynamic = "force-static";
 
 export const metadata = {
   title: "Legal",
-  description: "Legal documentation for Hearst Connect — institutional DeFi vault.",
+  description:
+    "Legal documentation for Hearst Connect — institutional RWA yield vault backed by Bitcoin mining cash flows.",
 };
 
 export default function LegalLayout({

@@ -11,18 +11,21 @@ import { PRIVY_APP_ID } from "@/lib/auth/privy-config";
 
 export const metadata: Metadata = {
   title: { default: "Hearst Connect", template: "%s | Hearst Connect" },
-  description: "Institutional DeFi vault — Mining-backed structured yield",
+  description:
+    "Institutional RWA yield vault backed by Bitcoin mining cash flows — monthly USDC distributions, capital held in reserve.",
   metadataBase: new URL("https://connect.hearst.app"),
   openGraph: {
     type: "website",
     siteName: "Hearst Connect",
-    title: "Hearst Connect — Institutional DeFi Vault",
-    description: "Mining-backed structured yield, monthly USDC distributions, target APY range 8–15%.",
+    title: "Hearst Connect — Institutional RWA Yield Vault",
+    description:
+      "RWA yield backed by Bitcoin mining cash flows. Monthly USDC distributions, principal held in a USDC reserve. Target net range 8–15%.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Hearst Connect",
-    description: "Institutional DeFi vault — Mining-backed structured yield",
+    title: "Hearst Connect — RWA Yield Vault",
+    description:
+      "Institutional RWA yield vault backed by Bitcoin mining cash flows.",
   },
   robots: {
     index: true,

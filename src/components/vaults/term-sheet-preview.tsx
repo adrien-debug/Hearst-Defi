@@ -173,8 +173,16 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
               value={USD_COMPACT.format(vault.capacityUsdc)}
               provenance="manual"
             />
+            {/* Distribution Coverage = net mining cash flow ÷ target monthly
+                distribution. The headline RWA metric. Pending until the first
+                live mining revenue period is attested — never shown as Live. */}
             <KpiRow
-              label="Current AUM"
+              label="Distribution coverage"
+              value="Pending — first mining revenue period"
+              provenance="estimated"
+            />
+            <KpiRow
+              label="Current AUM (USDC reserve)"
               value={USD_COMPACT.format(vault.currentAumUsdc)}
               provenance="manual"
             />

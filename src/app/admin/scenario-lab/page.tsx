@@ -56,9 +56,12 @@ export default async function ScenarioLabPage({
         }
       />
       <p className="body-sm max-w-2xl">
-        Rule-based projections for{" "}
-        <span className="ct-text-strong">{vault.label}</span> across 5 market
-        scenarios. Adjust inputs or select a preset — outputs are deterministic,
+        Cash-flow &amp; distribution-coverage explorer for{" "}
+        <span className="ct-text-strong">{vault.label}</span>. Models how mining
+        margin, hashprice, energy and uptime drive net cash generation,
+        distribution coverage and reserve runway. The BTC market presets below
+        are <span className="ct-text-strong">legacy market overlays</span> — a
+        secondary lens, not the primary view. Outputs are deterministic,
         conditional on stated assumptions. Not guaranteed.
       </p>
 

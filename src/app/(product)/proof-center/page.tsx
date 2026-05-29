@@ -13,6 +13,7 @@ import type { UnifiedProof } from "@/components/proof/proof-types";
 import { ContractsAuditTrail } from "@/components/proof-center/contracts-audit-trail";
 import { EventTimeline } from "@/components/proof-center/event-timeline";
 import { PorSummary } from "@/components/proof-center/por-summary";
+import { MiningCashFlowEvidence } from "@/components/proof-center/mining-cashflow-evidence";
 import { TimelockCountdown } from "@/components/governance/timelock-countdown";
 import { isChainConfigured } from "@/lib/chain/client";
 import { fetchOnChainEvents } from "@/lib/chain/event-logger";
@@ -108,6 +109,14 @@ export default async function ProductProofCenterPage({
           Proof of Reserves
         </h2>
         <PorSummary attestation={latestAttestation} custody={custody} />
+      </section>
+
+      {/* ── Mining cash-flow evidence (yield source) ───────────── */}
+      <section aria-labelledby="cashflow-heading">
+        <h2 id="cashflow-heading" className="sr-only">
+          Mining cash-flow evidence
+        </h2>
+        <MiningCashFlowEvidence />
       </section>
 
       {/* ── On-chain event timeline ─────────────────────────── */}

@@ -11,7 +11,7 @@ const CONNECT_PRODUCTS = [
 
 const CHAT_CONFIG: ChatConfig = {
   apiEndpoint: "/api/cockpit-chat",
-  productContext: "Hearst Connect — Single-vault institutional DeFi platform. Mining-backed structured yield, monthly USDC distributions, target APY 8–15%.",
+  productContext: "Hearst Connect — Institutional RWA yield vault backed by Bitcoin mining cash flows. Principal held in a USDC reserve (Model B); monthly USDC distributions funded by mining revenue-share; BTC is an economic factor, not the primary exposure. Target net range 8–15%.",
 };
 
 export function ConnectShell({ children }: { children: ReactNode }) {
