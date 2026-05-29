@@ -266,9 +266,10 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             <article className="dash-cell dash-cell-premium h-full flex flex-col p-6" aria-label="Allocation breakdown">
               <div className="dash-label relative z-10">
                 <span className="text-micro font-bold uppercase tracking-widest text-[var(--ct-text-muted)]">Allocation breakdown</span>
-                <ProvenanceBadge kind="live" />
+                {/* A3 — never claim "Live" over an empty/fallback allocation. */}
+                <ProvenanceBadge kind={allocSegments.length === 0 ? "stale" : "live"} />
               </div>
-              
+
               {allocSegments.length === 0 ? (
                 <div className="flex-1 flex items-center justify-center">
                   <p className="body-sm text-[var(--ct-text-muted)] italic">No allocation data yet.</p>

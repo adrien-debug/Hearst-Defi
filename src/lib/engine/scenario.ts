@@ -200,6 +200,9 @@ function buildAssumptions(
     `preset=${presetLabel}; vault_mode=${mode}; generated_at=${timestamp}`,
     `hashprice=${inputs.hashprice_usd_th_day} USD/TH/day, energy=${inputs.energy_cost_kwh} USD/kWh, uptime=98% (paper phase)`,
     `btc_price_change_30d=${inputs.btc_price_change_pct}%, vol_index=${inputs.vol_index}, stable_base_apy=${inputs.stable_apy_pct}%`,
+    // B1 — disclose that very tight ranges are widened to a minimum display
+    // spread, so the band is never read as a precise measurement.
+    `apy_range=±${Math.round(ASSUMPTION_RISK_FACTOR * 100)}/${Math.round(ASSUMPTION_UPSIDE_FACTOR * 100)}% assumption factors; range includes a minimum display spread of ${MIN_APY_SPREAD_BPS} bps`,
     "Outputs are projections, not guaranteed. Past performance does not predict future results.",
   ];
 }

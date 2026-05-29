@@ -27,6 +27,12 @@ export interface MiningOpsSnapshot {
    * `null` when both fail and we fall back to the DB-only snapshot.
    */
   hashprice?: HashpriceData | null;
+  /**
+   * True when the operational figures (hashrate, uptime, attestations) are the
+   * DB-empty fallback rather than measured/attested rows. Consumers MUST badge
+   * fallback figures as `estimated`/`stale`, never `attested` (B3).
+   */
+  is_fallback?: boolean;
 }
 
 /** Default look-back window for the ops snapshot (30 days). */
@@ -178,6 +184,7 @@ export async function loadMiningOpsSnapshot(
       ...OPS_FALLBACK,
       margin_score: liveMarginScore ?? OPS_FALLBACK.margin_score,
       hashprice,
+      is_fallback: true,
     };
   }
 

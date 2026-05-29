@@ -33,6 +33,11 @@ export interface RiskPulseProps {
    */
   compositeLabel: CompositeLabel | undefined;
   composite30dTrend: "rising" | "stable" | "falling";
+  /**
+   * Provenance of the underlying snapshot. "stale" when no data backs the
+   * scores — the header badge reflects this instead of a fixed "live".
+   */
+  source?: "live" | "stale";
 }
 
 // ── Helpers (exported for unit tests) ────────────────────────────────────────
@@ -183,12 +188,16 @@ function ScoreRow({ item }: ScoreRowProps) {
         {label}
       </span>
 
-      {/* Score */}
+      {/* Score — em-dash when no real sub-score is stored (0 = not available) */}
       <span
         className="tabular font-semibold text-sm text-[var(--ct-text-primary)] w-7 text-right shrink-0"
-        aria-label={`${label} score ${String(item.score)} out of 100`}
+        aria-label={
+          item.score > 0
+            ? `${label} score ${String(item.score)} out of 100`
+            : `${label} score not available`
+        }
       >
-        {item.score}
+        {item.score > 0 ? item.score : "—"}
       </span>
 
       {/* Optional sparkline */}
@@ -290,6 +299,7 @@ export function RiskPulse({
   composite,
   compositeLabel,
   composite30dTrend,
+  source = "live",
 }: RiskPulseProps) {
   // No-data: every sub-score is 0, composite is 0, and the loader did not
   // assign a label. Showing "Low" here would be a misleading positive signal
@@ -299,11 +309,18 @@ export function RiskPulse({
     composite === 0 &&
     scores.every((s) => s.score === 0);
 
+  // Per-dimension sub-scores are not yet persisted; a 0 means "not available",
+  // not "low risk". The badge is only "live" when the snapshot is live AND at
+  // least one real sub-score exists — otherwise "stale".
+  const dimensionsAvailable = scores.some((s) => s.score > 0);
+  const badgeKind: "live" | "stale" =
+    source === "stale" || noData || !dimensionsAvailable ? "stale" : "live";
+
   return (
     <article className="dash-cell dash-cell-premium h-full flex flex-col">
       <div className="dash-label relative z-10">
         <span className="font-semibold text-[var(--ct-text-strong)]">Risk Pulse</span>
-        <ProvenanceBadge kind="live" />
+        <ProvenanceBadge kind={badgeKind} />
       </div>
 
       <ul className="ct-divide-soft relative z-10" aria-label="Risk dimension scores">

@@ -15,6 +15,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { isChainConfigured } from "@/lib/chain/client";
 import { fetchOnChainEvents } from "@/lib/chain/event-logger";
 import { fetchOnChainAttestations } from "@/lib/chain/por-registry";
+import { isAttestorAllowlisted } from "@/lib/attestation/stored";
 import { loadCustody } from "@/lib/data/custody";
 import { getProofs } from "@/lib/data/proofs";
 import { listAllVaults, resolveVault } from "@/lib/vaults/resolver";
@@ -64,6 +65,11 @@ export default async function AdminProofCenterPage({
 
   // Latest PoR attestation for the summary panel (descending order, index 0 = newest)
   const latestAttestation = onChainAttestations[0] ?? null;
+  // A4 — the "Attested" badge requires the attestor to be allowlisted, not just
+  // a fresh timestamp. Fail-closed when the allowlist is unset.
+  const latestAttestationVerified =
+    latestAttestation !== null &&
+    isAttestorAllowlisted(latestAttestation.attestor);
 
   const proofs: UnifiedProof[] = [
     ...onChainAttestations.map(
@@ -139,7 +145,11 @@ export default async function AdminProofCenterPage({
         <h2 id="por-heading" className="sr-only">
           Proof of Reserves
         </h2>
-        <PorSummary attestation={latestAttestation} custody={custody} />
+        <PorSummary
+          attestation={latestAttestation}
+          custody={custody}
+          verified={latestAttestationVerified}
+        />
       </section>
 
       {/* ── On-chain event timeline ─────────────────────────── */}

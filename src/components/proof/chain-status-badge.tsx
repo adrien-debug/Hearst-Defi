@@ -27,9 +27,9 @@ export function ChainStatusBadge({
     return (
       <Badge
         variant="default"
-        title="Contracts are configured on Base Sepolia but no events have been published yet."
+        title="Contracts are configured on Base Sepolia (testnet) but no events have been published yet."
       >
-        Connected · Base Sepolia · no on-chain events yet
+        Connected · Base Sepolia (testnet) · no on-chain events yet
       </Badge>
     );
   }
@@ -47,9 +47,9 @@ export function ChainStatusBadge({
   return (
     <Badge
       variant="success"
-      title="Reading EventLogger + PoRRegistry events directly from Base Sepolia."
+      title="Reading EventLogger + PoRRegistry events directly from Base Sepolia (testnet)."
     >
-      Connected · Base Sepolia · {parts.join(" + ")}
+      Connected · Base Sepolia (testnet) · {parts.join(" + ")}
     </Badge>
   );
 }

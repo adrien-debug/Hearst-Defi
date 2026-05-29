@@ -111,6 +111,19 @@ function devAcceptAny(): boolean {
 }
 
 /**
+ * True when `signer` is a trusted attestor: present in the env allowlist
+ * (`ATTESTATION_ALLOWED_SIGNERS`), or accepted via the dev bypass. Fail-closed:
+ * an unset allowlist returns `false` (never fail-open). Used by the Proof
+ * Center to gate the "Attested" badge on an on-chain attestation — the
+ * attestor must be allowlisted, not merely fresh (A4).
+ */
+export function isAttestorAllowlisted(signer: string | null | undefined): boolean {
+  if (!signer) return false;
+  if (devAcceptAny()) return true;
+  return loadAllowlist().has(signer.toLowerCase());
+}
+
+/**
  * Verifies an attestation reconstructed from DB columns.
  *
  * Returns `null` for proofs that carry no signature (custody/audit/methodology),

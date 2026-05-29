@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Hearst Connect" />
+  <meta name="dcterms.date" content="2026-05-26" />
+  <title>Hearst Yield Vault — Stratégie complète</title>
+  <style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+  <style type="text/css">@page {
+size: A4;
+margin: 22mm 18mm 22mm 18mm;
+@bottom-center { content: counter(page) " / " counter(pages); font-size: 9pt; color: #888; }
+}
+:root {
+--ink: #1a1d24;
+--muted: #6b7280;
+--rule: #e5e7eb;
+--accent: #7b1d3a;
+--accent-soft: #f3e7ec;
+--code-bg: #f5f5f7;
+}
+* { box-sizing: border-box; }
+html, body {
+font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+font-size: 10.5pt;
+line-height: 1.55;
+color: var(--ink);
+margin: 0;
+padding: 0;
+background: #fff;
+-webkit-font-smoothing: antialiased;
+}
+
+.title {
+font-size: 26pt;
+font-weight: 800;
+letter-spacing: -0.5pt;
+color: var(--ink);
+margin: 0 0 4pt;
+page-break-after: avoid;
+}
+.subtitle {
+font-size: 13pt;
+font-weight: 500;
+color: var(--muted);
+margin: 0 0 24pt;
+}
+.author, .date {
+font-size: 9.5pt;
+color: var(--muted);
+margin: 0;
+}
+.author { margin-top: 18pt; }
+header#title-block-header {
+border-bottom: 2px solid var(--accent);
+padding-bottom: 16pt;
+margin-bottom: 22pt;
+}
+
+h1 {
+font-size: 19pt;
+font-weight: 800;
+letter-spacing: -0.3pt;
+color: var(--accent);
+margin: 28pt 0 8pt;
+padding-bottom: 6pt;
+border-bottom: 1px solid var(--rule);
+page-break-after: avoid;
+}
+h2 {
+font-size: 14pt;
+font-weight: 700;
+color: var(--ink);
+margin: 22pt 0 6pt;
+page-break-after: avoid;
+}
+h3 {
+font-size: 11.5pt;
+font-weight: 700;
+color: var(--ink);
+margin: 16pt 0 4pt;
+page-break-after: avoid;
+}
+h4 {
+font-size: 10.5pt;
+font-weight: 700;
+color: var(--muted);
+text-transform: uppercase;
+letter-spacing: 0.6pt;
+margin: 14pt 0 4pt;
+page-break-after: avoid;
+}
+
+p { margin: 0 0 8pt; orphans: 3; widows: 3; }
+
+ul, ol { margin: 0 0 10pt 0; padding-left: 18pt; }
+li { margin-bottom: 3pt; }
+li > p { margin-bottom: 4pt; }
+
+blockquote {
+margin: 10pt 0;
+padding: 10pt 14pt;
+background: var(--accent-soft);
+border-left: 3px solid var(--accent);
+border-radius: 0 4pt 4pt 0;
+page-break-inside: avoid;
+}
+blockquote p:last-child { margin-bottom: 0; }
+blockquote strong { color: var(--accent); }
+
+code {
+font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+font-size: 9pt;
+background: var(--code-bg);
+padding: 1pt 4pt;
+border-radius: 3pt;
+color: var(--ink);
+}
+pre {
+background: var(--code-bg);
+border: 1px solid var(--rule);
+border-radius: 4pt;
+padding: 10pt 12pt;
+margin: 10pt 0;
+font-size: 8.8pt;
+line-height: 1.45;
+overflow-x: auto;
+page-break-inside: avoid;
+}
+pre code { background: transparent; padding: 0; font-size: inherit; }
+
+table {
+width: 100%;
+border-collapse: collapse;
+margin: 10pt 0;
+font-size: 9.5pt;
+page-break-inside: avoid;
+}
+thead {
+background: var(--accent);
+color: #fff;
+}
+th, td {
+text-align: left;
+padding: 6pt 9pt;
+border-bottom: 1px solid var(--rule);
+vertical-align: top;
+}
+th {
+font-weight: 600;
+font-size: 9pt;
+letter-spacing: 0.2pt;
+}
+tbody tr:nth-child(even) { background: #fafafa; }
+td code { font-size: 8.5pt; }
+th:last-child, td:last-child { border-right: none; }
+
+th[align="right"], td[align="right"] { text-align: right; }
+
+hr {
+border: none;
+border-top: 1px solid var(--rule);
+margin: 22pt 0;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--ink); }
+
+h1 { page-break-before: auto; }
+h1:first-of-type { page-break-before: avoid; }
+
+h1 + p, h1 + ul, h1 + ol, h1 + table,
+h2 + p, h2 + ul, h2 + ol, h2 + table,
+h3 + p, h3 + ul, h3 + ol, h3 + table {
+page-break-before: avoid;
+}
+
+hr + p:last-child {
+font-size: 8.5pt;
+color: var(--muted);
+font-style: italic;
+margin-top: 16pt;
+padding: 10pt 12pt;
+border: 1px solid var(--rule);
+border-radius: 4pt;
+background: #fafafa;
+}
+</style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Hearst Yield Vault — Stratégie complète</h1>
+<p class="subtitle">Vault HYV-A · Méthodologie v1.0 · Cayman Exempted
+LP</p>
+<p class="author">Hearst Connect</p>
+<p class="date">2026-05-26</p>
+</header>
+<h1 id="hearst-yield-vault-stratégie-complète">Hearst Yield Vault —
+Stratégie complète</h1>
+<blockquote>
+<p><strong>Document interne — synthèse du modèle de calcul, des règles
+de rebalancing et du framework de risque tels qu’implémentés dans le
+moteur. Chaque numéro de cette synthèse est traçable au code
+(<code>src/lib/engine/*</code>) ou à la méthodologie v1.0
+(<code>docs/methodology/v1.0.md</code>). Projections conditionnelles aux
+hypothèses ; performance passée ne préjuge pas du futur ; non
+garanti.</strong></p>
+</blockquote>
+<hr />
+<h2 id="vault-overview">1 · Vault overview</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Valeur</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ticker</strong></td>
+<td>HYV-A</td>
+</tr>
+<tr>
+<td><strong>Nom</strong></td>
+<td>Hearst Yield Vault</td>
+</tr>
+<tr>
+<td><strong>Statut</strong></td>
+<td>Live (testnet Base Sepolia, mainnet gated par audit Spearbit)</td>
+</tr>
+<tr>
+<td><strong>Stratégie</strong></td>
+<td>Mining-backed structured yield, monthly USDC distributions</td>
+</tr>
+<tr>
+<td><strong>APY target range</strong></td>
+<td>9.4 – 12.8 % (bornes resserrées) · 8 – 15 % (enveloppe large sous
+stress)</td>
+</tr>
+<tr>
+<td><strong>Mode par défaut</strong></td>
+<td>Balanced</td>
+</tr>
+<tr>
+<td><strong>Share classes</strong></td>
+<td>A (250 k $ / 60 j lock / 2 % mgmt + 10 % perf) · B (1 M $ / 90 j /
+0.75 % + 8 %)</td>
+</tr>
+<tr>
+<td><strong>Distribution</strong></td>
+<td>Mensuelle, T+5 jours</td>
+</tr>
+<tr>
+<td><strong>Méthodologie</strong></td>
+<td>v1.0 (immutable) · v2.0 pour Monte Carlo</td>
+</tr>
+<tr>
+<td><strong>SPV</strong></td>
+<td>Cayman Exempted Limited Partnership</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="structure-4-sleeves-complémentaires">2 · Structure : 4 sleeves
+complémentaires</h2>
+<p>Le vault répartit l’AUM sur <strong>quatre sleeves</strong>, chacun
+avec un rôle économique distinct. Les pourcentages ci-dessous sont les
+targets de base ; ils flexent dans des bandes par mode (cf. §7).</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 30%" />
+<col style="width: 23%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr>
+<th>Sleeve</th>
+<th style="text-align: right;">Target (balanced)</th>
+<th>Rôle</th>
+<th>Source de yield</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Mining</strong></td>
+<td style="text-align: right;"><strong>60 %</strong></td>
+<td>Moteur de cashflow USDC mensuel</td>
+<td>Revenue-share sur capacité ASIC (BTC mining)</td>
+</tr>
+<tr>
+<td><strong>BTC tactical</strong></td>
+<td style="text-align: right;"><strong>25 %</strong></td>
+<td>Convexité asymétrique sur cycle</td>
+<td>Trading P&amp;L (rules-based, jamais discrétionnaire)</td>
+</tr>
+<tr>
+<td><strong>USDC base</strong></td>
+<td style="text-align: right;"><strong>10 %</strong></td>
+<td>Yield défensif liquide</td>
+<td>T-bills (Ondo) + lending (Aave/Compound via DefiLlama)</td>
+</tr>
+<tr>
+<td><strong>Stable reserve</strong></td>
+<td style="text-align: right;"><strong>5 %</strong></td>
+<td>Buffer distributions + amortisseur stress</td>
+<td>USDC native ~ 4.5 %</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Source : <code>src/lib/engine/vaults.ts</code> —
+<code>VAULT_YIELD.allocationTargets</code>.</p>
+</blockquote>
+<p>L’asymétrie est volontaire : le mining apporte la
+<strong>prédictibilité du cashflow</strong>, le BTC tactical apporte la
+<strong>convexité</strong>, le USDC base apporte la <strong>liquidité
+immédiate</strong> pour les claim windows, le stable reserve apporte le
+<strong>buffer</strong> quand les guardrails s’arment.</p>
+<hr />
+<h2 id="sleeve-1-mining-60-de-laum">3 · Sleeve 1 — Mining (60 % de
+l’AUM)</h2>
+<h3 id="formule-de-revenu-par-thjour">3.1 Formule de revenu par
+TH/jour</h3>
+<pre><code>gross_revenue   = hashprice_usd_th_day × uptime_assumption (0.98)
+energy_cost     = energy_cost_kwh × efficiency_kwh_per_th_day (0.1)
+operating_costs = energy_cost + hosting_pool_fees (0.005 $/TH/jour)
+net_margin      = gross_revenue − operating_costs</code></pre>
+<blockquote>
+<p>Source : <code>src/lib/engine/mining.ts:8-23</code>.</p>
+</blockquote>
+<h3 id="margin-score-0-100">3.2 Margin score (0 – 100)</h3>
+<pre><code>raw_score    = 50 + 50 × (net_margin / target_margin − 1)
+margin_score = clip(raw_score, 0, 100)</code></pre>
+<p>Target margin = <strong>0.04 $/TH/jour</strong>. Le margin score
+conditionne 4 règles de rebalancing (R2, R3, R-BTC-1/2, R-BTC-6) et un
+guardrail BTC.</p>
+<h3 id="de-net_margin-à-apy-bucket">3.3 De net_margin à APY bucket</h3>
+<pre><code>annualised_usd_per_th = max(0, net_margin) × 365
+mining_bucket_apy     = annualised_usd_per_th / 120 $ invested_per_TH</code></pre>
+<blockquote>
+<p>Source : <code>src/lib/engine/rebalancing.ts:91-99</code>.</p>
+</blockquote>
+<p>Les <strong>120 $/TH</strong> sont le capex+hosting prepayé que le
+vault price dans chaque contrat de revenue-share. À hashprice de
+référence (~ 0.085 $/TH/jour), cela produit ~ 22 % APY bucket →
+<strong>~ 13 pp APY vault</strong> à 60 % allocation.</p>
+<h3 id="inputs-réels-méthodologie-v1.0-inputs">3.4 Inputs réels
+(méthodologie v1.0 §“Inputs”)</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Source primaire</th>
+<th>Fallback</th>
+<th>Cadence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hashprice</td>
+<td>Luxor / Hashrate Index</td>
+<td>manual</td>
+<td>daily</td>
+</tr>
+<tr>
+<td>Energy cost</td>
+<td>partner contractual + spot index</td>
+<td>env override / 0.05 fallback</td>
+<td>monthly</td>
+</tr>
+<tr>
+<td>Uptime</td>
+<td>partner monthly attestation (signée)</td>
+<td>—</td>
+<td>monthly</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⚠️ Energy cost vient désormais d’un module canonique
+(<code>src/lib/data/energy-cost.ts</code>) avec env override
+<code>MINING_ENERGY_COST_USD_PER_KWH</code>. La valeur n’est plus
+hardcodée dans 4 fichiers comme avant l’audit cohérence 2026-05-26.</p>
+</blockquote>
+<hr />
+<h2 id="sleeve-2-btc-tactical-25-balanced-jamais-discrétionnaire">4 ·
+Sleeve 2 — BTC tactical (25 % balanced, jamais discrétionnaire)</h2>
+<h3 id="cible-dexposition-par-mode">4.1 Cible d’exposition par mode</h3>
+<pre><code>defensive     → 5 %  AUM
+balanced      → 12 % AUM
+opportunistic → 22 % AUM (cap dur à 30 %)</code></pre>
+<blockquote>
+<p>Source : <code>src/lib/engine/btc-tactical.ts:34-43</code>.</p>
+</blockquote>
+<h3 id="triggers-internes-en-plus-des-règles-r-btc-8">4.2 Triggers
+internes (en plus des règles R-BTC §8)</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Trigger</th>
+<th>Condition</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>accumulate</td>
+<td>BTC 30j ≤ −20 % <strong>ET</strong> vol_index &lt; 60</td>
+<td>Multiplicateur 1.1× sur target</td>
+</tr>
+<tr>
+<td>take_profit</td>
+<td>BTC 30j ≥ +40 %</td>
+<td>Multiplicateur 0.75× sur target</td>
+</tr>
+<tr>
+<td>reduce_size</td>
+<td>vol_index &gt; 80</td>
+<td>Multiplicateur 0.5× sur target</td>
+</tr>
+<tr>
+<td>hold</td>
+<td>aucun autre armé</td>
+<td>Target inchangé</td>
+</tr>
+</tbody>
+</table>
+<h3 id="guardrails-durs-peuvent-overrider-un-trigger">4.3 4 guardrails
+durs (peuvent overrider un trigger)</h3>
+<table>
+<thead>
+<tr>
+<th>Guardrail</th>
+<th>Levels</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Volatilité</strong></td>
+<td>normal ≤ 65 · warning 66–80 · <strong>breached</strong> &gt; 80</td>
+</tr>
+<tr>
+<td><strong>Mining margin</strong></td>
+<td>healthy ≥ 70 · warning 50–69 · <strong>breached</strong> &lt;
+50</td>
+</tr>
+<tr>
+<td><strong>Concentration</strong></td>
+<td>warning si mode = opportunistic</td>
+</tr>
+<tr>
+<td><strong>Liquidité</strong></td>
+<td>placeholder MVP (depth feed onchain en V1)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Source : <code>src/lib/engine/btc-tactical.ts:107-159</code>.</p>
+</blockquote>
+<h3 id="contribution-apy-bps-dérivée-du-btc-30j-change">4.4 Contribution
+APY (bps, dérivée du BTC 30j change)</h3>
+<table>
+<thead>
+<tr>
+<th>BTC 30j change</th>
+<th style="text-align: right;">Contribution bucket</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>≥ +30 %</td>
+<td style="text-align: right;"><strong>+1 800 bps</strong></td>
+</tr>
+<tr>
+<td>≥ +10 %</td>
+<td style="text-align: right;">+900 bps</td>
+</tr>
+<tr>
+<td>entre</td>
+<td style="text-align: right;">+200 bps (base)</td>
+</tr>
+<tr>
+<td>≤ −10 %</td>
+<td style="text-align: right;">−200 bps</td>
+</tr>
+<tr>
+<td>≤ −25 %</td>
+<td style="text-align: right;"><strong>−600 bps</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Source : <code>src/lib/engine/rebalancing.ts:101-107</code>.</p>
+</blockquote>
+<hr />
+<h2 id="sleeve-3-usdc-base-10">5 · Sleeve 3 — USDC base (10 %)</h2>
+<p>Yield défensif liquide. Composition :</p>
+<pre><code>usdc_base_bps = stable_apy_pct × 100 + 480 (RWA-like premium) − 200 (mgmt drag)</code></pre>
+<blockquote>
+<p>Source : <code>src/lib/engine/rebalancing.ts:109-111</code>.</p>
+</blockquote>
+<p>Sources réelles : <strong>T-bills via Ondo Finance API</strong>
+(fallback FRED 3M T-bill), <strong>lending APY via DefiLlama</strong>
+sur Aave + Compound (fallback direct RPC). Cadence daily.</p>
+<hr />
+<h2 id="sleeve-4-stable-reserve-5">6 · Sleeve 4 — Stable reserve (5
+%)</h2>
+<p>Buffer liquidité. Yield USDC native ~ 4.5 % (constante engine
+<code>STABLE_RESERVE_BPS = 450</code>). Sert
+d’<strong>amortisseur</strong> : quand R-BTC-5 (vol &gt; 90) ou R-BTC-6
+(margin &lt; 50) s’arment, on bascule le btc_tactical vers ce
+sleeve.</p>
+<hr />
+<h2 id="risk-framework-5-dimensions-pondérées">7 · Risk framework — 5
+dimensions pondérées</h2>
+<blockquote>
+<p>Source : <code>src/lib/engine/risk.ts:1-48</code>.</p>
+</blockquote>
+<h3 id="dimensions-et-poids">7.1 Dimensions et poids</h3>
+<table>
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 40%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr>
+<th>Dimension</th>
+<th style="text-align: right;">Poids</th>
+<th>Formule (0 – 100 ; haut = risqué)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Market</strong></td>
+<td style="text-align: right;">30 %</td>
+<td><code>20 + drawdown × 1.2 + upside × 0.3 + vol_norm × 40</code></td>
+</tr>
+<tr>
+<td><strong>Mining</strong></td>
+<td style="text-align: right;">25 %</td>
+<td><code>30 + hashprice_pressure(±) + energy_pressure(±)</code></td>
+</tr>
+<tr>
+<td><strong>Liquidity</strong></td>
+<td style="text-align: right;">15 %</td>
+<td><code>30 + vol_factor + stable_apy_factor</code></td>
+</tr>
+<tr>
+<td><strong>Smart contract</strong></td>
+<td style="text-align: right;">20 %</td>
+<td><strong>80</strong> baseline pré-audit</td>
+</tr>
+<tr>
+<td><strong>Counterparty</strong></td>
+<td style="text-align: right;">10 %</td>
+<td><strong>35</strong> baseline</td>
+</tr>
+</tbody>
+</table>
+<pre><code>composite = Σ weight × dimension_score   (clipped [1, 100])</code></pre>
+<h3 id="notes-critiques">7.2 Notes critiques</h3>
+<ul>
+<li>Smart contract à <strong>80 / 100 baseline</strong> reflète
+<strong>l’absence d’audit Spearbit</strong>. Tant que la V1 mainnet
+n’est pas auditée, le composite reste structurellement élevé. C’est
+intentionnel — non négociable #8.</li>
+<li>Counterparty à 35 reflète le risque partner (mining operator,
+custody) — réévalué quand le mining contract est rotaté.</li>
+<li>Sharpe / Sortino / VaR sont calculés (<code>risk.ts:111-144</code>)
+mais <strong>réservés à l’Advanced mode</strong> (méthodologie v1.0
+§“Forbidden in any projection output”).</li>
+</ul>
+<hr />
+<h2 id="mode-detection-bascule-defensive-balanced-opportunistic">8 ·
+Mode detection — bascule defensive ↔︎ balanced ↔︎ opportunistic</h2>
+<blockquote>
+<p>Source : <code>src/lib/engine/rebalancing.ts:37-54</code>.</p>
+</blockquote>
+<pre><code>risk ≥ 65 OU margin &lt; 50    → defensive
+risk ≤ 40 ET margin ≥ 75    → opportunistic
+sinon                         → balanced</code></pre>
+<p>Allocation par mode :</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th style="text-align: right;">mining</th>
+<th style="text-align: right;">btc_tactical</th>
+<th style="text-align: right;">usdc_base</th>
+<th style="text-align: right;">stable_reserve</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>defensive</strong></td>
+<td style="text-align: right;">25 %</td>
+<td style="text-align: right;">5 %</td>
+<td style="text-align: right;"><strong>55 %</strong></td>
+<td style="text-align: right;">15 %</td>
+</tr>
+<tr>
+<td><strong>balanced</strong></td>
+<td style="text-align: right;">35 %</td>
+<td style="text-align: right;">15 %</td>
+<td style="text-align: right;">40 %</td>
+<td style="text-align: right;">10 %</td>
+</tr>
+<tr>
+<td><strong>opportunistic</strong></td>
+<td style="text-align: right;">35 %</td>
+<td style="text-align: right;">25 %</td>
+<td style="text-align: right;">30 %</td>
+<td style="text-align: right;">10 %</td>
+</tr>
+</tbody>
+</table>
+<p>Note : les targets baseline en allocation <strong>balanced</strong>
+(35/15/40/10) sont plus prudentes que les targets affichés au LP
+(60/25/10/5). Le mode “balanced rebalanced” est intermédiaire — le
+60/25/10/5 est l’objectif <em>quand</em> margin et BTC momentum sont
+positifs.</p>
+<hr />
+<h2 id="rebalancing-rules-12-règles-en-format-ptai">9 · Rebalancing
+rules — 12 règles en format PTAI</h2>
+<p>Chaque règle produit un signal <strong>Projection → Trigger → Action
+→ Impact</strong>. Aucune sortie ne contient les mots interdits
+(<code>guarantee</code>, <code>promise</code>, <code>certain</code>,
+<code>will deliver</code>, <code>risk-free</code>, <code>no risk</code>)
+— vérifié par <code>assertNoForbiddenWords</code> à l’émission.</p>
+<blockquote>
+<p>Source :
+<code>src/lib/engine/rebalancing-rules.ts:231-499</code>.</p>
+</blockquote>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>ID</th>
+<th>Trigger</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>R1</strong></td>
+<td>BTC 30j ≤ −25 % AND mode ≠ defensive</td>
+<td>Switch en defensive (mining 25 %, stable 70 %)</td>
+</tr>
+<tr>
+<td><strong>R2</strong></td>
+<td>margin_score &lt; 50</td>
+<td>−30 % mining, +Δ stable_reserve</td>
+</tr>
+<tr>
+<td><strong>R3</strong></td>
+<td>margin &gt; 75 AND BTC &gt; 0 %</td>
+<td>+10 pp mining (depuis usdc_base), cap 45 %</td>
+</tr>
+<tr>
+<td><strong>R4</strong></td>
+<td>hashprice trend ≤ −20 %</td>
+<td><strong>Multisig review 72 h</strong> (zéro reweight auto)</td>
+</tr>
+<tr>
+<td><strong>R5</strong></td>
+<td>stable_apy &gt; mining_apy + 1 pp</td>
+<td>Rotation mining → usdc_base (max 10 pp)</td>
+</tr>
+<tr>
+<td><strong>R-BTC-1</strong></td>
+<td>BTC −20 % + margin ≥ 60 + pos &lt; 20 %</td>
+<td>+5 pp btc_tactical ← usdc_base</td>
+</tr>
+<tr>
+<td><strong>R-BTC-2</strong></td>
+<td>BTC −35 % + margin ≥ 60 + pos &lt; 25 %</td>
+<td>+5 pp incrémental btc_tactical</td>
+</tr>
+<tr>
+<td><strong>R-BTC-3</strong></td>
+<td>BTC +30 % + pos &gt; 10 %</td>
+<td>Sell 25 % du BTC → stable_reserve</td>
+</tr>
+<tr>
+<td><strong>R-BTC-4</strong></td>
+<td>BTC +60 % + pos &gt; 10 %</td>
+<td>Sell 25 % incrémental</td>
+</tr>
+<tr>
+<td><strong>R-BTC-5</strong></td>
+<td>vol_index &gt; 90</td>
+<td>Halve BTC sleeve → stable_reserve</td>
+</tr>
+<tr>
+<td><strong>R-BTC-6</strong></td>
+<td>margin &lt; 50 (et R2 pas armé)</td>
+<td>Suspend BTC accumulation</td>
+</tr>
+</tbody>
+</table>
+<h3 id="hiérarchie">9.1 Hiérarchie</h3>
+<p>R1 (régime defensive) prime. Les R-BTC ne peuvent pas armer si le
+mining est en stress (R-BTC-6 désactive R-BTC-1/2). R4 est
+<strong>purement informatif</strong> — déclenche une revue humaine,
+jamais un reweight automatique.</p>
+<h3 id="exécution">9.2 Exécution</h3>
+<ul>
+<li>Les signaux émis sont <strong>proposés</strong> par l’engine,
+<strong>pas exécutés</strong>.</li>
+<li>L’exécution passe par <strong>multisig 3/5 signers + timelock 48
+h</strong> (sauf actions intra-bandes en mode normal).</li>
+<li>Chaque exécution émet un <code>RebalanceEvent</code> Prisma + un log
+onchain (<code>EventLogger.sol</code>).</li>
+</ul>
+<hr />
+<h2 id="apy-composition-la-math-finale">10 · APY composition — la math
+finale</h2>
+<blockquote>
+<p>Source : <code>src/lib/engine/rebalancing.ts:56-89</code> +
+méthodologie v1.0 §“Yield projection”.</p>
+</blockquote>
+<pre><code>yield_contribution_bps[bucket] = base_allocation[bucket] / 100 × bucket_apy_bps[bucket]
+vault_apy_bps                  = Σ yield_contribution_bps</code></pre>
+<p><strong>Exemple balanced base</strong> (mining 35 %, btc 15 %, usdc
+40 %, stable 10 %) :</p>
+<table>
+<thead>
+<tr>
+<th>Sleeve</th>
+<th style="text-align: right;">Allocation</th>
+<th style="text-align: right;">Bucket APY</th>
+<th style="text-align: right;">Contribution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mining</td>
+<td style="text-align: right;">35 %</td>
+<td style="text-align: right;">~ 22 %</td>
+<td style="text-align: right;"><strong>+7.7 pp</strong></td>
+</tr>
+<tr>
+<td>BTC tactical</td>
+<td style="text-align: right;">15 %</td>
+<td style="text-align: right;">+200 bps (base)</td>
+<td style="text-align: right;">+0.3 pp</td>
+</tr>
+<tr>
+<td>USDC base</td>
+<td style="text-align: right;">40 %</td>
+<td style="text-align: right;">~ 4.5 % (T-bills + lending)</td>
+<td style="text-align: right;">+1.8 pp</td>
+</tr>
+<tr>
+<td>Stable reserve</td>
+<td style="text-align: right;">10 %</td>
+<td style="text-align: right;">4.5 %</td>
+<td style="text-align: right;">+0.45 pp</td>
+</tr>
+<tr>
+<td><strong>Total mid-range</strong></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"><strong>≈ 10.3 %</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Après application du facteur d’incertitude méthodologique (±10 – 30 %
+selon timeframe et fraîcheur data), le range publié devient <strong>9.4
+– 12.8 %</strong>.</p>
+<pre><code>apy_low  = projected_apy × (1 − assumption_risk_factor)
+apy_high = projected_apy × (1 + assumption_upside_factor)</code></pre>
+<p><strong>Stressed APY</strong> (méthodologie v1.0 §“Stressed APY”) :
+scénario combiné BTC −40 % + Hashprice −30 % + Mining margin compression
+→ typiquement bande <strong>5 – 7 %</strong>.</p>
+<hr />
+<h2 id="cadence-opérationnelle">11 · Cadence opérationnelle</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Quoi</th>
+<th>Cadence</th>
+<th>Mécanisme</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BTC price ingestion</td>
+<td>1 min</td>
+<td>Chainlink BTC/USD primaire (viem) · CoinGecko fallback</td>
+</tr>
+<tr>
+<td>Hashprice ingestion</td>
+<td>daily</td>
+<td>Luxor / Hashrate Index API</td>
+</tr>
+<tr>
+<td>Margin score recompute</td>
+<td>hourly</td>
+<td>Inngest <code>market-data-hourly</code></td>
+</tr>
+<tr>
+<td>Rebalancing signal eval</td>
+<td>event-driven + hourly</td>
+<td>Inngest <code>rebalancing-signal</code></td>
+</tr>
+<tr>
+<td>Risk score daily</td>
+<td>daily</td>
+<td>Inngest <code>risk-daily</code></td>
+</tr>
+<tr>
+<td>Multisig review (R4)</td>
+<td>sous 72 h</td>
+<td>3/5 signers, timelock 48 h</td>
+</tr>
+<tr>
+<td>Distribution LP</td>
+<td>mensuelle, T+5 j</td>
+<td>Epoch close + claim window</td>
+</tr>
+<tr>
+<td>Mining attestation</td>
+<td>mensuelle</td>
+<td>Signée par partner (allowlist signer requise)</td>
+</tr>
+<tr>
+<td>Investor memo</td>
+<td>mensuelle</td>
+<td>Inngest <code>investor-memo-monthly</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="cross-product-mechanics-comment-les-sleeves-se-parlent">12 ·
+Cross-product mechanics — comment les sleeves se parlent</h2>
+<p>Les 4 sleeves ne sont pas indépendants. Les règles <strong>relient
+explicitement</strong> des paires :</p>
+<pre><code>Mining ↔ Stable reserve     :  R2  (margin compress → mining ↓, stable ↑)
+Mining ↔ USDC base          :  R3  (margin healthy + BTC+ → mining ↑ depuis usdc_base)
+                               R5  (RWA premium → rotation mining → usdc_base)
+USDC base ↔ BTC tactical    :  R-BTC-1, R-BTC-2  (drawdown → +BTC depuis usdc_base)
+BTC tactical ↔ Stable       :  R-BTC-3, R-BTC-4  (rally → take profit → stable)
+                               R-BTC-5         (vol breach → halve BTC → stable)
+USDC base ↔ Stable          :  R-BTC-6         (mining stress + BTC accum suspendue)</code></pre>
+<p>Chaque rebalancing est <strong>conservatif sur la somme</strong> : ce
+qu’on retire d’un sleeve, on l’ajoute à un autre dans la même PTAI
+signal.</p>
+<hr />
+<h2 id="governance-guardrails">13 · Governance &amp; guardrails</h2>
+<h3 id="multisig">13.1 Multisig</h3>
+<ul>
+<li>3/5 signers requis pour exécuter un signal de rebalancing.</li>
+<li>Timelock 48 h entre <code>schedule()</code> et
+<code>execute()</code>.</li>
+<li>Cancel-quorum <strong>2/5</strong> (asymétrie volontaire — “defense
+favors halting”).</li>
+<li>Pre-execution Tenderly fork simulation panel (diff state + gas +
+reverts).</li>
+</ul>
+<h3 id="attestations">13.2 Attestations</h3>
+<ul>
+<li>Mining monthly attestation signée par partner.</li>
+<li>Signer allowlist obligatoire (env
+<code>ATTESTATION_ALLOWED_SIGNERS</code>).</li>
+<li>Fail-closed en prod : pas d’allowlist configurée = attestation
+rejetée.</li>
+<li>3 checks ordonnés : signature ECDSA → signer ∈ allowlist → digest
+match payload.</li>
+</ul>
+<h3 id="forbidden-words">13.3 Forbidden words</h3>
+<ul>
+<li>6 mots interdits dans toute sortie : <code>guarantee</code>,
+<code>promise</code>, <code>certain</code>, <code>will deliver</code>,
+<code>risk-free</code>, <code>no risk</code>.</li>
+<li>Module canonique <code>src/lib/agents/forbidden-words.ts</code>
+partagé entre 5 lieux (agents, notifications, wizard inline, vault
+actions Zod refine, engine).</li>
+<li>Inflections matchées (<code>guaranteed</code>,
+<code>guarantees</code>, <code>guaranteeing</code>).</li>
+<li>Négation 3-mots autorisée (<code>not guaranteed</code>,
+<code>never promise</code>).</li>
+</ul>
+<h3 id="provenance">13.4 Provenance</h3>
+<ul>
+<li>Chaque métrique exposée au LP porte un badge :
+<code>Live · Oracle · Attested · Estimated · Manual · Stale</code>.</li>
+<li>Threshold de fraîcheur centralisé dans
+<code>src/lib/data/freshness.ts</code> (<code>STALE_THRESHOLDS</code>
+registry).</li>
+</ul>
+<hr />
+<h2 id="risque-résiduel-ce-qui-nest-pas-encore-live">14 · Risque
+résiduel &amp; ce qui n’est pas encore live</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Item</th>
+<th>Statut</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Audit Spearbit final</td>
+<td>En cours</td>
+<td>Mainnet bloqué jusqu’à remediation. SC risk dimension reste à 80
+baseline.</td>
+</tr>
+<tr>
+<td>Per-vault VaultSnapshot</td>
+<td>Phase 3</td>
+<td>AUM non-Yield reste à 0 (Defensive, BTC Plus).</td>
+</tr>
+<tr>
+<td>Position.shareClass Prisma</td>
+<td>TODO</td>
+<td>Fees class A vs B pas différenciés au runtime (fallback A).</td>
+</tr>
+<tr>
+<td>Monte Carlo paths à 10 000</td>
+<td>v2.0</td>
+<td>UI tourne sur 1 000 actuellement.</td>
+</tr>
+<tr>
+<td>Tests intégration 12 règles vs 36 m historique</td>
+<td>À ajouter</td>
+<td>Couverture engine actuelle = unit + snapshot.</td>
+</tr>
+<tr>
+<td>Méthodologie v2.1 (multi-vault + share classes)</td>
+<td>DRAFT</td>
+<td>Promotion conditionnelle Product + Risk sign-off + ADR-010.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="glossaire">15 · Glossaire</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Terme</th>
+<th>Définition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AUM</strong></td>
+<td>Assets Under Management (capital investi dans le vault, en
+USDC)</td>
+</tr>
+<tr>
+<td><strong>Hashprice</strong></td>
+<td>Revenu attendu par TH/s/jour de hashrate ($/TH/jour)</td>
+</tr>
+<tr>
+<td><strong>Margin score</strong></td>
+<td>Indicateur 0–100 de la rentabilité mining nette vs target</td>
+</tr>
+<tr>
+<td><strong>PTAI</strong></td>
+<td>Projection → Trigger → Action → Impact (format obligatoire pour
+rebalancing)</td>
+</tr>
+<tr>
+<td><strong>Vol index</strong></td>
+<td>Indice de volatilité réalisée BTC (proxy 30j)</td>
+</tr>
+<tr>
+<td><strong>Sleeve</strong></td>
+<td>Bucket d’allocation (mining / btc_tactical / usdc_base /
+stable_reserve)</td>
+</tr>
+<tr>
+<td><strong>Mode</strong></td>
+<td>Régime de risque du vault (defensive / balanced /
+opportunistic)</td>
+</tr>
+<tr>
+<td><strong>Soft lock-up</strong></td>
+<td>Période minimale avant retrait sans pénalité (60 j class A, 90 j
+class B)</td>
+</tr>
+<tr>
+<td><strong>Provenance badge</strong></td>
+<td>Marqueur de la source d’une métrique (Live, Oracle, Attested,
+Estimated, Manual, Stale)</td>
+</tr>
+<tr>
+<td><strong>Multisig 3/5</strong></td>
+<td>3 signatures requises sur 5 signers pour exécuter une
+transaction</td>
+</tr>
+<tr>
+<td><strong>Timelock 48 h</strong></td>
+<td>Délai imposé entre planification et exécution d’une transaction
+onchain</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="références-code">16 · Références code</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Domaine</th>
+<th>Fichier</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vault definition</td>
+<td><code>src/lib/engine/vaults.ts</code></td>
+</tr>
+<tr>
+<td>Mining model</td>
+<td><code>src/lib/engine/mining.ts</code></td>
+</tr>
+<tr>
+<td>BTC tactical</td>
+<td><code>src/lib/engine/btc-tactical.ts</code></td>
+</tr>
+<tr>
+<td>Rebalancing math</td>
+<td><code>src/lib/engine/rebalancing.ts</code></td>
+</tr>
+<tr>
+<td>Rebalancing rules (R1–R5, R-BTC-1..6)</td>
+<td><code>src/lib/engine/rebalancing-rules.ts</code></td>
+</tr>
+<tr>
+<td>Risk framework</td>
+<td><code>src/lib/engine/risk.ts</code></td>
+</tr>
+<tr>
+<td>Scenario orchestrator</td>
+<td><code>src/lib/engine/scenario.ts</code></td>
+</tr>
+<tr>
+<td>Backtest engine</td>
+<td><code>src/lib/engine/backtest.ts</code></td>
+</tr>
+<tr>
+<td>Monte Carlo (v2.0)</td>
+<td><code>src/lib/engine/monte-carlo.ts</code></td>
+</tr>
+<tr>
+<td>Methodology (canonique)</td>
+<td><code>docs/methodology/v1.0.md</code></td>
+</tr>
+<tr>
+<td>Methodology MC extension</td>
+<td><code>docs/methodology/v2.0.md</code></td>
+</tr>
+<tr>
+<td>Forbidden words enforcer</td>
+<td><code>src/lib/agents/forbidden-words.ts</code></td>
+</tr>
+<tr>
+<td>Freshness registry</td>
+<td><code>src/lib/data/freshness.ts</code></td>
+</tr>
+<tr>
+<td>Attestation verifier</td>
+<td><code>src/lib/attestation/stored.ts</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><strong>Disclaimer.</strong> Les projections décrites dans ce
+document sont conditionnelles aux hypothèses énoncées en méthodologie
+v1.0. La performance passée ne préjuge pas du futur. Hearst Yield Vault
+est offert exclusivement aux investisseurs professionnels / qualifiés
+via un Cayman Exempted Limited Partnership, sous réserve d’une
+souscription minimale, d’une période de lock-up et de restrictions
+juridictionnelles. Ce document n’est ni une offre ni une sollicitation
+là où interdites.</p>
+</body>
+</html>

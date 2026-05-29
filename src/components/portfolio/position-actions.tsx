@@ -1,137 +1,41 @@
 "use client";
 
-// PositionActions — Claim + Exit stubs for /portfolio/[positionId]
-// Client Component (interactivity required for toasts + confirm dialog).
+// PositionActions — Claim + Exit for /portfolio/[positionId]
+// Client Component (kept client-side for the eventual interactive redemption flow).
 // Non-negotiable #5: no forbidden words in copy.
-// Stubs: useClaim / useExit mock success after 800ms — no real onchain call at MVP.
+//
+// Pilot (testnet): claims and redemptions are processed by Investor Relations,
+// subject to the 60-day soft lock-up — they are NOT self-served in-app. We do
+// not render a button that would only simulate an on-chain transaction. A real
+// on-chain redemption path ships post-audit; flip REDEMPTION_ENABLED then.
 
-import { useState } from "react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import type { PositionDetail } from "@/lib/data/portfolio";
 
-const usdFull = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
-/** Stub: simulate a claim transaction (800ms delay). */
-async function stubClaim(_positionId: string): Promise<{ txHash: string }> {
-  await new Promise((r) => setTimeout(r, 800));
-  return { txHash: "0xmock_claim_" + Math.random().toString(16).slice(2, 10) };
-}
-
-/** Stub: simulate an exit transaction (800ms delay). */
-async function stubExit(_positionId: string): Promise<{ txHash: string }> {
-  await new Promise((r) => setTimeout(r, 800));
-  return { txHash: "0xmock_exit_" + Math.random().toString(16).slice(2, 10) };
-}
+/** Pilot flag — self-served claim/exit is disabled until a real on-chain path exists. */
+const REDEMPTION_ENABLED = false;
 
 interface PositionActionsProps {
   position: PositionDetail;
 }
 
-/**
- * Claim and Exit action buttons.
- *
- * Claim: visible when accruedYieldUsdc > 0 and position is active.
- * Exit:  visible when position is active (soft lock-up enforcement is
- *        server-side in Phase 2; MVP shows the button for any active position).
- *
- * Exit confirmation uses the canonical <ConfirmDialog> primitive.
- */
 export function PositionActions({ position }: PositionActionsProps) {
-  const [claiming, setClaiming] = useState(false);
-  const [exiting, setExiting] = useState(false);
-  const [confirmExit, setConfirmExit] = useState(false);
-
   const isActive = position.status === "active";
-  const hasClaim = isActive && position.accruedYieldUsdc > 0;
-
-  async function handleClaim() {
-    if (!hasClaim || claiming) return;
-    setClaiming(true);
-    try {
-      const result = await stubClaim(position.id);
-      toast.success(
-        `Claimed ${usdFull.format(position.accruedYieldUsdc)} USDC`,
-        {
-          description: `Tx: ${result.txHash.slice(0, 12)}…`,
-          duration: 6000,
-        },
-      );
-    } catch {
-      toast.error("Claim failed", {
-        description: "Please try again or contact support.",
-      });
-    } finally {
-      setClaiming(false);
-    }
-  }
-
-  async function handleExitConfirmed() {
-    if (!isActive || exiting) return;
-    setExiting(true);
-    try {
-      const result = await stubExit(position.id);
-      toast.success("Exit initiated", {
-        description: `Tx: ${result.txHash.slice(0, 12)}… — settlement in progress.`,
-        duration: 8000,
-      });
-    } catch {
-      toast.error("Exit failed", {
-        description: "Please try again or contact support.",
-      });
-    } finally {
-      setExiting(false);
-    }
-  }
-
   if (!isActive) return null;
 
-  return (
-    <section aria-label="Position actions" className="flex flex-col gap-3">
-      <div className="flex flex-wrap gap-3">
-        {hasClaim && (
-          <Button
-            variant="primary"
-            size="md"
-            onClick={handleClaim}
-            disabled={claiming}
-            aria-busy={claiming}
-          >
-            {claiming
-              ? "Claiming…"
-              : `Claim ${usdFull.format(position.accruedYieldUsdc)}`}
-          </Button>
-        )}
+  // Pilot: no self-served claim/exit. Surface an honest IR-routed notice
+  // instead of a simulated button.
+  if (!REDEMPTION_ENABLED) {
+    return (
+      <section aria-label="Position actions" className="flex flex-col gap-3">
+        <p className="body-xs ct-text-muted">
+          Claims and redemptions are processed by Investor Relations during the
+          pilot, subject to the 60-day soft lock-up. Contact your IR
+          representative to initiate a claim or exit.
+        </p>
+      </section>
+    );
+  }
 
-        <Button
-          variant="danger"
-          size="md"
-          onClick={() => setConfirmExit(true)}
-          disabled={exiting || confirmExit}
-          aria-busy={exiting}
-          aria-haspopup="dialog"
-          aria-expanded={confirmExit}
-        >
-          {exiting ? "Exiting…" : "Exit position"}
-        </Button>
-      </div>
-
-      {/* Exit confirmation — canonical ConfirmDialog primitive */}
-      <ConfirmDialog
-        open={confirmExit}
-        onOpenChange={setConfirmExit}
-        title="Confirm exit"
-        description="Your principal will be returned after the standard settlement period. This action cannot be undone."
-        confirmLabel="Confirm exit"
-        confirmVariant="danger"
-        onConfirm={handleExitConfirmed}
-      />
-    </section>
-  );
+  // Real self-served redemption UI ships post-audit.
+  return null;
 }

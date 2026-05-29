@@ -3,10 +3,10 @@
  *
  * Verifies that the confirmation page contains all 9 required elements:
  *   1. TX hash area
- *   2. [attested] provenance badge
- *   3. BaseScan link
- *   4. Vault contract address
- *   5. NAV initial "1.0000 USDC / share"
+ *   2. [oracle] provenance badge (txHash is a URL param, not server-attested)
+ *   3. Base Sepolia explorer link
+ *   4. Vault contract address — env-gated, no fabricated stub
+ *   5. NAV at entry "1.0000 USDC / share" [manual]
  *   6. Soft-lock progress bar (role=progressbar)
  *   7. "Day 0 of 60" text
  *   8. Next distribution + calendar (.ics) download
@@ -60,22 +60,27 @@ describe("S9 ConfirmedPage — all required elements present", () => {
     expect(html).toContain("f31c");
   });
 
-  it("shows an Attested provenance badge on the transaction", async () => {
+  it("shows a Manual provenance badge on the transaction (txHash comes from URL, not server-attested) — A2", async () => {
     const html = await getHtml();
-    expect(html.toLowerCase()).toContain("attested");
+    // The txHash arrives via the URL (unverified by this page), so the badge is
+    // "Manual" — NOT "Oracle" (no on-chain oracle) and NOT "Attested".
+    expect(html.toLowerCase()).toContain("manual");
+    expect(html.toLowerCase()).not.toContain("oracle");
+    expect(html.toLowerCase()).not.toContain("attested");
   });
 
-  it("contains a BaseScan link", async () => {
+  it("contains a Base Sepolia explorer link", async () => {
     const html = await getHtml({
       tx: "0xabc123def456abc",
     });
-    expect(html).toContain("basescan.org");
+    expect(html).toContain("sepolia.basescan.org");
   });
 
-  it("shows the vault contract address section", async () => {
+  it("never renders a fabricated stub vault contract address", async () => {
     const html = await getHtml();
-    expect(html.toLowerCase()).toContain("vault contract");
-    expect(html).toContain("0x8c4a");
+    // The stub 0x8c4a… must be gone. The real address is env-gated, so the
+    // contract row is hidden when NEXT_PUBLIC_HEARST_YIELD_VAULT_ADDRESS is unset.
+    expect(html).not.toContain("0x8c4a");
   });
 
   it("shows NAV initial 1.0000 USDC / share", async () => {

@@ -193,10 +193,14 @@ export async function getVault(
     // stays in the DB for schema continuity, but `/vaults/[id]` 404s on it.
     if (isPlaceholderVault(row)) return null;
 
-    return toVaultProduct(
-      row,
-      snapshot?.aumUsdc?.toNumber() ?? 0,
-    );
+    // Same honesty rule as listVaults(): the single VaultSnapshot timeline is
+    // the Yield Vault's. Non-Yield vaults must NOT inherit the Yield AUM — keep
+    // them at 0 until per-vault snapshots land (Phase 3, ADR-006 #9).
+    const aumUsdc = isYieldVaultRow(row)
+      ? (snapshot?.aumUsdc?.toNumber() ?? 0)
+      : 0;
+
+    return toVaultProduct(row, aumUsdc);
   } catch {
     return null;
   }

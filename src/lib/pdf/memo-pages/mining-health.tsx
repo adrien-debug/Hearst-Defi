@@ -42,6 +42,14 @@ export function MiningHealthPage({
   const hashrateDeployed = `${data.miningOps.hashrate_ph_s.toFixed(0)} PH/s`;
   const uptime = `${data.miningOps.uptime_pct.toFixed(1)}%`;
   const attestationsCount = data.miningOps.attestations_count;
+  // B3 — fallback ops figures (DB empty) are estimates, never attested.
+  const opsProvenance = data.miningOps.is_fallback ? "estimated" : "attested";
+  const opsHint = data.miningOps.is_fallback
+    ? "Fallback estimate — no operator rows yet"
+    : "JV operator fleet, paper-attested";
+  const uptimeHint = data.miningOps.is_fallback
+    ? "Fallback estimate — no operator rows yet"
+    : "Trailing 30d, paper attestation";
 
   return (
     <Page size="A4" style={styles.page}>
@@ -56,9 +64,8 @@ export function MiningHealthPage({
         <KpiCell
           label="Hashrate deployed"
           value={hashrateDeployed}
-          hint="JV operator fleet, paper-attested"
-          // Operator attestation snapshot — attested (paper today, on-chain Phase 2).
-          provenance="attested"
+          hint={opsHint}
+          provenance={opsProvenance}
         />
         <KpiCell
           label="Margin score"
@@ -70,9 +77,8 @@ export function MiningHealthPage({
         <KpiCell
           label="Uptime"
           value={uptime}
-          hint="Trailing 30d, paper attestation"
-          // Operator attestation.
-          provenance="attested"
+          hint={uptimeHint}
+          provenance={opsProvenance}
         />
       </View>
 

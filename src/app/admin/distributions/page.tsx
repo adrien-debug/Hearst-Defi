@@ -151,19 +151,28 @@ export default async function DistributionsPage() {
                       </td>
                       <td className="ct-table-cell text-right mono text-xs ct-text-faint">
                         {d.txHash ? (
-                          `${d.txHash.slice(0, 8)}…`
+                          d.txHash.startsWith("0xMOCK") ? (
+                            <span className="ct-text-faint">simulated</span>
+                          ) : (
+                            `${d.txHash.slice(0, 8)}…`
+                          )
                         ) : (
                           <span className="ct-text-faint">—</span>
                         )}
                       </td>
                       <td className="ct-table-cell text-right">
-                        {/* Distribution with a `txHash` recorded → attested
-                            (on-chain settlement); otherwise → manual (ops
-                            confirmed via 2-of-N approvals but not yet broadcast,
-                            or a legacy pre-multisig entry). */}
+                        {/* B4 — only a REAL on-chain tx hash earns "attested".
+                            A simulated `0xMOCK_*` hash is `estimated`; no hash
+                            yet (ops-confirmed, not broadcast) is `manual`. */}
                         <span className="inline-flex justify-end">
                           <ProvenanceBadge
-                            kind={d.txHash ? "attested" : "manual"}
+                            kind={
+                              d.txHash
+                                ? d.txHash.startsWith("0xMOCK")
+                                  ? "estimated"
+                                  : "attested"
+                                : "manual"
+                            }
                           />
                         </span>
                       </td>

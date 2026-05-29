@@ -27,6 +27,7 @@ import {
   ChainError,
 } from "@/lib/onchain/vault";
 import { monthsToTarget } from "@/lib/projection-chart";
+import { subscribe } from "@/app/actions/subscribe";
 import type { VaultProduct } from "@/lib/data/vaults";
 
 // ---------------------------------------------------------------------------
@@ -229,8 +230,22 @@ export function InvestForm({ vault }: InvestFormProps) {
         amountUsdc: amount,
         receiver: privyWallet.address as `0x${string}`,
       });
+
+      // On-chain deposit succeeded → record the Position in the DB with the
+      // real tx hash so it surfaces in the portfolio. The on-chain settlement
+      // and the DB record must not drift apart.
+      const sub = await subscribe(vault.id, amount, "A", result.txHash);
+      if (!sub.ok) {
+        setDepositError(
+          `Deposit confirmed on-chain (tx ${result.txHash.slice(0, 10)}…) but recording it failed: ${sub.error}. Contact support with this tx hash.`,
+        );
+        setDepositing(false);
+        setAwaitingConfirm(false);
+        return;
+      }
+
       router.push(
-        `/vaults/${vault.id}/invest/confirmed?tx=${result.txHash}&amount=${amount}`,
+        `/vaults/${vault.id}/invest/confirmed?tx=${result.txHash}&amount=${amount}&positionId=${sub.positionId}`,
       );
     } catch (e) {
       let msg = "Deposit failed. Please try again.";

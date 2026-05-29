@@ -166,16 +166,21 @@ export function ProofPulse({
             }
           : null; // "none" — no glyph at all
 
+  // `attested` only when on-chain figures actually match. "pending" (on-chain
+  // not yet wired) and "none" must read `stale` — never claim attestation on an
+  // unreconciled reserve.
   const headerProvenance: "attested" | "stale" =
-    state === "none" ? "stale" : "attested";
+    state === "matched" ? "attested" : "stale";
 
   return (
     <article className="dash-cell dash-cell-premium h-full flex flex-col">
       <div className="dash-label relative z-10">
         <span className="font-semibold text-[var(--ct-text-strong)]">Proof &amp; Methodology Pulse</span>
         <div className="flex items-center gap-2">
+          {/* A2 — single provenance badge driven by the actual PoR match state.
+              The previously hardcoded "Oracle" badge was not backed by any
+              oracle feed and is removed. */}
           <ProvenanceBadge kind={headerProvenance} />
-          <ProvenanceBadge kind="oracle" />
         </div>
       </div>
 

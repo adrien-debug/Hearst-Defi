@@ -42,6 +42,7 @@ export async function subscribe(
   vaultId: string,
   amountUsdc: number,
   classCode: ShareClassCode = "A",
+  txHash?: string,
 ): Promise<SubscribeResult> {
   const investor = await getInvestor();
   if (!investor) {
@@ -102,11 +103,15 @@ export async function subscribe(
       vaultKey: `${vaultId}:class-${classCode}`,
       principalUsdc: amountUsdc,
       status: "active",
+      // On-chain deposit tx hash (Base Sepolia). Null for in-cockpit/manual
+      // subscriptions that did not originate from a signed vault deposit.
+      txHashOpen: txHash ?? null,
       transactions: {
         create: {
           investorId: investor.id,
           type: "deposit",
           amountUsdc,
+          txHash: txHash ?? null,
         },
       },
     },

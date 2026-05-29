@@ -202,7 +202,7 @@ function NextDistributionKpi({ nextDistributionAt, source }: NextDistributionKpi
       </div>
       <div className="flex items-center gap-2 mt-2 relative z-10">
         <p className="text-xs text-(--ct-text-muted) mono uppercase tracking-wider leading-4 truncate opacity-70">
-          Monthly · Day 1, T+5
+          Indicative · Monthly, Day 1 (T+5)
         </p>
         {diffDays > 0 && (
           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-(--ct-accent)/10 text-(--ct-accent) border border-(--ct-accent)/20">
@@ -252,8 +252,8 @@ export default async function PortfolioPage() {
   const { source: _lmSource, ...lockMeterProps } = lockMeterPropsRaw;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { source: _tcSource, ...timeToCashProps } = timeToCashPropsRaw;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { source: _rpSource, ...riskPulseProps } = riskPulsePropsRaw;
+  // Risk Pulse keeps `source` so the header badge reflects stale/live honestly.
+  const { source: riskPulseSource, ...riskPulseProps } = riskPulsePropsRaw;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { source: _dcSource, ...distribCalendarProps } = distribCalendarPropsRaw;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -351,7 +351,7 @@ export default async function PortfolioPage() {
         {/* Ligne 2 : Security & Trust */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div data-testid="risk-pulse-widget">
-            <RiskPulse {...riskPulseProps} />
+            <RiskPulse {...riskPulseProps} source={riskPulseSource} />
           </div>
           <div data-testid="proof-pulse-widget">
             <ProofPulse {...proofPulseProps} />

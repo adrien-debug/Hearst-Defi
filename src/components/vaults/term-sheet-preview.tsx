@@ -176,17 +176,17 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
             <KpiRow
               label="Current AUM"
               value={USD_COMPACT.format(vault.currentAumUsdc)}
-              provenance="live"
+              provenance="manual"
             />
             <KpiRow
               label="Distribution cadence"
-              value="Monthly · Day 1, T+5"
+              value="Indicative — Monthly, Day 1 (T+5)"
               provenance="manual"
             />
             <KpiRow
               label="Methodology"
               value="v1.0 (active)"
-              provenance="attested"
+              provenance="manual"
             />
           </Card>
         </Section>
@@ -213,9 +213,10 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
                   <span className="mono">v1.0</span> — a weighted-bucket model
                   combining mining net distributable yield, USDC base lending,
                   BTC tactical P&L, and stable reserve yield. APY ranges use
-                  ±10–30% assumption risk factors. Published and immutable; any
-                  change requires a version bump and an Architecture Decision
-                  Record.
+                  ±10–30% assumption risk factors and include a minimum display
+                  spread, so a range is never read as a precise figure.
+                  Published and immutable; any change requires a version bump
+                  and an Architecture Decision Record.
                 </p>
               </div>
             </Card>
@@ -242,18 +243,18 @@ export function TermSheetPreview({ vault }: TermSheetPreviewProps) {
               />
               <KpiRow
                 label="Custodian"
-                value="Fireblocks MPC"
-                provenance="attested"
+                value="Custody configuration pending"
+                provenance="manual"
               />
               <KpiRow
                 label="Multisig threshold"
-                value="3 of 5 signers"
+                value="Multisig approval required"
                 provenance="manual"
               />
               <KpiRow
                 label="Audit"
-                value="Spearbit · Q1 2026"
-                provenance="attested"
+                value="Spearbit · scheduled"
+                provenance="manual"
               />
             </Card>
           </Section>

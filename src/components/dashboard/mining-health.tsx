@@ -441,7 +441,9 @@ export function MiningHealthSection({
 
   return (
     <article className="dash-cell dash-cell-premium h-full flex flex-col relative">
-      <ChartProvenanceCorner kind="oracle" />
+      {/* A2 — the margin/health score is an engine estimate computed from public
+          hashprice/BTC feeds + assumed energy cost, NOT an on-chain oracle. */}
+      <ChartProvenanceCorner kind="estimated" />
       <div className="dash-label relative z-10">
         <span className="text-micro font-bold uppercase tracking-widest text-[var(--ct-text-muted)]">Mining Health</span>
       </div>

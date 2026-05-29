@@ -139,9 +139,14 @@ export function RiskFrameworkSection({
           </ul>
         )}
 
-        <p className="mt-auto pt-6 body-xs text-[var(--ct-text-faint)] italic leading-[var(--ct-leading-relaxed)] opacity-70">
+        <p
+          className="mt-auto pt-6 body-xs text-[var(--ct-text-faint)] italic leading-[var(--ct-leading-relaxed)] opacity-70"
+          title="Uses pre-audit baseline assumptions"
+        >
           Composite score is the weighted sum of the five dimensions defined in
-          Methodology v1.0. Conditional projection — not guaranteed.
+          Methodology v1.0. Smart-contract and counterparty dimensions use
+          pre-audit baseline assumptions, and the volatility input is a fixed
+          proxy. Conditional projection — not guaranteed.
         </p>
       </div>
     </article>

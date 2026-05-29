@@ -12,6 +12,14 @@ import { cn } from "@/lib/cn";
 interface PorSummaryProps {
   attestation: OnChainAttestation | null;
   custody?: CustodySnapshot | null;
+  /**
+   * Whether the attestation's signer is verified AND allowlisted (A4). When
+   * not `true`, the badge MUST NOT read "Attested" even if the attestation is
+   * fresh — an unverified attestation is downgraded to "Stale". Defaults to
+   * `false` (fail-closed): callers that cannot prove the signer never get an
+   * "Attested" badge.
+   */
+  verified?: boolean | null;
 }
 
 const dateFmt = new Intl.DateTimeFormat("en-US", {
@@ -100,7 +108,11 @@ function CustodyBlock({ custody }: { custody: CustodySnapshot }) {
   );
 }
 
-export function PorSummary({ attestation, custody = null }: PorSummaryProps) {
+export function PorSummary({
+  attestation,
+  custody = null,
+  verified = false,
+}: PorSummaryProps) {
   if (attestation === null) {
     return (
       <Card>
@@ -119,7 +131,9 @@ export function PorSummary({ attestation, custody = null }: PorSummaryProps) {
   }
 
   const stale = isStale(attestation.timestamp);
-  const provenance = stale ? "stale" : "attested";
+  // A4 — "Attested" requires BOTH freshness AND a verified, allowlisted signer.
+  // An unverified or stale attestation is downgraded to "Stale".
+  const provenance = !stale && verified === true ? "attested" : "stale";
 
   return (
     <Card>
@@ -231,6 +245,11 @@ export function PorSummary({ attestation, custody = null }: PorSummaryProps) {
         <p className="mt-3 body-xs text-[var(--ct-status-warning)]">
           Last attestation is older than 24h — badge shows Stale. A fresh
           attestation is expected each period close.
+        </p>
+      ) : verified !== true ? (
+        <p className="mt-3 body-xs text-[var(--ct-status-warning)]">
+          Attestation signer is not yet verified against the allowlist — badge
+          shows Stale until the signature is confirmed.
         </p>
       ) : null}
 

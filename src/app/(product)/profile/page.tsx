@@ -127,7 +127,8 @@ export default async function ProfilePage() {
       <div className="dash-cell prof-card-summary">
         <p className="dash-label">
           Investment summary
-          <ProvenanceBadge kind="live" />
+          {/* A3 — no "Live" badge when there are no positions to back it. */}
+          <ProvenanceBadge kind={positions.length === 0 ? "stale" : "live"} />
         </p>
 
         <div className="prof-stats">

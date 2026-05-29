@@ -402,7 +402,8 @@ async function buildHeroKpis(): Promise<HeroKpi[]> {
       { label: "Next J-3", value: "—", sublabel: "no distribution", provenance: "estimated" },
       { label: "Signers", value: "3/3", sublabel: "multisig quorum", provenance: "manual" },
       { label: "Oracles", value: "—", sublabel: "no data", provenance: "stale", alert: true },
-      { label: "P0", value: "0", sublabel: "all clear", provenance: "live" },
+      // A3 — DB-error fallback stub: nothing here is live.
+      { label: "P0", value: "0", sublabel: "no snapshot", provenance: "stale" },
     ];
   }
 }

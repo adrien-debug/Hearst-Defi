@@ -22,6 +22,12 @@ export interface DistributionSnapshot {
   paid_at: Date | null;
   /** Lifecycle state. Derived from the row, not stored verbatim. */
   status: "paid" | "scheduled" | "pending";
+  /**
+   * True when this snapshot is the synthesised fallback (no Distribution row in
+   * the DB) sized at a default % of AUM — NOT a committed or executed payout.
+   * Consumers MUST badge it `estimated` and label it indicative (B4).
+   */
+  synthesized?: boolean;
 }
 
 /**
@@ -58,6 +64,7 @@ export async function loadLatestDistribution(): Promise<DistributionSnapshot> {
     amount_usdc: Math.round(aum * DEFAULT_MONTHLY_RATE),
     paid_at: null,
     status: "scheduled",
+    synthesized: true,
   };
 }
 

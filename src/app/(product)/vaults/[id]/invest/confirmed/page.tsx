@@ -99,8 +99,12 @@ function abbreviateAddress(addr: string): string {
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
 
-// Stub vault contract address — populated from on-chain data in production.
-const VAULT_CONTRACT = "0x8c4a2b9d3f1e6c8a7b5d0e2f4a6c8e0d1f3a5c7d4a2";
+// Real deployed vault address from env. Null → the contract row is hidden
+// entirely (never show a fabricated address).
+const VAULT_CONTRACT =
+  process.env.NEXT_PUBLIC_HEARST_YIELD_VAULT_ADDRESS ??
+  process.env.NEXT_PUBLIC_HEARST_VAULT_ADDRESS ??
+  null;
 
 export default async function ConfirmedPage({ params, searchParams }: PageProps) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
@@ -112,8 +116,8 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
 
   const hasHash = txHash !== null && txHash.length > 6;
   const baseScanHref = hasHash
-    ? `https://basescan.org/tx/${txHash}`
-    : "https://basescan.org";
+    ? `https://sepolia.basescan.org/tx/${txHash}`
+    : "https://sepolia.basescan.org";
 
   // Soft-lock: 60-day window starting now
   const LOCK_DAYS  = 60;
@@ -178,50 +182,54 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
               </span>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <ProvenanceBadge kind="attested" />
+              {/* A2 — the hash is passed into this page (query param), not read
+                  from an on-chain oracle. Badge "Manual"; the LP can verify it
+                  independently via the BaseScan link. */}
+              <ProvenanceBadge kind="manual" />
               {hasHash && (
                 <a
                   href={baseScanHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="body-xs text-[var(--ct-accent-strong)] no-underline hover:underline font-medium"
-                  aria-label="View transaction on BaseScan (opens in new tab)"
+                  aria-label="View transaction on Base Sepolia (opens in new tab)"
                 >
-                  BaseScan ↗
+                  BaseScan (Sepolia) ↗
                 </a>
               )}
             </div>
           </div>
 
-          {/* Vault contract */}
-          <div className="flex items-center justify-between gap-3 py-2 border-b border-[var(--ct-border-soft)]">
-            <div className="flex flex-col gap-1">
-              <span className="eyebrow ct-text-muted">Vault contract</span>
-              <span className="tabular mono text-sm ct-text-primary">
-                {abbreviateAddress(VAULT_CONTRACT)}
-              </span>
+          {/* Vault contract — only shown when a real deployed address is set */}
+          {VAULT_CONTRACT && (
+            <div className="flex items-center justify-between gap-3 py-2 border-b border-[var(--ct-border-soft)]">
+              <div className="flex flex-col gap-1">
+                <span className="eyebrow ct-text-muted">Vault contract</span>
+                <span className="tabular mono text-sm ct-text-primary">
+                  {abbreviateAddress(VAULT_CONTRACT)}
+                </span>
+              </div>
+              {/* Copy button — client interaction handled by browser natively via data attr */}
+              <button
+                type="button"
+                data-copy-value={VAULT_CONTRACT}
+                className="body-xs ct-text-muted border border-[var(--ct-border-soft)] rounded-[var(--ct-radius-sm)] px-2 py-1 hover:ct-text-primary hover:border-[var(--ct-border-strong)] transition-colors shrink-0"
+                aria-label="Copy vault contract address"
+              >
+                copy
+              </button>
             </div>
-            {/* Copy button — client interaction handled by browser natively via data attr */}
-            <button
-              type="button"
-              onClick={undefined}
-              data-copy-value={VAULT_CONTRACT}
-              className="body-xs ct-text-muted border border-[var(--ct-border-soft)] rounded-[var(--ct-radius-sm)] px-2 py-1 hover:ct-text-primary hover:border-[var(--ct-border-strong)] transition-colors shrink-0"
-              aria-label="Copy vault contract address"
-            >
-              copy
-            </button>
-          </div>
+          )}
 
-          {/* NAV initial */}
+          {/* NAV at entry — convention (1 share = 1 USDC at subscription), not an attested valuation */}
           <div className="flex items-center justify-between gap-3 py-2 border-b border-[var(--ct-border-soft)]">
             <div className="flex flex-col gap-1">
-              <span className="eyebrow ct-text-muted">NAV initial</span>
+              <span className="eyebrow ct-text-muted">NAV at entry</span>
               <span className="tabular mono text-sm ct-text-primary">
                 1.0000 USDC / share
               </span>
             </div>
-            <ProvenanceBadge kind="attested" />
+            <ProvenanceBadge kind="manual" />
           </div>
 
           {/* Position ID */}
