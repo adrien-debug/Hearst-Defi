@@ -130,6 +130,33 @@ const ERC4626_ABI = [
     inputs: [{ name: "account", type: "address" }],
     outputs: [{ name: "", type: "uint256" }],
   },
+  {
+    // redeem(shares, receiver, owner) — burns `shares`, sends underlying USDC to
+    // `receiver`. The exit path mirror of deposit. Gated by whenNotPaused on-chain.
+    name: "redeem",
+    type: "function" as const,
+    stateMutability: "nonpayable" as const,
+    inputs: [
+      { name: "shares", type: "uint256" },
+      { name: "receiver", type: "address" },
+      { name: "owner", type: "address" },
+    ],
+    outputs: [{ name: "assets", type: "uint256" }],
+  },
+  {
+    name: "maxRedeem",
+    type: "function" as const,
+    stateMutability: "view" as const,
+    inputs: [{ name: "owner", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    name: "previewRedeem",
+    type: "function" as const,
+    stateMutability: "view" as const,
+    inputs: [{ name: "shares", type: "uint256" }],
+    outputs: [{ name: "assets", type: "uint256" }],
+  },
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -360,4 +387,115 @@ export async function readVaultAsset(): Promise<Address | null> {
     args: [],
   });
   return asset as Address;
+}
+
+// ---------------------------------------------------------------------------
+// ERC-4626 redeem (withdrawal exit path)
+// ---------------------------------------------------------------------------
+
+/**
+ * Raw vault share balance (18-decimal share token) held by `owner`.
+ * Returns 0n if the vault address is not configured.
+ */
+export async function readVaultShares(owner: Address): Promise<bigint> {
+  if (!VAULT_ADDRESS) return 0n;
+  const publicClient = getBrowserPublicClient();
+  return publicClient.readContract({
+    address: VAULT_ADDRESS,
+    abi: ERC4626_ABI,
+    functionName: "balanceOf",
+    args: [owner],
+  });
+}
+
+/**
+ * Max shares `owner` can redeem right now (0 when paused, capped by balance).
+ * Returns 0n if the vault address is not configured.
+ */
+export async function readMaxRedeem(owner: Address): Promise<bigint> {
+  if (!VAULT_ADDRESS) return 0n;
+  const publicClient = getBrowserPublicClient();
+  return publicClient.readContract({
+    address: VAULT_ADDRESS,
+    abi: ERC4626_ABI,
+    functionName: "maxRedeem",
+    args: [owner],
+  });
+}
+
+/**
+ * Preview the USDC assets returned for redeeming `shares` (whole-dollar,
+ * truncated). Returns 0 if the vault address is not configured.
+ */
+export async function previewRedeemUsdc(shares: bigint): Promise<number> {
+  if (!VAULT_ADDRESS) return 0;
+  const publicClient = getBrowserPublicClient();
+  const assets = await publicClient.readContract({
+    address: VAULT_ADDRESS,
+    abi: ERC4626_ABI,
+    functionName: "previewRedeem",
+    args: [shares],
+  });
+  return Number(assets / BigInt(10 ** USDC_DECIMALS));
+}
+
+export interface RedeemFromVaultOpts {
+  walletClient: WalletClient;
+  /**
+   * Vault shares to redeem (raw 18-decimal share units). Pass the value from
+   * readVaultShares()/readMaxRedeem() — never a whole-dollar number.
+   */
+  shares: bigint;
+  /** Receiver of the underlying USDC — usually the connected wallet. */
+  receiver: Address;
+  /** Share owner whose shares are burned — the connected wallet. */
+  owner: Address;
+}
+
+export interface RedeemFromVaultResult {
+  txHash: Hex;
+  /** USDC assets received, whole-dollar (truncated), from the receipt preview. */
+  assetsUsdc: number;
+}
+
+/**
+ * Calls `vault.redeem(shares, receiver, owner)` — the ERC-4626 exit path. Burns
+ * the caller's vault shares and returns the underlying USDC.
+ *
+ * Throws `ConfigError` if the vault address is unset.
+ * Throws `ChainError`  if the wallet is not on Base Sepolia.
+ */
+export async function redeemFromVault(
+  opts: RedeemFromVaultOpts,
+): Promise<RedeemFromVaultResult> {
+  if (!VAULT_ADDRESS) {
+    throw new ConfigError(
+      "NEXT_PUBLIC_HEARST_YIELD_VAULT_ADDRESS is not configured. " +
+        "Set it (or legacy NEXT_PUBLIC_HEARST_VAULT_ADDRESS) to enable redemptions.",
+    );
+  }
+
+  await assertBaseSepolia(opts.walletClient);
+
+  const account = opts.walletClient.account;
+  if (!account) {
+    throw new ConfigError("WalletClient has no account. Reconnect your wallet.");
+  }
+
+  // Quote the USDC out before redeeming so the confirmation can show a figure.
+  const assetsUsdc = await previewRedeemUsdc(opts.shares);
+
+  const txHash = await opts.walletClient.writeContract({
+    address: VAULT_ADDRESS,
+    abi: ERC4626_ABI,
+    functionName: "redeem",
+    args: [opts.shares, opts.receiver, opts.owner],
+    account,
+    chain: baseSepolia,
+  });
+
+  const publicClient = getBrowserPublicClient();
+  await publicClient.waitForTransactionReceipt({ hash: txHash });
+
+  return { txHash, assetsUsdc };
 }

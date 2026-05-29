@@ -5,6 +5,7 @@
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { KycAction } from "@/components/admin/kyc-action";
 import { loadCustomers, type KycStatus } from "@/lib/data/customers";
 
 export const dynamic = "force-dynamic";
@@ -106,9 +107,12 @@ export default async function CustomersPage({
                       {truncateWallet(c.walletAddress)}
                     </td>
                     <td className="px-5 py-3">
-                      <Badge variant={KYC_VARIANT[c.kycStatus]}>
-                        {KYC_LABEL[c.kycStatus]}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={KYC_VARIANT[c.kycStatus]}>
+                          {KYC_LABEL[c.kycStatus]}
+                        </Badge>
+                        <KycAction investorId={c.id} status={c.kycStatus} />
+                      </div>
                     </td>
                     <td className="px-5 py-3 text-right tabular-nums ct-text-body">
                       {c.activePositions}
