@@ -19,35 +19,18 @@ export default async function AdminSecurityPage() {
   const totpEnabled = await isTotpEnabled(userId);
 
   return (
-    <div className="space-y-8 p-6 max-w-lg">
-      {/* Page header */}
-      <div className="space-y-1">
-        <h1
-          className="text-xl font-semibold"
-          style={{ color: "var(--ct-text-primary)" }}
-        >
-          Account security
-        </h1>
-        <p className="body-xs ct-text-muted">
-          Manage two-factor authentication and session security.
-        </p>
-      </div>
+    <div className="space-y-8">
+      <header className="flex min-h-9 items-center justify-between gap-4">
+        <h1 className="h1">Account security</h1>
+      </header>
+      <p className="body-xs ct-text-muted">
+        Manage two-factor authentication and session security.
+      </p>
 
       {/* MFA card */}
-      <section
-        className="rounded-xl p-6 space-y-4"
-        style={{
-          background: "color-mix(in srgb, var(--ct-surface) 60%, transparent)",
-          border: "1px solid var(--ct-border-soft)",
-        }}
-      >
+      <section className="ct-card p-6 space-y-4 max-w-lg">
         <div className="space-y-1">
-          <h2
-            className="text-sm font-semibold"
-            style={{ color: "var(--ct-text-primary)" }}
-          >
-            Two-factor authentication (TOTP)
-          </h2>
+          <h2 className="h2">Two-factor authentication (TOTP)</h2>
           <p className="body-xs ct-text-muted">
             Use an authenticator app (Google Authenticator, Authy, 1Password) to
             generate a time-based code at login. Required once enrolled.

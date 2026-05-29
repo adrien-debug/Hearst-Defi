@@ -77,20 +77,16 @@ export default function SimulateDemoPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
       {/* Page header */}
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight text-[var(--ct-text-strong)]">
-          Simulation Panel — Demo
-        </h1>
-        <p className="text-[length:var(--ct-text-sm)] text-[var(--ct-text-muted)]">
-          Pre-execution fork simulation (Tally pattern). Stub only — no real Tenderly calls.
-        </p>
-      </div>
+      <header className="flex min-h-9 items-center justify-between gap-4">
+        <h1 className="h1">Simulation Panel — Demo</h1>
+      </header>
+      <p className="body-sm ct-text-muted">
+        Pre-execution fork simulation (Tally pattern). Stub only — no real Tenderly calls.
+      </p>
 
       {/* Proposal selector */}
-      <div className="rounded-[var(--ct-radius-xl)] border border-[var(--ct-border-soft)] bg-[var(--ct-surface-0)] p-5 space-y-4">
-        <p className="text-[length:var(--ct-text-xs)] font-semibold uppercase tracking-[var(--ct-tracking-wide)] text-[var(--ct-text-muted)]">
-          Mock Proposal
-        </p>
+      <div className="ct-card p-5 space-y-4">
+        <p className="eyebrow ct-text-muted">Mock Proposal</p>
 
         <div className="flex flex-col gap-2">
           {MOCK_PROPOSALS.map((p, i) => (
@@ -109,7 +105,7 @@ export default function SimulateDemoPage() {
                 }}
                 className="accent-[var(--ct-accent)]"
               />
-              <span className="text-[length:var(--ct-text-sm)] text-[var(--ct-text-strong)]">
+              <span className="body-sm ct-text-strong">
                 {p.label}
               </span>
             </label>
@@ -117,13 +113,13 @@ export default function SimulateDemoPage() {
         </div>
 
         <div className="rounded-[var(--ct-radius-md)] bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] px-3 py-2.5 space-y-1">
-          <p className="mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-muted)]">
+          <p className="mono body-xs ct-text-muted">
             vault: {selectedProposal.vaultAddress}
           </p>
-          <p className="mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-faint)] truncate">
+          <p className="mono body-xs ct-text-faint truncate">
             calldata: {selectedProposal.calldata}
           </p>
-          <p className="mono text-[length:var(--ct-text-micro)] text-[var(--ct-text-faint)]">
+          <p className="mono body-xs ct-text-faint">
             actionType: {selectedProposal.actionType}
           </p>
         </div>
@@ -133,7 +129,7 @@ export default function SimulateDemoPage() {
             type="button"
             onClick={handleSimulate}
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-[var(--ct-radius-md)] border border-[var(--ct-border-strong)] bg-[var(--ct-surface-1)] px-4 py-2 text-[length:var(--ct-text-sm)] font-medium text-[var(--ct-text-strong)] transition-opacity hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 rounded-[var(--ct-radius-md)] border border-[var(--ct-border-strong)] bg-[var(--ct-surface-1)] px-4 py-2 body-sm font-medium ct-text-strong transition-opacity hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {loading ? "Simulating…" : "▶ Simulate"}
           </button>
@@ -141,7 +137,7 @@ export default function SimulateDemoPage() {
             <button
               type="button"
               onClick={handleReset}
-              className="inline-flex items-center rounded-[var(--ct-radius-md)] border border-[var(--ct-border-soft)] px-3 py-2 text-[length:var(--ct-text-xs)] text-[var(--ct-text-muted)] transition-opacity hover:opacity-80"
+              className="inline-flex items-center rounded-[var(--ct-radius-md)] border border-[var(--ct-border-soft)] px-3 py-2 body-xs ct-text-muted transition-opacity hover:opacity-80"
             >
               Reset
             </button>

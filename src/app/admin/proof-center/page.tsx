@@ -115,11 +115,11 @@ export default async function AdminProofCenterPage({
 
       {/* ── Scope indicator ────────────────────────────────── */}
       <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <h2 className="h3">
+        <h2 className="h2">
           {isAllVaults ? (
             <>
               All vaults
-              <span className="ml-2 text-[length:var(--ct-text-sm)] font-normal ct-text-muted">
+              <span className="ml-2 body-sm font-normal ct-text-muted">
                 {totalProofCount} proof{totalProofCount !== 1 ? "s" : ""}
               </span>
             </>

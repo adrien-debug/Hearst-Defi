@@ -147,10 +147,7 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
           </span>
 
           <div className="flex flex-col gap-[var(--ct-space-2)]">
-            <h1
-              className="h1"
-              style={{ fontSize: "clamp(1.25rem, 2vw, 1.5rem)", fontWeight: 700, color: "var(--ct-text-strong)", letterSpacing: "-0.02em" }}
-            >
+            <h1 className="h1">
               {amount !== "—" ? `${amount} USDC deposited` : "Deposit confirmed"}
             </h1>
             <p className="body-sm ct-text-muted">
@@ -160,10 +157,7 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
         </div>
 
         {/* ── Detail rows ── */}
-        <div
-          className="w-full flex flex-col gap-[var(--ct-space-2)] rounded-[var(--ct-radius-md)] bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)]"
-          style={{ padding: "var(--ct-space-4)" }}
-        >
+        <div className="w-full flex flex-col gap-[var(--ct-space-2)] rounded-[var(--ct-radius-md)] bg-[var(--ct-surface-1)] border border-[var(--ct-border-soft)] p-[var(--ct-space-4)]">
 
           {/* Transaction hash */}
           <div className="flex items-center justify-between gap-3 py-2 border-b border-[var(--ct-border-soft)]">
