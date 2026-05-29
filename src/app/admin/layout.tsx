@@ -5,7 +5,6 @@ import { AdminRailIntra } from "@/components/nav/product-rail-intra";
 import { AdminSubNav } from "@/components/nav/admin-sub-nav";
 import { VaultBreadcrumb } from "@/components/admin/vault-breadcrumb";
 import { getSession } from "@/lib/auth/session";
-import { requireAdmin } from "@/lib/auth/require-admin";
 import {
   getCurrentVaultContext,
   buildBreadcrumbSegments,

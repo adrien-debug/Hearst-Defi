@@ -2,7 +2,7 @@ import { Progress } from "@/components/ui/progress";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { ChartProvenanceCorner } from "@/components/ui/chart-provenance-corner";
 import { cn } from "@/lib/cn";
-import type { MiningHealth } from "@/lib/mock/dashboard";
+import type { MiningHealth } from "@/lib/dashboard-types";
 
 // ── Pure helpers (exported for tests) ───────────────────────────────────────
 

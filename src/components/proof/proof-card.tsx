@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EXPLORER_ADDRESS_BASE, EXPLORER_TX_BASE } from "@/lib/chain/client";
-import type { ProofType } from "@/lib/mock/proof-center";
+import type { ProofType } from "@/lib/proof-center-types";
 
 import { safeUrl } from "@/lib/safe-url";
 

@@ -1,9 +1,10 @@
 import "server-only";
 
-// MOCK pending agent-dev loader (salve 4).
-// Replace getMockMemoInput() with a Prisma-backed loader once src/lib/agents/loaders
-// (or equivalent) is committed. The shape below MUST stay aligned with
-// InvestorMemoInput (src/lib/agents/investor-memo.ts).
+// Test fixture: a representative `InvestorMemoInput` used by the investor-memo
+// PDF template snapshot test. The production input is assembled by the
+// Prisma-backed loaders in `src/lib/agents/loaders/*`; this fixture exists
+// solely to exercise the PDF rendering layer deterministically. Keep the shape
+// aligned with InvestorMemoInput (src/lib/agents/investor-memo.ts).
 
 import type { InvestorMemoInput } from "@/lib/agents/investor-memo";
 import type {

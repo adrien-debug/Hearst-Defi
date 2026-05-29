@@ -4,6 +4,7 @@ import { createPublicClient, http, type Address } from "viem";
 import { mainnet } from "viem/chains";
 
 import { evaluateFreshness, STALE_THRESHOLDS } from "@/lib/data/freshness";
+import { captureMessage } from "@/lib/error-tracking";
 
 /**
  * BTC price loader — methodology v1.0 source contract.
@@ -177,6 +178,25 @@ export async function fetchBtcPrice(): Promise<BtcPriceData> {
     };
   }
 
+  // Oracle unavailable. In production this is a degradation worth surfacing:
+  // the NAV-relevant BTC price is no longer oracle-backed. `captureMessage` is
+  // a no-op without SENTRY_DSN, and Sentry groups identical messages — so a
+  // per-call capture becomes one grouped issue with a count, not log spam. We
+  // never fire in dev/test (silent fallback is fine locally).
+  if (process.env.NODE_ENV === "production") {
+    const rpcConfigured =
+      !!process.env.NEXT_PUBLIC_CHAIN_RPC_URL &&
+      process.env.NEXT_PUBLIC_CHAIN_RPC_URL.trim().length > 0;
+    captureMessage(
+      "BTC price degraded: Chainlink oracle unavailable, falling back to CoinGecko spot.",
+      {
+        reason: rpcConfigured ? "oracle_call_failed" : "rpc_not_configured",
+        rpcConfigured,
+        expectedProvenance: "oracle",
+      },
+    );
+  }
+
   // 2) Fallback: CoinGecko.
   const gecko = await fetchCoinGecko();
   if (gecko !== null) {
@@ -190,7 +210,14 @@ export async function fetchBtcPrice(): Promise<BtcPriceData> {
     };
   }
 
-  // 3) Nothing worked — surface stale provenance, never crash the dashboard.
+  // 3) Nothing worked — neither oracle nor CoinGecko responded. This is a
+  // harder failure than the degradation above; always surface it in prod.
+  if (process.env.NODE_ENV === "production") {
+    captureMessage(
+      "BTC price unavailable: Chainlink oracle and CoinGecko both failed; serving stale $0.",
+      { expectedProvenance: "oracle", servedProvenance: "stale" },
+    );
+  }
   return {
     usd: 0,
     usd_24h_change: 0,

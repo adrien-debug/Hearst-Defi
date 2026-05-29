@@ -26,8 +26,8 @@ export interface DistributionSnapshot {
 
 /**
  * Target monthly distribution rate when nothing is on file in the DB.
- * Matches the long-running mock series in `src/lib/mock/investor-memo.ts`
- * (`monthlySeries(... distributionUsdc: value * 0.008)`).
+ * Matches the 0.8%/mo rate used by the investor-memo PDF test fixture
+ * (`src/lib/pdf/__tests__/memo-input.fixture.ts`, `monthlySeries(...)`).
  */
 const DEFAULT_MONTHLY_RATE = 0.008;
 

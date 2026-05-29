@@ -5,7 +5,7 @@ import type {
   MiningOpsSnapshot,
   VaultMonthlyRow,
 } from "@/lib/pdf/memo-data";
-import { getMockMemoInput } from "@/lib/mock/investor-memo";
+import { getMockMemoInput } from "./memo-input.fixture";
 import { periodFromIso } from "@/lib/pdf/memo-data";
 
 const miningOps: MiningOpsSnapshot = {

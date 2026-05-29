@@ -2,7 +2,7 @@ import "server-only";
 
 import { verifyStoredAttestation } from "@/lib/attestation";
 import { prisma } from "@/lib/db";
-import type { ProofItem, ProofType } from "@/lib/mock/proof-center";
+import type { ProofItem, ProofType } from "@/lib/proof-center-types";
 import {
   clampPageSize,
   toPrismaSkip,

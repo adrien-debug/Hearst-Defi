@@ -1,6 +1,13 @@
-import "server-only";
-
 import type { Provenance } from "@/components/ui/provenance-badge";
+
+/**
+ * Dashboard view-model types.
+ *
+ * Presentation-layer shapes for the dashboard cards (AUM, APY range, mining
+ * health, BTC tactical, activity). These are display contracts, distinct from
+ * the canonical engine types in `src/lib/engine/types.ts`. Pure types — no
+ * runtime, safe to import from server or client components.
+ */
 
 export interface ApyRange {
   low: number;
@@ -24,12 +31,12 @@ export interface MiningHealth {
 }
 
 /**
- * Mock dashboard-card shape for a BTC trigger row.
+ * Dashboard-card shape for a BTC trigger row.
  *
  * NOT the canonical engine type. The source of truth is
  * `BtcTrigger` in `src/lib/engine/types.ts` (kind/condition/action/armed).
- * This shape is intentionally distinct (label/ruleId for display) and lives
- * only in the mock layer.
+ * This shape is intentionally distinct (label/ruleId for display) and is
+ * used by the dashboard presentation layer only.
  */
 export interface DisplayBtcTrigger {
   id: string;

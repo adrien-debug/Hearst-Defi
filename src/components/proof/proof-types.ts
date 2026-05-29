@@ -1,10 +1,10 @@
-import type { ProofItem, ProofType } from "@/lib/mock/proof-center";
+import type { ProofItem, ProofType } from "@/lib/proof-center-types";
 import type { OnChainEvent } from "@/lib/chain/event-logger";
 import type { OnChainAttestation } from "@/lib/chain/por-registry";
 
 /**
  * Discriminated union covering on-chain events, on-chain PoR attestations,
- * and the off-chain "paper" proofs from `src/lib/mock/proof-center`.
+ * and the off-chain "paper" proofs typed by `src/lib/proof-center-types`.
  *
  * The Proof Center grid renders all three through a single `<ProofCard>`.
  */
