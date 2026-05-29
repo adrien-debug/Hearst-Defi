@@ -316,7 +316,7 @@ export default async function PortfolioPage() {
         </div>
 
         {/* Ligne 2 : ValueChart (2/3) + Liquidity Column (1/3) */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="grid items-start grid-cols-1 gap-6 lg:grid-cols-12">
           {/* Performance Chart */}
           <div className="lg:col-span-8 flex flex-col">
             <ValueChart
@@ -337,7 +337,7 @@ export default async function PortfolioPage() {
       {/* ── Section 2 — Under the Hood (Yield & Trust) ────────────────────── */}
       <Section data-section="yield-trust" label="Yield and Trust — analytics and risk">
         {/* Ligne 1 : Yield Analytics */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid items-start grid-cols-1 gap-6 lg:grid-cols-2">
           <AllocationDonut
             positions={data.positions}
             totalValueUsdc={data.totalValueUsdc}
@@ -349,7 +349,7 @@ export default async function PortfolioPage() {
         </div>
 
         {/* Ligne 2 : Security & Trust */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid items-start grid-cols-1 gap-6 lg:grid-cols-2">
           <div data-testid="risk-pulse-widget">
             <RiskPulse {...riskPulseProps} source={riskPulseSource} />
           </div>
@@ -364,7 +364,7 @@ export default async function PortfolioPage() {
         {/* Positions List — Full width */}
         <PositionsList positions={data.positions} source={data.source} />
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid items-start grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Distributions Calendar */}
           <div data-testid="distrib-calendar-widget">
             <DistribCalendar {...distribCalendarProps} />

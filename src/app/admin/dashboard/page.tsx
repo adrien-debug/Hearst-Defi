@@ -261,7 +261,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
       {/* Section 2 — Engine & Allocation */}
       <section className="flex flex-col gap-6 relative z-10 border-t border-[var(--ct-border-soft)] pt-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 shrink-0 min-h-[300px]">
+        <div className="grid items-start grid-cols-1 lg:grid-cols-12 gap-6 shrink-0 min-h-[300px]">
           <div className="lg:col-span-4 flex flex-col h-full">
             <article className="dash-cell dash-cell-premium h-full flex flex-col p-6" aria-label="Allocation breakdown">
               <div className="dash-label relative z-10">
@@ -332,7 +332,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
       {/* Section 3 — Risk & Tactical */}
       <section className="flex flex-col gap-6 relative z-10 border-t border-[var(--ct-border-soft)] pt-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 shrink-0 min-h-[250px]">
+        <div className="grid items-start grid-cols-1 lg:grid-cols-2 gap-6 shrink-0 min-h-[250px]">
           <div className="h-full">
             <RiskFrameworkSection data={risk} />
           </div>
