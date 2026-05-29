@@ -161,7 +161,7 @@ export function PersonaEmbed({
       {error !== null && (
         <p
           role="alert"
-          className="text-xs text-red-400"
+          className="text-xs text-[var(--ct-status-danger)]"
         >
           {error}
         </p>
