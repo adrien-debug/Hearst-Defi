@@ -55,6 +55,7 @@ const MOCK_INVESTOR = {
   walletAddress: null,
   email: "lp@hedgefund.io",
   kycStatus: "approved",
+  accreditationAttestedAt: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -195,6 +196,76 @@ describe("subscribe — Class B wiring (E2)", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error).toMatch(/250k.*class a/i);
+    }
+  });
+});
+
+// ── C-01: KYC gate tests ───────────────────────────────────────────────────
+
+describe("subscribe — C-01 KYC gate", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(prisma.vaultDeployment.findUnique).mockResolvedValue(null);
+  });
+
+  it("kycStatus=pending → { ok:false, error: KYC approval required... }", async () => {
+    vi.mocked(getInvestor).mockResolvedValue({
+      ...MOCK_INVESTOR,
+      kycStatus: "pending",
+    });
+    vi.mocked(getVault).mockResolvedValue(LIVE_VAULT);
+
+    const result = await subscribe("hearst-yield-vault", 250_000, "A");
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toBe("KYC approval required before subscribing.");
+    }
+    expect(prisma.position.create).not.toHaveBeenCalled();
+  });
+
+  it("kycStatus=rejected → { ok:false, error: KYC approval required... }", async () => {
+    vi.mocked(getInvestor).mockResolvedValue({
+      ...MOCK_INVESTOR,
+      kycStatus: "rejected",
+    });
+    vi.mocked(getVault).mockResolvedValue(LIVE_VAULT);
+
+    const result = await subscribe("hearst-yield-vault", 250_000, "A");
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toBe("KYC approval required before subscribing.");
+    }
+    expect(prisma.position.create).not.toHaveBeenCalled();
+  });
+
+  it("kycStatus=approved → position created successfully", async () => {
+    vi.mocked(getInvestor).mockResolvedValue({
+      ...MOCK_INVESTOR,
+      kycStatus: "approved",
+    });
+    vi.mocked(getVault).mockResolvedValue(LIVE_VAULT);
+    vi.mocked(prisma.position.create).mockResolvedValue({
+      id: "pos_kyc_ok_001",
+      investorId: MOCK_INVESTOR.id,
+      vaultDeploymentId: null,
+      vaultKey: "hearst-yield-vault:class-A",
+      principalUsdc: 250_000 as unknown as import("@prisma/client").Prisma.Decimal,
+      accruedYieldUsdc: 0 as unknown as import("@prisma/client").Prisma.Decimal,
+      distributedUsdc: 0 as unknown as import("@prisma/client").Prisma.Decimal,
+      status: "active",
+      subscribedAt: new Date(),
+      maturedAt: null,
+      exitedAt: null,
+      txHashOpen: null,
+    });
+
+    const result = await subscribe("hearst-yield-vault", 250_000, "A");
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.positionId).toBe("pos_kyc_ok_001");
     }
   });
 });

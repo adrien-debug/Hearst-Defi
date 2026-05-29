@@ -55,6 +55,15 @@ function fmtDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
+/**
+ * Formats an APY range from basis-point integers.
+ * e.g. formatApyRange(940, 1280) → "9.4–12.8%"
+ * Uses an en-dash (U+2013) separator, consistent with the Methodology v1.0 convention.
+ */
+export function formatApyRange(lowBps: number, highBps: number): string {
+  return `${(lowBps / 100).toFixed(1)}–${(highBps / 100).toFixed(1)}%`;
+}
+
 function ytdStart(): Date {
   return new Date(Date.UTC(new Date().getUTCFullYear(), 0, 1));
 }
@@ -384,6 +393,17 @@ function StatementDocument({ data }: { data: StatementData }) {
     })),
   );
 
+  // APY range derived from vault deployment bps (default: 940 / 1280 = 9.4–12.8%).
+  // Uses the first position's data; all positions in a single-vault statement share
+  // the same target range.
+  const _apyLowBps = data.positions[0] !== undefined
+    ? Math.round(data.positions[0].apyLow * 100)
+    : 940;
+  const _apyHighBps = data.positions[0] !== undefined
+    ? Math.round(data.positions[0].apyHigh * 100)
+    : 1280;
+  const apyRangeLabel = formatApyRange(_apyLowBps, _apyHighBps);
+
   return (
     <Document
       title={`Hearst Connect — LP Statement ${monthLabel}`}
@@ -455,7 +475,7 @@ function StatementDocument({ data }: { data: StatementData }) {
           {aggregatePnl.annualizedReturnPct !== null && (
             <View style={styles.summaryCard}>
               <Text style={styles.summaryLabel}>APY Range (Target)</Text>
-              <Text style={styles.summaryValue}>9.4–12.8%</Text>
+              <Text style={styles.summaryValue}>{apyRangeLabel}</Text>
               <Text style={styles.summaryUnit}>
                 Annualized: {pct(aggregatePnl.annualizedReturnPct)}
               </Text>
@@ -610,7 +630,7 @@ function StatementDocument({ data }: { data: StatementData }) {
 
         {/* ── Footer disclaimer ─────────────────────────────────────────── */}
         <Text style={styles.disclaimer}>
-          Projections — not guaranteed. APY ranges (9.4–12.8%) are target
+          Projections — not guaranteed. APY ranges ({apyRangeLabel}) are target
           projections based on stated assumptions and Methodology v1.0. They do
           not constitute a commitment or promise of future returns. Accrued yield
           figures are indicative and subject to change based on vault conditions.

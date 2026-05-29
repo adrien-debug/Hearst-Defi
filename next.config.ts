@@ -145,22 +145,52 @@ const nextConfig: NextConfig = {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
           },
-          {
-            key: "Content-Security-Policy",
-            value: [
-              "default-src 'self'",
-              // 'unsafe-eval' is required by Next.js 16 Turbopack runtime; cannot be removed without nonce-based CSP
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://auth.privy.io https://telemetry.privy.io",
-              "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https:",
-              "connect-src 'self' https: wss:",
-              "frame-src https://auth.privy.io",
-              process.env.NODE_ENV === "production"
-                ? "frame-ancestors 'self'"
-                : "frame-ancestors 'self' http://localhost:4200 http://localhost:4201",
-              "font-src 'self' data:",
-            ].join("; "),
-          },
+          (() => {
+            // Resolve the configured RPC origin at build time so the CSP does
+            // not hardcode a single provider. The real RPC is Alchemy
+            // (NEXT_PUBLIC_CHAIN_RPC_URL); without its origin in connect-src the
+            // viem deposit/approve flow is blocked in the browser.
+            const rpcOrigin = (() => {
+              try {
+                return new URL(
+                  process.env.NEXT_PUBLIC_CHAIN_RPC_URL ??
+                    "https://sepolia.base.org",
+                ).origin;
+              } catch {
+                return "https://sepolia.base.org";
+              }
+            })();
+            // connect-src hosts: self + Privy + the public Base Sepolia RPC
+            // fallback + the configured RPC origin (deduped) + Persona KYC API.
+            const connectHosts = [
+              "'self'",
+              "https://auth.privy.io",
+              "https://telemetry.privy.io",
+              "https://sepolia.base.org",
+              ...(rpcOrigin === "https://sepolia.base.org" ? [] : [rpcOrigin]),
+              "https://*.withpersona.com",
+              "wss://auth.privy.io",
+            ].join(" ");
+            return {
+              key: "Content-Security-Policy",
+              value: [
+                "default-src 'self'",
+                // 'unsafe-eval' is required by Next.js 16 Turbopack runtime; cannot be removed without nonce-based CSP.
+                // cdn.withpersona.com loads the Persona KYC SDK (persona-embed.tsx).
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://auth.privy.io https://telemetry.privy.io https://cdn.withpersona.com",
+                "style-src 'self' 'unsafe-inline'",
+                "img-src 'self' data: blob: https:",
+                `connect-src ${connectHosts}`,
+                // frame-src: Privy auth + Persona inquiry iframe + DocuSign embedded
+                // signing ceremony (docusign-embedded.tsx) + Calendly ops scheduling.
+                "frame-src https://auth.privy.io https://*.withpersona.com https://*.docusign.net https://*.docusign.com https://calendly.com",
+                process.env.NODE_ENV === "production"
+                  ? "frame-ancestors 'self'"
+                  : "frame-ancestors 'self' http://localhost:4200 http://localhost:4201",
+                "font-src 'self' data:",
+              ].join("; "),
+            };
+          })(),
         ],
       },
     ];

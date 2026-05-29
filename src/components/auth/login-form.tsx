@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { login } from "@/lib/auth/actions";
@@ -102,6 +103,16 @@ export function LoginForm() {
           {isPending ? "Signing in…" : "Sign in"}
         </Button>
       </div>
+
+      <p className="text-center body-xs ct-text-muted">
+        <Link
+          href="/forgot-password"
+          className="hover:underline"
+          style={{ color: "var(--ct-accent)" }}
+        >
+          Forgot password?
+        </Link>
+      </p>
     </form>
   );
 }

@@ -48,6 +48,11 @@ export async function subscribe(
     throw new Error("Unauthenticated");
   }
 
+  // C-01: KYC gate — only approved investors may subscribe.
+  if (investor.kycStatus !== "approved") {
+    return { ok: false, error: "KYC approval required before subscribing." };
+  }
+
   if (amountUsdc > MAX_SUBSCRIBE_USDC) {
     return { ok: false, error: "Amount too large." };
   }

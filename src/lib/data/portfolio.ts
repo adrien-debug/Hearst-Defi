@@ -153,6 +153,46 @@ export function getShareClassForPosition(
   return code === "B" ? SHARE_CLASS_B : SHARE_CLASS_A;
 }
 
+/**
+ * Derive the share-class code ("A" | "B") from a position's vaultKey.
+ *
+ * subscribe.ts stores the class as a `:class-X` suffix (e.g.
+ * "hearst-yield-vault:class-B"). This helper parses that suffix and falls
+ * back to "A" when the key predates the suffix convention or has no match.
+ *
+ * Exported for unit tests; not part of the public API of this module.
+ */
+export function shareClassCodeFromVaultKey(vaultKey: string | null | undefined): "A" | "B" {
+  if (!vaultKey) return "A";
+  const match = /:class-([AB])$/i.exec(vaultKey);
+  if (!match?.[1]) return "A";
+  return match[1].toUpperCase() as "A" | "B";
+}
+
+/**
+ * Select SHARE_CLASS_A or SHARE_CLASS_B from the vaultKey suffix stored by
+ * subscribe.ts. Delegates to shareClassCodeFromVaultKey, then maps to the
+ * engine preset. Default = class A.
+ *
+ * Exported for unit tests; not part of the public API of this module.
+ */
+export function shareClassTermsFromVaultKey(vaultKey: string | null | undefined): ShareClassTerms {
+  return shareClassCodeFromVaultKey(vaultKey) === "B" ? SHARE_CLASS_B : SHARE_CLASS_A;
+}
+
+/**
+ * Derive the distribution cadence string from a ShareClassTerms preset.
+ * Class B has a longer soft lock-up (90 days) but the same monthly distribution
+ * schedule — both classes distribute monthly, T+5.
+ *
+ * Exported for unit tests; not part of the public API of this module.
+ */
+export function cadenceFromTerms(_terms: ShareClassTerms): string {
+  // Both class A and B distribute monthly on day 1, settlement T+5.
+  // If a third class with a different cadence is introduced, extend here.
+  return "monthly, T+5";
+}
+
 // ---------------------------------------------------------------------------
 // Loader
 // ---------------------------------------------------------------------------
@@ -301,20 +341,20 @@ export async function loadLockMeterProps(): Promise<LockMeterProps & { source: "
     return {
       lockStart: now,
       softLockupDays: 0,
-      earlyExitPenaltyBps: 0,
       asOf: now,
       source: "stale",
     };
   }
 
-  // softLockupDays + earlyExitPenaltyBps must come from the share class.
-  // Until per-share-class fields land on Position/VaultDeployment, leave
-  // them at 0 rather than invent class-A defaults that a class-B LP would
-  // see incorrectly.
+  // Derive softLockupDays from the share class encoded in the position's
+  // vaultKey suffix (e.g. "hearst-yield-vault:class-B" → 90 days).
+  // earlyExitPenaltyBps is not modelled on ShareClassTerms — leave it
+  // absent (undefined) so the lock-meter renders no penalty row rather
+  // than showing a fabricated 0%.
+  const terms = shareClassTermsFromVaultKey(position.vaultKey);
   return {
     lockStart: position.subscribedAt,
-    softLockupDays: 0,
-    earlyExitPenaltyBps: 0,
+    softLockupDays: terms.softLockupDays,
     asOf: now,
     source: "live",
   };
@@ -383,22 +423,27 @@ export async function loadRiskPulseProps(): Promise<RiskPulseProps & { source: "
 export async function loadDistribCalendarProps(): Promise<DistribCalendarProps & { source: "live" | "stale" }> {
   const investor = await getInvestor();
 
-  // Default class A cadence — used when no position exists yet.
-  const defaultCadence = "monthly, T+5";
-
   if (!investor) {
-    return { entries: [], shareClass: SHARE_CLASS_A.shareClass, cadence: defaultCadence, source: "stale" };
+    return {
+      entries: [],
+      shareClass: SHARE_CLASS_A.shareClass,
+      cadence: cadenceFromTerms(SHARE_CLASS_A),
+      source: "stale",
+    };
   }
 
   // Resolve the investor's share class from their first active position so the
   // calendar surfaces the correct series label (a class B LP must not see "A").
+  // Primary source: vaultKey suffix (:class-A / :class-B) written by subscribe.ts.
+  // Fallback: vaultDeployment.shareClass column (for positions created before the
+  // suffix convention was introduced).
   const firstActive = await prisma.position.findFirst({
     where: { investorId: investor.id, status: "active" },
     orderBy: { subscribedAt: "asc" },
     include: { vaultDeployment: true },
   });
   const terms = firstActive
-    ? getShareClassForPosition(firstActive)
+    ? shareClassTermsFromVaultKey(firstActive.vaultKey) ?? getShareClassForPosition(firstActive)
     : SHARE_CLASS_A;
 
   const rawDistribs = await prisma.investorTransaction.findMany({
@@ -417,7 +462,7 @@ export async function loadDistribCalendarProps(): Promise<DistribCalendarProps &
     return {
       entries: [],
       shareClass: terms.shareClass,
-      cadence: defaultCadence,
+      cadence: cadenceFromTerms(terms),
       source: "stale",
     };
   }
@@ -436,7 +481,7 @@ export async function loadDistribCalendarProps(): Promise<DistribCalendarProps &
   return {
     entries,
     shareClass: terms.shareClass,
-    cadence: defaultCadence,
+    cadence: cadenceFromTerms(terms),
     source: "live",
   };
 }

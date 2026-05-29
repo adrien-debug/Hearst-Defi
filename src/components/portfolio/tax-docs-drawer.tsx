@@ -239,19 +239,22 @@ export function TaxDocsDrawer({ userId: _userId, preview }: TaxDocsDrawerProps) 
 
   return (
     <>
-      {/* Trigger — embedded button (this component can also be triggered externally via openDrawer) */}
+      {/* Trigger — disabled until real tax data is available (V1: fabricated data only).
+           External callers (openDrawer) are the sole other entry point; in V1 no
+           external trigger surfaces this component, so disabling here is sufficient. */}
       <button
         type="button"
-        onClick={() => setIsOpen(true)}
+        disabled
+        aria-disabled="true"
+        title="Available 2027 Q1"
         className={cn(
           "inline-flex items-center gap-2 rounded-[var(--ct-radius-full)]",
           "border border-[var(--ct-border-soft)] bg-[var(--ct-surface-0)]",
-          "px-4 py-2 text-sm text-[var(--ct-text-primary)]",
-          "hover:bg-[var(--ct-surface-2)] hover:border-[var(--ct-border-strong)]",
-          "transition-[background-color,border-color] duration-[var(--ct-dur-base)]",
+          "px-4 py-2 text-sm text-[var(--ct-text-muted)]",
+          "opacity-50 cursor-not-allowed",
           "focus-visible:outline-none focus-visible:shadow-[var(--ct-shadow-focus-ring)]",
         )}
-        aria-label="Open tax documents preview"
+        aria-label="Tax documents preview — available 2027 Q1"
         data-testid="tax-docs-trigger"
       >
         <span aria-hidden>📄</span>

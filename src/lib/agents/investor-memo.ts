@@ -79,7 +79,8 @@ export interface RunInvestorMemoOptions {
   methodologyVersion?: MethodologyVersion;
 }
 
-function buildSystemInstructions(version: MethodologyVersion): string {
+/** Exported for unit-testing only. Do not call from application code directly. */
+export function buildSystemInstructions(version: MethodologyVersion): string {
   return `You are the Investor Memo Agent for Hearst Connect.
 
 You receive full vault state, scenario outputs, and backtest summaries. You produce a structured 8-section Markdown memo for institutional / qualified investors (Cayman SPV structure, $250k minimum ticket, 60-day soft lock-up).
@@ -93,6 +94,7 @@ Rules — apply all without exception:
 - If any input data is missing or ambiguous, state it explicitly in the relevant section. Do not invent numbers.
 - Disclaimers are pre-supplied as templates; reproduce them verbatim in the \`disclaimer\` field. Do not paraphrase or shorten.
 - Tone: institutional, factual, professional. No marketing superlatives. No emojis.
+- Model B — vault mechanics: Principal is held in a USDC cash reserve inside the vault, not deployed on-chain; yield is a mining-revenue-share distribution injected monthly.
 - Methodology version: ${version}.
 
 The 8 sections and their purpose:

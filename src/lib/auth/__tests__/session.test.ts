@@ -211,6 +211,7 @@ describe("getInvestor", () => {
       walletAddress: null,
       email: null,
       kycStatus: "pending",
+      accreditationAttestedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };

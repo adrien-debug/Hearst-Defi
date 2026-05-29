@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
@@ -14,6 +15,14 @@ import {
 import { safeFrom } from "@/lib/safe-redirect";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { logger, hashId } from "@/lib/logger";
+import { isTotpEnabled, verifyTotpCode } from "@/lib/auth/totp";
+
+// Cookie name for a pending-TOTP session (set after password OK, cleared after TOTP OK).
+// Short TTL: 5 minutes — just enough to complete the TOTP challenge.
+// NOT exported: a "use server" module may only export async functions (Next.js
+// enforces this at runtime — a non-function export crashes the whole route).
+const TOTP_PENDING_COOKIE = "hc_totp_pending" as const;
+const TOTP_PENDING_TTL_MS = 5 * 60 * 1000;
 
 /**
  * Database email/password authentication actions.
@@ -141,6 +150,27 @@ export async function login(
     return { ok: false, error: INVALID_CREDENTIALS };
   }
 
+  // ── TOTP gate ─────────────────────────────────────────────────────────────
+  // If the user has TOTP enabled, don't create a full session yet. Instead,
+  // set a short-lived "pending TOTP" cookie and redirect to the challenge page.
+  // The real session is only created after the TOTP code is verified.
+  const needsTotp = await isTotpEnabled(user.id);
+  if (needsTotp) {
+    const store = await cookies();
+    const pendingExpiry = new Date(Date.now() + TOTP_PENDING_TTL_MS);
+    // Value: "userId|from" — both parts are opaque server-side values, not
+    // meaningful to the client; the cookie is httpOnly.
+    store.set(TOTP_PENDING_COOKIE, `${user.id}|${from ?? ""}`, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      expires: pendingExpiry,
+    });
+    redirect("/totp-challenge");
+  }
+  // ──────────────────────────────────────────────────────────────────────────
+
   const { token, expiresAt } = await createSession(user.id);
   await setSessionCookie(token, expiresAt);
   logger.info("login success", { userId: user.id });
@@ -153,4 +183,61 @@ export async function login(
 export async function logout(): Promise<void> {
   await destroySession();
   redirect("/login");
+}
+
+export type TotpChallengeResult = { ok: false; error: string };
+
+/**
+ * Verify the TOTP challenge code after a successful password login.
+ *
+ * Reads the `hc_totp_pending` cookie (set by `login` when TOTP is required),
+ * verifies the code, creates the full session, and redirects to the original
+ * destination.
+ */
+export async function verifyTotpChallenge(
+  input: FormData | { code?: unknown },
+): Promise<TotpChallengeResult> {
+  const store = await cookies();
+  const pendingRaw = store.get(TOTP_PENDING_COOKIE)?.value;
+  if (!pendingRaw) {
+    return { ok: false, error: "Session expired. Please sign in again." };
+  }
+
+  const [userId, from] = pendingRaw.split("|") as [string, string | undefined];
+  if (!userId) {
+    store.delete(TOTP_PENDING_COOKIE);
+    return { ok: false, error: "Invalid pending session. Please sign in again." };
+  }
+
+  // Rate-limit the second factor: a 6-digit code (window=1) accepts ~3 valid
+  // codes at any instant, so unthrottled guessing against a static pending
+  // cookie within its TTL is a real brute-force vector. Cap at 5 / 5min.
+  try {
+    await assertRateLimit(`totp:${userId}`, 5, 300_000);
+  } catch {
+    // Force a full restart of the login flow once the cap is hit.
+    store.delete(TOTP_PENDING_COOKIE);
+    return {
+      ok: false,
+      error: "Too many attempts. Please sign in again.",
+    };
+  }
+
+  const codeRaw = input instanceof FormData ? input.get("code") : input.code;
+  if (typeof codeRaw !== "string" || !/^\d{6}$/.test(codeRaw)) {
+    return { ok: false, error: "Enter your 6-digit authenticator code." };
+  }
+
+  const valid = await verifyTotpCode(userId, codeRaw);
+  if (!valid) {
+    return { ok: false, error: "Invalid or expired code. Please try again." };
+  }
+
+  // Code accepted — clear the pending cookie, create the real session.
+  store.delete(TOTP_PENDING_COOKIE);
+  const { token, expiresAt } = await createSession(userId);
+  await setSessionCookie(token, expiresAt);
+  logger.info("totp challenge passed", { userId });
+
+  redirect(safeFrom(from));
 }

@@ -1,0 +1,88 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
+import { forgotPassword } from "./actions";
+
+/**
+ * Client form for the "Forgot password?" flow.
+ * Sends the email to the server action and shows the anti-enumeration message.
+ */
+export function ForgotPasswordForm() {
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function onSubmit(formData: FormData) {
+    setError(null);
+    setMessage(null);
+    startTransition(async () => {
+      const result = await forgotPassword(formData);
+      if (result.ok) {
+        setMessage(result.message);
+      } else {
+        setError(result.error);
+      }
+    });
+  }
+
+  return (
+    <form action={onSubmit} className="space-y-4" aria-label="Forgot password">
+      <label className="block text-xs" htmlFor="fp-email">
+        <span className="mb-1 block ct-text-muted uppercase tracking-wide">
+          Email address
+        </span>
+        <input
+          id="fp-email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          autoFocus
+          required
+          disabled={isPending || message !== null}
+          placeholder="you@institution.com"
+          className="ct-input"
+          style={{
+            background: "color-mix(in srgb, var(--ct-bg-deep) 40%, transparent)",
+            borderColor: "var(--ct-border-soft)",
+          }}
+        />
+      </label>
+
+      {error ? (
+        <p className="ct-status-danger body-xs" role="alert">
+          {error}
+        </p>
+      ) : null}
+
+      {message ? (
+        <p
+          className="body-xs"
+          style={{ color: "var(--ct-accent)" }}
+          role="status"
+        >
+          {message}
+        </p>
+      ) : null}
+
+      <Button
+        type="submit"
+        variant="primary"
+        size="md"
+        className="w-full"
+        disabled={isPending || message !== null}
+        aria-busy={isPending}
+      >
+        {isPending ? "Sending…" : "Send reset link"}
+      </Button>
+
+      <p className="text-center body-xs ct-text-muted">
+        <Link href="/login" className="hover:underline" style={{ color: "var(--ct-accent)" }}>
+          Back to sign in
+        </Link>
+      </p>
+    </form>
+  );
+}

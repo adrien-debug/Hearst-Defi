@@ -312,14 +312,32 @@ model CockpitMessage {
 // opaque `Session.id` (a cuid), stored in the httpOnly `hc_session` cookie.
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  passwordHash String
-  role         String    @default("investor") // investor | admin
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  sessions     Session[]
-  investor     Investor?
+  id            String               @id @default(cuid())
+  email         String               @unique
+  passwordHash  String
+  role          String               @default("investor") // investor | admin
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  sessions      Session[]
+  investor      Investor?
+  resetTokens   PasswordResetToken[]
+  // TOTP MFA fields (admin only; null until enrolled)
+  totpSecret    String?              // AES-256-GCM encrypted secret, never stored in plaintext
+  totpEnabledAt DateTime?            // null = not enrolled; non-null = TOTP required on login
+}
+
+// Password reset tokens — single-use, 1-hour expiry, hash stored not the raw token.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique // sha256(rawToken) — raw token is only sent in the email link
+  expiresAt DateTime
+  usedAt    DateTime? // null = unused; non-null = already consumed
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model Session {
@@ -342,9 +360,10 @@ model Investor {
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   walletAddress String?  @unique // nullable — set when the investor connects a wallet for payment
   email         String?
-  kycStatus     String   @default("pending") // pending|approved|rejected
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  kycStatus                String    @default("pending") // pending|approved|rejected
+  accreditationAttestedAt  DateTime? // timestamp when investor checked the 3 accreditation boxes at onboarding
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
 
   positions    Position[]
   transactions InvestorTransaction[]
@@ -402,7 +421,7 @@ model VaultDeployment {
   status                 String    @default("draft") // draft|review|deployed|live|paused|closed
   minTicketUsdc          Decimal
   capacityUsdc           Decimal
-  mgmtFeeBps             Int       @default(200)
+  mgmtFeeBps             Int       @default(100)
   perfFeeBps             Int       @default(1000)
   hurdleBps              Int       @default(0)
   softLockupDays         Int       @default(60)

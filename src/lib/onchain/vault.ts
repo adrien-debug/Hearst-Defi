@@ -36,13 +36,26 @@ import { baseSepolia } from "viem/chains";
 
 const BASE_SEPOLIA_CHAIN_ID = 84532;
 
-/** The deployed ERC-4626 vault address. */
-export const VAULT_ADDRESS: Address | null = (() => {
-  const raw = process.env.NEXT_PUBLIC_HEARST_VAULT_ADDRESS;
+/**
+ * Resolves the vault address from env, trying the canonical name first then
+ * the legacy alias.  Exported for unit-testing without module re-import.
+ *
+ * Canonical: NEXT_PUBLIC_HEARST_YIELD_VAULT_ADDRESS
+ * Legacy alias: NEXT_PUBLIC_HEARST_VAULT_ADDRESS
+ */
+export function resolveVaultAddress(
+  env: Record<string, string | undefined> = process.env,
+): Address | null {
+  const raw =
+    env.NEXT_PUBLIC_HEARST_YIELD_VAULT_ADDRESS ??
+    env.NEXT_PUBLIC_HEARST_VAULT_ADDRESS;
   if (!raw) return null;
   const t = raw.trim();
   return /^0x[0-9a-fA-F]{40}$/.test(t) ? (t as Address) : null;
-})();
+}
+
+/** The deployed ERC-4626 vault address. */
+export const VAULT_ADDRESS: Address | null = resolveVaultAddress();
 
 /** The USDC token address on Base Sepolia. */
 export const USDC_ADDRESS: Address =
@@ -212,15 +225,17 @@ export interface ApproveUsdcResult {
 /**
  * Sends an ERC-20 `approve(vault, amount)` on behalf of the connected wallet.
  *
- * Throws `ConfigError` if NEXT_PUBLIC_HEARST_VAULT_ADDRESS is unset.
+ * Throws `ConfigError` if NEXT_PUBLIC_HEARST_YIELD_VAULT_ADDRESS (or legacy
+ * alias NEXT_PUBLIC_HEARST_VAULT_ADDRESS) is unset.
  * Throws `ChainError`  if the wallet is not on Base Sepolia.
  * Throws the underlying viem/RPC error for any contract-level rejection.
  */
 export async function approveUsdc(opts: ApproveUsdcOpts): Promise<ApproveUsdcResult> {
   if (!VAULT_ADDRESS) {
     throw new ConfigError(
-      "NEXT_PUBLIC_HEARST_VAULT_ADDRESS is not configured. " +
-        "Set the env var to enable on-chain transactions.",
+      "NEXT_PUBLIC_HEARST_YIELD_VAULT_ADDRESS is not configured. " +
+        "Set NEXT_PUBLIC_HEARST_YIELD_VAULT_ADDRESS (or legacy NEXT_PUBLIC_HEARST_VAULT_ADDRESS) " +
+        "to enable on-chain transactions.",
     );
   }
 
@@ -269,7 +284,8 @@ export interface DepositToVaultResult {
  * Calls `vault.deposit(assets, receiver)`.
  * Assumes the caller has already approved a sufficient USDC allowance.
  *
- * Throws `ConfigError` if NEXT_PUBLIC_HEARST_VAULT_ADDRESS is unset.
+ * Throws `ConfigError` if NEXT_PUBLIC_HEARST_YIELD_VAULT_ADDRESS (or legacy
+ * alias NEXT_PUBLIC_HEARST_VAULT_ADDRESS) is unset.
  * Throws `ChainError`  if the wallet is not on Base Sepolia.
  */
 export async function depositToVault(
@@ -277,8 +293,9 @@ export async function depositToVault(
 ): Promise<DepositToVaultResult> {
   if (!VAULT_ADDRESS) {
     throw new ConfigError(
-      "NEXT_PUBLIC_HEARST_VAULT_ADDRESS is not configured. " +
-        "Set the env var to enable on-chain transactions.",
+      "NEXT_PUBLIC_HEARST_YIELD_VAULT_ADDRESS is not configured. " +
+        "Set NEXT_PUBLIC_HEARST_YIELD_VAULT_ADDRESS (or legacy NEXT_PUBLIC_HEARST_VAULT_ADDRESS) " +
+        "to enable on-chain transactions.",
     );
   }
 

@@ -94,7 +94,7 @@ export default function PrivacyPage() {
       <h2>8. Cookies</h2>
       <p>
         Strictly necessary cookies only: <code>hc_session</code> (authentication,
-        httpOnly, sameSite=lax, secure in production). No third-party
+        httpOnly, sameSite=strict, secure in production). No third-party
         advertising cookies. Analytics is event-based, not autocapture, and
         opted out in development environments.
       </p>
