@@ -1,6 +1,10 @@
 # Threat Model — Hearst Yield Vault
 
-**Freeze SHA:** `8ba18c99a5b1ebce225ca3dbce7d4c9372a4be24`
+**Freeze SHA:** `898991c6ee3c3bfe7637509ecee7ac579dc79388`
+
+Reconciled to the actual code. See `architecture.md` for the ownership and asset-flow
+diagrams and `invariants.md` for the invariants. Every actor/function below exists in
+`contracts/src/`.
 
 ---
 
@@ -8,139 +12,123 @@
 
 | Actor | Trust level | Notes |
 |---|---|---|
-| Admin Safe (M-of-N multisig) | **Trusted** — assumed honest-majority. Safe threshold to be confirmed at deploy (recommended 3-of-5). | Sole authorised caller for `distribute()`, `rebalance()`, `pauseVault()`. |
-| Hearst Engineering team | **Trusted** for deployment; key management is out of scope here. | Deploy scripts reviewed but not in audit scope. |
-| Privy (auth provider) | **Trusted** for JWT issuance. | JWT verification in `src/proxy.ts` is in-scope. |
-| Fireblocks (custody) | **Trusted** — Viewer read-only key in codebase; no write path from code to Fireblocks. | Off-chain custody, not in-scope. |
-| Mining counterparty | **Semi-trusted** — governed by legal SPV agreement, not enforced on-chain at MVP. | Phase 4 consideration. |
-| Investors | **Untrusted** — minimum `$250k` enforced by `minDeposit` check on-chain. KYC gated off-chain (Persona). | |
-| LLM (Kimi K2.6) | **Untrusted** — treated as an arbitrary string generator. All outputs schema-validated before use. | |
-| Inngest workers | **Trusted with HMAC verification** — webhook receiver validates `INNGEST_SIGNING_KEY` signature before executing any job. | |
+| **Safe 3/5** (owner-via-Timelock + publisher) | **Trusted** — honest-majority (≥3 of 5). | Proposes/executes all owner ops behind the 48h Timelock; immutable `publisher` of EventLogger/PoRRegistry. |
+| **TimelockController** (48h) | **Trusted by construction** — self-administered (`admin=0`). | Enforces a 48h delay on every owner op (`setMinDeposit`, `setGuardian`, `transferOwnership`). |
+| **Guardian** (pause key) | **Semi-trusted** — can pause/unpause only. | Fast-response key, distinct from owner. Can grief availability; **cannot** move funds or change params. Recommended: a 2/3 ops Safe. |
+| **Hearst manager** (off-chain) | **Trusted** for capital deployment & yield reflection. | Moves USDC to/from the mining counterparty off-chain (Fireblocks/SPV); reflects yield by transferring USDC into the vault. No on-chain manager-withdraw exists. |
+| **Fireblocks** (custody) | **Trusted**, read-only from code (Viewer key). No code→Fireblocks write path. | Off-chain; out of scope. |
+| **Mining counterparty** | **Semi-trusted** — governed by the Cayman SPV agreement, not enforced on-chain. | |
+| **Investors** | **Untrusted.** KYC gated off-chain (Persona); `minDeposit` is an indicative on-chain floor. | Can deposit (≥ minDeposit) and redeem their own shares when not paused. |
+| **USDC token** | **Trusted to be standard** — non-rebasing, non-callback ERC-20. | The no-`ReentrancyGuard` posture relies on this (§3.1). |
 
 ---
 
 ## 2. Asset Flows
 
-```
-Investor USDC
-    │
-    ▼ subscribe() — KYC gate off-chain (Persona), min $250k enforced on-chain
-HearstYieldVault (ERC-4626)
-    │   shares minted to investor
-    │
-    ▼ Admin Safe transfers USDC to mining counterparty (off-chain settlement)
-Mining Operations
-    │   monthly yield generated
-    │
-    ▼ Admin Safe calls distribute() — USDC transferred back to vault
-HearstYieldVault
-    │   distribution per share recorded
-    │
-    ▼ Investor calls redeem() after 60-day soft lock-up
-Investor USDC (principal + yield)
-```
+See `architecture.md §3` for the full diagram. Summary:
 
-**PoR Oracle flow:**
-
-```
-Fireblocks (off-chain) → attestation → PoRRegistry.updateBalance()
-                                         │
-                                         ▼ EventLogger.log() (audit trail)
-```
+- **In:** investor `approve` + `deposit` (≥ `minDeposit`, `whenNotPaused`) → shares minted.
+- **Yield:** manager transfers USDC into the vault → `totalAssets` ↑ → share value ↑.
+- **Out:** investor `withdraw`/`redeem` (`whenNotPaused`). No on-chain lock-up.
+- **PoR (advisory):** Safe publishes period attestations to `PoRRegistry` and an audit-trail
+  entry to `EventLogger`. Never read by share math.
 
 ---
 
 ## 3. Attack Surfaces
 
 ### 3.1 Reentrancy
+**Vector:** `withdraw`/`redeem` transfer USDC out; `deposit`/`mint` pull USDC in.
+**Reality / mitigation:** the vault adds **no custom external calls** — only the standard OZ
+ERC-4626 `SafeERC20` transfers, in CEI order, on a non-callback ERC-20 (USDC). **There is no
+`ReentrancyGuard` and none of `subscribe/distribute/rebalance` exists** (the earlier draft was
+wrong). 
+**Auditor focus:** confirm there is no re-entry path through the standard OZ flows for a
+well-behaved USDC, and advise whether an explicit `nonReentrant` should be added defensively
+given the off-chain-yield model (manager-initiated `transfer` into the vault is not a hook).
 
-**Vector:** `redeem()` / `withdraw()` on the ERC-4626 vault calls an external USDC transfer before state is cleared.
+### 3.2 Share Inflation / Donation (ERC-4626 first-depositor)
+**Vector:** first depositor mints dust, donates USDC directly, inflates share price.
+**Mitigation:** OZ virtual-shares defence via `_decimalsOffset()=12` (18-dec shares over a
+6-dec asset). `previewDeposit`/`convertToShares` stay well-behaved on a fresh vault.
+**Auditor focus:** confirm the offset is adequate for USDC; confirm `convertToShares(1)` > 0
+at zero TVL. (INV-V3.)
 
-**Mitigation in place:** OpenZeppelin `ReentrancyGuard` (`nonReentrant` modifier on all state-changing vault functions). CEI (Checks-Effects-Interactions) pattern enforced in `HearstYieldVault.sol`.
+### 3.3 Pause / Availability (Guardian)
+**Vector:** a compromised or malicious **guardian** pauses the vault, freezing deposits **and**
+withdrawals (full freeze by design).
+**Mitigation:** guardian can only pause/unpause — no fund access (INV-A5). Owner (Safe via
+48h Timelock) can rotate the guardian (`setGuardian`). Guardian recommended to be a 2/3 Safe.
+**Auditor focus:** confirm pause cannot be used to extract value (only to halt); confirm
+`unpause` and guardian rotation paths; assess the UX/solvency trade-off of freezing exits
+during pause.
 
-**Auditor focus:** Confirm `nonReentrant` is applied to `subscribe`, `redeem`, `withdraw`, and `distribute`. Verify no re-entry path through ERC-20 callbacks (USDC is non-rebasing but confirm hook absence).
+### 3.4 Owner Key Compromise
+**Vector:** attacker controls the owner and calls `setMinDeposit`/`setGuardian`/`transferOwnership`.
+**Mitigation:** owner = Timelock (48h) ← Safe 3/5; a single EOA is insufficient, and every
+owner op is delayed 48h (cancellable by the Safe via `CANCELLER_ROLE`). Owner holds **no fund
+movement power** and the vault is **non-upgradeable**.
+**Auditor focus:** confirm `onlyOwner` functions are limited to the two setters + Ownable
+transfer; confirm no upgrade/initializer/selfdestruct backdoor; confirm the 48h applies once
+ownership is the Timelock.
 
----
+### 3.5 PoR / Journal Integrity (Publisher Key)
+**Vector:** compromised `publisher` publishes a false attestation or spurious event.
+**Reality / mitigation:** EventLogger/PoRRegistry are **append-only** with a single immutable
+`publisher`; **no roles, no `updateBalance`, no `ORACLE_UPDATER_ROLE`** (the earlier draft was
+wrong). A bad attestation is a **data-integrity** issue only: it moves no funds and cannot be
+overwritten (one attestation per period; history is permanent). PoR is **advisory** — not read
+by share math (INV-P4).
+**Auditor focus:** confirm there is no path from PoR/journal data into vault arithmetic;
+confirm one-shot-per-period (`PeriodAlreadyAttested`) and monotonic ids.
 
-### 3.2 Share Inflation / Donation Attack (ERC-4626)
+### 3.6 Capital-Deployment Gap (off-chain)
+**Vector:** ambiguity in how subscribed USDC reaches the mining counterparty, since the vault
+has **no manager-withdraw function**.
+**Mitigation/assumption:** capital deployment is off-chain (Fireblocks/SPV). The on-chain vault
+holds investor USDC; the manager reflects yield by transferring USDC in. **OPEN ITEM** for the
+architecture call — auditors should record this as an explicit off-chain trust assumption, not
+an on-chain mechanism.
 
-**Vector:** First depositor mints 1 wei of shares, then donates large USDC directly to vault address, inflating share price and causing subsequent depositors to receive 0 shares (rounding to zero).
+### 3.7 Cross-Chain / Signature Replay
+**Vector:** replaying a signature from Base Sepolia (84532) on Base mainnet (8453).
+**Reality:** the **vault has no signatures, no `permit`, no EIP-712 surface** (the earlier
+draft was wrong). The only EIP-712 is the **off-chain** Safe/Timelock operation hashing in
+`src/lib/governance/eip712.ts`, which binds `chainId`/`verifyingContract` and is matched to
+the on-chain `TimelockController.hashOperation` via the pinned parity vector (`architecture.md
+§5`). 
+**Auditor focus:** confirm the vault truly exposes no signature-accepting entry point; sanity-
+check the off-chain hashing parity if reviewing governance config.
 
-**Mitigation in place:** `_decimalsOffset = 12` virtual-shares defence (OZ ERC4626 v5 pattern) — internal virtual assets make the donation economically infeasible. Minimum deposit of $250k further limits the surface.
-
-**Auditor focus:** Confirm `_decimalsOffset` value is appropriate for USDC (6 decimals). Confirm `previewDeposit(1)` returns > 0 after a fresh vault deploy with zero TVL.
-
----
-
-### 3.3 Oracle Manipulation (PoRRegistry)
-
-**Vector:** Compromised oracle key calls `PoRRegistry.updateBalance()` with falsified reserve values, allowing over-issuance of shares or blocking redemptions.
-
-**Mitigation in place:** Oracle updater role is a separate key from Admin Safe; updateBalance emits an event logged in `EventLogger`; off-chain monitoring alerts on anomalous PoR jumps (>20% in one block).
-
-**Auditor focus:** Confirm oracle role is not `DEFAULT_ADMIN_ROLE`. Confirm there is no path from `updateBalance` to vault share arithmetic at MVP (PoR is advisory in V1, not used in `convertToShares`).
-
----
-
-### 3.4 Signature Replay (EIP-712 / chainId Binding)
-
-**Vector:** A permit or governance signature crafted on Base Sepolia (chainId 84532) replayed on Base Mainnet (chainId 8453).
-
-**Mitigation in place:** EIP-712 domain separator includes `chainId` bound at construction time (ADR-009). Permit functions use OpenZeppelin `EIP712` base with `block.chainid` at deploy.
-
-**Auditor focus:** Confirm `_domainSeparatorV4()` is not cached across chain forks. Confirm no permit function accepts an externally supplied `chainId` parameter.
-
----
-
-### 3.5 Admin Session Theft
-
-**Vector:** Attacker compromises an admin wallet (EOA) and calls `distribute()`, `rebalance()`, or `pauseVault()` to drain or freeze vault funds.
-
-**Mitigation in place:** All privileged vault functions require caller to be the Admin Safe address (M-of-N multisig). Single EOA compromise is insufficient. Safe transaction requires M confirmations before execution.
-
-**Auditor focus:** Confirm `onlyOwner` or equivalent is scoped to the Safe address, not an EOA deployer. Confirm no upgradeability backdoor (vault should be non-upgradeable at MVP, or use transparent proxy with Safe as admin).
-
----
-
-### 3.6 Inngest Spoofing
-
-**Vector:** Attacker sends a forged POST to `/api/inngest` mimicking a legitimate job event, triggering a distribution or rebalance outside the scheduled cron.
-
-**Mitigation in place:** Inngest SDK verifies `INNGEST_SIGNING_KEY` HMAC on every inbound webhook before the handler body executes. Handler rejects unverified requests with 401.
-
-**Auditor focus:** Confirm the HMAC check is in the middleware layer and cannot be bypassed by a crafted `x-inngest-env` header. Confirm `INNGEST_SIGNING_KEY` is not logged or exposed in error responses.
-
----
-
-### 3.7 Scenario Engine Side-Channel
-
-**Vector:** An adversary supplies crafted scenario parameters that cause the pure-function engine to take exponentially long (DoS via computation), or to leak internal state through timing.
-
-**Mitigation in place:** Engine runs server-side (Server Component / Server Action); user input is schema-validated (Zod) before being passed to engine. Monte Carlo iteration count is capped server-side.
-
-**Auditor focus:** Confirm no user-supplied value can control loop bounds without server-side capping. Confirm engine cannot import `process.env` (which would make it non-pure and potentially expose secrets).
-
----
-
-### 3.8 LLM Prompt Injection
-
-**Vector:** An investor supplies a malicious description in a scenario or memo field; the text is injected into an LLM prompt, causing the agent to emit forbidden claims ("no risk", "100% return") that bypass the forbidden-word linter.
-
-**Mitigation in place:** User-supplied strings are sanitised (stripped of prompt-delimiter characters) before template injection. Forbidden-word linter runs on the raw LLM output string before schema validation. If the linter triggers, the response is rejected and a safe fallback is returned.
-
-**Auditor focus:** Review the sanitiser in `src/lib/agents/` for completeness (unicode homoglyphs, zero-width characters). Confirm the forbidden-word check cannot be bypassed by splitting words across tokens.
+### 3.8 Governance Misconfiguration (Timelock/Safe)
+**Vector:** Timelock deployed with wrong delay, an EOA retaining admin, or executors set to an
+open address.
+**Mitigation:** `DeployGovernance.s.sol` sets `minDelay=48h`, proposers=executors=[Safe],
+`admin=address(0)`; `Governance.t.sol` asserts all of this (INV-G1/G2).
+**Auditor focus:** review the *deployed* Timelock on Base Sepolia matches the script/tests;
+confirm no leftover admin and that `transferOwnership(vault → timelock)` actually executed.
 
 ---
 
-## 4. Mitigations Summary Table
+## 4. Mitigations Summary
 
-| Attack | Primary mitigation | Secondary mitigation |
+| Attack | Primary mitigation | Secondary |
 |---|---|---|
-| Reentrancy | OZ ReentrancyGuard + CEI | Audit trail via EventLogger |
-| Share inflation/donation | `_decimalsOffset=12` virtual shares | $250k minimum deposit |
-| Oracle manipulation | Separate oracle role key | Off-chain anomaly monitoring |
-| Signature replay | EIP-712 chainId binding at construction | No external chainId param |
-| Admin session theft | M-of-N Safe multisig | Non-upgradeable vault (MVP) |
-| Inngest spoofing | HMAC signing key verification | 401 on failure, no partial execution |
-| Engine side-channel | Input schema validation (Zod) | Server-side iteration cap |
-| LLM prompt injection | Input sanitisation + forbidden-word linter | Safe fallback on linter trigger |
+| Reentrancy | No custom external calls; OZ CEI + SafeERC20; non-callback USDC | Auditor to advise on defensive `nonReentrant` |
+| Share inflation/donation | `_decimalsOffset()=12` virtual shares | Indicative `minDeposit` |
+| Pause/availability | Guardian = pause-only, no fund power | Owner rotates guardian via 48h Timelock |
+| Owner compromise | Owner = Timelock(48h) ← Safe 3/5; non-upgradeable | Owner has no fund-movement power |
+| PoR/journal integrity | Append-only, immutable single publisher, advisory-only | Event audit trail; one attestation/period |
+| Capital-deployment gap | Off-chain custody (Fireblocks/SPV) | Documented OPEN ITEM for the arch call |
+| Signature replay | Vault has no signature surface at all | Off-chain Timelock hashing binds chainId |
+| Governance misconfig | Deploy script + 13 governance tests | Post-deploy on-chain verification (runbook) |
+
+---
+
+## 5. Removed claims (were in the first draft, do NOT exist in code)
+
+For the auditor's benefit, the following were asserted in the `8ba18c99` draft and have been
+**removed because they have no counterpart in `contracts/src/`**: `subscribe()`, `distribute()`,
+`rebalance()`, `pauseVault()`, `ReentrancyGuard`/`nonReentrant`, `PoRRegistry.updateBalance()`,
+`ORACLE_UPDATER_ROLE`, `DEFAULT_ADMIN_ROLE` on PoR, and any vault `permit`/EIP-712/domain-
+separator. A grep at the freeze SHA confirms zero occurrences of these in `contracts/src/`.

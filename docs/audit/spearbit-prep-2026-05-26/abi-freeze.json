@@ -1,20 +1,23 @@
 {
   "_meta": {
-    "description": "ABI freeze for the Spearbit audit pack — populated from the frozen SHA. The abi arrays below are the canonical audited surface; any contract change must re-freeze (bump freeze_sha + recompile).",
-    "freeze_sha": "79d0ef962658959670c6b2936747019826a8c8a7",
-    "supersedes_sha": "8ba18c99a5b1ebce225ca3dbce7d4c9372a4be24",
-    "compiled_with": "forge build --root contracts/ (solc 0.8.24, OZ v5.6.1)",
+    "description": "ABI freeze for the Spearbit audit pack — compiled at the freeze SHA. Canonical audited surface of the three custom contracts.",
+    "freeze_sha": "898991c6ee3c3bfe7637509ecee7ac579dc79388",
+    "supersedes_sha": [
+      "8ba18c99a5b1ebce225ca3dbce7d4c9372a4be24 (unpopulated placeholder)",
+      "79d0ef9 (B6 contract commit; ABIs identical — contracts/src unchanged since)"
+    ],
+    "compiled_with": "forge build --root contracts (solc 0.8.24, optimizer 200, evm cancun, via_ir=false)",
+    "oz_dependency": "openzeppelin-contracts v5.6.1 @ 5fd1781b1454fd1ef8e722282f86f9293cacf256",
     "artifact_path": "contracts/out/<ContractName>.sol/<ContractName>.json",
-    "note": "Re-frozen after B6 (commit 79d0ef9): HearstYieldVault now includes OpenZeppelin Pausable + a separate guardian role (pause/unpause/setGuardian/guardian + new constructor param). The prior freeze (8ba18c9) was an unpopulated placeholder.",
+    "note": "Pack reconciled 2026-05-29. ABIs reflect the real code (HearstYieldVault = ERC4626+Ownable+Pausable+guardian; PoRRegistry/EventLogger = immutable single-publisher append-only). No subscribe/distribute/permit/oracle-role exist.",
     "status": "POPULATED"
   },
   "contracts": {
     "EventLogger": {
       "source_path": "contracts/src/EventLogger.sol",
-      "artifact_path": "contracts/out/EventLogger.sol/EventLogger.json",
-      "compiler_version": "0.8.24",
       "network": "Base Sepolia (chainId 84532)",
-      "deployed_address": "TO_BE_FILLED",
+      "compiler_version": "0.8.24",
+      "deployed_address": "TO_BE_FILLED (deploy via DeployBaseSepolia.s.sol, publisher = Safe 3/5)",
       "abi": [
         {
           "type": "constructor",
@@ -139,10 +142,9 @@
     },
     "PoRRegistry": {
       "source_path": "contracts/src/PoRRegistry.sol",
-      "artifact_path": "contracts/out/PoRRegistry.sol/PoRRegistry.json",
-      "compiler_version": "0.8.24",
       "network": "Base Sepolia (chainId 84532)",
-      "deployed_address": "TO_BE_FILLED",
+      "compiler_version": "0.8.24",
+      "deployed_address": "TO_BE_FILLED (deploy via DeployBaseSepolia.s.sol, publisher = Safe 3/5)",
       "abi": [
         {
           "type": "constructor",
@@ -407,10 +409,9 @@
     },
     "HearstYieldVault": {
       "source_path": "contracts/src/HearstYieldVault.sol",
-      "artifact_path": "contracts/out/HearstYieldVault.sol/HearstYieldVault.json",
-      "compiler_version": "0.8.24",
       "network": "Base Sepolia (chainId 84532) — mainnet deploy pending audit sign-off",
-      "deployed_address": "TO_BE_REDEPLOYED — testnet 0xEc733c6dbD69F862489a9Da01338aA5D39C1F60d (ADR-010) predates the guardian param; redeploy required to match this ABI",
+      "compiler_version": "0.8.24",
+      "deployed_address": "TO_BE_REDEPLOYED — prior testnet 0xEc733c6dbD69F862489a9Da01338aA5D39C1F60d predates the guardian param (B6); redeploy with owner=Timelock, guardian=separate key",
       "abi": [
         {
           "type": "constructor",

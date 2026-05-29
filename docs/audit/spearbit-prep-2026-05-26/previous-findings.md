@@ -1,113 +1,105 @@
 # Previous Findings — Hearst Yield Vault
 
-**Freeze SHA:** `8ba18c99a5b1ebce225ca3dbce7d4c9372a4be24`
+**Freeze SHA:** `898991c6ee3c3bfe7637509ecee7ac579dc79388`
 
 ---
 
-## Prior Audit History
+## Prior audit history
 
-No prior external audits have been conducted on this codebase. This is the first formal third-party security review.
+No prior external audits. This is the first formal third-party review.
 
----
+## Reconciliation (2026-05-29)
 
-## Pre-Audit Self-Identified Findings (PRE-01 to PRE-09)
-
-The engineering team conducted an internal security review prior to submitting for formal audit. The following findings were identified and remediated in-house. Auditors may treat these as closed but are encouraged to verify the fixes.
-
----
-
-### PRE-01 — Missing `nonReentrant` on `subscribe()`
-
-**Severity:** High  
-**Status:** Remediated  
-**File:** `contracts/src/HearstYieldVault.sol`  
-**Description:** Initial implementation of `subscribe()` lacked the `nonReentrant` modifier. An attacker with a malicious ERC-20 receive hook could re-enter before share minting completed.  
-**Fix:** Added `nonReentrant` from OZ `ReentrancyGuard`. CEI order verified.
+The first draft (`8ba18c99`) listed PRE-01…PRE-09 as "remediated." On review, **four of them
+described functions/roles that never existed in the code** (`subscribe()`, a `ReentrancyGuard`,
+`ORACLE_UPDATER_ROLE`/`updateBalance()`, a vault `permit`/EIP-712). Rather than claim a fix to
+phantom code, those are **withdrawn and restated against the real contracts** below. The
+genuinely-real items are kept. In-contract-scope items are marked **[CONTRACT]**; off-chain
+items are marked **[OFF-CHAIN — out of this audit's scope]** for context only.
 
 ---
 
-### PRE-02 — ERC-4626 First-Depositor Share Inflation
+### PRE-01 — Reentrancy posture on the vault  **[CONTRACT]**
+**Original claim (WITHDRAWN):** "added `nonReentrant` to `subscribe()`/`redeem()`/`withdraw()`/`distribute()`."
+**Reality:** there is no `subscribe`/`distribute`, and **no `ReentrancyGuard` in the code**. The
+vault exposes only standard OZ ERC-4626 `deposit`/`mint`/`withdraw`/`redeem`, which use
+`SafeERC20` transfers in CEI order with no custom external call and no token callback (USDC).
+**Status:** Restated as a design posture (no guard, no custom reentrant surface). **Open for
+auditor judgement:** advise whether to add a defensive `nonReentrant`. See threat-model §3.1.
 
-**Severity:** High  
-**Status:** Remediated  
-**File:** `contracts/src/HearstYieldVault.sol`  
-**Description:** Standard ERC-4626 vulnerability: a first depositor minting 1 wei of shares then donating USDC directly to the vault contract inflates the share price, causing subsequent depositors to receive 0 shares.  
-**Fix:** Applied OZ ERC4626 v5 `_decimalsOffset = 12` virtual-shares pattern. Minimum deposit of $250k enforced at the API layer as an additional economic barrier.
+### PRE-02 — ERC-4626 first-depositor share inflation  **[CONTRACT]**
+**Severity:** High · **Status:** Mitigated (real).
+**Detail:** standard donation/inflation vector. Mitigated by OZ virtual shares,
+`_decimalsOffset()=12` in `HearstYieldVault.sol`. Indicative `minDeposit` adds an economic
+barrier. Covered by `test_genesisConversion_*` and the convert fuzz tests. (INV-V3.)
 
----
+### PRE-03 — PoRRegistry oracle/admin roles  **[CONTRACT]**
+**Original claim (WITHDRAWN):** "introduced a separate `ORACLE_UPDATER_ROLE`; admin no longer
+holds it; `updateBalance()` guarded."
+**Reality:** `PoRRegistry.sol` has **no AccessControl, no roles, no `updateBalance`**. It has a
+single immutable `publisher` and an append-only `publish()` (one attestation per `YYYYMM`).
+There is no admin role to separate.
+**Status:** Restated — PoR is append-only and advisory; publisher-key compromise is a
+data-integrity concern only (threat-model §3.5, INV-P1…P4).
 
-### PRE-03 — Oracle Role Not Separated from Admin
+### PRE-04 — EIP-712 domain separator / replay on the vault  **[CONTRACT]**
+**Original claim (WITHDRAWN):** "vault uses OZ `EIP712`, `_domainSeparatorV4()`, permit with
+chainId binding."
+**Reality:** the **vault has no EIP-712, no `permit`, no domain separator, no signature entry
+point at all.** The only EIP-712 in the system is **off-chain** (Safe/Timelock operation
+hashing in `src/lib/governance/eip712.ts`), matched to on-chain `TimelockController.hashOperation`
+via the pinned parity vector (architecture.md §5).
+**Status:** Restated — no on-chain replay surface on the vault (threat-model §3.7).
 
-**Severity:** Medium  
-**Status:** Remediated  
-**File:** `contracts/src/PoRRegistry.sol`  
-**Description:** Early version assigned `DEFAULT_ADMIN_ROLE` as the oracle updater role, meaning a compromised admin could silently update PoR balances without multisig co-sign.  
-**Fix:** Introduced a separate `ORACLE_UPDATER_ROLE`. Admin Safe does not hold this role by default.
+### PRE-05 — Engine purity (`Date.now()` leak)  **[OFF-CHAIN — out of scope]**
+**Status:** Mitigated (real). `Date.now()` removed from `src/lib/engine/`; timestamps injected
+by the caller. Engine purity is not part of this contract audit but is noted for context.
 
----
+### PRE-06 — Inngest webhook HMAC verification  **[OFF-CHAIN — out of scope]**
+**Status:** Mitigated (real). `/api/inngest/route.ts` uses the Inngest `serve()` wrapper;
+inbound webhooks are HMAC-verified. Off-chain; context only.
 
-### PRE-04 — EIP-712 Domain Separator Cached Across Fork
+### PRE-07 — LLM agent output schema validation before DB write  **[OFF-CHAIN — out of scope]**
+**Status:** Mitigated (real). All four agents validate output through Zod before any DB write.
+Off-chain; context only.
 
-**Severity:** Medium  
-**Status:** Remediated  
-**File:** `contracts/src/HearstYieldVault.sol`  
-**Description:** An earlier version cached `_domainSeparator` as an immutable at construction. A chain fork would silently reuse the same separator, enabling cross-chain signature replay.  
-**Fix:** Adopted OZ `EIP712` base which recomputes `_domainSeparatorV4()` dynamically when `block.chainid` differs from the cached value at construction (EIP-2612 pattern).
+### PRE-08 — On-chain minimum deposit  **[CONTRACT]**
+**Original claim (PARTIALLY WRONG):** "added `require(assets >= MIN_DEPOSIT)` with
+`MIN_DEPOSIT = 250_000e6` hardcoded in `subscribe()`."
+**Reality:** there is no `subscribe()`. The floor lives in the `_deposit` chokepoint
+(`if (assets < minDeposit) revert DepositBelowMinimum(...)`), but `minDeposit` is an
+**owner-configurable, indicative value** (it can be set to 0 via `setMinDeposit`), **not** a
+hardcoded `250_000e6`. The real $250k min-ticket and the 60-day lock-up are **off-chain
+controls** (KYC + Cayman LPA).
+**Status:** Restated — on-chain `minDeposit` is a UX guardrail, not a compliance control
+(INV-V4, trust assumption §3 in invariants.md). Set the deployed value deliberately at deploy.
 
----
-
-### PRE-05 — Engine Leaked `Date.now()` Into Scenario Output
-
-**Severity:** Low (engine purity violation, not a financial exploit)  
-**Status:** Remediated  
-**File:** `src/lib/engine/scenario.ts`  
-**Description:** A logging statement inside the engine called `Date.now()`, breaking the pure-function invariant and making snapshot tests non-deterministic.  
-**Fix:** Removed `Date.now()` from engine. Timestamps are injected as parameters from the caller layer.
-
----
-
-### PRE-06 — Inngest Webhook Missing HMAC Verification
-
-**Severity:** High  
-**Status:** Remediated  
-**File:** `src/app/api/inngest/route.ts`  
-**Description:** An early version of the Inngest route handler did not call the SDK's `serve()` helper, which performs HMAC verification. Raw event parsing allowed spoofed job triggers.  
-**Fix:** Replaced manual handler with Inngest `serve()` wrapper. All inbound requests are HMAC-verified before handler body executes.
-
----
-
-### PRE-07 — LLM Agent Output Not Schema-Validated Before DB Write
-
-**Severity:** Medium  
-**Status:** Remediated  
-**File:** `src/lib/agents/`  
-**Description:** Agent responses were written to the database as raw strings. A malformed or adversarially crafted LLM output could inject unexpected values into the `Proof` or `RebalanceEvent` tables.  
-**Fix:** All agent outputs are now parsed through a Zod schema before any database write. Parse failures return an error to the caller; no partial data is written.
-
----
-
-### PRE-08 — Missing Deposit Cap Allowing Sub-Minimum Deposits
-
-**Severity:** Medium  
-**Status:** Remediated  
-**File:** `contracts/src/HearstYieldVault.sol`  
-**Description:** The on-chain `subscribe()` function had no minimum amount check. KYC minimum enforcement existed only in the off-chain API layer, which could be bypassed by calling the contract directly.  
-**Fix:** Added `require(assets >= MIN_DEPOSIT, "below minimum")` to `subscribe()`, where `MIN_DEPOSIT` is set to `250_000 * 1e6` (USDC 6 decimals).
+### PRE-09 — Forbidden-word linter unicode bypass  **[OFF-CHAIN — out of scope]**
+**Severity:** Low · **Status:** Partially remediated — still open.
+**Detail:** the agent forbidden-word linter normalises NFKC and strips zero-width characters,
+but a comprehensive homoglyph map is incomplete. Off-chain (LLM agents), not part of this
+contract audit, but flagged for transparency.
 
 ---
 
-### PRE-09 — Forbidden-Word Linter Bypassable via Unicode Homoglyphs
+## New self-identified items (from the real code)
 
-**Severity:** Low  
-**Status:** Partially remediated — under active review  
-**File:** `src/lib/agents/linter.ts`  
-**Description:** The forbidden-word linter matched ASCII patterns only. Substituting `'е'` (Cyrillic) for `'e'` in "guarantee" would bypass the check. Zero-width characters between letters also evaded detection.  
-**Fix applied:** Added unicode normalisation (`NFKC`) and zero-width character stripping before linter evaluation. Comprehensive homoglyph mapping is still being built out — auditors should scrutinise this module.
+### PRE-10 — Guardian/owner separation  **[CONTRACT]** — by design
+The guardian (pause/unpause) is deliberately distinct from the timelocked owner, enforced at
+deploy by `require(guardian != owner)`. A malicious guardian can grief availability (pause)
+but cannot move funds or change parameters. Auditors should confirm the bound impact.
+
+### PRE-11 — No on-chain manager-withdraw path  **[CONTRACT]** — open architecture item
+The vault has no owner/manager function to move USDC out. Capital deployment to mining is
+off-chain (Fireblocks/SPV). Auditors should record this as an explicit off-chain assumption;
+product to confirm the intended capital-deployment mechanism (architecture.md OPEN ITEM).
 
 ---
 
-## Notes for Auditors
+## Notes for auditors
 
-- PRE-01 through PRE-08 are considered fully closed by the team. Supporting test cases exist in `contracts/test/` and `src/lib/agents/__tests__/`.
-- PRE-09 is partially open. The linter module (`src/lib/agents/linter.ts`) is explicitly in scope for review.
-- The team welcomes duplicate findings on any PRE item if the auditor identifies a bypass of the stated fix.
+- **In-contract-scope, real and mitigated:** PRE-02. **Restated as design/open:** PRE-01,
+  PRE-08, PRE-10, PRE-11. **Restated as N/A (phantom in old draft):** PRE-03, PRE-04.
+- Off-chain context only: PRE-05, PRE-06, PRE-07, PRE-09.
+- Supporting tests: `contracts/test/{HearstYieldVault,PoRRegistry,EventLogger,Governance}.t.sol`
+  (73 tests, green at the freeze SHA). Duplicate findings welcome if any stated property breaks.
