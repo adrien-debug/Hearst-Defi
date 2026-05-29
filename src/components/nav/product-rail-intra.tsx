@@ -198,27 +198,6 @@ function isSectionActive(section: AdminSection, pathname: string): boolean {
   return hrefs.some((h) => pathname === h || pathname.startsWith(`${h}/`));
 }
 
-interface Props {
-  /** Override the default PRODUCT_NAV items. */
-  items?: NavItem[];
-}
-
-export function ProductRailIntra({ items = PRODUCT_NAV }: Props) {
-  const pathname = usePathname();
-
-  return (
-    <nav
-      className="ct-rail-intra"
-      aria-label="Intra-app navigation"
-      data-testid="product-rail-intra"
-    >
-      {items.map((item) => (
-        <RailItem key={item.id} item={item} pathname={pathname} />
-      ))}
-    </nav>
-  );
-}
-
 /**
  * Full investor rail — Portfolio / Vaults / Profile.
  * When `isAdmin` is true, a separator + "Admin" entry are appended so an admin
