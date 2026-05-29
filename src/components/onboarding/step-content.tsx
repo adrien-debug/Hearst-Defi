@@ -1,5 +1,8 @@
-import { KycPlaceholder } from "@/components/onboarding/kyc-placeholder";
+import { getSession } from "@/lib/auth/session";
 import { DocsignPlaceholder } from "@/components/onboarding/docsign-placeholder";
+import { DocusignStep } from "@/components/onboarding/docusign-step";
+import { IdentityStep } from "@/components/onboarding/identity-step";
+import { PersonaPlaceholder } from "@/components/onboarding/PersonaPlaceholder";
 
 interface StepContentProps {
   path: "individual" | "corporate" | "fund";
@@ -8,57 +11,107 @@ interface StepContentProps {
 
 /**
  * Maps a (path, stepId) pair to the appropriate step panel.
- * All heavy integrations (Persona, DocuSign) are represented by stubs.
+ *
+ * Real integrations:
+ *   - KYC steps → PersonaEmbed when NEXT_PUBLIC_PERSONA_TEMPLATE_ID is set,
+ *     PersonaPlaceholder otherwise.
+ *   - DocuSign steps → DocusignStep when DOCUSIGN_* env vars are all present,
+ *     DocsignPlaceholder otherwise.
+ *
+ * Never crashes when keys are absent — all embeds have graceful fallbacks.
  */
-export function StepContent({ path, stepId }: StepContentProps) {
-  // ── Individual path ──────────────────────────────────────────────────────────
-  if (path === "individual") {
-    if (stepId === "kyc") return <KycPlaceholder />;
-    if (stepId === "accreditation") {
+export async function StepContent({ path, stepId }: StepContentProps) {
+  // Resolve session once — used by DocuSign to supply the real email.
+  // getSession() is server-only and returns null when unauthenticated.
+  const session = await getSession();
+
+  // ── Persona KYC configuration ─────────────────────────────────────────────
+  const personaTemplateId = process.env.NEXT_PUBLIC_PERSONA_TEMPLATE_ID;
+  const personaRawEnv = process.env.NEXT_PUBLIC_PERSONA_ENVIRONMENT;
+  const personaEnvironment: "sandbox" | "production" =
+    personaRawEnv === "production" ? "production" : "sandbox";
+  const personaReady =
+    typeof personaTemplateId === "string" && personaTemplateId.length > 0;
+
+  // ── DocuSign configuration (server-side env only) ─────────────────────────
+  const docusignConfigured =
+    Boolean(process.env.DOCUSIGN_BASE_URL) &&
+    Boolean(process.env.DOCUSIGN_API_KEY) &&
+    Boolean(process.env.DOCUSIGN_ACCOUNT_ID);
+
+  // Resolve user identity for DocuSign recipient fields.
+  // Falls back gracefully when no session is present (shows placeholder).
+  const userId = session?.userId ?? "";
+  const email = session?.email ?? "";
+  const hasIdentity = Boolean(userId) && Boolean(email);
+
+  // ── KYC helper ────────────────────────────────────────────────────────────
+  function renderKyc() {
+    if (personaReady && personaTemplateId) {
       return (
-        <DocsignPlaceholder label="Accreditation — net worth or income certification" />
+        <IdentityStep
+          templateId={personaTemplateId}
+          environment={personaEnvironment}
+          referenceId={userId || undefined}
+        />
       );
     }
-    if (stepId === "bank-wire") return <BankWirePanel />;
+    return <PersonaPlaceholder />;
   }
 
-  // ── Corporate path ───────────────────────────────────────────────────────────
+  // ── DocuSign helper ───────────────────────────────────────────────────────
+  // DocusignStep handles the case where !configured or !hasIdentity by
+  // rendering the appropriate placeholder internally.
+  function renderDocusign(label: string) {
+    if (!docusignConfigured || !hasIdentity) {
+      return <DocsignPlaceholder label={label} />;
+    }
+    return (
+      <DocusignStep
+        label={label}
+        userId={userId}
+        email={email}
+        vaultId="HYV-A"
+        amount={250_000}
+        configured={docusignConfigured}
+      />
+    );
+  }
+
+  // ── Individual path ───────────────────────────────────────────────────────
+  if (path === "individual") {
+    if (stepId === "kyc") return renderKyc();
+    if (stepId === "accreditation") {
+      return renderDocusign("Accreditation — net worth or income certification");
+    }
+    if (stepId === "bank-wire") return <BankWirePanel renderDocusign={renderDocusign} />;
+  }
+
+  // ── Corporate path ────────────────────────────────────────────────────────
   if (path === "corporate") {
     if (stepId === "entity-docs") {
-      return (
-        <DocsignPlaceholder label="Entity Documents — certificate of incorporation, operating agreement" />
-      );
+      return renderDocusign("Entity Documents — certificate of incorporation, operating agreement");
     }
     if (stepId === "ubo") {
-      return (
-        <DocsignPlaceholder label="UBO Declaration — ultimate beneficial owners ≥ 10%" />
-      );
+      return renderDocusign("UBO Declaration — ultimate beneficial owners ≥ 10%");
     }
-    if (stepId === "kyc-officer") return <KycPlaceholder />;
-    if (stepId === "bank-wire") return <BankWirePanel />;
+    if (stepId === "kyc-officer") return renderKyc();
+    if (stepId === "bank-wire") return <BankWirePanel renderDocusign={renderDocusign} />;
   }
 
-  // ── Fund path ────────────────────────────────────────────────────────────────
+  // ── Fund path ─────────────────────────────────────────────────────────────
   if (path === "fund") {
     if (stepId === "fund-formation") {
-      return (
-        <DocsignPlaceholder label="Fund Formation — LPA, PPM, audited financial statements" />
-      );
+      return renderDocusign("Fund Formation — LPA, PPM, audited financial statements");
     }
     if (stepId === "aml") {
-      return (
-        <DocsignPlaceholder label="AML Compliance — compliance officer designation and policies" />
-      );
+      return renderDocusign("AML Compliance — compliance officer designation and policies");
     }
     if (stepId === "sub-advisor") {
-      return (
-        <DocsignPlaceholder label="Sub-Advisor Confirmation — delegated investment authority" />
-      );
+      return renderDocusign("Sub-Advisor Confirmation — delegated investment authority");
     }
     if (stepId === "master-account") {
-      return (
-        <DocsignPlaceholder label="Master Account Setup — omnibus account and allocation keys" />
-      );
+      return renderDocusign("Master Account Setup — omnibus account and allocation keys");
     }
   }
 
@@ -73,7 +126,11 @@ export function StepContent({ path, stepId }: StepContentProps) {
 }
 
 /** Shared bank wire info panel (individual + corporate). */
-function BankWirePanel() {
+function BankWirePanel({
+  renderDocusign,
+}: {
+  renderDocusign: (label: string) => React.ReactNode;
+}) {
   return (
     <div className="rounded-[var(--ct-radius-lg)] border border-[var(--ct-border)] bg-[var(--ct-surface-1)] px-6 py-8">
       <h3 className="mb-4 text-sm font-semibold text-[var(--ct-text-strong)]">
@@ -84,7 +141,7 @@ function BankWirePanel() {
         account. Provide your wire instructions below. This is not a
         deposit — wire details are used for outbound distributions only.
       </p>
-      <DocsignPlaceholder label="Bank Wire Instructions — SWIFT/IBAN details secured via DocuSign" />
+      {renderDocusign("Bank Wire Instructions — SWIFT/IBAN details secured via DocuSign")}
     </div>
   );
 }

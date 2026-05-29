@@ -1,19 +1,26 @@
 /**
  * S4 — Wallet binding page.
  *
- * Privy embedded wallet stub (P1 integration pending). Displays the placeholder
- * component and a "Continue" CTA that advances to the review step.
+ * Uses the real Privy wallet-connect component when NEXT_PUBLIC_PRIVY_APP_ID
+ * is configured. Falls back to a "Configuration en attente" state when the
+ * key is absent — the page never crashes.
+ *
  * Non-negotiable #5: no forbidden words.
  */
 
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { WalletConnectPlaceholder } from "@/components/onboarding/WalletConnectPlaceholder";
+import { PrivyWalletConnect } from "@/components/onboarding/privy-wallet-connect";
 
 export const dynamic = "force-dynamic";
 
 export default function WalletPage() {
+  // NEXT_PUBLIC_* vars are inlined at build time by Next.js; we read them here
+  // on the server so we can pass a plain string prop to the client component
+  // (avoids a double read on the client and keeps the logic in the Server Component).
+  const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID ?? "";
+
   return (
     <div className="ct-card w-full max-w-lg flex flex-col gap-[var(--ct-space-6)]">
       {/* Header */}
@@ -38,8 +45,8 @@ export default function WalletPage() {
         </p>
       </header>
 
-      {/* Privy stub */}
-      <WalletConnectPlaceholder />
+      {/* Privy wallet connect — real embed when appId present, config-pending fallback otherwise */}
+      <PrivyWalletConnect appId={appId} />
 
       {/* Navigation */}
       <div className="flex flex-col gap-[var(--ct-space-3)]">

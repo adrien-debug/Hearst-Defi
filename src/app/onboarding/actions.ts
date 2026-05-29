@@ -91,6 +91,8 @@ const CreateEnvelopeInputSchema = z.object({
   userId: z.string().min(1).max(200),
   vaultId: z.string().min(1).max(200),
   amount: z.number().positive(),
+  /** Real investor email — used for DocuSign recipient, never a placeholder. */
+  email: z.string().email().max(320),
 });
 
 // DocuSign REST API — minimal subset of the createEnvelope response we use.
@@ -130,7 +132,7 @@ export async function docusignCreateEnvelope(
   baseUrl: string,
   apiKey: string,
   accountId: string,
-  opts: { userId: string; vaultId: string; amount: number },
+  opts: { userId: string; email: string; vaultId: string; amount: number },
 ): Promise<{ envelopeId: string; status: string }> {
   const body = {
     emailSubject: "Hearst Connect — Subscription Agreement",
@@ -148,7 +150,7 @@ export async function docusignCreateEnvelope(
     recipients: {
       signers: [
         {
-          email: `${opts.userId}@placeholder.hearst`,
+          email: opts.email,
           name: opts.userId,
           recipientId: "1",
           routingOrder: "1",
@@ -208,12 +210,12 @@ export async function docusignCreateRecipientView(
   apiKey: string,
   accountId: string,
   envelopeId: string,
-  opts: { userId: string; returnUrl: string },
+  opts: { userId: string; email: string; returnUrl: string },
 ): Promise<string> {
   const body = {
     authenticationMethod: "none",
     clientUserId: opts.userId,
-    email: `${opts.userId}@placeholder.hearst`,
+    email: opts.email,
     recipientId: "1",
     returnUrl: opts.returnUrl,
     userName: opts.userId,
@@ -257,9 +259,11 @@ export async function docusignCreateRecipientView(
 /**
  * Creates a DocuSign envelope for the subscription agreement and persists it.
  *
- * @param userId  - Auth identity (User.id or Privy DID).
+ * @param userId  - Auth identity (User.id).
  * @param vaultId - VaultDeployment.id or vault key.
  * @param amount  - Subscription amount in USDC.
+ * @param email   - Authenticated user's real email address (from session).
+ *                  Must never be a synthetic `@placeholder.hearst` address.
  *
  * @returns `{ envelopeId, signingUrl }` — the signingUrl is a one-time URL;
  *          the caller must render it immediately (it expires in ~5 min).
@@ -268,14 +272,15 @@ export async function createSubscriptionEnvelope(
   userId: string,
   vaultId: string,
   amount: number,
+  email: string,
 ): Promise<CreateSubscriptionEnvelopeResult> {
   // 1. Validate inputs
-  const parsed = CreateEnvelopeInputSchema.safeParse({ userId, vaultId, amount });
+  const parsed = CreateEnvelopeInputSchema.safeParse({ userId, vaultId, amount, email });
   if (!parsed.success) {
     throw new Error(`Invalid input: ${parsed.error.message}`);
   }
 
-  const { userId: validUserId, vaultId: validVaultId, amount: validAmount } =
+  const { userId: validUserId, vaultId: validVaultId, amount: validAmount, email: validEmail } =
     parsed.data;
 
   // 2. Load env config
@@ -292,7 +297,7 @@ export async function createSubscriptionEnvelope(
     baseUrl,
     apiKey,
     accountId,
-    { userId: validUserId, vaultId: validVaultId, amount: validAmount },
+    { userId: validUserId, email: validEmail, vaultId: validVaultId, amount: validAmount },
   );
 
   // 5. Persist envelope in DB (status = "sent")
@@ -311,7 +316,7 @@ export async function createSubscriptionEnvelope(
     apiKey,
     accountId,
     envelopeId,
-    { userId: validUserId, returnUrl },
+    { userId: validUserId, email: validEmail, returnUrl },
   );
 
   return { envelopeId, signingUrl };

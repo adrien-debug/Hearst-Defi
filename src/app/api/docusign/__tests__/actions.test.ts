@@ -88,7 +88,7 @@ describe("docusignCreateEnvelope", () => {
       "https://demo.docusign.net/restapi",
       "test-api-key",
       "account-id-1",
-      { userId: "user-1", vaultId: "vault-1", amount: 250_000 },
+      { userId: "user-1", email: "user1@example.com", vaultId: "vault-1", amount: 250_000 },
     );
 
     expect(result.envelopeId).toBe("env-xyz");
@@ -103,7 +103,7 @@ describe("docusignCreateEnvelope", () => {
         "https://demo.docusign.net/restapi",
         "bad-key",
         "account-id-1",
-        { userId: "user-1", vaultId: "vault-1", amount: 250_000 },
+        { userId: "user-1", email: "user1@example.com", vaultId: "vault-1", amount: 250_000 },
       ),
     ).rejects.toThrow("DocuSign createEnvelope failed: 401 Unauthorized");
   });
@@ -123,7 +123,7 @@ describe("docusignCreateRecipientView", () => {
       "test-api-key",
       "account-id-1",
       "env-abc",
-      { userId: "user-1", returnUrl: "https://connect.hearst.app/onboarding/signed" },
+      { userId: "user-1", email: "user1@example.com", returnUrl: "https://connect.hearst.app/onboarding/signed" },
     );
 
     expect(result).toBe(url);
@@ -138,7 +138,7 @@ describe("docusignCreateRecipientView", () => {
         "test-api-key",
         "account-id-1",
         "env-missing",
-        { userId: "user-1", returnUrl: "https://connect.hearst.app/onboarding/signed" },
+        { userId: "user-1", email: "user1@example.com", returnUrl: "https://connect.hearst.app/onboarding/signed" },
       ),
     ).rejects.toThrow("DocuSign createRecipientView failed: 404 Not Found");
   });
@@ -169,7 +169,7 @@ describe("createSubscriptionEnvelope (server action)", () => {
 
     vi.stubGlobal("fetch", fetchMock);
 
-    const result = await createSubscriptionEnvelope("user-1", "vault-1", 250_000);
+    const result = await createSubscriptionEnvelope("user-1", "vault-1", 250_000, "user1@example.com");
 
     expect(result.envelopeId).toBe("env-happy");
     expect(result.signingUrl).toBe("https://demo.docusign.net/signing?t=happy");
@@ -190,7 +190,7 @@ describe("createSubscriptionEnvelope (server action)", () => {
     delete process.env.DOCUSIGN_BASE_URL;
 
     await expect(
-      createSubscriptionEnvelope("user-1", "vault-1", 250_000),
+      createSubscriptionEnvelope("user-1", "vault-1", 250_000, "user1@example.com"),
     ).rejects.toThrow("Missing DocuSign configuration");
 
     expect(mockCreate).not.toHaveBeenCalled();
@@ -200,7 +200,7 @@ describe("createSubscriptionEnvelope (server action)", () => {
     delete process.env.DOCUSIGN_API_KEY;
 
     await expect(
-      createSubscriptionEnvelope("user-1", "vault-1", 250_000),
+      createSubscriptionEnvelope("user-1", "vault-1", 250_000, "user1@example.com"),
     ).rejects.toThrow("Missing DocuSign configuration");
 
     expect(mockCreate).not.toHaveBeenCalled();
@@ -208,7 +208,7 @@ describe("createSubscriptionEnvelope (server action)", () => {
 
   it("throws on invalid input (negative amount)", async () => {
     await expect(
-      createSubscriptionEnvelope("user-1", "vault-1", -1),
+      createSubscriptionEnvelope("user-1", "vault-1", -1, "user1@example.com"),
     ).rejects.toThrow("Invalid input");
 
     expect(mockCreate).not.toHaveBeenCalled();
@@ -221,7 +221,7 @@ describe("createSubscriptionEnvelope (server action)", () => {
     );
 
     await expect(
-      createSubscriptionEnvelope("user-1", "vault-1", 250_000),
+      createSubscriptionEnvelope("user-1", "vault-1", 250_000, "user1@example.com"),
     ).rejects.toThrow("DocuSign createEnvelope failed");
 
     expect(mockCreate).not.toHaveBeenCalled();
@@ -237,7 +237,7 @@ describe("createSubscriptionEnvelope (server action)", () => {
     );
 
     await expect(
-      createSubscriptionEnvelope("user-1", "vault-1", 250_000),
+      createSubscriptionEnvelope("user-1", "vault-1", 250_000, "user1@example.com"),
     ).rejects.toThrow("DocuSign createRecipientView failed");
   });
 });
