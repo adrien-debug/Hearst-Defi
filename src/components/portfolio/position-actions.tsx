@@ -36,7 +36,30 @@ function shortHash(h: string): string {
   return h.length > 12 ? `${h.slice(0, 6)}…${h.slice(-4)}` : h;
 }
 
+/**
+ * Guard: the live flow uses Privy hooks (usePrivy/useWallets) which THROW when
+ * no PrivyProvider is mounted — and the provider is a pass-through when
+ * NEXT_PUBLIC_PRIVY_APP_ID is unset. So when Privy is not configured we render a
+ * static notice and NEVER call the hooks (build-time env → stable branch, rules
+ * of hooks respected). Mirrors PrivyWalletConnect's inner/placeholder split.
+ */
 export function PositionActions({ position }: PositionActionsProps) {
+  if (position.status !== "active") return null;
+  if (!process.env.NEXT_PUBLIC_PRIVY_APP_ID) {
+    return (
+      <section aria-label="Position actions" className="flex flex-col gap-3">
+        <p className="body-xs ct-text-muted">
+          Self-served redemption connects your wallet to redeem vault shares on
+          Base Sepolia. Wallet connection is being configured — contact Investor
+          Relations to initiate a redemption in the meantime.
+        </p>
+      </section>
+    );
+  }
+  return <PositionActionsLive position={position} />;
+}
+
+function PositionActionsLive({ position }: PositionActionsProps) {
   const router = useRouter();
   const { ready } = usePrivy();
   const { wallets } = useWallets();
